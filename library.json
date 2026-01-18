@@ -1,0 +1,23 @@
+{
+  "name": "KiraFlux-Mono",
+  "version": "0.0.0",
+  "description": "Common Tools",
+  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KiraFlux/KiraFlux-Mono.git"
+  },
+  "authors": [
+    {
+      "name": "KiraFlux",
+      "email": "kiraflux@duck.com"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "*",
+  "dependencies": {},
+  "export": {
+    "include": "src/kf"
+  }
+}

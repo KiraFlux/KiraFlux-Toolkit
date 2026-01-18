@@ -1,0 +1,30 @@
+{
+  "name": "Fresh-EspNow",
+  "version": "2.0.0",
+  "description": "C++ wrapper for ESP-NOW protocol",
+  "keywords": [
+    "espnow",
+    "esp32",
+    "wireless",
+    "communication"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KiraFlux/Fresh-EspNow.git"
+  },
+  "authors": [
+    {
+      "name": "KiraFlux",
+      "email": "kiraflux@duck.com"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "dependencies": {
+    "KiraFlux-ToolBox": "https://github.com/KiraFlux/KiraFlux-ToolBox.git"
+  },
+  "export": {
+    "include": "src/kf"
+  }
+}

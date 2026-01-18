@@ -1,0 +1,38 @@
+{
+  "name": "KiraFlux-GFX",
+  "version": "0.8.0",
+  "description": "Minimalistic embedded graphics library with hierarchical frame support, efficient primitives, and text rendering. Optimized for resource-constrained systems",
+  "keywords": [
+    "gfx",
+    "graphics",
+    "embedded",
+    "drawing",
+    "frame buffer",
+    "primitives",
+    "text-rendering",
+    "embedded-graphics",
+    "arduino",
+    "esp32",
+    "stm32"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KiraFlux/KiraFlux-GFX.git"
+  },
+  "authors": [
+    {
+      "name": "KiraFlux",
+      "email": "kiraflux@duck.com",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "dependencies": {
+    "KiraFlux-ToolBox": "https://github.com/KiraFlux/KiraFlux-ToolBox.git"
+  },
+  "export": {
+    "include": "src/kf"
+  }
+}

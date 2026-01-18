@@ -1,0 +1,33 @@
+{
+  "name": "ELA",
+  "version": "1.2.1",
+  "description": "Embedded Linear Algebra library with error handling",
+  "keywords": [
+    "linear-algebra",
+    "vector",
+    "matrix",
+    "embedded",
+    "geometry",
+    "esp32",
+    "error-handling"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KiraFlux/ELA.git"
+  },
+  "authors": [
+    {
+      "name": "KiraFlux",
+      "email": "kiraflux@duck.com"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "export": {
+    "include": "src/ela"
+  },
+  "dependencies": {
+    "Rustify": "https://github.com/KiraFlux/Rustify.git"
+  }
+}

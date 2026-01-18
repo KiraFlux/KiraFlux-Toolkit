@@ -1,0 +1,33 @@
+{
+  "name": "ByteLang-Bridge",
+  "version": "1.2.0",
+  "description": "Structured command bridge protocol for embedded device communication",
+  "keywords": [
+    "bytelang",
+    "bridge",
+    "protocol",
+    "command",
+    "serial",
+    "embedded",
+    "communication"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KiraFlux/ByteLang-Bridge.git"
+  },
+  "authors": [
+    {
+      "name": "KiraFlux",
+      "email": "kiraflux@duck.com"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "*",
+  "dependencies": {
+    "KiraFlux-ToolBox": "https://github.com/KiraFlux/KiraFlux-ToolBox.git"
+  },
+  "export": {
+    "include": "src/bytelang"
+  }
+}

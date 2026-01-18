@@ -1,0 +1,34 @@
+{
+  "name": "KiraFlux-DisDrv",
+  "version": "2.0.0",
+  "description": "Lightweight display driver collection",
+  "keywords": [
+    "display",
+    "screen",
+    "Wire",
+    "SPI",
+    "OLED",
+    "TFT",
+    "ST7735",
+    "SSD1306"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KiraFlux/KiraFlux-DisDrv.git"
+  },
+  "authors": [
+    {
+      "name": "KiraFlux",
+      "email": "kiraflux@duck.com"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "*",
+  "dependencies": {
+    "KiraFlux-ToolBox": "https://github.com/KiraFlux/KiraFlux-ToolBox.git"
+  },
+  "export": {
+    "include": "src/kf"
+  }
+}
