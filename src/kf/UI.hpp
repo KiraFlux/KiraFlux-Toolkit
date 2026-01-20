@@ -239,16 +239,18 @@ public:
             return;
         }
 
-        const bool render_required = active_page->onEvent(events.front());
-        events.pop();
+        bool render_required{false};
 
-        if (not render_required) {
-            return;
+        while (not events.empty()) {
+            render_required = render_required or active_page->onEvent(events.front());
+            events.pop();
         }
 
-        render_system.prepare();
-        active_page->render(render_system);
-        render_system.finish();
+        if (render_required) {
+            render_system.prepare();
+            active_page->render(render_system);
+            render_system.finish();
+        }
     }
 
     // Built-in widget implementations
