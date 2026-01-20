@@ -30,7 +30,7 @@ public:
     using ColorType = typename Traits::ColorType;
 
     /// @brief Pixel format
-    static constexpr auto Format{F};
+    static constexpr auto pixel_format{F};
 
 protected:
     /// @brief Physical display width
