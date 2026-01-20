@@ -14,6 +14,7 @@
 #include "kf/gfx/Font.hpp"
 #include "kf/gfx/StaticImage.hpp"
 
+
 namespace kf::gfx {
 
 /// @brief Drawing context with graphics primitives and text rendering
@@ -43,7 +44,8 @@ public:
         const DynamicImage<Format> &frame,
         const Font &font = Font::blank(),
         ColorType foreground = Traits::foreground_default,
-        ColorType background = Traits::background_default) noexcept :
+        ColorType background = Traits::background_default
+    ) noexcept:
         frame{frame},
         current_font{&font},
         foreground_color{foreground},
@@ -51,7 +53,7 @@ public:
         auto_next_line{false} {}
 
     /// @brief Default constructor - creates invalid canvas
-    explicit Canvas() noexcept :
+    explicit Canvas() noexcept:
         frame{},
         current_font{&Font::blank()},
         foreground_color{Traits::foreground_default},
@@ -66,7 +68,8 @@ public:
     /// @return Sub-canvas or error if out of bounds
     Result<Canvas, typename DynamicImage<Format>::Error> sub(
         Pixel width, Pixel height,
-        Pixel offset_x, Pixel offset_y) {
+        Pixel offset_x, Pixel offset_y
+    ) {
         const auto frame_result = frame.sub(width, height, offset_x, offset_y);
         if (frame_result.isOk()) {
             return {Canvas{frame_result.ok().value(), *current_font, foreground_color, background_color}};
@@ -78,12 +81,14 @@ public:
     /// @warning No bounds checking - caller must ensure parameters are valid
     Canvas subUnchecked(
         Pixel width, Pixel height,
-        Pixel offset_x, Pixel offset_y) {
+        Pixel offset_x, Pixel offset_y
+    ) {
         return Canvas{
             frame.subUnchecked(width, height, offset_x, offset_y),
             *current_font,
             foreground_color,
-            background_color};
+            background_color
+        };
     }
 
     // Attributes
@@ -108,6 +113,12 @@ public:
 
     /// @brief Get tab width based on current font (4 character widths)
     kf_nodiscard Pixel tabWidth() const noexcept { return static_cast<Pixel>(current_font->widthTotal() * 4); }
+
+    /// @brief Get canvas width in glyphs
+    kf_nodiscard u8 widthInGlyphs() const noexcept { return frame.width / current_font->widthTotal(); }
+
+    /// @brief Get canvas height in glyphs
+    kf_nodiscard u8 heightInGlyphs() const noexcept { return frame.height / current_font->heightTotal(); }
 
     // Control
 
@@ -148,7 +159,7 @@ public:
         Array<Canvas, N> result;
         for (usize i = 0; i < N; i += 1) {
             Pixel size = (remaining * weights[i]) / total_weight;
-            if (i == N - 1) size = remaining;
+            if (i == N - 1) { size = remaining; }
 
             if (size > 0) {
                 if (horizontal) {
@@ -223,12 +234,12 @@ public:
 
             const auto double_error = 2 * error;
             if (double_error >= dy) {
-                if (x0 == x1) break;
+                if (x0 == x1) { break; }
                 error += dy;
                 x0 = static_cast<Pixel>(x0 + sx);
             }
             if (double_error <= dx) {
-                if (y0 == y1) break;
+                if (y0 == y1) { break; }
                 error += dx;
                 y0 = static_cast<Pixel>(y0 + sy);
             }
