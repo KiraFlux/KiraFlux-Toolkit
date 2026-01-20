@@ -16,8 +16,9 @@
 #include "kf/memory/Array.hpp"
 #include "kf/memory/Map.hpp"
 #include "kf/memory/Slice.hpp"
-#include "kf/memory/String.hpp"
+#include "kf/memory/ArrayString.hpp"
 #include "kf/pattern/Singleton.hpp"
+
 
 namespace kf {
 
@@ -184,7 +185,8 @@ private:
             Mac ret{};
             esp_read_mac(ret.data(), ESP_MAC_WIFI_STA);
             return ret;
-        }()};
+        }()
+    };
 
 public:
     /// @brief Initialize ESP-NOW protocol
@@ -286,7 +288,7 @@ public:
     kf_nodiscard static ArrayString<mac_string_size> stringFromMac(const Mac &mac) {
         ArrayString<mac_string_size> ret{};
         const auto p = mac.data();
-        formatTo(ret, "%02x%02x-%02x%02x-%02x%02x", p[0], p[1], p[2], p[3], p[4], p[5]);
+        (void) ret.format("%02x%02x-%02x%02x-%02x%02x", p[0], p[1], p[2], p[3], p[4], p[5]);
         return ret;
     }
 
@@ -308,7 +310,7 @@ public:
             return_case(kf::EspNow::Error::PeerListIsFull);
             return_case(kf::EspNow::Error::PeerAlreadyExists);
             default:
-                return_case(kf::EspNow::Error::UnknownError);
+            return_case(kf::EspNow::Error::UnknownError);
         }
     }
 

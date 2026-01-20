@@ -11,6 +11,7 @@
 #include "kf/core/attributes.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/Slice.hpp"
+#include "kf/memory/StringView.hpp"
 #include "kf/ui/Render.hpp"
 
 
@@ -26,7 +27,7 @@ struct TextRender : Render<TextRender> {
 
     /// @brief Text renderer configuration settings
     struct Settings {
-        using RenderHandler = Function<void(Slice<const char>)>;///< Render completion callback type
+        using RenderHandler = Function<void(StringView)>;///< Render completion callback type
 
         static constexpr auto rows_default{4}; ///< Default row count
         static constexpr auto cols_default{16};///< Default column count
@@ -75,14 +76,14 @@ private:
 
     /// @brief Render page title line
     /// @param title Title text to display
-    void titleImpl(const char *title) {
+    void titleImpl(StringView title) {
         (void) print(title);
         (void) write('\n');
     }
 
     /// @brief Render text string
     /// @param str String to display
-    void stringImpl(const char *str) {
+    void stringImpl(StringView str) {
         (void) print(str);
     }
 
@@ -156,16 +157,18 @@ private:
     /// @brief Print null-terminated string to buffer
     /// @param str String to print (nullptr prints "nullptr")
     /// @return Number of characters written
-    kf_nodiscard usize print(const char *str) {
-        if (nullptr == str) {
-            str = "nullptr";
+    kf_nodiscard usize print(StringView str) {
+        const char *s = str.data();
+
+        if (nullptr == s) {
+            s = "nullptr";
         }
 
         usize written{0};
 
-        while (*str != '\x00') {
-            written += write(*str);
-            str += 1;
+        while (*s != '\x00') {
+            written += write(*s);
+            s += 1;
         }
 
         return written;

@@ -5,6 +5,8 @@
 
 #include "kf/core/aliases.hpp"
 #include "kf/core/attributes.hpp"
+#include "kf/memory/StringView.hpp"
+
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 
@@ -40,11 +42,11 @@ template<typename Impl> struct Render {
 
     /// @brief Render page title
     /// @param title Title text string
-    void title(const char *title) { impl().titleImpl(title); }
+    void title(StringView title) { impl().titleImpl(title); }
 
     /// @brief Render text string
     /// @param str String to display
-    void string(const char *str) { impl().stringImpl(str); }
+    void string(StringView str) { impl().stringImpl(str); }
 
     /// @brief Render integer number
     /// @param integer Integer value to display

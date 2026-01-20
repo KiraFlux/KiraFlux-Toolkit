@@ -460,11 +460,21 @@ public:
         /// @brief Render value with appropriate formatting
         /// @param render Renderer instance
         void doRender(RenderImpl &render) const override {
-            kf_if_constexpr (kf::is_floating_point<T>::value) {
-                render.number(static_cast<float>(value), 3);
-            } else {
-                render.number(value);
-            }
+            display(render, value);
+        }
+
+    private:
+
+        static void display(RenderImpl &render, float value) {
+            render.number(static_cast<float>(value), 3);
+        }
+
+        static void display(RenderImpl &render, int value) {
+            render.number(value);
+        }
+
+        static void display(RenderImpl &render, StringView value) {
+            render.string(value);
         }
     };
 
