@@ -205,7 +205,7 @@ private:
 public:
     /// @brief Access renderer configuration settings
     /// @return Reference to renderer settings structure
-    typename RenderImpl::Settings &getRenderSettings() {
+    typename RenderImpl::Settings &renderSettings() {
         return render_system.settings;
     }
 

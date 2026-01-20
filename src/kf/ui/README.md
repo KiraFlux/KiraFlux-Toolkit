@@ -113,7 +113,7 @@ using MyUI = kf::UI<MyCustomRender>;
 using TextUI = kf::UI<kf::ui::TextRender>;
 
 // Настройка текстового рендера
-auto& render_settings = TextUI::instance().getRenderSettings();
+auto& render_settings = TextUI::instance().renderSettings();
 render_settings.buffer = text_buffer;
 render_settings.rows_total = 4;
 render_settings.row_max_length = 20;
@@ -383,7 +383,7 @@ void setup() {
     auto& ui = TextUI::instance();
     
     // Настройка рендера
-    auto& render_settings = ui.getRenderSettings();
+    auto& render_settings = ui.renderSettings();
     render_settings.buffer = {reinterpret_cast<uint8_t*>(text_buffer), 
                              sizeof(text_buffer)};
     render_settings.rows_total = 4;
@@ -511,7 +511,7 @@ struct UI {
     void poll();
     
     // Настройки
-    auto& getRenderSettings();
+    auto& renderSettings();
     
     // Виджеты
     struct Button;

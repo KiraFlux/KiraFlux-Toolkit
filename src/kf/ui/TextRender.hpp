@@ -13,6 +13,7 @@
 #include "kf/memory/Slice.hpp"
 #include "kf/ui/Render.hpp"
 
+
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 namespace ui {
 
@@ -25,15 +26,17 @@ struct TextRender : Render<TextRender> {
 
     /// @brief Text renderer configuration settings
     struct Settings {
-        using RenderHandler = Function<void(Slice<const u8>)>;///< Render completion callback type
+        using RenderHandler = Function<void(Slice<const char>)>;///< Render completion callback type
 
         static constexpr auto rows_default{4}; ///< Default row count
         static constexpr auto cols_default{16};///< Default column count
 
-        RenderHandler on_render_finish{nullptr};///< Callback invoked when rendering completes
-        Slice<u8> buffer{};                     ///< Output buffer for rendered text
-        GlyphUnit rows_total{rows_default};     ///< Total available rows in display
         GlyphUnit row_max_length{cols_default}; ///< Maximum characters per row
+        GlyphUnit rows_total{rows_default};     ///< Total available rows in display
+        Slice<char> buffer{};                     ///< Output buffer for rendered text
+        RenderHandler on_render_finish{nullptr};///< Callback invoked when rendering completes
+
+        Settings(const Settings &) = delete;
     };
 
     Settings settings{};///< Current renderer configuration
@@ -245,7 +248,7 @@ private:
     /// @param c Character to write
     /// @return 1 if character written, 0 otherwise
     /// @note Handles line wrapping, row limits, and contrast mode
-    kf_nodiscard usize write(u8 c) {
+    kf_nodiscard usize write(char c) {
         if (buffer_cursor >= settings.buffer.size()) {
             return 0;
         }
