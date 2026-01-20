@@ -7,31 +7,25 @@
 
 namespace kf {
 
-// Угол
-
-/// @brief Угол в градусах (deg)
+/// @brief Angle in degrees
 using Degrees = u16;
 
-// Расстояние
-
-/// @brief Описывает позицию пикселях
+/// @brief Pixel position coordinate
 using Pixel = i16;
 
-/// @brief Псевдоним типа выражения физической величины в миллиметрах (mm)
+/// @brief Physical distance in millimeters
 using Millimeters = f64;
 
-// Время
-
-/// @brief Выражает физическую величину отсчёта времени в секундах (s)
+/// @brief Time duration in seconds
 using Seconds = f32;
 
-/// @brief Выражает физическую величину в Герцах (Гц) (Hz = 1 / s)
+/// @brief Frequency in Hertz (Hz = 1/s)
 using Hertz = u16;
 
-/// @brief Выражает физическую величину отсчёта времени в миллисекундах (ms)
+/// @brief Time duration in milliseconds
 using Milliseconds = u32;
 
-/// @brief Выражает физическую величину отсчёта времени в микросекундах (us)
+/// @brief Time duration in microseconds
 using Microseconds = u32;
 
 }// namespace kf

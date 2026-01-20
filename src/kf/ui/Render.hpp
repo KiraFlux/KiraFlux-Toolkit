@@ -8,71 +8,82 @@
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 
-/// @brief отдельное пространство имён для внешних компонентов UI
+/// @brief External UI components namespace
 namespace ui {
 
-/// @brief Система рендера
+/// @brief CRTP base class for UI rendering systems
+/// @tparam Impl Concrete renderer implementation type
+/// @note Delegates all rendering operations to derived class implementation
 template<typename Impl> struct Render {
     friend Impl;
 
-    // Управление
+    // Control operations
 
-    /// @brief Подготовить буфер отрисовки
+    /// @brief Prepare render buffer for new frame
     void prepare() { impl().prepareImpl(); }
 
-    /// @brief После рендера кадра
+    /// @brief Finalize frame after rendering
     void finish() { impl().finishImpl(); }
 
-    /// @brief Начало отрисовки виджета
+    /// @brief Begin rendering specific widget
+    /// @param index Widget index in UI hierarchy
     void beginWidget(usize index) { impl().beginWidgetImpl(index); }
 
-    /// @brief Завершение отрисовки виджета
+    /// @brief Finish rendering current widget
     void endWidget() { impl().endWidgetImpl(); }
 
-    /// @brief Количество виджетов, которые ещё возможно отобразить
+    /// @brief Get remaining widget rendering capacity
+    /// @return Number of widgets that can still be rendered in current frame
     kf_nodiscard usize widgetsAvailable() { return impl().widgetsAvailableImpl(); }
 
-    // Значения
+    // Value rendering
 
-    /// @brief Заголовок страницы
+    /// @brief Render page title
+    /// @param title Title text string
     void title(const char *title) { impl().titleImpl(title); }
 
-    /// @brief Отобразить строку
+    /// @brief Render text string
+    /// @param str String to display
     void string(const char *str) { impl().stringImpl(str); }
 
-    /// @brief Отобразить целое число
+    /// @brief Render integer number
+    /// @param integer Integer value to display
     void number(i32 integer) { impl().numberImpl(integer); }
 
-    /// @brief Отобразить вещественное число
+    /// @brief Render floating-point number
+    /// @param real Floating-point value to display
+    /// @param rounding Number of decimal places to show
     void number(f64 real, u8 rounding) { impl().numberImpl(real, rounding); }
 
-    // Оформление
+    // Decoration and layout
 
-    /// @brief Отобразить стрелку от края к виджету
+    /// @brief Render arrow pointing from edge to widget
     void arrow() { impl().arrowImpl(); }
 
-    /// @brief Колонка (Разделитель)
+    /// @brief Render colon separator
     void colon() { impl().colonImpl(); }
 
-    /// @brief Контрастный текст
+    /// @brief Begin contrasting text region (higher visibility)
     void beginContrast() { impl().beginContrastImpl(); }
 
-    /// @brief Контрастный текст
+    /// @brief End contrasting text region
     void endContrast() { impl().endContrastImpl(); }
 
-    /// @brief Блок
+    /// @brief Begin standard content block
     void beginBlock() { impl().beginBlockImpl(); }
 
-    /// @brief Блок
+    /// @brief End standard content block
     void endBlock() { impl().endBlockImpl(); }
 
-    /// @brief Альтернативный блок
+    /// @brief Begin alternative content block (different styling)
     void beginAltBlock() { impl().beginAltBlockImpl(); }
 
-    /// @brief Альтернативный блок
+    /// @brief End alternative content block
     void endAltBlock() { impl().endAltBlockImpl(); }
 
 private:
+    /// @brief Get reference to derived implementation
+    /// @return Reference to concrete renderer instance
     inline Impl &impl() { return *static_cast<Impl *>(this); }
 };
 

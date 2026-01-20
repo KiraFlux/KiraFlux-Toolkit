@@ -9,81 +9,76 @@
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 
-/// @brief Обработчик прерывания на основной фазе
+/// @brief Primary phase interrupt handler for rotary encoder
 static void IRAM_ATTR encoderInterruptHandler(void *);
 
 namespace kf {
 
-/// @brief Энкодер инкрементальный с двумя фазами
+/// @brief Two-phase incremental rotary encoder with position tracking
+/// @note Uses interrupt on phase A for accurate position counting
 struct Encoder {
 
-    /// @brief Псевдоним типа для положения энкодера в отсчётах (ticks)
+    /// @brief Alias for encoder position in ticks
     using Ticks = i32;
 
-    /// @brief Настройки преобразований
+    /// @brief Conversion settings between ticks and physical units
     struct ConversionSettings : Validable<ConversionSettings> {
-        /// @brief Сколько отсчётов в одном миллиметре (Должно быть положительным!)
-        f32 ticks_in_one_mm;
+        f32 ticks_in_one_mm;///< Ticks per millimeter (must be positive)
 
-        /// @brief Перевести из отсчётов в мм
+        /// @brief Convert ticks to millimeters
+        /// @param ticks Encoder ticks to convert
+        /// @return Equivalent distance in millimeters
         kf_nodiscard Millimeters toMillimeters(Ticks ticks) const {
             return Millimeters(ticks) / ticks_in_one_mm;
         }
 
-        /// @brief Перевести из мм в отсчёты
+        /// @brief Convert millimeters to ticks
+        /// @param mm Distance in millimeters
+        /// @return Equivalent encoder ticks
         kf_nodiscard Ticks toTicks(Millimeters mm) const {
             return Ticks(mm * ticks_in_one_mm);
         }
 
+        /// @brief Validate conversion settings
+        /// @param validator Validation context
         void check(Validator &validator) const {
             kf_Validator_check(validator, ticks_in_one_mm > 0);
         }
     };
 
-    /// @brief Настройки пинов
+    /// @brief GPIO pin configuration for encoder
     struct PinsSettings {
-
-        /// @brief Режим вызова прерывания
+        /// @brief Interrupt trigger edge
         enum class Edge : u8 {
-
-            /// @brief Прерывание по нарастанию (LOW -> HIGH)
-            Rising = RISING,
-
-            /// @brief Прерывание по спаду (HIGH -> LOW)
-            Falling = FALLING
+            Rising = RISING, ///< Trigger on rising edge (LOW to HIGH)
+            Falling = FALLING///< Trigger on falling edge (HIGH to LOW)
         };
 
-        /// @brief Пин основного сигнала (источник прерывания)
-        u8 phase_a;
-
-        /// @brief Пин вторичной фазы (для определения направления)
-        u8 phase_b;
-
-        /// @brief Фронт срабатывания прерывания
-        Edge edge;
+        u8 phase_a;///< Primary signal pin (interrupt source)
+        u8 phase_b;///< Secondary phase pin (direction detection)
+        Edge edge; ///< Interrupt trigger edge
     };
 
-    /// @brief Настройки подключения
-    const PinsSettings &pins;
+    const PinsSettings &pins;            ///< Pin configuration reference
+    const ConversionSettings &conversion;///< Unit conversion settings
+    Ticks position{0};                   ///< Current position in ticks
 
-    /// @brief Настройки преобразования
-    const ConversionSettings &conversion;
-
-    /// @brief Текущее положение энкодера в отсчётах
-    Ticks position{0};
-
-    explicit Encoder(const PinsSettings &pins_settings, const ConversionSettings &conversion_settings) :
+    /// @brief Construct encoder instance
+    /// @param pins_settings Pin configuration
+    /// @param conversion_settings Unit conversion settings
+    explicit Encoder(const PinsSettings &pins_settings,
+                     const ConversionSettings &conversion_settings) :
         pins{pins_settings}, conversion{conversion_settings} {}
 
-    /// @brief Инициализировать пины энкодера
+    /// @brief Initialize encoder GPIO pins
+    /// @note Must be called before enabling interrupts
     void init() {
         pinMode(pins.phase_a, INPUT);
         pinMode(pins.phase_b, INPUT);
-
         enable();
     }
 
-    /// @brief Разрешить (Подключить) обработку прерываний с основной фазы
+    /// @brief Enable interrupt handling for encoder
     void enable() {
         attachInterruptArg(
             pins.phase_a,
@@ -92,27 +87,31 @@ struct Encoder {
             static_cast<int>(pins.edge));
     }
 
-    /// @brief Отключить обработку прерываний
+    /// @brief Disable encoder interrupts
     void disable() const {
         detachInterrupt(pins.phase_a);
     }
 
-    /// @brief Положение энкодера в отчётах
+    /// @brief Get current position in ticks
+    /// @return Encoder position in ticks
     kf_nodiscard inline Ticks getPositionTicks() const {
         return position;
     }
 
-    /// @brief Установить положение энкодера в отсчётах
+    /// @brief Set position in ticks
+    /// @param new_position New tick count
     void setPositionTicks(Ticks new_position) {
         position = new_position;
     }
 
-    /// @brief Положение энкодера в мм
+    /// @brief Get current position in millimeters
+    /// @return Encoder position in millimeters
     kf_nodiscard inline Millimeters getPositionMillimeters() const {
         return conversion.toMillimeters(position);
     }
 
-    /// @brief Установить положение энкодера в мм
+    /// @brief Set position in millimeters
+    /// @param new_position New position in millimeters
     void setPositionMillimeters(Millimeters new_position) {
         position = conversion.toTicks(new_position);
     }
@@ -120,6 +119,9 @@ struct Encoder {
 
 }// namespace kf
 
+/// @brief Interrupt handler for rotary encoder
+/// @param instance Pointer to Encoder instance
+/// @note Increments/decrements position based on phase B state
 void encoderInterruptHandler(void *instance) {
     auto &encoder = *static_cast<kf::Encoder *>(instance);
 

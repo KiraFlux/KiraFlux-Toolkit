@@ -3,14 +3,14 @@
 
 // arch detection
 
-#if defined(__AVR__) || defined(AVR) || defined(__AVR_ATmega328P__) || defined(ARDUINO_AVR_NANO)
+#if defined(__AVR__) or defined(AVR) or defined(__AVR_ATmega328P__) or defined(ARDUINO_AVR_NANO)
 #define kf_arch_avr 1
 #define kf_arch_name "avr"
 #else
 #define kf_arch_avr 0
 #endif
 
-#if defined(ESP32) || defined(ESP_PLATFORM)
+#if defined(ESP32) or defined(ESP_PLATFORM)
 #define kf_arch_esp32 1
 #define kf_arch_name "esp32"
 #else
@@ -28,6 +28,7 @@
 #define kf_port_has_vector 0
 #define kf_port_has_deque 0
 #define kf_port_has_queue 0
+#define kf_port_has_map 0
 
 #else
 
@@ -40,5 +41,6 @@
 #define kf_port_has_vector 1
 #define kf_port_has_deque 1
 #define kf_port_has_queue 1
+#define kf_port_has_map 1
 
 #endif

@@ -10,24 +10,19 @@
 
 namespace kf {
 
-/// @brief Двухосевой манипулятор
+/// @brief Two-degree-of-freedom robotic manipulator with servo control
+/// @note Controls arm and claw axes using PWM-position servo drivers
 struct Manipulator2DOF {
 
-    /// @brief Настройки двухосного манипулятора
+    /// @brief Configuration settings for 2DOF manipulator
     struct Settings : Validable<Settings> {
+        PwmPositionServo::PwmSettings servo_pwm;                     ///< PWM signal configuration
+        PwmPositionServo::PulseSettings servo_generic_pulse_settings;///< Pulse timing settings
+        PwmPositionServo::DriverSettings claw_axis;                  ///< Claw axis servo configuration
+        PwmPositionServo::DriverSettings arm_axis;                   ///< Arm axis servo configuration
 
-        /// @brief Настройки ШИМ сервопривода
-        PwmPositionServo::PwmSettings servo_pwm;
-
-        /// @brief Настройки Pulse сервопривода
-        PwmPositionServo::PulseSettings servo_generic_pulse_settings;
-
-        /// @brief Настройки оси захвата
-        PwmPositionServo::DriverSettings claw_axis;
-
-        /// @brief Настройки оси звена
-        PwmPositionServo::DriverSettings arm_axis;
-
+        /// @brief Validate all configuration parameters
+        /// @param validator Validation context
         void check(Validator &validator) const {
             kf_Validator_check(validator, arm_axis.isValid());
             kf_Validator_check(validator, claw_axis.isValid());
@@ -37,22 +32,21 @@ struct Manipulator2DOF {
     };
 
 private:
-    /// @brief Настройки манипулятора
-    const Settings &settings;
-
-    /// @brief Привод оси звена
-    PwmPositionServo arm_axis;
-
-    /// @brief Привод оси захвата
-    PwmPositionServo claw_axis;
+    const Settings &settings;  ///< Reference to configuration settings
+    PwmPositionServo arm_axis; ///< Arm axis servo driver
+    PwmPositionServo claw_axis;///< Claw axis servo driver
 
 public:
+    /// @brief Construct manipulator instance
+    /// @param settings Configuration settings for both axes
     explicit Manipulator2DOF(const Settings &settings) :
         settings{settings},
         arm_axis{settings.servo_pwm, settings.arm_axis, settings.servo_generic_pulse_settings},
         claw_axis{settings.servo_pwm, settings.claw_axis, settings.servo_generic_pulse_settings} {}
 
-    /// @brief Инициализировать захват
+    /// @brief Initialize both servo axes
+    /// @return true if both servos initialized successfully
+    /// @note Logs error message if initialization fails
     kf_nodiscard bool init() {
         if (not arm_axis.init()) {
             kf_Logger_error("arm axis fail");
@@ -67,12 +61,18 @@ public:
         return true;
     }
 
+    /// @brief Set arm axis angle
+    /// @param angle Target angle in degrees
     inline void setArm(Degrees angle) { arm_axis.set(angle); }
 
+    /// @brief Set claw axis angle
+    /// @param angle Target angle in degrees
     inline void setClaw(Degrees angle) { claw_axis.set(angle); }
 
+    /// @brief Disable arm axis servo (stop PWM)
     inline void disableArm() { arm_axis.disable(); }
 
+    /// @brief Disable claw axis servo (stop PWM)
     inline void disableClaw() { claw_axis.disable(); }
 };
 

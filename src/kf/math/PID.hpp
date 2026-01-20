@@ -6,38 +6,45 @@
 #include <Arduino.h>
 
 #include "kf/core/aliases.hpp"
+#include "kf/core/attributes.hpp"
 #include "kf/math/filters/LowFrequencyFilter.hpp"
 
 namespace kf {
 
-/// @brief Реализация PID регулятора с внешней зависимостью настроек
+/// @brief PID controller implementation with external settings reference
+/// @note Includes derivative filtering and integral anti-windup
 struct PID {
 
 public:
-    /// @brief Настройки регулятора
+    /// @brief PID controller tuning parameters
     struct Settings {
-        /// @brief Коэффициент компонент регулятора
-        f32 p, i, d;
-
-        /// @brief Ограничение значение интеграла
-        f32 i_limit;
-
-        /// @brief Ограничение выходного значения
-        f32 output_limit;
+        f32 p;           ///< Proportional gain coefficient
+        f32 i;           ///< Integral gain coefficient
+        f32 d;           ///< Derivative gain coefficient
+        f32 i_limit;     ///< Integral term saturation limit
+        f32 output_limit;///< Controller output saturation limit
     };
 
 private:
-    const Settings &settings;
-    LowFrequencyFilter<f32> dx_filter;
-    f32 dx{0};
-    f32 ix{0};
-    f32 last_error{NAN};
+    const Settings &settings;         ///< Reference to tuning parameters
+    LowFrequencyFilter<f32> dx_filter;///< Low-pass filter for derivative term
+    f32 dx{0};                        ///< Current derivative value
+    f32 ix{0};                        ///< Current integral value
+    f32 last_error{NAN};              ///< Previous error value
 
 public:
+    /// @brief Construct PID controller instance
+    /// @param settings PID tuning parameters
+    /// @param dx_filter_alpha Derivative filter smoothing factor (default: 1.0 = no filtering)
     explicit PID(const Settings &settings, f32 dx_filter_alpha = 1.0f) :
         settings{settings}, dx_filter{dx_filter_alpha} {}
 
-    f32 calc(f32 error, f32 dt) {
+    /// @brief Calculate PID controller output
+    /// @param error Current control error (setpoint - measurement)
+    /// @param dt Time step in seconds since last calculation
+    /// @return Controller output (saturated to output_limit)
+    /// @note Skips calculation for invalid dt values (≤0 or >0.1s)
+    kf_nodiscard f32 calc(f32 error, f32 dt) {
         constexpr auto max_dt = 0.1f;
 
         if (dt <= 0.0f or dt > max_dt) {
@@ -60,6 +67,7 @@ public:
         return constrain(output, -settings.output_limit, settings.output_limit);
     }
 
+    /// @brief Reset controller internal state (integral and derivative terms)
     void reset() {
         dx = 0.0f;
         ix = 0.0f;

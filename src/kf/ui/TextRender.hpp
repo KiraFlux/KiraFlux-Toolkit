@@ -11,54 +11,51 @@
 #include "kf/core/attributes.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/Slice.hpp"
-
 #include "kf/ui/Render.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 namespace ui {
 
-/// @brief Система отрисовки простым текстом
+/// @brief Text-based UI rendering system for terminal/console output
+/// @note Implements Render CRTP interface for character-based display
 struct TextRender : Render<TextRender> {
     friend struct Render<TextRender>;
 
-    /// @brief Единица измерения текстового интерфейса в глифах
-    using GlyphUnit = u8;
+    using GlyphUnit = u8;///< Text interface measurement unit in glyphs
 
-    /// @brief Настройки рендера
+    /// @brief Text renderer configuration settings
     struct Settings {
-        using RenderHandler = Function<void(Slice<const u8>)>;
+        using RenderHandler = Function<void(Slice<const u8>)>;///< Render completion callback type
 
-        static constexpr auto rows_default{4};
-        static constexpr auto cols_default{16};
+        static constexpr auto rows_default{4}; ///< Default row count
+        static constexpr auto cols_default{16};///< Default column count
 
-        /// @brief Обработчик отрисовки
-        RenderHandler on_render_finish{nullptr};
-
-        /// @brief буфер вывода
-        Slice<u8> buffer{};
-
-        /// @brief Кол-во строк
-        GlyphUnit rows_total{rows_default};
-
-        /// @brief Максимальная длина строки
-        GlyphUnit row_max_length{cols_default};
+        RenderHandler on_render_finish{nullptr};///< Callback invoked when rendering completes
+        Slice<u8> buffer{};                     ///< Output buffer for rendered text
+        GlyphUnit rows_total{rows_default};     ///< Total available rows in display
+        GlyphUnit row_max_length{cols_default}; ///< Maximum characters per row
     };
 
-    Settings settings{};
+    Settings settings{};///< Current renderer configuration
 
 private:
-    usize buffer_cursor{0};
-    GlyphUnit cursor_row{0}, cursor_col{0};
-    bool contrast_mode{false};
+    usize buffer_cursor{0};   ///< Current position in output buffer
+    GlyphUnit cursor_row{0};  ///< Current row position in virtual display
+    GlyphUnit cursor_col{0};  ///< Current column position in current row
+    bool contrast_mode{false};///< Current contrast mode state
 
+    /// @brief Calculate remaining widget capacity
+    /// @return Number of widgets that can still be rendered
     kf_nodiscard usize widgetsAvailableImpl() const {
         return settings.rows_total - cursor_row;
     }
 
+    /// @brief Prepare renderer for new frame
     void prepareImpl() {
         buffer_cursor = 0;
     }
 
+    /// @brief Finalize current frame and invoke callback
     void finishImpl() {
         if (nullptr == settings.buffer.data()) {
             return;
@@ -73,68 +70,89 @@ private:
         }
     }
 
+    /// @brief Render page title line
+    /// @param title Title text to display
     void titleImpl(const char *title) {
         (void) print(title);
         (void) write('\n');
     }
 
+    /// @brief Render text string
+    /// @param str String to display
     void stringImpl(const char *str) {
         (void) print(str);
     }
 
+    /// @brief Render integer value
+    /// @param integer Integer to display
     void numberImpl(i32 integer) {
         (void) print(integer);
     }
 
+    /// @brief Render floating-point value
+    /// @param real Floating-point number to display
+    /// @param rounding Number of decimal places to show
     void numberImpl(f64 real, u8 rounding) {
         (void) print(real, rounding);
     }
 
+    /// @brief Render arrow indicator (->)
     void arrowImpl() {
         (void) write('-');
         (void) write('>');
         (void) write(' ');
     }
 
+    /// @brief Render colon separator (: )
     void colonImpl() {
         (void) write(':');
         (void) write(' ');
     }
 
+    /// @brief Begin high-contrast text region (special character 0x81)
     void beginContrastImpl() {
         (void) write(0x81);
         contrast_mode = true;
     }
 
+    /// @brief End high-contrast text region (special character 0x80)
     void endContrastImpl() {
         (void) write(0x80);
         contrast_mode = false;
     }
 
+    /// @brief Begin standard block marker ([)
     void beginBlockImpl() {
         (void) write('[');
     }
 
+    /// @brief End standard block marker (])
     void endBlockImpl() {
         (void) write(']');
     }
 
+    /// @brief Begin alternative block marker (<)
     void beginAltBlockImpl() {
         (void) write('<');
     }
 
+    /// @brief End alternative block marker (>)
     void endAltBlockImpl() {
         (void) write('>');
     }
 
+    /// @brief Begin widget rendering (no-op in text renderer)
+    /// @param index Widget index (unused)
     void beginWidgetImpl(usize) {}
 
+    /// @brief End widget rendering (newline)
     void endWidgetImpl() {
         (void) write('\n');
     }
 
-    // help methods...
-
+    /// @brief Print null-terminated string to buffer
+    /// @param str String to print (nullptr prints "nullptr")
+    /// @return Number of characters written
     kf_nodiscard usize print(const char *str) {
         if (nullptr == str) {
             str = "nullptr";
@@ -150,6 +168,9 @@ private:
         return written;
     }
 
+    /// @brief Print integer to buffer
+    /// @param integer Integer value to print
+    /// @return Number of characters written
     kf_nodiscard usize print(i32 integer) {
         if (integer == 0) {
             return write('0');
@@ -180,6 +201,10 @@ private:
         return written;
     }
 
+    /// @brief Print floating-point number to buffer
+    /// @param real Floating-point value to print
+    /// @param rounding Number of decimal places to show
+    /// @return Number of characters written
     kf_nodiscard usize print(f64 real, u8 rounding) {
         if (isnan(real)) {
             return print("nan");
@@ -216,6 +241,10 @@ private:
         return written;
     }
 
+    /// @brief Write single character to buffer
+    /// @param c Character to write
+    /// @return 1 if character written, 0 otherwise
+    /// @note Handles line wrapping, row limits, and contrast mode
     kf_nodiscard usize write(u8 c) {
         if (buffer_cursor >= settings.buffer.size()) {
             return 0;

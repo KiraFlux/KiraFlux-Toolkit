@@ -5,26 +5,30 @@
 
 namespace kf {
 
-/// @brief Полная реализация шаблона проектирования "Одиночка"
+/// @brief Thread-safe Singleton pattern implementation
+/// @tparam T Type to be instantiated as singleton
+/// @note Uses Meyer's singleton (static local variable) for thread safety
 template<typename T> struct Singleton {
 
-    /// @brief Получить ссылку на единственный экземпляр
+    /// @brief Get reference to the single instance
+    /// @return Reference to the unique instance of type T
+    /// @note Instance is created on first call (lazy initialization)
     static T &instance() {
         static T instance{};// NOLINT(*-dynamic-static-initializers)
         return instance;
     }
 
-    /// @brief Запрет копирования
+    /// @brief Deleted copy constructor (non-copyable)
     Singleton(const Singleton &) = delete;
 
-    /// @brief Запрет присваивания
+    /// @brief Deleted copy assignment operator (non-copyable)
     Singleton &operator=(const Singleton &) = delete;
 
 protected:
-    /// @brief Скрытие конструктора по умолчанию (Гарантия единственного экземпляра)
+    /// @brief Protected default constructor (ensures single instance)
     Singleton() = default;
 
-    /// @brief Скрытие деструктора (Гарантия валидности экземпляра всегда)
+    /// @brief Protected destructor (ensures controlled lifetime)
     ~Singleton() = default;
 };
 

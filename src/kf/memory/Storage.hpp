@@ -8,17 +8,23 @@
 #include "kf/Logger.hpp"
 
 namespace kf {
+// todo AVR impl with EEPROM
 
-/// Настройки
+/// @brief Persistent storage wrapper for ESP32 Preferences
+/// @tparam T Data type to store (must be trivially copyable)
+/// @note Uses ESP32's Preferences library for non-volatile storage
 template<typename T> struct Storage final {
 
 private:
-    static constexpr const char *preferences_namespace = "KF-cfg";
+    static constexpr const char *preferences_namespace = "kf-cfg";///< Preferences namespace for all KiraFlux configurations
 
 public:
-    const char *key;
-    T settings;
+    const char *key;///< Unique key for this storage instance
+    T settings;     ///< Current settings data in RAM
 
+    /// @brief Load settings from persistent storage (FLASH)
+    /// @return true if settings loaded successfully, false otherwise
+    /// @note Logs debug and error messages via kf_Logger
     bool load() {
         kf_Logger_debug("Loading storage %s", key);
 
@@ -42,7 +48,9 @@ public:
         return true;
     }
 
-    /// Записывает в FLASH
+    /// @brief Save settings to persistent storage (FLASH)
+    /// @return true if settings saved successfully, false otherwise
+    /// @note Logs debug messages via kf_Logger
     bool save() {
         kf_Logger_debug("Saving storage %s", key);
 
@@ -57,7 +65,9 @@ public:
         return saved == sizeof(T);
     }
 
-    /// Стирает данные хранилища во FLASH
+    /// @brief Erase settings from persistent storage (FLASH)
+    /// @return true if settings erased successfully, false otherwise
+    /// @note Logs debug and error messages via kf_Logger
     bool erase() {
         kf_Logger_debug("Saving storage %s", key);
 
@@ -76,6 +86,10 @@ public:
     }
 
 private:
+    /// @brief Initialize Preferences instance with configured namespace
+    /// @param preferences Preferences instance to initialize
+    /// @param read_only Open in read-only mode if true
+    /// @return true if Preferences opened successfully
     bool begin(Preferences &preferences, bool read_only) const {
         if (preferences.begin(preferences_namespace, read_only)) {
             return true;
@@ -86,6 +100,7 @@ private:
     }
 
 public:
+    /// @brief Copy constructor is deleted (non-copyable)
     Storage(const Storage &) = delete;
 };
 

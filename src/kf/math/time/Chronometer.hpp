@@ -9,16 +9,19 @@
 
 namespace kf {
 
-/// @brief Хронометр
+/// @brief Chronometer for measuring time intervals between calls
+/// @note Uses microsecond precision for accurate delta time calculations
 struct Chronometer final {
 
 private:
-    /// @brief Момент предыдущего измерения
-    Microseconds last{micros()};
+    // todo убрать зависимость от micros()
+    Microseconds last{micros()};///< Timestamp of last measurement
 
 public:
-    /// @brief Рассчитать дельту между вызовами
-    /// @param now Время в данный момент
+    /// @brief Calculate time delta since last call
+    /// @param now Current time in microseconds
+    /// @return Time elapsed in seconds since last calc() call
+    /// @note Updates internal timestamp for next calculation
     Seconds calc(Microseconds now) noexcept {
         const auto delta = now - last;
         last = now;

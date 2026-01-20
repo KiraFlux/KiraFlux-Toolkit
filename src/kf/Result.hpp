@@ -8,33 +8,41 @@
 
 namespace kf {
 
-/// @brief Result or Error
+/// @brief Result type that can hold either a value or an error
+/// @tparam T Type of successful result value
+/// @tparam E Type of error value
+/// @note Embedded-friendly alternative to exceptions for error handling
 template<typename T, typename E> struct Result {
 
 private:
-    bool is_ok;
+    bool is_ok;///< Flag indicating success (true) or error (false)
 
     union {
-        T value;
-        E err;
+        T value;///< Storage for successful result (active when is_ok == true)
+        E err;  ///< Storage for error result (active when is_ok == false)
     };
 
 public:
-    /// @brief Create Successful result
+    /// @brief Construct successful result with value
+    /// @param val Value to store as successful result
     constexpr Result(T val) :// NOLINT(*-explicit-constructor)
         is_ok{true}, value{val} {}
 
-    /// @brief Create Error result
+    /// @brief Construct error result with error
+    /// @param error Error value to store
     constexpr Result(E error) :// NOLINT(*-explicit-constructor)
         is_ok{false}, err{error} {}
 
-    /// @brief Is contains value
+    /// @brief Check if result contains a value (success)
+    /// @return true if result is successful (contains value)
     kf_nodiscard bool isOk() const { return is_ok; }
 
-    /// @brief Is contains error
+    /// @brief Check if result contains an error
+    /// @return true if result contains an error
     kf_nodiscard bool isError() const { return not is_ok; }
 
-    /// @brief Optional Successful Value
+    /// @brief Get successful value as Option
+    /// @return Option containing value if successful, empty Option otherwise
     Option<T> ok() const {
         if (is_ok) {
             return {value};
@@ -43,7 +51,8 @@ public:
         }
     }
 
-    /// @brief Optional Error Value
+    /// @brief Get error value as Option
+    /// @return Option containing error if failed, empty Option otherwise
     Option<E> error() const {
         if (is_ok) {
             return {};
@@ -53,29 +62,35 @@ public:
     }
 };
 
-// void-value specification
+/// @brief Result specialization for void (success-only) operations
+/// @tparam E Type of error value
+/// @note Used for operations that don't return a value on success
 template<typename E> struct Result<void, E> {
 
 private:
-    bool is_ok;
-    E err;
+    bool is_ok;///< Flag indicating success (true) or error (false)
+    E err;     ///< Storage for error result (active when is_ok == false)
 
 public:
-    /// @brief Create Successful result
+    /// @brief Construct successful void result
     constexpr Result() :
         is_ok{true} {}
 
-    /// @brief Create Error result
+    /// @brief Construct error result with error
+    /// @param error Error value to store
     constexpr Result(E error) :// NOLINT(*-explicit-constructor)
         is_ok{false}, err{error} {}
 
-    /// @brief Is contains value
+    /// @brief Check if result is successful
+    /// @return true if operation succeeded (no error)
     kf_nodiscard bool isOk() const { return is_ok; }
 
-    /// @brief Is contains error
+    /// @brief Check if result contains an error
+    /// @return true if operation failed (contains error)
     kf_nodiscard bool isError() const { return not is_ok; }
 
-    /// @brief Optional Error Value
+    /// @brief Get error value as Option
+    /// @return Option containing error if failed, empty Option otherwise
     Option<E> error() const {
         if (is_ok) {
             return {};

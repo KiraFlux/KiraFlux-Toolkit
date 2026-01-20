@@ -3,37 +3,35 @@
 
 #pragma once
 
-#include <Arduino.h>
-
 #include "kf/core/attributes.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf {
-// todo Перенести в Timer
 
-/// @brief Служба для отслеживания момента истечения допустимого таймаута
+/// @brief Service for tracking timeout expiration moments
+/// @note Manages timeout intervals and checks for expiration
 struct TimeoutManager final {
 
 private:
-    /// @brief Таймаут
-    Milliseconds timeout;
-
-    /// @brief Момент следующего таймаута
-    Milliseconds next_timeout{0};
+    Milliseconds timeout;        ///< Timeout duration in milliseconds
+    Milliseconds next_timeout{0};///< Timestamp when timeout will expire
 
 public:
+    /// @brief Construct timeout manager instance
+    /// @param timeout_duration Timeout duration in milliseconds
     explicit TimeoutManager(Milliseconds timeout_duration) :
         timeout{timeout_duration} {}
 
-    /// @brief Обновление таймаута
-    /// @param now Текущее время
+    /// @brief Update timeout expiration time
+    /// @param now Current time in milliseconds
+    /// @note Sets next timeout to current time plus configured duration
     void update(Milliseconds now) {
         next_timeout = now + timeout;
     }
 
-    /// @brief Проверка истечения таймаута
-    /// @param now Текущее время
-    /// @returns true - таймаут просрочен
+    /// @brief Check if timeout has expired
+    /// @param now Current time in milliseconds
+    /// @return true if timeout has expired, false otherwise
     kf_nodiscard inline bool expired(Milliseconds now) const { return now >= next_timeout; }
 };
 

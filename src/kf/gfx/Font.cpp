@@ -1,7 +1,7 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
-#include "Font.hpp"
+#include "kf/gfx/Font.hpp"
 
 // https://github.com/GyverLibs/GyverOLED/blob/main/src/charMap.h
 static constexpr kf::u8 gyver_5x7_en_data[] = {
