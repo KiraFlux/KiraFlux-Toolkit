@@ -200,8 +200,7 @@ public:
     /// @param x Left position
     /// @param y Top position
     /// @param image Image to draw
-    template<Pixel W, Pixel H>
-    void image(Pixel x, Pixel y, const StaticImage<Format, W, H> &image) noexcept {
+    template<Pixel W, Pixel H> void image(Pixel x, Pixel y, const StaticImage<Format, W, H> &image) noexcept {
         Traits::copy(
             image.buffer, image.width(), image.height(),
             frame.buffer, frame.stride, frame.width, frame.height,
@@ -263,18 +262,14 @@ public:
         if (y0 > y1) { std::swap(y0, y1); }
 
         if (fill) {
-            // Fill rectangle
-            for (Pixel y = y0; y <= y1; ++y) {
-                drawLineHorizontal(x0, y, x1, foreground_color);
-            }
+            frame.fill(x0, y0, x1, y1, foreground_color);
         } else {
             // Outline
             drawLineHorizontal(x0, y0, x1, foreground_color);
             drawLineHorizontal(x0, y1, x1, foreground_color);
-            for (auto y = static_cast<Pixel>(y0 + 1); y < y1; ++y) {
-                frame.setPixel(x0, y, foreground_color);
-                frame.setPixel(x1, y, foreground_color);
-            }
+            y0 += 1;
+            drawLineVertical(x0, y0, y1, foreground_color);
+            drawLineVertical(x1, y0, y1, foreground_color);
         }
     }
 
@@ -292,6 +287,8 @@ public:
             for (auto y = -r; y <= r; y += 1) {
                 const int y_squared = y * y;
                 const auto width = static_cast<int>(std::sqrt(r_squared - y_squared));
+
+                // todo lineH
                 for (auto x = -width; x <= width; ++x) {
                     frame.setPixel(static_cast<Pixel>(cx + x), static_cast<Pixel>(cy + y), foreground_color);
                 }
@@ -445,35 +442,27 @@ private:
 
     /// @brief Clear rectangular line segment with background color
     void clearLineSegment(Pixel cursor_x, Pixel cursor_y, Pixel end_x, ColorType color) noexcept {
-        if (cursor_x >= end_x) { return; }
-
-        const auto segment_width = end_x - cursor_x;
-        const auto segment_height = current_font->heightTotal();
-
-        for (auto y = cursor_y; y < segment_height + cursor_y; y += 1) {
-            for (auto x = cursor_x; x < segment_width + cursor_x; x += 1) {
-                frame.setPixel(
-                    static_cast<Pixel>(x),
-                    static_cast<Pixel>(y),
-                    color);
-            }
+        if (cursor_x < end_x) {
+            frame.fill(
+                cursor_x, cursor_y,
+                end_x, current_font->heightTotal() + cursor_y,
+                color
+            );
         }
     }
 
     /// @brief Draw horizontal line (optimized)
     void drawLineHorizontal(Pixel x0, Pixel y, Pixel x1, ColorType color) const noexcept {
-        if (x0 > x1) { std::swap(x0, x1); }
-        for (Pixel x = x0; x <= x1; ++x) {
-            frame.setPixel(x, y, color);
+        if (x0 > x1) {
+            std::swap(x0, x1);
         }
+        frame.fill(x0, y, x1, y, color);
     }
 
     /// @brief Draw vertical line (optimized)
     void drawLineVertical(Pixel x, Pixel y0, Pixel y1, ColorType color) const noexcept {
         if (y0 > y1) { std::swap(y0, y1); }
-        for (Pixel y = y0; y <= y1; ++y) {
-            frame.setPixel(x, y, color);
-        }
+        frame.fill(x, y0, x, y1, color);
     }
 
     /// @brief Draw 8 symmetric points for circle outline
@@ -514,16 +503,11 @@ private:
             const u8 glyph_byte = glyph[col];
 
             for (u8 row = 0; row < font_height; row += 1) {
-                frame.setPixel(
-                    pixel_x,
-                    static_cast<Pixel>(y + row),
-                    (glyph_byte >> row) & 1 ? color_on : color_off);
+                const auto color = (glyph_byte >> row) & 1 ? color_on : color_off;
+                frame.setPixel(pixel_x, static_cast<Pixel>(y + row), color);
             }
 
-            frame.setPixel(
-                pixel_x,
-                static_cast<Pixel>(y + font_height),
-                color_off);
+            frame.setPixel(pixel_x, static_cast<Pixel>(y + font_height), color_off);
         }
     }
 };
