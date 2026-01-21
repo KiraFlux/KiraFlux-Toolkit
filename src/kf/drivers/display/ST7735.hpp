@@ -10,6 +10,7 @@
 #include "kf/core/pixel_traits.hpp"
 #include "kf/drivers/display/DisplayDriver.hpp"
 
+
 namespace kf {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
@@ -29,12 +30,12 @@ private:
 
 public:
     /// @brief Hardware configuration settings for ST7735
-    struct Settings {
+    struct Config {
+        u32 spi_frequency;      ///< SPI clock frequency in Hz
         Orientation orientation;///< Initial display orientation
         u8 pin_spi_slave_select;///< SPI chip select pin
         u8 pin_data_command;    ///< Data/command selection pin
         u8 pin_reset;           ///< Reset pin
-        u32 spi_frequency;      ///< SPI clock frequency in Hz
 
         /// @brief Construct ST7735 hardware settings
         /// @param spi_cs SPI chip select GPIO
@@ -42,12 +43,13 @@ public:
         /// @param reset Reset pin GPIO
         /// @param spi_freq SPI frequency (default 27MHz)
         /// @param orientation Initial orientation (default Normal)
-        constexpr explicit Settings(
+        constexpr explicit Config(
             gpio_num_t spi_cs,
             gpio_num_t dc,
             gpio_num_t reset,
             u32 spi_freq = 27000000u,
-            Orientation orientation = Orientation::Normal) :
+            Orientation orientation = Orientation::Normal
+        ) :
             pin_spi_slave_select{static_cast<u8>(spi_cs)},
             pin_data_command{static_cast<u8>(dc)},
             pin_reset{static_cast<u8>(reset)},
@@ -56,7 +58,7 @@ public:
     };
 
 private:
-    const Settings &settings;///< Hardware configuration
+    const Config &settings;///< Hardware configuration
     SPIClass &spi;           ///< SPI bus instance
 
     u8 logical_width{phys_width};        ///< Current logical width (after orientation)
@@ -67,7 +69,7 @@ public:
     /// @brief Construct ST7735 driver instance
     /// @param settings Hardware configuration
     /// @param spi_instance SPI bus instance to use
-    explicit ST7735(const Settings &settings, SPIClass &spi_instance) :
+    explicit ST7735(const Config &settings, SPIClass &spi_instance) :
         settings{settings}, spi{spi_instance} {}
 
 private:
