@@ -231,7 +231,7 @@ public:
     /// @return Reference to this string
     constexpr ArrayString &trimStart() noexcept {
         usize i = 0;
-        while (i < size_ && isWhitespace(buffer_[i])) {
+        while (i < size_ and isWhitespace(buffer_[i])) {
             ++i;
         }
 
@@ -250,7 +250,7 @@ public:
     /// @brief Trim whitespace from end
     /// @return Reference to this string
     constexpr ArrayString &trimEnd() noexcept {
-        while (size_ > 0 && isWhitespace(buffer_[size_ - 1])) {
+        while (size_ > 0 and isWhitespace(buffer_[size_ - 1])) {
             --size_;
         }
         buffer_[size_] = '\0';
@@ -281,7 +281,7 @@ public:
     /// @param pos Starting position
     /// @return Option containing position of substring if found
     kf_nodiscard constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
-        if (str.size() > size_ || pos > size_ - str.size()) {
+        if (str.size() > size_ or pos > size_ - str.size()) {
             return {};
         }
 
@@ -339,23 +339,6 @@ public:
         return assign(StringView(str, min(M - 1, N)));
     }
 
-    /// @brief Append operator for character
-    constexpr ArrayString &operator+=(char ch) noexcept {
-        push(ch);
-        return *this;
-    }
-
-    /// @brief Append operator for StringView
-    constexpr ArrayString &operator+=(StringView view) noexcept {
-        append(view);
-        return *this;
-    }
-
-    /// @brief Append operator for C-string
-    constexpr ArrayString &operator+=(const char *str) noexcept {
-        append(str);
-        return *this;
-    }
 
     /// @brief Compare with StringView
     kf_nodiscard constexpr int compare(StringView other) const noexcept {
