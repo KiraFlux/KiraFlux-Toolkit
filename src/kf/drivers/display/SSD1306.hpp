@@ -141,7 +141,7 @@ private:
         constexpr auto flip_x = 0b01;
         constexpr auto flip_y = 0b10;
 
-        const u8 flags = static_cast<usize>(orientation) & (flip_x | flip_y);
+        const u8 flags = static_cast<u8>(orientation) & (flip_x | flip_y);
         sendCommand((flags & flip_x) ? FlipH : NormalH);
         sendCommand((flags & flip_y) ? FlipV : NormalV);
     }

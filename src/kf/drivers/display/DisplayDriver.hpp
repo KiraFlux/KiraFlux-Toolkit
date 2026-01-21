@@ -53,7 +53,7 @@ protected:
 
 public:
     /// @brief Display orientation modes
-    enum class Orientation : usize {
+    enum class Orientation : u8 {
         Normal = 0,          ///< Default orientation
         MirrorX = 1,         ///< Horizontal mirror
         MirrorY = 2,         ///< Vertical mirror

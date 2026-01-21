@@ -131,7 +131,7 @@ private:
             MadCtl::MirrorY | MadCtl::MirrorTranspose,// Orientation::CounterClockWise
         };
 
-        const u8 madctl = madctl_base_mode | orient_to_transform[static_cast<usize>(orientation)];
+        const u8 madctl = madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
 
         if (madctl & MadCtl::MirrorTranspose) {
             logical_width = phys_height;
