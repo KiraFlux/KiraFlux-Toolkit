@@ -69,7 +69,7 @@ private:
         cursor_col = 0;
         settings.buffer.data()[buffer_cursor - 1] = '\0';
 
-        if (settings.on_render_finish) {
+        if (nullptr != settings.on_render_finish) {
             settings.on_render_finish({settings.buffer.data(), buffer_cursor});
         }
     }
