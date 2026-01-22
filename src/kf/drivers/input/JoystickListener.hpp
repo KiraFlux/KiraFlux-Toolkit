@@ -3,62 +3,68 @@
 
 #pragma once
 
-#include "kf/Function.hpp"
 #include "kf/core/aliases.hpp"
 #include "kf/core/attributes.hpp"
 #include "kf/drivers/input/Joystick.hpp"
 
+
 namespace kf {
 
-/// @brief Listener for joystick directional change events
-/// @note Event handler triggers only once per direction change
+/// @brief Monitors joystick for discrete directional changes
+/// @note Provides stateful tracking of joystick position with thresholding
 struct JoystickListener {
-
-private:
-    /// @brief Default activation threshold for joystick movement
-    static constexpr auto default_threshold = 0.6;
-
-public:
     /// @brief Joystick direction event types
-    /// @note Events trigger only once when direction changes
     enum class Direction : u8 {
-        Home = 0x00, ///< Joystick returned to center position
-        Up = 0x10,   ///< Joystick moved upward
-        Down = 0x20, ///< Joystick moved downward
-        Left = 0x30, ///< Joystick moved left
-        Right = 0x40,///< Joystick moved right
+        Home = 0, ///< Joystick returned to center position
+        Up = 1,   ///< Joystick moved upward
+        Down = 2, ///< Joystick moved downward
+        Left = 3, ///< Joystick moved left
+        Right = 4,///< Joystick moved right
     };
 
-    Function<void(Direction)> handler{nullptr};///< Callback for direction change events
-    const float threshold{default_threshold};  ///< Activation threshold (0.0 to 1.0)
-
 private:
-    Direction last_direction{Direction::Home};///< Previous detected direction
-    Joystick &joystick;                       ///< Reference to monitored joystick
+
+    Joystick &joystick;                 ///< Reference to monitored joystick
+    const float threshold;              ///< Activation threshold (0.0 to 1.0)
+    Direction current_direction{Direction::Home}; ///< Current logical direction
+    bool has_changed{false};            ///< Flag indicating direction change since last poll
 
 public:
     /// @brief Construct listener for specific joystick
     /// @param joy Joystick instance to monitor
-    explicit JoystickListener(Joystick &joy) :
-        joystick{joy} {}
+    /// @param threshold Activation threshold (0.0 to 1.0, default: 0.6)
+    explicit JoystickListener(Joystick &joy, float threshold = 0.6) :
+        joystick{joy},
+        threshold{threshold} {}
 
-    /// @brief Poll joystick state and trigger events on direction change
-    /// @note Must be called regularly in main loop for event detection
+    /// @brief Poll joystick state and update internal direction
+    /// @note Must be called regularly to track direction changes
     void poll() {
-        if (nullptr == handler) { return; }
-
-        const auto current_direction = getCurrentDirection();
-
-        if (current_direction != last_direction) {
-            handler(current_direction);
-            last_direction = current_direction;
-        }
+        const Direction new_direction = calculateDirection();
+        has_changed = (new_direction != current_direction);
+        current_direction = new_direction;
     }
 
-private:
-    /// @brief Calculate current direction based on joystick axes
-    /// @return Current direction with threshold filtering
-    kf_nodiscard Direction getCurrentDirection() {
+    /// @brief Get current logical direction based on threshold
+    /// @return Current discrete direction
+    /// @note Does not poll joystick - call poll() first to update
+    kf_nodiscard Direction direction() const {
+        return current_direction;
+    }
+
+    /// @brief Check if direction has changed since last poll()
+    /// @return true if direction changed, false otherwise
+    /// @note Resets to false after reading (one-shot flag)
+    kf_nodiscard bool changed() {
+        const bool changed = has_changed;
+        has_changed = false;
+        return changed;
+    }
+
+    /// @brief Calculate raw direction without updating internal state
+    /// @return Current direction based on immediate joystick readings
+    /// @note Useful for one-off checks without state tracking
+    kf_nodiscard Direction calculateDirection() const {
         const auto x = joystick.axis_x.read();
         const auto y = joystick.axis_y.read();
         const auto abs_x = std::abs(x);
@@ -73,6 +79,12 @@ private:
         } else {
             return y > 0 ? Direction::Up : Direction::Down;
         }
+    }
+
+    /// @brief Reset internal state to Home direction
+    void reset() {
+        current_direction = Direction::Home;
+        has_changed = false;
     }
 };
 
