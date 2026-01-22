@@ -14,8 +14,8 @@
 
 ## Поддерживаемые платформы
 
-- AVR (Arduino Nano, Uno, Mega)
 - ESP32
+- AVR (Arduino Nano, Uno, Mega)
 - Минимальный стандарт C++11
 
 ## Быстрый старт
@@ -26,17 +26,6 @@
 lib_deps = https://github.com/KiraFlux/KiraFlux-Toolkit.git
 ```
 
-### Пример
-
-```cpp
-#include <kf/Logger.hpp>
-
-void setup() {
-    kf_Logger_setWriter([](auto msg) { Serial.write(msg.data(), msg.size()); });
-    kf_Logger_info("System started");
-}
-```
-
 ## Документация
 
 - [Графика и дисплеи](./src/kf/gfx/README.md)
@@ -44,7 +33,7 @@ void setup() {
 - [Драйверы вывода](./src/kf/drivers/display/README.md)
 - [Пользовательский интерфейс](./src/kf/ui/README.md)
 - [EspNow](./src/kf/network/EspNow.md)
-- [Последовательный протокол / структурированная коммуникация](./src/kf/network/bytelang/README.md)
+- [Последовательный протокол / структурированная коммуникация](./src/kf/network/mizlang/README.md)
 
 ## Лицензия
 
