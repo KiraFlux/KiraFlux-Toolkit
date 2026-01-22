@@ -5,96 +5,88 @@
 
 #include <Arduino.h>
 
-#include "kf/Function.hpp"
 #include "kf/core/aliases.hpp"
 #include "kf/core/attributes.hpp"
 
+
 namespace kf {
 
-/// @brief Push button with debouncing and configurable pull-up/down
-/// @note Handles debouncing and supports both internal and external pull resistors
+/// @brief Minimal button with press detection only
 struct Button {
-
-    /// @brief Button electrical configuration mode
-    enum class Mode : u8 {
-        PullUp,  ///< Button connects to GND (active LOW)
-        PullDown,///< Button connects to VCC (active HIGH)
-    };
-
-    /// @brief Pull resistor type selection
-    enum class PullType : u8 {
-        External,///< Use external pull resistor
-        Internal,///< Use MCU internal pull resistor
-    };
+    enum class Mode : u8 { PullUp, PullDown };
+    enum class PullType : u8 { External, Internal };
 
 private:
-    /// @brief Debounce duration in milliseconds
-    static constexpr auto debounce_ms = 50;
+    static constexpr Milliseconds debounce_ms = 30;
+
+    u32 last_change{0};
+    bool last_stable{false};
+    bool click_ready{false};
+    bool last_raw{false};
+    const u8 pin;
+    const Mode mode;
 
 public:
-    Function<void()> handler{nullptr};///< Callback invoked on button press
-
-private:
-    u32 last_press_ms{0};  ///< Timestamp of last valid press
-    const u8 pin;          ///< GPIO pin number
-    const Mode mode;       ///< Button electrical mode
-    bool last_state{false};///< Previous filtered button state
-
-public:
-    /// @brief Construct button instance
-    /// @param pin GPIO pin connected to button
-    /// @param mode Electrical configuration (default: PullDown)
     explicit Button(gpio_num_t pin, Mode mode = Mode::PullDown) :
         pin{static_cast<u8>(pin)}, mode{mode} {}
 
-    /// @brief Initialize button hardware
-    /// @param pull_type Select internal or external pull resistor
-    inline void init(PullType pull_type) const noexcept {
+    void init(PullType pull_type) const {
         pinMode(pin, matchMode(pull_type));
     }
 
-    /// @brief Poll button state and trigger handler on press
-    /// @note Must be called regularly (typically in main loop)
-    void poll() noexcept {
-        const auto current_state = read();
+    /// @brief Poll button state - must be called regularly
+    void poll() {
         const auto now = millis();
+        const bool raw = readRaw();
 
-        if (current_state and not last_state) {
-            if (now - last_press_ms > debounce_ms) {
-                if (nullptr != handler) {
-                    handler();
+        if (raw != last_raw) {
+            last_raw = raw;
+            last_change = now;
+        }
+
+        if (now - last_change >= debounce_ms) {
+            if (last_stable != raw) {
+                last_stable = raw;
+
+                if (last_stable) {
+                    click_ready = true;
                 }
-                last_press_ms = now;
             }
         }
-
-        last_state = current_state;
     }
 
-    /// @brief Read current button state
-    /// @return True if button is pressed (after mode conversion)
-    kf_nodiscard bool read() const noexcept {
-        if (mode == Mode::PullUp) {
-            return not digitalRead(pin);
+    /// @brief Check if button was clicked (consumes the click)
+    /// @return true if button was pressed since last call
+    kf_nodiscard bool clicked() {
+        if (click_ready) {
+            click_ready = false;
+            return true;
         }
-        return digitalRead(pin);
+        return false;
+    }
+
+    /// @brief Check current button state
+    /// @return true if button is currently pressed (after debounce)
+    kf_nodiscard bool pressed() const {
+        return last_stable;
     }
 
 private:
-    /// @brief Map pull type to Arduino pin mode constant
-    /// @param pull_type Internal or external pull resistor
-    /// @return Corresponding INPUT mode constant
-    kf_nodiscard inline u8 matchMode(PullType pull_type) const noexcept {
-        if (PullType::External == pull_type) {
+    kf_nodiscard bool readRaw() const {
+        const bool raw = digitalRead(pin);
+        if (mode == Mode::PullUp) {
+            return not raw;
+        } else {
+            return raw;
+        }
+    }
+
+    kf_nodiscard u8 matchMode(PullType pull_type) const {
+        if (pull_type == PullType::External) {
             return INPUT;
         }
-
-        // else - Internal
-        if (mode == Mode::PullUp) {
-            return INPUT_PULLUP;
-        }
-
-        return INPUT_PULLDOWN;
+        return (mode == Mode::PullUp) ? INPUT_PULLUP : INPUT_PULLDOWN;
     }
 };
-}// namespace kf
+
+} // namespace kf
