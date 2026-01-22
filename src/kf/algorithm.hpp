@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+
 #include "kf/core/config.hpp"
+
 
 #if kf_port_has_algorithm
 
 #include <algorithm>
+
 
 namespace kf {
 
@@ -47,17 +50,6 @@ template<typename T> constexpr const T &max(const T &a, const T &b) {
     return (a < b) ? b : a;
 }
 
-/// @brief Constrain value between lower and upper bounds
-/// @tparam T Comparable type
-/// @param value Value to clamp
-/// @param low Lower bound (inclusive)
-/// @param high Upper bound (inclusive)
-/// @return Clamped value (low <= result <= high)
-template<typename T> constexpr T clamp(const T &value, const T &low, const T &high) {
-    return (value < low) ? low : (value > high) ? high
-                                                : value;
-}
-
 /// @brief Apply function to each element in range
 /// @tparam Iterator Iterator type
 /// @tparam Function Function object type
@@ -89,3 +81,16 @@ template<typename Iterator, typename T> Iterator find(Iterator first, Iterator l
 }// namespace kf
 
 #endif
+
+namespace kf {
+
+/// @brief Constrain value between lower and upper bounds
+/// @tparam T Comparable type
+/// @param value Value to clamp
+/// @param low Lower bound (inclusive)
+/// @param high Upper bound (inclusive)
+/// @return Clamped value (low <= result <= high)
+template<typename T> constexpr T clamp(const T &value, const T &low, const T &high) {
+    return (value < low) ? low : (value > high) ? high : value;
+}
+}
