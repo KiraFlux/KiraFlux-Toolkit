@@ -81,7 +81,7 @@ private:
             case '\n':cursor.newline();
                 break;
 
-            case '\x81': // Start contrast
+            case '\x82': // Start contrast
                 cursor.contrast = true;
                 break;
 
@@ -113,15 +113,6 @@ private:
     }
 
     void writeReal(f64 real, u8 rounding) {
-        if (isnan(real)) {
-            writeString("nan");
-            return;
-        }
-        if (isinf(real)) {
-            writeString("inf");
-            return;
-        }
-
         ArrayString<24> temp; // Enough for double with precision
         (void) temp.append(real, rounding);
         writeString(temp.view());
@@ -151,6 +142,8 @@ private:
     }
 
     void titleImpl(StringView title) {
+        writeChar('\xF0');
+        writeChar('\xBA');
         if (config.title_centered) {
             const auto spaces = kf::max(0, (int(config.row_max_length) - int(title.size())) / 2);
             for (int i = 0; i < spaces; i += 1) {
@@ -159,17 +152,22 @@ private:
         }
         writeString(title);
         writeChar('\n');
+        writeChar('\x80');
     }
 
     void checkboxImpl(bool enabled) {
-        writeString(enabled ? "==[ 1 ]" : "[ 0 ]--");
+        constexpr StringView on{"==\xB2[ 1 ]\x80"};
+        constexpr StringView off{"\xB1[ 0 ]\x80--"};
+        writeString(enabled ? on : off);
     }
 
     // Value rendering implementations
     void valueImpl(StringView str) { writeString(str); }
 
     void valueImpl(bool value) {
-        writeString(value ? "true" : "false");
+        constexpr StringView _true{"\xF2true\x80"};
+        constexpr StringView _false{"\xF1""false\x80"};
+        writeString(value ? _true : _false);
     }
 
     void valueImpl(i32 integer) {
@@ -188,21 +186,33 @@ private:
 
     // Decoration rendering
 
-    void arrowImpl() { writeString("-> "); }
+    void arrowImpl() { writeString("\xF6-> "); }
 
-    void colonImpl() { writeString(": "); }
+    void colonImpl() { writeString("\xF6: \x80"); }
 
     void beginFocusedImpl() { writeChar('\x81'); }
 
     void endFocusedImpl() { writeChar('\x80'); }
 
-    void beginBlockImpl() { writeChar('['); }
+    void beginBlockImpl() {
+        writeChar('\xF5');
+        writeChar('[');
+    }
 
-    void endBlockImpl() { writeChar(']'); }
+    void endBlockImpl() {
+        writeChar(']');
+        writeChar('\x80');
+    }
 
-    void beginAltBlockImpl() { writeChar('<'); }
+    void beginAltBlockImpl() {
+        writeChar('\xF5');
+        writeChar('<');
+    }
 
-    void endAltBlockImpl() { writeChar('>'); }
+    void endAltBlockImpl() {
+        writeChar('>');
+        writeChar('\x80');
+    }
 
     void beginWidgetImpl(usize) {} // No-op for text renderer
     void endWidgetImpl() { writeChar('\n'); }
