@@ -4,16 +4,11 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
+#include "kf/core/PixelFormat.hpp"
 #include "kf/core/aliases.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf {
-
-/// @brief Pixel format enumeration
-enum class PixelFormat : u8 {
-    Monochrome,///< 1-bit monochrome format (1 bit per pixel)
-    RGB565,    ///< 16-bit RGB565 format (5-6-5 bits per channel)
-};
 
 /// @brief Pixel traits template for different pixel formats
 /// @tparam Format Pixel format to provide traits for
@@ -218,7 +213,7 @@ private:
 /// @brief RGB565 pixel format traits (16 bits per pixel)
 /// @details Provides buffer type, color type, and operations for RGB565 displays
 template<> struct PixelTraits<PixelFormat::RGB565> {
-    using BufferType = u16;///< Buffer element type (uint16_t)
+    using BufferType = u16;///< Buffer element type (u16)
     using ColorType = u16; ///< Color representation type (RGB565 format)
 
     /// @brief Default foreground color (white)
