@@ -22,11 +22,11 @@ namespace kf {
 /// @brief User interface framework with widget-based rendering
 /// @tparam R Renderer implementation type (must inherit from kf::ui::Render)
 /// @note Singleton pattern ensures single UI instance with event queue and page management
-template<typename R> struct UI final : Singleton<UI<R>> {
-    friend Singleton<UI<R>>;
+template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
+    friend Singleton<UI<R, E>>;
 
     using RenderImpl = R;   ///< Renderer implementation type
-    using Event = ui::Event;///< UI event type alias
+    using Event = E;///< UI event type
 
     struct Page;
 

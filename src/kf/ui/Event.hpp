@@ -3,29 +3,29 @@
 
 #pragma once
 
+#include "kf/algorithm.hpp"
 #include "kf/core/aliases.hpp"
 #include "kf/core/attributes.hpp"
-#include "kf/algorithm.hpp"
-
+#include "kf/core/bit_traits.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 namespace ui {
 
 /// @brief Incoming UI event with type and value packed into single byte
-/// @note Uses 3 bits for type and 5 bits for value (with sign extension)
-struct Event {
+template<u8 T, u8 V> struct Event {
 
-    using Value = i8;///< Event value primitive
+    static constexpr u8 type_bits = T;
+    static constexpr u8 value_bits = V;
+    static constexpr u8 total_bits = type_bits + value_bits;
+
+    using Value = typename bit_traits<value_bits>::min_signed;
+    using Storage = typename bit_traits<total_bits>::min_unsigned;
+
+    static constexpr u8 storage_bits = sizeof(Storage) * 8;
 
 private:
-    using Storage = u8;
-
-    static constexpr unsigned event_bits_total = sizeof(Storage) * 8;
-    static constexpr Storage event_value_full = (1 << event_bits_total) - 1;
-
-    static constexpr unsigned type_bits = 2;
-    static constexpr unsigned value_bits = event_bits_total - type_bits;
-    static constexpr unsigned sign_bit_mask = 1 << (value_bits - 1);
+    static constexpr Storage event_value_full = (1 << storage_bits) - 1;
+    static constexpr Storage sign_bit_mask = 1 << (value_bits - 1);
 
     static constexpr Storage value_mask = (1 << value_bits) - 1;
     static constexpr Storage type_mask = event_value_full & ~value_mask;
@@ -51,8 +51,7 @@ public:
         storage{
             static_cast<Storage>(
                 (static_cast<Storage>(type) & type_mask) |
-                (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))
-        } {}
+                (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))} {}
 
     /// @brief Get event type
     /// @return Event type enum value
