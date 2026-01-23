@@ -186,11 +186,15 @@ template<typename R> struct UI final : Singleton<UI<R>> {
         /// @param delta Cursor movement delta (positive/negative)
         /// @return true if cursor position changed (redraw required)
         kf_nodiscard bool moveCursor(isize delta) {
-            const auto last_cursor = cursor;
-            cursor += delta;
-            cursor = max(static_cast<isize>(cursor), 0);
-            cursor = min(cursor, cursorPositionMax());
-            return last_cursor != cursor;
+            const auto n = totalWidgets();
+            if (n > 1) {
+                cursor += delta;
+                cursor += n;
+                cursor %= n;
+                return true;
+            } else {
+                return false;
+            }
         }
     };
 
