@@ -359,9 +359,7 @@ public:
                 }
 
                 case '\x82': {
-                    const auto new_x = centerX();
-                    clearLineSegment(cursor_x, cursor_y, new_x, current_background_color);
-                    cursor_x = new_x;
+                    std::swap(current_background_color, current_foreground_color);
                     continue;
                 }
                 case '\xF0':
