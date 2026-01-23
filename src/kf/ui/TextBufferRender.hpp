@@ -132,9 +132,11 @@ private:
 
     kf_nodiscard usize widgetsAvailableImpl() const {
         // Subtract 1 for title row
-        return (config.rows_total > cursor.row + 1)
-               ? config.rows_total - cursor.row - 1
-               : 0;
+        if (config.rows_total > cursor.row + 1) {
+            return config.rows_total - cursor.row - 1;
+        } else {
+            return 0;
+        }
     }
 
     void prepareImpl() {
