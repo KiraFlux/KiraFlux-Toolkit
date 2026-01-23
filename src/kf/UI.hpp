@@ -27,6 +27,7 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
 
     using RenderImpl = R;   ///< Renderer implementation type
     using Event = E;///< UI event type
+    using EventValue = typename Event::Value;
 
     struct Page;
 
@@ -52,7 +53,7 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
 
         /// @brief Handle value event
         /// @return true if redraw required, false otherwise
-        virtual bool onValue(Event::Value value) { return false; }
+        virtual bool onValue(EventValue value) { return false; }
 
         /// @brief External widget rendering with focus handling
         /// @param render Renderer instance to use for drawing
@@ -333,7 +334,7 @@ public:
         /// @brief Set state based on direction
         /// @param value Positive sets true, negative sets false
         /// @return true (redraw required after state change)
-        bool onValue(Event::Value value) override {
+        bool onValue(EventValue value) override {
             setState(value > 0);
             return true;
         }
@@ -388,7 +389,7 @@ public:
         /// @brief Change selection based on direction
         /// @param direction Navigation direction (positive/negative)
         /// @return true (redraw required after selection change)
-        bool onValue(Event::Value direction) override {
+        bool onValue(EventValue direction) override {
             moveCursor(direction);
             HasChangeHandler<T>::invokeHandler(items[cursor].value);
             return true;
@@ -464,7 +465,7 @@ public:
         /// @brief Forward change event to wrapped widget
         /// @param value Change direction
         /// @return Result from wrapped widget's onValue()
-        bool onValue(Event::Value value) override { return impl.onValue(value); }
+        bool onValue(EventValue value) override { return impl.onValue(value); }
 
         /// @brief Render label followed by wrapped widget
         /// @param render Renderer instance
@@ -525,7 +526,7 @@ public:
         /// @brief Adjust value or step based on current mode
         /// @param direction Adjustment direction (positive/negative)
         /// @return true (redraw required after adjustment)
-        bool onValue(Event::Value direction) override {
+        bool onValue(EventValue direction) override {
             if (is_step_setting_mode) {
                 changeStep(direction);
             } else {
