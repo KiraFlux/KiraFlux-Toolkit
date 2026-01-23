@@ -6,9 +6,8 @@
 #include "kf/core/aliases.hpp"
 #include "kf/core/attributes.hpp"
 #include "kf/drivers/input/Joystick.hpp"
-#include "kf/math/time/Timer.hpp"
 #include "kf/math/time/TimeoutManager.hpp"
-
+#include "kf/math/time/Timer.hpp"
 
 namespace kf {
 
@@ -17,34 +16,30 @@ namespace kf {
 struct JoystickListener {
     /// @brief Joystick direction event types
     enum class Direction : u8 {
-        Home = 0, ///< Joystick returned to center position
         Up = 1,   ///< Joystick moved upward
         Down = 2, ///< Joystick moved downward
         Left = 3, ///< Joystick moved left
         Right = 4,///< Joystick moved right
+        Home,     ///< Joystick returned to center position
     };
 
 private:
-    /// @brief Default activation threshold for joystick movement
-    static constexpr auto default_threshold = 0.6f;
-
-    Joystick &joystick;                 ///< Reference to monitored joystick
-    const float threshold;              ///< Activation threshold (0.0 to 1.0)
-    Direction current_direction{Direction::Home}; ///< Current logical direction
-    bool has_changed{false};            ///< Flag indicating direction change since last poll
+    Joystick &joystick;   ///< Reference to monitored joystick
+    const float threshold;///< Activation threshold (0.0 to 1.0)
 
     // Autorepeat state
-    Timer repeat_timer{static_cast<kf::Milliseconds>(100)};           ///< Timer for repeat events (100ms interval)
-    TimeoutManager initial_delay{500}; ///< Initial delay before repeat (500ms)
-    bool in_repeat_mode{false};        ///< Whether we're in repeat mode
+    Timer repeat_timer{static_cast<kf::Milliseconds>(100)};///< Timer for repeat events (100ms interval)
+    TimeoutManager initial_delay{400};                     ///< Initial delay before repeat (500ms)
+    bool in_repeat_mode{false};                            ///< Whether we're in repeat mode
+    bool has_changed{false};                               ///< Flag indicating direction change since last poll
+    Direction current_direction{Direction::Home};          ///< Current logical direction
 
 public:
     /// @brief Construct listener for specific joystick
     /// @param joy Joystick instance to monitor
     /// @param threshold Activation threshold (0.0 to 1.0, default: 0.6)
-    explicit JoystickListener(Joystick &joy, float threshold = default_threshold) :
-        joystick{joy},
-        threshold{threshold} {}
+    explicit JoystickListener(Joystick &joy, float threshold = 0.6f) :
+        joystick{joy}, threshold{threshold} {}
 
     /// @brief Poll joystick state and update internal direction with autorepeat
     /// @param now Current time in milliseconds (e.g., from millis())
@@ -60,22 +55,22 @@ public:
 
             // Reset timers on direction change
             if (current_direction != Direction::Home) {
-                initial_delay.update(now); // Reset initial delay
-                repeat_timer = Timer{repeat_timer.period}; // Reset repeat timer
+                initial_delay.update(now);                // Reset initial delay
+                repeat_timer = Timer{repeat_timer.period};// Reset repeat timer
             }
         }
-            // Same direction, check for autorepeat
+        // Same direction, check for autorepeat
         else if (current_direction != Direction::Home) {
             if (not in_repeat_mode) {
                 // Waiting for initial delay (500ms)
                 if (initial_delay.expired(now)) {
                     in_repeat_mode = true;
-                    has_changed = true; // First repeat after delay
+                    has_changed = true;// First repeat after delay
                 }
             } else {
                 // In repeat mode, check for repeat interval (100ms)
                 if (repeat_timer.ready(now)) {
-                    has_changed = true; // Subsequent repeats
+                    has_changed = true;// Subsequent repeats
                 }
             }
         } else {
@@ -85,20 +80,16 @@ public:
     }
 
     /// @brief Get current logical direction based on threshold
-    kf_nodiscard Direction direction() const {
-        return current_direction;
-    }
+    kf_nodiscard Direction direction() const { return current_direction; }
+
+    /// @brief Check if currently in autorepeat mode
+    kf_nodiscard bool repeating() const { return in_repeat_mode; }
 
     /// @brief Check if direction has changed since last poll()
     kf_nodiscard bool changed() {
         const bool changed = has_changed;
         has_changed = false;
         return changed;
-    }
-
-    /// @brief Check if currently in autorepeat mode
-    kf_nodiscard bool repeating() const {
-        return in_repeat_mode;
     }
 
     /// @brief Calculate raw direction without updating internal state
@@ -127,4 +118,4 @@ public:
     }
 };
 
-} // namespace kf
+}// namespace kf
