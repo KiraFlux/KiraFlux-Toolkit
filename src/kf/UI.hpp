@@ -60,9 +60,9 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
         /// @param focused true if widget currently has focus
         void render(RenderImpl &render, bool focused) const {
             if (focused) {
-                render.beginContrast();
+                render.beginFocused();
                 doRender(render);
-                render.endContrast();
+                render.endFocused();
             } else {
                 doRender(render);
             }

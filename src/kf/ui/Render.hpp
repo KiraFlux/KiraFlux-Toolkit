@@ -62,10 +62,10 @@ template<typename Impl> struct Render {
     void colon() { impl().colonImpl(); }
 
     /// @brief Begin contrasting text region (higher visibility)
-    void beginContrast() { impl().beginContrastImpl(); }
+    void beginFocused() { impl().beginFocusedImpl(); }
 
     /// @brief End contrasting text region
-    void endContrast() { impl().endContrastImpl(); }
+    void endFocused() { impl().endFocusedImpl(); }
 
     /// @brief Begin standard content block
     void beginBlock() { impl().beginBlockImpl(); }

@@ -192,9 +192,9 @@ private:
 
     void colonImpl() { writeString(": "); }
 
-    void beginContrastImpl() { writeChar('\x81'); }
+    void beginFocusedImpl() { writeChar('\x81'); }
 
-    void endContrastImpl() { writeChar('\x80'); }
+    void endFocusedImpl() { writeChar('\x80'); }
 
     void beginBlockImpl() { writeChar('['); }
 
