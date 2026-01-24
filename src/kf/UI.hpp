@@ -25,11 +25,11 @@ namespace kf {
 template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
     friend struct Singleton<UI<R, E>>;
 
-    using RenderImpl = R;                           ///< Renderer implementation type
-    using RenderConfig = typename Render::Config;   ///< Renderer Configuration type
+    using RenderImpl = R;                             ///< Renderer implementation type
+    using RenderConfig = typename RenderImpl::Config; ///< Renderer Configuration type
 
-    using Event = E;                                ///< UI Event type
-    using EventValue = typename Event::Value;       ///< UI Event Value type
+    using Event = E;                          ///< UI Event type
+    using EventValue = typename Event::Value; ///< UI Event Value type
 
     struct Page; // forward declaration for Widget
 
