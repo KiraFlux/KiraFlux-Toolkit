@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <math.h> // NOLINT(*-deprecated-headers) // for AVR capability
+#include <cmath>
 
 #include "kf/Function.hpp"
 #include "kf/aliases.hpp"

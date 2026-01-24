@@ -14,6 +14,7 @@
 #include "kf/gfx/DynamicImage.hpp"
 #include "kf/gfx/Font.hpp"
 #include "kf/gfx/StaticImage.hpp"
+#include "ColorPalette.hpp"
 
 
 namespace kf::gfx {
@@ -40,11 +41,6 @@ private:
     bool auto_next_line;       ///< Automatically wrap text to next line
 
 public:
-    /// @brief Constructs canvas with existing frame
-    /// @param frame Target drawing surface
-    /// @param font Initial font (defaults to blank font)
-    /// @param foreground Initial drawing color
-    /// @param background Initial background color
     explicit Canvas(
         const DynamicImage<F> &frame,
         const Font &font = Font::blank(),
@@ -212,11 +208,7 @@ public:
             x, y);
     }
 
-    /// @brief Draw line between two points
-    /// @param x0 Start X coordinate
-    /// @param y0 Start Y coordinate
-    /// @param x1 End X coordinate
-    /// @param y1 End Y coordinate
+    /// @brief Draw line (x0, y0), (x1, y1) between two points
     void line(Pixel x0, Pixel y0, Pixel x1, Pixel y1) const noexcept {
         if (x0 == x1) {
             if (y0 == y1) {
@@ -257,11 +249,6 @@ public:
     }
 
     /// @brief Draw rectangle (filled or outline)
-    /// @param x0 First corner X coordinate
-    /// @param y0 First corner Y coordinate
-    /// @param x1 Opposite corner X coordinate
-    /// @param y1 Opposite corner Y coordinate
-    /// @param fill True for filled rectangle, false for outline
     void rect(Pixel x0, Pixel y0, Pixel x1, Pixel y1, bool fill) noexcept {
         if (x0 > x1) { std::swap(x0, x1); }
         if (y0 > y1) { std::swap(y0, y1); }
@@ -279,10 +266,6 @@ public:
     }
 
     /// @brief Draw circle (filled or outline)
-    /// @param cx Center X coordinate
-    /// @param cy Center Y coordinate
-    /// @param r Radius in pixels
-    /// @param fill True for filled circle, false for outline
     void circle(Pixel cx, Pixel cy, Pixel r, bool fill) noexcept {
         if (r < 0) { return; }
 
@@ -326,9 +309,6 @@ public:
     }
 
     /// @brief Draw text at specified position
-    /// @param start_x Starting X coordinate (left)
-    /// @param start_y Starting Y coordinate (top)
-    /// @param text Null-terminated string with formatting codes
     /// @details Supports formatting codes:
     ///   \x80 - Normal color mode (text - fg, bg)
     ///   \x81 - Invert color mode (bg, text - fg)

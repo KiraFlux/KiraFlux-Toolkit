@@ -7,7 +7,7 @@
 #include "kf/core/PixelFormat.hpp"
 
 
-namespace kf {
+namespace kf::gfx {
 
 template<PixelFormat F> struct ColorPalette {
     using traits = pixel_traits<F>;
@@ -63,4 +63,4 @@ public:
     }
 };
 
-}// namespace kf
+}

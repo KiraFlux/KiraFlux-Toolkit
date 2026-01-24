@@ -43,8 +43,6 @@ private:
     AnalogValue max_value{0};///< Cached maximum ADC value
 
 public:
-    /// @brief Construct Sharp sensor instance
-    /// @param settings Sensor configuration settings
     explicit Sharp(const Settings &settings) :
         settings{settings} {}
 

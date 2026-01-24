@@ -58,13 +58,6 @@ public:
     Pixel height;
 
     /// @brief Creates FrameView with validation
-    /// @param buffer Pointer to pixel buffer
-    /// @param stride Full buffer width in pixels
-    /// @param width View width in pixels
-    /// @param height View height in pixels
-    /// @param offset_x X offset in buffer
-    /// @param offset_y Y offset in buffer
-    /// @return FrameView instance or validation error
     kf_nodiscard static Result<DynamicImage, Error> create(
         BufferType *buffer, Pixel stride,
         Pixel width, Pixel height,
@@ -100,10 +93,6 @@ public:
         height{height} {}
 
     /// @brief Creates validated sub-region
-    /// @param sub_width Sub-region width
-    /// @param sub_height Sub-region height
-    /// @param sub_offset_x X offset within current view
-    /// @param sub_offset_y Y offset within current view
     /// @return Sub-view or error if out of bounds
     kf_nodiscard Result<DynamicImage, Error> sub(
         Pixel sub_width, Pixel sub_height,

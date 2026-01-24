@@ -26,15 +26,11 @@ struct Encoder {
         f32 ticks_in_one_mm;///< Ticks per millimeter (must be positive)
 
         /// @brief Convert ticks to millimeters
-        /// @param ticks Encoder ticks to convert
-        /// @return Equivalent distance in millimeters
         kf_nodiscard Millimeters toMillimeters(Ticks ticks) const {
             return Millimeters(ticks) / ticks_in_one_mm;
         }
 
         /// @brief Convert millimeters to ticks
-        /// @param mm Distance in millimeters
-        /// @return Equivalent encoder ticks
         kf_nodiscard Ticks toTicks(Millimeters mm) const {
             return Ticks(mm * ticks_in_one_mm);
         }
@@ -63,9 +59,6 @@ struct Encoder {
     const ConversionSettings &conversion;///< Unit conversion settings
     Ticks position{0};                   ///< Current position in ticks
 
-    /// @brief Construct encoder instance
-    /// @param pins_settings Pin configuration
-    /// @param conversion_settings Unit conversion settings
     explicit Encoder(const PinsSettings &pins_settings,
                      const ConversionSettings &conversion_settings) :
         pins{pins_settings}, conversion{conversion_settings} {}
@@ -120,8 +113,6 @@ struct Encoder {
 }// namespace kf
 
 /// @brief Interrupt handler for rotary encoder
-/// @param instance Pointer to Encoder instance
-/// @note Increments/decrements position based on phase B state
 void encoderInterruptHandler(void *instance) {
     auto &encoder = *static_cast<kf::Encoder *>(instance);
 

@@ -3,10 +3,10 @@
 
 #pragma once
 
-// deprecated header for AVR
-#include <stdlib.h>// NOLINT(*-deprecated-headers)
+#include <cstdlib>
 
 #include "kf/core/attributes.hpp"
+
 
 namespace kf {
 

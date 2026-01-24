@@ -76,9 +76,6 @@ private:
     SignedPwm max_pwm{0};///< Cached maximum PWM value
 
 public:
-    /// @brief Construct motor driver instance
-    /// @param driver_settings Driver hardware configuration
-    /// @param pwm_settings PWM signal configuration
     explicit constexpr Motor(const DriverSettings &driver_settings,
                              const PwmSettings &pwm_settings) :
         driver_settings{driver_settings}, pwm_settings{pwm_settings} {}

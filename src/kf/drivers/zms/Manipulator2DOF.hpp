@@ -22,7 +22,6 @@ struct Manipulator2DOF {
         PwmPositionServo::DriverSettings arm_axis;                   ///< Arm axis servo configuration
 
         /// @brief Validate all configuration parameters
-        /// @param validator Validation context
         void check(Validator &validator) const {
             kf_Validator_check(validator, arm_axis.isValid());
             kf_Validator_check(validator, claw_axis.isValid());

@@ -63,38 +63,32 @@ public:
     };
 
     /// @brief Initialize the display hardware
-    /// @return true if initialization successful
     kf_nodiscard bool init() { return impl().initImpl(); }
 
-    /// @brief Get current display width in pixels
-    /// @return Display width (may differ from physical width due to orientation)
+    /// @brief Get current display width in pixels (may differ from physical width due to orientation)
     kf_nodiscard u8 width() const { return c_impl().getWidthImpl(); }
 
-    /// @brief Get current display height in pixels
-    /// @return Display height (may differ from physical height due to orientation)
+    /// @brief Get current display height in pixels (may differ from physical width due to orientation)
     kf_nodiscard u8 height() const { return c_impl().getHeightImpl(); }
 
     /// @brief Transfer software buffer to display hardware
     void send() const { c_impl().sendImpl(); }
 
     /// @brief Set display orientation
-    /// @param orientation New orientation mode
     void setOrientation(Orientation orientation) { impl().setOrientationImpl(orientation); }
 
     /// @brief Get writable software frame buffer
-    /// @return Slice providing access to frame buffer memory
     kf_nodiscard Slice<BufferType> buffer() { return {software_screen_buffer, buffer_items}; }
 
     /// @brief Get maximum valid X coordinate for current orientation
-    /// @return Maximum X coordinate
     kf_nodiscard u8 maxX() const { return width() - 1; }
 
     /// @brief Get maximum valid Y coordinate for current orientation
-    /// @return Maximum Y coordinate
     kf_nodiscard u8 maxY() const { return height() - 1; }
 
 private:
     inline Impl &impl() { return *static_cast<Impl *>(this); }
+
     inline const Impl &c_impl() const { return *static_cast<const Impl *>(this); }
 };
 

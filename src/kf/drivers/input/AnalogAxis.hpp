@@ -35,7 +35,6 @@ public:
     i16 dead_zone{0};///< Raw value dead zone (absolute units)
 
     /// @brief Construct analog axis instance
-    /// @param pin GPIO pin for analog input
     /// @param k Filter coefficient (0.0 to 1.0, higher = more smoothing)
     explicit AnalogAxis(gpio_num_t pin, f32 k) noexcept :
         pin{static_cast<u8>(pin)}, filter{k} {}

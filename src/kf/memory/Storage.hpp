@@ -8,7 +8,6 @@
 #include "kf/Logger.hpp"
 
 namespace kf {
-// todo AVR impl with EEPROM
 
 /// @brief Persistent storage wrapper for ESP32 Preferences
 /// @tparam T Data type to store (must be trivially copyable)

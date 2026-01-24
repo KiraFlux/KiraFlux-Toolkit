@@ -5,6 +5,7 @@
 
 #include "kf/aliases.hpp"
 
+
 namespace kf {
 
 /// @brief Pixel format enumeration

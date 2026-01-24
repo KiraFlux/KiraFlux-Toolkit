@@ -12,7 +12,6 @@
 namespace kf {
 
 /// @brief Monitors joystick for discrete directional changes with autorepeat
-/// @note Provides stateful tracking of joystick position with thresholding and autorepeat
 struct JoystickListener {
     /// @brief Joystick direction event types
     enum class Direction : u8 {
@@ -36,14 +35,10 @@ private:
 
 public:
     /// @brief Construct listener for specific joystick
-    /// @param joy Joystick instance to monitor
-    /// @param threshold Activation threshold (0.0 to 1.0, default: 0.6)
     explicit JoystickListener(Joystick &joy, float threshold = 0.6f) :
         joystick{joy}, threshold{threshold} {}
 
     /// @brief Poll joystick state and update internal direction with autorepeat
-    /// @param now Current time in milliseconds (e.g., from millis())
-    /// @note Must be called regularly to track direction changes and autorepeat
     void poll(Milliseconds now) {
         const Direction new_direction = calculateDirection();
 

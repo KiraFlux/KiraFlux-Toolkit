@@ -25,13 +25,9 @@ template<> struct pixel_traits<PixelFormat::Monochrome> {
     static constexpr u8 page_height = 8;   ///< Vertical pixels per memory page
 
     /// @brief Calculate buffer size for given dimensions
-    /// @tparam W Width in pixels
-    /// @tparam H Height in pixels
-    /// @return Required buffer size in bytes
     template<usize W, usize H> static constexpr usize buffer_size = ((W * H) + 7) / 8;
 
     /// @brief Calculate number of memory pages for given height
-    /// @tparam H Height in pixels
     /// @return Number of 8-pixel memory pages
     template<usize H> static constexpr usize pages = (H + 7) / 8;
 
@@ -40,11 +36,6 @@ template<> struct pixel_traits<PixelFormat::Monochrome> {
     }
 
     /// @brief Set pixel value in monochrome buffer
-    /// @param buffer Pointer to display buffer
-    /// @param stride Buffer stride (width in pixels)
-    /// @param abs_x Absolute X coordinate
-    /// @param abs_y Absolute Y coordinate
-    /// @param on Pixel state (true = on, false = off)
     static void setPixel(
         BufferType *buffer,
         Pixel stride,
@@ -64,13 +55,6 @@ template<> struct pixel_traits<PixelFormat::Monochrome> {
     }
 
     /// @brief Fill rectangular region with specified value
-    /// @param buffer Pointer to display buffer
-    /// @param stride Buffer stride (width in pixels)
-    /// @param offset_x Region X offset
-    /// @param offset_y Region Y offset
-    /// @param width Region width in pixels
-    /// @param height Region height in pixels
-    /// @param value Fill value (true = on, false = off)
     static void fill(
         BufferType *buffer,
         Pixel stride,
@@ -99,15 +83,6 @@ template<> struct pixel_traits<PixelFormat::Monochrome> {
     }
 
     /// @brief Copy rectangular region from source to destination buffer
-    /// @param source_buffer Source buffer pointer
-    /// @param source_width Source region width in pixels
-    /// @param source_height Source region height in pixels
-    /// @param dest_buffer Destination buffer pointer
-    /// @param dest_stride Destination buffer stride (width in pixels)
-    /// @param dest_width Destination buffer width in pixels
-    /// @param dest_height Destination buffer height in pixels
-    /// @param dest_x Destination X coordinate
-    /// @param dest_y Destination Y coordinate
     static void copy(
         const BufferType *source_buffer,
         Pixel source_width,
@@ -181,9 +156,6 @@ template<> struct pixel_traits<PixelFormat::Monochrome> {
 
 private:
     /// @brief Calculate page mask for specified region
-    /// @param page Page number
-    /// @param offset_y Region Y offset
-    /// @param height Region height in pixels
     /// @return Bit mask for the visible portion of the page
     static u8 calculatePageMask(Pixel page, Pixel offset_y, Pixel height) noexcept {
         const auto page_top = static_cast<Pixel>(page * page_height);
@@ -200,8 +172,6 @@ private:
     }
 
     /// @brief Create bit mask for specified bit range
-    /// @param start_bit Starting bit (0-7)
-    /// @param end_bit Ending bit (0-7, must be >= start_bit)
     /// @return Bit mask covering [start_bit, end_bit] inclusive
     static constexpr u8 createMask(u8 start_bit, u8 end_bit) noexcept {
         if (start_bit > end_bit) {
@@ -221,8 +191,6 @@ template<> struct pixel_traits<PixelFormat::RGB565> {
     static constexpr u8 bits_per_pixel = 16;///< Bits per pixel
 
     /// @brief Calculate buffer size for given dimensions
-    /// @tparam W Width in pixels
-    /// @tparam H Height in pixels
     /// @return Required buffer size in elements (W * H)
     template<usize W, usize H> static constexpr usize buffer_size = W * H;
 
@@ -233,11 +201,6 @@ template<> struct pixel_traits<PixelFormat::RGB565> {
     }
 
     /// @brief Set pixel value in RGB565 buffer
-    /// @param buffer Pointer to display buffer
-    /// @param stride Buffer stride (width in pixels)
-    /// @param abs_x Absolute X coordinate
-    /// @param abs_y Absolute Y coordinate
-    /// @param color RGB565 color value
     static void setPixel(
         BufferType *buffer,
         Pixel stride,
@@ -249,13 +212,6 @@ template<> struct pixel_traits<PixelFormat::RGB565> {
     }
 
     /// @brief Fill rectangular region with specified color
-    /// @param buffer Pointer to display buffer
-    /// @param stride Buffer stride (width in pixels)
-    /// @param offset_x Region X offset
-    /// @param offset_y Region Y offset
-    /// @param width Region width in pixels
-    /// @param height Region height in pixels
-    /// @param color RGB565 fill color
     static void fill(
         BufferType *buffer,
         Pixel stride,
@@ -276,15 +232,6 @@ template<> struct pixel_traits<PixelFormat::RGB565> {
     }
 
     /// @brief Copy rectangular region from source to destination buffer
-    /// @param source_buffer Source buffer pointer
-    /// @param source_width Source region width in pixels
-    /// @param source_height Source region height in pixels
-    /// @param dest_buffer Destination buffer pointer
-    /// @param dest_stride Destination buffer stride (width in pixels)
-    /// @param dest_width Destination buffer width in pixels
-    /// @param dest_height Destination buffer height in pixels
-    /// @param dest_x Destination X coordinate
-    /// @param dest_y Destination Y coordinate
     static void copy(
         const BufferType *source_buffer,
         Pixel source_width,

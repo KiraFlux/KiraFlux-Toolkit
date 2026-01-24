@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include "kf/core/config.hpp"
-
-#if kf_port_has_map
-
 #include <map>
 
 #include "kf/memory/Allocator.hpp"
+
 
 namespace kf {
 
@@ -23,9 +20,3 @@ template<typename K, typename V, typename C = std::less<K>, typename A = Allocat
 using Map = std::map<K, V, C, A>;
 
 }// namespace kf
-
-#else
-
-#error "No implementation of 'Map' for current arch"
-
-#endif

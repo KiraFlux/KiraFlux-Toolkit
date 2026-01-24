@@ -45,8 +45,6 @@ public:
     };
 
     /// @brief Construct event with type and optional value
-    /// @param type Event type
-    /// @param value Event value (default: 0)
     constexpr explicit Event(Type type, Value value = 0) :
         storage{
             static_cast<Storage>(
@@ -54,13 +52,11 @@ public:
                 (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))} {}
 
     /// @brief Get event type
-    /// @return Event type enum value
     kf_nodiscard constexpr Type type() const {
         return static_cast<Type>(storage & type_mask);
     }
 
     /// @brief Get event value with sign extension
-    /// @return Signed value
     kf_nodiscard Value value() const {
         const auto result = static_cast<Value>(storage & value_mask);
         return (result & sign_bit_mask) ? static_cast<Value>(result | ~value_mask) : result;
@@ -69,20 +65,16 @@ public:
     // Predefined event instances
 
     /// @brief Create update event (forces redraw)
-    /// @return update event instance
     kf_nodiscard static constexpr Event update() { return Event{Type::Update}; }
 
     /// @brief Create pageCursorMove event with offset
     /// @param offset Cursor movement offset
-    /// @return pageCursorMove event instance
     kf_nodiscard static constexpr Event pageCursorMove(Value offset) { return Event{Type::PageCursorMove, offset}; }
 
     /// @brief Create widgetClick event
-    /// @return widgetClick event instance
     kf_nodiscard static constexpr Event widgetClick() { return Event{Type::WidgetClick}; }
 
     /// @brief Create widgetValue event with delta
-    /// @return widgetValue event instance
     kf_nodiscard static constexpr Event widgetValue(Value value) { return Event{Type::WidgetValueChange, value}; }
 };
 

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include "kf/core/config.hpp"
 
 #if defined(__cplusplus) and __cplusplus >= 201703L
 #define kf_if_constexpr if constexpr

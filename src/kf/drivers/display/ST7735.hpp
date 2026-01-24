@@ -37,12 +37,6 @@ public:
         u8 pin_data_command;    ///< Data/command selection pin
         u8 pin_reset;           ///< Reset pin
 
-        /// @brief Construct ST7735 hardware settings
-        /// @param spi_cs SPI chip select GPIO
-        /// @param dc Data/command selection GPIO
-        /// @param reset Reset pin GPIO
-        /// @param spi_freq SPI frequency (default 27MHz)
-        /// @param orientation Initial orientation (default Normal)
         constexpr explicit Config(
             gpio_num_t spi_cs,
             gpio_num_t dc,
@@ -66,9 +60,6 @@ private:
     u8 madctl_base_mode{MadCtl::RgbMode};///< Base MADCTL value
 
 public:
-    /// @brief Construct ST7735 driver instance
-    /// @param settings Hardware configuration
-    /// @param spi_instance SPI bus instance to use
     explicit ST7735(const Config &settings, SPIClass &spi_instance) :
         settings{settings}, spi{spi_instance} {}
 
@@ -114,15 +105,13 @@ private:
         return true;
     }
 
-    /// @brief Transfer software buffer to display via SPI in one operation
     void sendImpl() const {
         sendCommand(Command::RAMWR);
         sendData(reinterpret_cast<const u8 *>(software_screen_buffer),
                  sizeof(software_screen_buffer));
     }
 
-    /// @brief Apply orientation transformation with full 6-way support
-    /// @param orientation Display orientation mode
+    /// @brief Apply orientation transformation (full 6-way support)
     void setOrientationImpl(Orientation orientation) {
         constexpr u8 orient_to_transform[]{
             0,                                        // Orientation::Normal
@@ -158,8 +147,6 @@ private:
     // Low-level SPI communication
 
     /// @brief Send data bytes to display
-    /// @param data Pointer to data buffer
-    /// @param size Number of bytes to send
     void sendData(const u8 *data, usize size) const {
         digitalWrite(settings.pin_data_command, HIGH);
         digitalWrite(settings.pin_spi_slave_select, LOW);
@@ -187,7 +174,6 @@ private:
     };
 
     /// @brief Send single command to display
-    /// @param command ST7735 command byte
     void sendCommand(Command command) const {
         digitalWrite(settings.pin_data_command, LOW);
         digitalWrite(settings.pin_spi_slave_select, LOW);

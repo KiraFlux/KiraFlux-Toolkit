@@ -14,9 +14,6 @@ struct Joystick final {
     AnalogAxis axis_y;///< Y-axis input (vertical movement)
 
     /// @brief Construct joystick instance
-    /// @param pin_x GPIO pin for X-axis analog input
-    /// @param pin_y GPIO pin for Y-axis analog input
-    /// @param filter_k Filter coefficient for axis smoothing (0.0 to 1.0)
     explicit Joystick(gpio_num_t pin_x, gpio_num_t pin_y, f32 filter_k) noexcept :
         axis_x{pin_x, filter_k},
         axis_y{pin_y, filter_k} {}
@@ -28,8 +25,6 @@ struct Joystick final {
     }
 
     /// @brief Calibrate joystick center position and dead zones
-    /// @param samples Number of samples to collect for calibration
-    /// @note Performs two-pass calibration: center position then maximum deviation
     /// @warning Must be called with joystick in neutral position for accurate calibration
     void calibrate(int samples) noexcept {
         constexpr auto period_ms = 1;

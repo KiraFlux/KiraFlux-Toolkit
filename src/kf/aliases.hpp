@@ -3,9 +3,9 @@
 
 #pragma once
 
-// deprecated-headers for avr capability
-#include <stddef.h>// NOLINT(*-deprecated-headers)
-#include <stdint.h>// NOLINT(*-deprecated-headers)
+#include <cstddef>
+#include <cstdint>
+
 
 namespace kf {
 

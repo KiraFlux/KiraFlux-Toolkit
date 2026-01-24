@@ -6,6 +6,7 @@
 #include "kf/Option.hpp"
 #include "kf/core/attributes.hpp"
 
+
 namespace kf {
 
 /// @brief Result type that can hold either a value or an error

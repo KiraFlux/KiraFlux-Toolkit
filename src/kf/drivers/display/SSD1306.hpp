@@ -17,10 +17,7 @@ struct SSD1306 : DisplayDriver<SSD1306, PixelFormat::Monochrome, 128, 64> {
     friend Base;
 
     struct Config {
-        /// @brief Wire clock frequency [Hz]
         u32 i2c_clock_frequency;
-
-        /// @brief I2C device address (default 0x3C)
         u8 address;
 
         explicit Config(u32 clock_frequency, u8 address = 0x3C) :
@@ -36,8 +33,7 @@ public:
     explicit SSD1306(const Config &config, TwoWire &wire) :
         config{config}, wire{wire} {}
 
-    /// @brief Set display contrast level
-    /// @param value Contrast value (0-255)
+    /// @brief Set display contrast level (0..255)
     void setContrast(u8 value) const {
         wire.beginTransmission(config.address);
         (void) wire.write(CommandMode);
@@ -47,13 +43,11 @@ public:
     }
 
     /// @brief Enable or disable display power
-    /// @param on true to power on, false to power off
     void setPower(bool on) {
         sendCommand(on ? DisplayOn : DisplayOff);
     }
 
     /// @brief Invert display colors
-    /// @param invert true for inverted (white on black), false for normal
     void invert(bool invert) {
         sendCommand(invert ? InvertDisplay : NormalDisplay);
     }
@@ -68,7 +62,6 @@ private:
     kf_nodiscard static u8 getHeightImpl() { return phys_height; }
 
     /// @brief Initialize display hardware via I2C
-    /// @return true if initialization successful
     kf_nodiscard bool initImpl() const {
         static constexpr u8 init_commands[] = {
             CommandMode,
@@ -117,7 +110,7 @@ private:
         return 0 == end_transmission_code;
     }
 
-    /// @brief Transfer software buffer to display via I2C in 64-byte packets
+    /// @brief Transfer software buffer to display via I2C
     void sendImpl() const {
         static constexpr auto packet_size = 64;// Optimal for ESP32 performance
 
@@ -129,7 +122,7 @@ private:
             max_phys_x,
             PageAddr,
             0,
-            Traits::template pages<phys_height> - 1,
+            traits::template pages<phys_height> - 1,
         };
 
         wire.beginTransmission(config.address);
@@ -150,7 +143,6 @@ private:
     }
 
     /// @brief Apply orientation transformation (only flip operations supported)
-    /// @param orientation Display orientation (Normal, MirrorX, MirrorY, or Flip)
     void setOrientationImpl(Orientation orientation) {
         constexpr auto flip_x = 0b01;
         constexpr auto flip_y = 0b10;
@@ -192,7 +184,6 @@ private:
     };
 
     /// @brief Send single command to display
-    /// @param command SSD1306 command byte
     void sendCommand(Command command) const {
         wire.beginTransmission(config.address);
         (void) wire.write(OneCommandMode);
