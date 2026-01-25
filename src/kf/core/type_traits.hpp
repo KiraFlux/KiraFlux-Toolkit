@@ -29,5 +29,7 @@ using std::remove_cv;
 using std::remove_reference;
 using std::remove_volatile;
 using std::true_type;
+using std::is_nothrow_constructible;
+using std::is_nothrow_move_constructible;
 
 }// namespace kf

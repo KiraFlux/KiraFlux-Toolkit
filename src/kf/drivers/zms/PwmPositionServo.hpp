@@ -22,21 +22,21 @@ struct PwmPositionServo {
 
         /// @brief Calculate maximum duty cycle value
         /// @return Maximum duty cycle value (2^resolution - 1)
-        kf_nodiscard inline u32 maxDuty() const {
+        kf_nodiscard constexpr u32 maxDuty() const noexcept {
             return (1u << ledc_resolution_bits) - 1u;
         }
 
         /// @brief Convert pulse width to duty cycle value
         /// @param pulse_width Pulse width in microseconds
         /// @return Duty cycle value for LEDC hardware
-        kf_nodiscard u16 dutyFromPulseWidth(Milliseconds pulse_width) const {
+        kf_nodiscard u16 dutyFromPulseWidth(Milliseconds pulse_width) const noexcept {
             const auto t = u64(pulse_width) * ledc_frequency_hz * maxDuty();
             return u16(t / 1000000u);
         }
 
         /// @brief Validate PWM configuration parameters
         /// @param validator Validation context
-        void check(Validator &validator) const {
+        void check(Validator &validator) const noexcept {
             kf_Validator_check(validator, ledc_frequency_hz > 0);
             kf_Validator_check(validator, ledc_resolution_bits >= 8);
             kf_Validator_check(validator, ledc_resolution_bits <= 16);
@@ -52,7 +52,7 @@ struct PwmPositionServo {
 
         /// @brief Validate driver configuration parameters
         /// @param validator Validation context
-        void check(Validator &validator) const {
+        void check(Validator &validator) const noexcept {
             kf_Validator_check(validator, ledc_channel <= 15);
             kf_Validator_check(validator, min_angle < max_angle);
         }
@@ -72,7 +72,7 @@ struct PwmPositionServo {
         /// @brief Convert angle to pulse width using linear interpolation
         /// @param angle Target servo angle
         /// @return Required pulse width in microseconds
-        kf_nodiscard Microseconds pulseWidthFromAngle(Degrees angle) const {
+        kf_nodiscard Microseconds pulseWidthFromAngle(Degrees angle) const noexcept {
             return map(
                 constrain(angle, min_position.angle, max_position.angle),
                 min_position.angle,
@@ -83,7 +83,7 @@ struct PwmPositionServo {
 
         /// @brief Validate pulse mapping configuration
         /// @param validator Validation context
-        void check(Validator &validator) const {
+        void check(Validator &validator) const noexcept {
             kf_Validator_check(validator, min_position.pulse < max_position.pulse);
             kf_Validator_check(validator, min_position.angle < max_position.angle);
         }
@@ -102,13 +102,13 @@ public:
     explicit constexpr PwmPositionServo(
         const PwmSettings &pwm_settings,
         const DriverSettings &driver_settings,
-        const PulseSettings &pulse_settings) :
+        const PulseSettings &pulse_settings) noexcept:
         driver_settings{driver_settings}, pwm_settings(pwm_settings), pulse_settings(pulse_settings) {}
 
     /// @brief Initialize servo driver hardware
     /// @return true if PWM channel setup successful
     /// @note Configures ESP32 LEDC hardware for PWM generation
-    kf_nodiscard bool init() const {
+    kf_nodiscard bool init() const noexcept {
         const auto freq = ledcSetup(
             driver_settings.ledc_channel,
             pwm_settings.ledc_frequency_hz,
@@ -127,19 +127,19 @@ public:
     /// @brief Set servo to target angle
     /// @param angle Target angle in degrees
     /// @note Automatically converts angle to PWM duty cycle
-    void set(Degrees angle) {
+    void set(Degrees angle) noexcept{
         write(pwm_settings.dutyFromPulseWidth(pulse_settings.pulseWidthFromAngle(angle)));
     }
 
     /// @brief Disable servo (stop PWM signal)
-    void disable() {
+    void disable() noexcept{
         write(0);
     }
 
 private:
     /// @brief Write duty cycle value to LEDC hardware
     /// @param duty Duty cycle value (0 to maxDuty)
-    void write(u16 duty) const {
+    void write(u16 duty) const noexcept {
         ledcWrite(driver_settings.ledc_channel, duty);
     }
 };

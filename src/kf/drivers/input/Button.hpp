@@ -27,15 +27,15 @@ private:
     const Mode mode;
 
 public:
-    explicit Button(gpio_num_t pin, Mode mode = Mode::PullDown) :
+    explicit Button(gpio_num_t pin, Mode mode = Mode::PullDown) noexcept:
         pin{static_cast<u8>(pin)}, mode{mode} {}
 
-    void init(PullType pull_type) const {
+    void init(PullType pull_type) const noexcept {
         pinMode(pin, matchMode(pull_type));
     }
 
     /// @brief Poll button state - must be called regularly
-    void poll() {
+    void poll() noexcept {
         const auto now = millis();
         const bool raw = readRaw();
 
@@ -57,7 +57,7 @@ public:
 
     /// @brief Check if button was clicked (consumes the click)
     /// @return true if button was pressed since last call
-    kf_nodiscard bool clicked() {
+    kf_nodiscard bool clicked() noexcept {
         if (click_ready) {
             click_ready = false;
             return true;
@@ -67,12 +67,12 @@ public:
 
     /// @brief Check current button state
     /// @return true if button is currently pressed (after debounce)
-    kf_nodiscard bool pressed() const {
+    kf_nodiscard bool pressed() const noexcept {
         return last_stable;
     }
 
 private:
-    kf_nodiscard bool readRaw() const {
+    kf_nodiscard bool readRaw() const noexcept {
         const bool raw = digitalRead(pin);
         if (mode == Mode::PullUp) {
             return not raw;
@@ -81,7 +81,7 @@ private:
         }
     }
 
-    kf_nodiscard u8 matchMode(PullType pull_type) const {
+    kf_nodiscard u8 matchMode(PullType pull_type) const noexcept {
         if (pull_type == PullType::External) {
             return INPUT;
         }

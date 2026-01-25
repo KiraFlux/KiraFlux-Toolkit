@@ -13,7 +13,7 @@ template<typename T> struct Singleton {
     /// @brief Get reference to the single instance
     /// @return Reference to the unique instance of type T
     /// @note Instance is created on first call (lazy initialization)
-    static T &instance() {
+    static T &instance() noexcept {
         static T instance{};// NOLINT(*-dynamic-static-initializers)
         return instance;
     }

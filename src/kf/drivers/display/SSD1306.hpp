@@ -20,7 +20,7 @@ struct SSD1306 : DisplayDriver<SSD1306, PixelFormat::Monochrome, 128, 64> {
         u32 i2c_clock_frequency;
         u8 address;
 
-        explicit Config(u32 clock_frequency, u8 address = 0x3C) :
+        explicit Config(u32 clock_frequency, u8 address = 0x3C) noexcept:
             i2c_clock_frequency{clock_frequency}, address{address} {}
     };
 
@@ -30,7 +30,7 @@ private:
 
 public:
     /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(const Config &config, TwoWire &wire) :
+    explicit SSD1306(const Config &config, TwoWire &wire) noexcept:
         config{config}, wire{wire} {}
 
     /// @brief Set display contrast level (0..255)
@@ -43,12 +43,12 @@ public:
     }
 
     /// @brief Enable or disable display power
-    void setPower(bool on) {
+    void setPower(bool on) noexcept {
         sendCommand(on ? DisplayOn : DisplayOff);
     }
 
     /// @brief Invert display colors
-    void invert(bool invert) {
+    void invert(bool invert) noexcept {
         sendCommand(invert ? InvertDisplay : NormalDisplay);
     }
 
@@ -56,13 +56,13 @@ private:
     // DisplayDriver interface implementation
 
     /// @brief Get physical display width
-    kf_nodiscard static u8 getWidthImpl() { return phys_width; }
+    kf_nodiscard static u8 getWidthImpl() noexcept { return phys_width; }
 
     /// @brief Get physical display height
-    kf_nodiscard static u8 getHeightImpl() { return phys_height; }
+    kf_nodiscard static u8 getHeightImpl() noexcept { return phys_height; }
 
     /// @brief Initialize display hardware via I2C
-    kf_nodiscard bool initImpl() const {
+    kf_nodiscard bool initImpl() const noexcept {
         static constexpr u8 init_commands[] = {
             CommandMode,
 
@@ -111,7 +111,7 @@ private:
     }
 
     /// @brief Transfer software buffer to display via I2C
-    void sendImpl() const {
+    void sendImpl() const noexcept {
         static constexpr auto packet_size = 64;// Optimal for ESP32 performance
 
         static constexpr u8 set_area_commands[] = {
@@ -143,7 +143,7 @@ private:
     }
 
     /// @brief Apply orientation transformation (only flip operations supported)
-    void setOrientationImpl(Orientation orientation) {
+    void setOrientationImpl(Orientation orientation) noexcept {
         constexpr auto flip_x = 0b01;
         constexpr auto flip_y = 0b10;
 
@@ -184,7 +184,7 @@ private:
     };
 
     /// @brief Send single command to display
-    void sendCommand(Command command) const {
+    void sendCommand(Command command) const noexcept {
         wire.beginTransmission(config.address);
         (void) wire.write(OneCommandMode);
         (void) wire.write(static_cast<u8>(command));

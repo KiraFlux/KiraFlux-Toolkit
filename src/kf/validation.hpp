@@ -6,6 +6,7 @@
 #include "kf/Logger.hpp"
 #include "kf/core/attributes.hpp"
 
+
 namespace kf {
 
 /// @brief Validation helper for checking conditions and collecting errors
@@ -20,7 +21,7 @@ public:
     /// @param scope Source file or context for the check
     /// @param condition_ok Boolean result of the condition
     /// @param condition_string String representation of the condition (for logging)
-    void check(const char *scope, bool condition_ok, const char *condition_string) {
+    void check(const char *scope, bool condition_ok, const char *condition_string) noexcept {
         const auto &logger = kf::Logger::instance();
 
         if (condition_ok) {
@@ -40,7 +41,7 @@ public:
 
     /// @brief Check if all validation conditions passed
     /// @return true if no errors were recorded, false otherwise
-    kf_nodiscard bool passed() const {
+    kf_nodiscard bool passed() const noexcept {
         return errors == 0;
     }
 };
@@ -51,7 +52,7 @@ public:
 template<typename Impl> struct Validable {
     /// @brief Perform validation and return result
     /// @return true if object passed all validation checks
-    kf_nodiscard bool isValid() const {
+    kf_nodiscard bool isValid() const noexcept {
         Validator validator{};
 
         static_cast<const Impl *>(this)->check(validator);

@@ -26,7 +26,7 @@ struct Logger final : Singleton<Logger> {
     /// @param f Source file name
     /// @param format printf-style format string
     /// @param ... Variable arguments matching format specifiers
-    void log(const char *level, const char *f, const char *format, ...) const {
+    void log(const char *level, const char *f, const char *format, ...) const noexcept {
         if (writer == nullptr) { return; }
 
         char buffer[128];

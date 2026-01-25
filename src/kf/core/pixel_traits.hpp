@@ -31,7 +31,7 @@ template<> struct pixel_traits<PixelFormat::Monochrome> {
     /// @return Number of 8-pixel memory pages
     template<usize H> static constexpr usize pages = (H + 7) / 8;
 
-    static constexpr ColorType fromRgb(u8 r, u8 b, u8 g) {
+    static constexpr ColorType fromRgb(u8 r, u8 b, u8 g) noexcept {
         return (r + g + b) > 128 * 3;
     }
 
@@ -194,7 +194,7 @@ template<> struct pixel_traits<PixelFormat::RGB565> {
     /// @return Required buffer size in elements (W * H)
     template<usize W, usize H> static constexpr usize buffer_size = W * H;
 
-    static constexpr ColorType fromRgb(u8 r, u8 g, u8 b) {
+    static constexpr ColorType fromRgb(u8 r, u8 g, u8 b) noexcept {
         const auto color = (r >> 3) << 11 | ((g >> 2) << 5) | (b >> 3);
         // convert to BE
         return static_cast<ColorType>(((color & 0xFF) << 8) | (color >> 8));

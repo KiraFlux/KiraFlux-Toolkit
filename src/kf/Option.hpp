@@ -25,22 +25,22 @@ private:
 public:
     /// @brief Construct Option with value (copy)
     /// @param value Value to store in Option
-    constexpr Option(const T &value) :// NOLINT(*-explicit-constructor)
+    constexpr Option(const T &value) noexcept:// NOLINT(*-explicit-constructor)
         engaged{true}, val{value} {}
 
     /// @brief Construct empty Option (no value)
-    constexpr Option() :
+    constexpr Option() noexcept:
         engaged{false}, dummy{0} {}
 
     /// @brief Check if Option contains a value
     /// @return true if value is present, false otherwise
-    kf_nodiscard bool hasValue() const { return engaged; }
+    kf_nodiscard bool hasValue() const noexcept { return engaged; }
 
     /// @brief Get stored value (unsafe)
     /// @return Reference to stored value
     /// @warning Causes abort() if Option is empty
     /// @note Use hasValue() to check before calling
-    kf_nodiscard T &value() {
+    kf_nodiscard T &value() noexcept {
         if (engaged) {
             return val;
         } else {
@@ -52,7 +52,7 @@ public:
     /// @param default_value Value to return if Option is empty
     /// @return Stored value if present, default_value otherwise
     /// @note Safe alternative to value() that doesn't terminate
-    kf_nodiscard T valueOr(const T &default_value) const {
+    kf_nodiscard T valueOr(const T &default_value) const noexcept {
         return engaged ? val : default_value;
     }
 };

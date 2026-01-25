@@ -14,7 +14,7 @@ using std::max;     ///< Return larger of two values (std implementation)
 using std::min;     ///< Return smaller of two values (std implementation)
 
 /// Constrain value between lower and upper bounds
-template<typename T> constexpr T clamp(const T &value, const T &low, const T &high) {
+template<typename T> constexpr T clamp(const T &value, const T &low, const T &high) noexcept {
     return (value < low) ? low : (value > high) ? high : value;
 }
 

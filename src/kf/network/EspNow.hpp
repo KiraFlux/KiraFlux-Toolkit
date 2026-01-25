@@ -64,7 +64,7 @@ struct EspNow : Singleton<EspNow> {
         /// @param mac MAC address of peer to add
         /// @return Peer object on success, Error on failure
         /// @note Automatically registers peer with ESP-NOW subsystem
-        kf_nodiscard static Result<Peer, Error> add(const Mac &mac) {
+        kf_nodiscard static Result<Peer, Error> add(const Mac &mac) noexcept {
             esp_now_peer_info_t peer = {
                 .channel = 0,
                 .ifidx = WIFI_IF_STA,
@@ -83,14 +83,14 @@ struct EspNow : Singleton<EspNow> {
 
         /// @brief Get peer MAC address
         /// @return Const reference to MAC address
-        kf_nodiscard const Mac &mac() const { return mac_; }
+        kf_nodiscard const Mac &mac() const noexcept { return mac_; }
 
         /// @brief Send typed packet to peer
         /// @tparam T Type of data to send (must fit in ESP_NOW_MAX_DATA_LEN)
         /// @param value Data to send
         /// @return Success or Error
         /// @note Automatically checks size constraint at compile time
-        template<typename T> kf_nodiscard Result<void, Error> sendPacket(const T &value) {
+        template<typename T> kf_nodiscard Result<void, Error> sendPacket(const T &value) noexcept {
             static_assert(sizeof(T) < ESP_NOW_MAX_DATA_LEN, "Message is too big!");
             return processSend(static_cast<const void *>(&value), sizeof(T));
         }
@@ -99,7 +99,7 @@ struct EspNow : Singleton<EspNow> {
         /// @param buffer Data slice to send
         /// @return Success or Error
         /// @note Checks size constraint at runtime
-        kf_nodiscard Result<void, Error> sendBuffer(Slice<const u8> buffer) {
+        kf_nodiscard Result<void, Error> sendBuffer(Slice<const u8> buffer) noexcept {
             if (buffer.size() > ESP_NOW_MAX_DATA_LEN) {
                 return {Error::TooBigMessage};
             }
@@ -110,7 +110,7 @@ struct EspNow : Singleton<EspNow> {
         /// @brief Set receive handler for this peer
         /// @param handler Callback function for incoming data
         /// @return Success or Error (PeerNotFound if peer doesn't exist)
-        kf_nodiscard Result<void, Error> setReceiveHandler(ReceiveHandler &&handler) {
+        kf_nodiscard Result<void, Error> setReceiveHandler(ReceiveHandler &&handler) noexcept {
             if (not exist()) {
                 return {Error::PeerNotFound};
             }
@@ -130,7 +130,7 @@ struct EspNow : Singleton<EspNow> {
         /// @brief Remove peer from ESP-NOW network
         /// @return Success or Error
         /// @note Also removes any associated receive handler
-        kf_nodiscard Result<void, Error> del() {
+        kf_nodiscard Result<void, Error> del() noexcept {
             auto &espnow = EspNow::instance();
 
             if (nullptr != espnow.getPeerContext(mac_)) {
@@ -148,7 +148,7 @@ struct EspNow : Singleton<EspNow> {
 
         /// @brief Check if peer exists in ESP-NOW network
         /// @return true if peer is registered with ESP-NOW
-        kf_nodiscard bool exist() {
+        kf_nodiscard bool exist() noexcept {
             return esp_now_is_peer_exist(mac_.data());
         }
 
@@ -157,7 +157,7 @@ struct EspNow : Singleton<EspNow> {
         /// @param data Pointer to data buffer
         /// @param len Size of data in bytes
         /// @return Success or translated ESP-NOW error
-        kf_nodiscard Result<void, Error> processSend(const void *data, usize len) {
+        kf_nodiscard Result<void, Error> processSend(const void *data, usize len) noexcept {
             const auto result = esp_now_send(
                 mac_.data(),
                 static_cast<const u8 *>(data),
@@ -171,7 +171,7 @@ struct EspNow : Singleton<EspNow> {
         }
 
         /// @brief Private constructor (use Peer::add)
-        explicit Peer(const Mac &mac) :
+        explicit Peer(const Mac &mac) noexcept:
             mac_{mac} {}
     };
 
@@ -192,7 +192,7 @@ public:
     /// @brief Initialize ESP-NOW protocol
     /// @return Success or Error
     /// @note Sets WiFi to station mode and registers receive callback
-    kf_nodiscard static Result<void, Error> init() {
+    kf_nodiscard static Result<void, Error> init() noexcept {
         const auto wifi_ok = WiFiClass::mode(WIFI_MODE_STA);
         if (not wifi_ok) {
             return {Error::InternalError};
@@ -213,18 +213,18 @@ public:
 
     /// @brief Deinitialize ESP-NOW protocol
     /// @note Unregisters callbacks and deinitializes ESP-NOW
-    static void quit() {
+    static void quit() noexcept {
         (void) esp_now_unregister_recv_cb();
         (void) esp_now_deinit();
     }
 
     /// @brief Get local device MAC address
     /// @return Const reference to MAC address
-    kf_nodiscard const Mac &mac() const { return mac_; }
+    kf_nodiscard const Mac &mac() const noexcept { return mac_; }
 
     /// @brief Set handler for receiving data from unknown peers
     /// @param handler Callback function for unknown peer data
-    void setUnknownReceiveHandler(UnknownReceiveHandler &&handler) {
+    void setUnknownReceiveHandler(UnknownReceiveHandler &&handler) noexcept {
         unknown_receive_handler = kf::move(handler);
     }
 
@@ -233,7 +233,7 @@ private:
     /// @param raw_mac_address Source MAC address
     /// @param data Received data buffer
     /// @param size Size of received data
-    static void onReceive(const u8 *raw_mac_address, const u8 *data, int size) {
+    static void onReceive(const u8 *raw_mac_address, const u8 *data, int size) noexcept {
         auto &self = EspNow::instance();
 
         const auto &source_address = *reinterpret_cast<const Mac *>(raw_mac_address);
@@ -253,7 +253,7 @@ private:
     /// @brief Get peer context by MAC address
     /// @param peer_mac MAC address to look up
     /// @return Pointer to peer context or nullptr if not found
-    kf_nodiscard Peer::Context *getPeerContext(const Mac &peer_mac) {
+    kf_nodiscard Peer::Context *getPeerContext(const Mac &peer_mac) noexcept {
         auto it = peer_contexts.find(peer_mac);
         if (it == peer_contexts.end()) {
             return nullptr;
@@ -265,7 +265,7 @@ private:
     /// @brief Translate ESP error code to Error enum
     /// @param result ESP error code
     /// @return Corresponding Error enum value
-    kf_nodiscard static Error translateEspnowError(esp_err_t result) {
+    kf_nodiscard static Error translateEspnowError(esp_err_t result) noexcept {
         switch (result) {
             case ESP_ERR_ESPNOW_INTERNAL: return Error::InternalError;
             case ESP_ERR_ESPNOW_NOT_INIT: return Error::NotInitialized;
@@ -285,7 +285,7 @@ public:
     /// @brief Convert MAC address to human-readable string
     /// @param mac MAC address to convert
     /// @return ArrayString with formatted MAC address (XX:XX:XX:XX:XX:XX format)
-    kf_nodiscard static ArrayString<mac_string_size> stringFromMac(const Mac &mac) {
+    kf_nodiscard static ArrayString<mac_string_size> stringFromMac(const Mac &mac) noexcept {
         ArrayString<mac_string_size> ret{};
         const auto p = mac.data();
         (void) ret.format("%02x%02x-%02x%02x-%02x%02x", p[0], p[1], p[2], p[3], p[4], p[5]);
@@ -298,7 +298,7 @@ public:
     /// @brief Convert Error enum to string representation
     /// @param error Error code to convert
     /// @return String representation of error
-    kf_nodiscard static const char *stringFromError(kf::EspNow::Error error) {
+    kf_nodiscard static const char *stringFromError(kf::EspNow::Error error) noexcept {
         switch (error) {
             return_case(kf::EspNow::Error::NotInitialized);
             return_case(kf::EspNow::Error::InternalError);

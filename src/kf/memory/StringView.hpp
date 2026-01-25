@@ -232,14 +232,6 @@ private:
     }
 };
 
-/// @brief String literal operator for creating StringView from literals
-/// @param str String literal
-/// @param size Literal size (including null terminator)
-/// @return StringView of the literal
-inline constexpr StringView operator "" _sv(const char *str, usize size) noexcept {
-    return {str, size - 1};  // Exclude null terminator
-}
-
 /// @brief Compare string views for equality
 constexpr bool operator==(StringView lhs, StringView rhs) noexcept {
     return lhs.compare(rhs) == 0;

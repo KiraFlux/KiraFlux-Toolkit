@@ -18,13 +18,13 @@ template<typename T> struct ExponentialFilter {
     /// @brief Construct exponential filter instance
     /// @param k Smoothing factor (0.0 to 1.0)
     /// @param init_value Initial filter state (default: zero-initialized)
-    constexpr explicit ExponentialFilter(f32 k, T init_value = T{}) :
+    constexpr explicit ExponentialFilter(f32 k, T init_value = T{}) noexcept:
         k{k}, filtered{init_value} {}
 
     /// @brief Update filter with new sample
     /// @param value New input value
     /// @return Current filtered value after update
-    kf_nodiscard const T &calc(const T &value) {
+    kf_nodiscard const T &calc(const T &value) noexcept {
         filtered += (value - filtered) * k;
         return filtered;
     }

@@ -70,7 +70,7 @@ public:
     Result<Canvas, typename DynamicImage<F>::Error> sub(
         Pixel width, Pixel height,
         Pixel offset_x, Pixel offset_y
-    ) {
+    ) noexcept {
         const auto frame_result = frame.sub(width, height, offset_x, offset_y);
         if (frame_result.isOk()) {
             return {Canvas{frame_result.ok().value(), *current_font, foreground_color, background_color}};
@@ -83,7 +83,7 @@ public:
     Canvas subUnchecked(
         Pixel width, Pixel height,
         Pixel offset_x, Pixel offset_y
-    ) {
+    ) noexcept {
         return Canvas{
             frame.subUnchecked(width, height, offset_x, offset_y),
             *current_font,
@@ -130,26 +130,26 @@ public:
     // Control
 
     /// @brief Set current font for text rendering
-    void setFont(const Font &font) { current_font = &font; }
+    void setFont(const Font &font) noexcept { current_font = &font; }
 
     /// @brief Set background color for fill and text operations
-    void setBackground(ColorType color) { background_color = color; }
+    void setBackground(ColorType color) noexcept { background_color = color; }
 
     /// @brief Set foreground color for drawing operations
-    void setForeground(ColorType color) { foreground_color = color; }
+    void setForeground(ColorType color) noexcept { foreground_color = color; }
 
     /// @brief Swap foreground and background colors
-    void swapColors() { std::swap(foreground_color, background_color); }
+    void swapColors() noexcept { std::swap(foreground_color, background_color); }
 
     /// @brief Enable/disable automatic text wrapping to next line
-    void setAutoNextLine(bool enable) { auto_next_line = enable; }
+    void setAutoNextLine(bool enable) noexcept { auto_next_line = enable; }
 
     /// @brief Split canvas into weighted sub-canvases
     /// @tparam N Number of sub-canvases to create
     /// @param weights Relative weights for each sub-canvas
     /// @param horizontal True for horizontal split, false for vertical
     /// @return Array of sub-canvases with proportional sizes
-    template<usize N> Array<Canvas, N> split(Array<usize, N> weights, bool horizontal = true) {
+    template<usize N> Array<Canvas, N> split(Array<usize, N> weights, bool horizontal = true) noexcept {
         static_assert(N > 0, "Cannot split with zero items");
         for (auto &w: weights) {
             if (w == 0) { w = 1; }

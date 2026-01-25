@@ -43,7 +43,7 @@ public:
             gpio_num_t reset,
             u32 spi_freq = 27000000u,
             Orientation orientation = Orientation::Normal
-        ) :
+        ) noexcept:
             pin_spi_slave_select{static_cast<u8>(spi_cs)},
             pin_data_command{static_cast<u8>(dc)},
             pin_reset{static_cast<u8>(reset)},
@@ -60,21 +60,21 @@ private:
     u8 madctl_base_mode{MadCtl::RgbMode};///< Base MADCTL value
 
 public:
-    explicit ST7735(const Config &settings, SPIClass &spi_instance) :
+    explicit ST7735(const Config &settings, SPIClass &spi_instance) noexcept:
         settings{settings}, spi{spi_instance} {}
 
 private:
     // DisplayDriver interface implementation
 
     /// @brief Get current logical display width (after orientation transform)
-    kf_nodiscard u8 getWidthImpl() const { return logical_width; }
+    kf_nodiscard u8 getWidthImpl() const noexcept { return logical_width; }
 
     /// @brief Get current logical display height (after orientation transform)
-    kf_nodiscard u8 getHeightImpl() const { return logical_height; }
+    kf_nodiscard u8 getHeightImpl() const noexcept { return logical_height; }
 
     /// @brief Initialize display hardware via SPI
     /// @return Always returns true (hardware errors not checked)
-    kf_nodiscard bool initImpl() {
+    kf_nodiscard bool initImpl() noexcept {
         pinMode(settings.pin_spi_slave_select, OUTPUT);
         pinMode(settings.pin_data_command, OUTPUT);
         pinMode(settings.pin_reset, OUTPUT);
@@ -105,14 +105,14 @@ private:
         return true;
     }
 
-    void sendImpl() const {
+    void sendImpl() const noexcept {
         sendCommand(Command::RAMWR);
         sendData(reinterpret_cast<const u8 *>(software_screen_buffer),
                  sizeof(software_screen_buffer));
     }
 
     /// @brief Apply orientation transformation (full 6-way support)
-    void setOrientationImpl(Orientation orientation) {
+    void setOrientationImpl(Orientation orientation) noexcept {
         constexpr u8 orient_to_transform[]{
             0,                                        // Orientation::Normal
             MadCtl::MirrorX,                          // Orientation::MirrorX
@@ -147,7 +147,7 @@ private:
     // Low-level SPI communication
 
     /// @brief Send data bytes to display
-    void sendData(const u8 *data, usize size) const {
+    void sendData(const u8 *data, usize size) const noexcept {
         digitalWrite(settings.pin_data_command, HIGH);
         digitalWrite(settings.pin_spi_slave_select, LOW);
         spi.writeBytes(data, size);
@@ -174,7 +174,7 @@ private:
     };
 
     /// @brief Send single command to display
-    void sendCommand(Command command) const {
+    void sendCommand(Command command) const noexcept {
         digitalWrite(settings.pin_data_command, LOW);
         digitalWrite(settings.pin_spi_slave_select, LOW);
         spi.write(static_cast<u8>(command));

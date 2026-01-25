@@ -23,7 +23,7 @@ public:
     /// @brief Construct complementary filter instance
     /// @param alpha Filter coefficient (higher = more trust in prediction)
     /// @note alpha=0.0: trust only measurement, alpha=1.0: trust only prediction
-    explicit ComplementaryFilter(f32 alpha) :
+    explicit ComplementaryFilter(f32 alpha) noexcept:
         alpha{alpha}, one_minus_alpha{1.0f - alpha} {}
 
     /// @brief Calculate filtered value from measurement and rate of change
@@ -31,7 +31,7 @@ public:
     /// @param dx Rate of change (derivative) of the value
     /// @param dt Time step in seconds since last update
     /// @return Filtered value combining prediction and measurement
-    kf_nodiscard const T &calc(T x, T dx, Seconds dt) {
+    kf_nodiscard const T &calc(T x, T dx, Seconds dt) noexcept {
         if (first_step) {
             first_step = false;
             filtered = x;
@@ -44,7 +44,7 @@ public:
     }
 
     /// @brief Reset filter state (next calc will reinitialize with measurement)
-    void reset() {
+    void reset() noexcept {
         first_step = true;
     }
 };

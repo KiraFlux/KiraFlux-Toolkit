@@ -41,7 +41,7 @@ struct Motor {
 
         /// @brief Validate driver configuration parameters
         /// @param validator Validation context
-        void check(Validator &validator) const {
+        void check(Validator &validator) const noexcept {
             kf_Validator_check(validator, ledc_channel <= 15);
         }
     };
@@ -56,13 +56,13 @@ struct Motor {
 
         /// @brief Calculate maximum PWM value based on resolution
         /// @return Maximum PWM value (2^resolution - 1)
-        kf_nodiscard inline SignedPwm maxPwm() const {
+        kf_nodiscard constexpr SignedPwm maxPwm() const noexcept {
             return static_cast<SignedPwm>((1u << ledc_resolution_bits) - 1u);
         }
 
         /// @brief Validate PWM configuration parameters
         /// @param validator Validation context
-        void check(Validator &validator) const {
+        void check(Validator &validator) const noexcept {
             kf_Validator_check(validator, dead_zone >= 0);
             kf_Validator_check(validator, ledc_resolution_bits >= 8);
             kf_Validator_check(validator, ledc_resolution_bits <= 12);
@@ -77,13 +77,13 @@ private:
 
 public:
     explicit constexpr Motor(const DriverSettings &driver_settings,
-                             const PwmSettings &pwm_settings) :
+                             const PwmSettings &pwm_settings) noexcept:
         driver_settings{driver_settings}, pwm_settings{pwm_settings} {}
 
     /// @brief Initialize motor driver hardware
     /// @return true if initialization successful
     /// @note Configures GPIO pins and PWM channels based on driver type
-    kf_nodiscard bool init() {
+    kf_nodiscard bool init() noexcept {
         max_pwm = pwm_settings.maxPwm();
 
         pinMode(driver_settings.pin_a, OUTPUT);
@@ -123,19 +123,19 @@ public:
     /// @brief Set motor speed from normalized value
     /// @param value Normalized speed (-1.0 to 1.0)
     /// @note Applies dead zone and converts to PWM with direction
-    void set(float value) const {
+    void set(float value) const noexcept {
         write(fromNormalized(value));
     }
 
     /// @brief Stop motor (set PWM to zero)
-    inline void stop() const {
+    inline void stop() const noexcept {
         write(0);
     }
 
     /// @brief Write signed PWM value with direction control
     /// @param pwm Signed PWM value (-max to +max)
     /// @note Positive values rotate in positive direction (as configured)
-    void write(SignedPwm pwm) const {
+    void write(SignedPwm pwm) const noexcept {
         pwm = constrain(pwm, -max_pwm, max_pwm);
 
         switch (driver_settings.impl) {
@@ -163,7 +163,7 @@ private:
     /// @brief Map signed PWM to direction signal
     /// @param pwm Signed PWM value
     /// @return true for positive direction, false for negative
-    kf_nodiscard inline bool matchDirection(SignedPwm pwm) const {
+    kf_nodiscard inline bool matchDirection(SignedPwm pwm) const noexcept {
         const bool positive = pwm > 0;
         return driver_settings.direction == Direction::CW == positive;
     }
@@ -171,7 +171,7 @@ private:
     /// @brief Convert normalized value to signed PWM
     /// @param value Normalized speed (-1.0 to 1.0)
     /// @return Signed PWM value with dead zone applied
-    kf_nodiscard SignedPwm fromNormalized(float value) const {
+    kf_nodiscard SignedPwm fromNormalized(float value) const noexcept {
         constexpr auto normalized_dead_zone = 1e-2f;
 
         if (std::isnan(value)) { return 0; }

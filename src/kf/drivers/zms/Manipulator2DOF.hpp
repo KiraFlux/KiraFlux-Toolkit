@@ -22,7 +22,7 @@ struct Manipulator2DOF {
         PwmPositionServo::DriverSettings arm_axis;                   ///< Arm axis servo configuration
 
         /// @brief Validate all configuration parameters
-        void check(Validator &validator) const {
+        void check(Validator &validator) const noexcept {
             kf_Validator_check(validator, arm_axis.isValid());
             kf_Validator_check(validator, claw_axis.isValid());
             kf_Validator_check(validator, servo_pwm.isValid());
@@ -38,7 +38,7 @@ private:
 public:
     /// @brief Construct manipulator instance
     /// @param settings Configuration settings for both axes
-    explicit Manipulator2DOF(const Settings &settings) :
+    explicit Manipulator2DOF(const Settings &settings) noexcept:
         settings{settings},
         arm_axis{settings.servo_pwm, settings.arm_axis, settings.servo_generic_pulse_settings},
         claw_axis{settings.servo_pwm, settings.claw_axis, settings.servo_generic_pulse_settings} {}
@@ -46,7 +46,7 @@ public:
     /// @brief Initialize both servo axes
     /// @return true if both servos initialized successfully
     /// @note Logs error message if initialization fails
-    kf_nodiscard bool init() {
+    kf_nodiscard bool init() noexcept {
         if (not arm_axis.init()) {
             kf_Logger_error("arm axis fail");
             return false;
@@ -62,17 +62,17 @@ public:
 
     /// @brief Set arm axis angle
     /// @param angle Target angle in degrees
-    inline void setArm(Degrees angle) { arm_axis.set(angle); }
+    inline void setArm(Degrees angle)  noexcept { arm_axis.set(angle); }
 
     /// @brief Set claw axis angle
     /// @param angle Target angle in degrees
-    inline void setClaw(Degrees angle) { claw_axis.set(angle); }
+    inline void setClaw(Degrees angle) noexcept { claw_axis.set(angle); }
 
     /// @brief Disable arm axis servo (stop PWM)
-    inline void disableArm() { arm_axis.disable(); }
+    inline void disableArm() noexcept { arm_axis.disable(); }
 
     /// @brief Disable claw axis servo (stop PWM)
-    inline void disableClaw() { claw_axis.disable(); }
+    inline void disableClaw() noexcept { claw_axis.disable(); }
 };
 
 }// namespace kf

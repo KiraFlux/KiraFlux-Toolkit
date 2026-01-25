@@ -58,12 +58,12 @@ private:
 
         /// @brief Check if we can write more characters in current row
         /// @param row_max_length Maximum columns per row
-        kf_nodiscard bool canWrite(Glyph row_max_length) const {
+        kf_nodiscard bool canWrite(Glyph row_max_length) const noexcept {
             return col < row_max_length;
         }
 
         /// @brief Advance cursor position by N characters
-        void advance(Glyph count, Glyph row_max_length) {
+        void advance(Glyph count, Glyph row_max_length) noexcept {
             col += count;
             if (col >= row_max_length) {
                 newline();
@@ -73,7 +73,7 @@ private:
 
     /// @brief Helper to write character with cursor tracking
     /// @param ch Character to write
-    void writeChar(char ch) {
+    void writeChar(char ch) noexcept {
         if (buffer.full()) { return; }
         if (cursor.row >= config.rows_total) { return; }
 
@@ -106,13 +106,13 @@ private:
     }
 
     /// @brief Write string with cursor tracking
-    void writeString(StringView str) {
+    void writeString(StringView str) noexcept {
         for (char ch: str) {
             writeChar(ch);
         }
     }
 
-    void writeReal(f64 real, u8 rounding) {
+    void writeReal(f64 real, u8 rounding) noexcept {
         ArrayString<24> temp; // Enough for double with precision
         (void) temp.append(real, rounding);
         writeString(temp.view());
@@ -121,7 +121,7 @@ private:
 
     // Render Interface Implementation
 
-    kf_nodiscard usize widgetsAvailableImpl() const {
+    kf_nodiscard usize widgetsAvailableImpl() const noexcept {
         // Subtract 1 for title row
         if (config.rows_total > cursor.row + 1) {
             return config.rows_total - cursor.row - 1;
@@ -130,18 +130,18 @@ private:
         }
     }
 
-    void prepareImpl() {
+    void prepareImpl() noexcept {
         buffer.clear();
         cursor.reset();
     }
 
-    void finishImpl() {
+    void finishImpl() noexcept {
         if (config.on_render_finish) {
             config.on_render_finish(buffer.view());
         }
     }
 
-    void titleImpl(StringView title) {
+    void titleImpl(StringView title) noexcept {
         writeChar('\xF0');
         writeChar('\xBC');
         if (config.title_centered) {
@@ -155,63 +155,56 @@ private:
         writeChar('\x80');
     }
 
-    void checkboxImpl(bool enabled) {
+    void checkboxImpl(bool enabled) noexcept {
         constexpr StringView on{"==\xB2( 1 )\x80"};
         constexpr StringView off{"\xB1( 0 )\x80--"};
         writeString(enabled ? on : off);
     }
 
     // Value rendering implementations
-    void valueImpl(StringView str) { writeString(str); }
+    void valueImpl(StringView str) noexcept { writeString(str); }
 
-    void valueImpl(bool value) {
+    void valueImpl(bool value) noexcept {
         constexpr StringView _true{"\xF2true\x80"};
         constexpr StringView _false{"\xF1""false\x80"};
         writeString(value ? _true : _false);
     }
 
-    void valueImpl(i32 integer) {
+    void valueImpl(i32 integer) noexcept {
         ArrayString<12> temp; // Enough for 32-bit int
         (void) temp.append(integer);
         writeString(temp.view());
     }
 
-    void valueImpl(f32 real) {
+    void valueImpl(f32 real) noexcept {
         writeReal(static_cast<f64>(real), config.float_places);
     }
 
-    void valueImpl(f64 real) {
+    void valueImpl(f64 real) noexcept {
         writeReal(real, config.double_places);
     }
 
     // Decoration rendering
 
-    void arrowImpl() { writeString("-> "); }
+    void arrowImpl() noexcept { writeString("-> "); }
 
-    void colonImpl() { writeString(": "); }
+    void colonImpl() noexcept { writeString(": "); }
 
-    void beginFocusedImpl() { writeChar('\x81'); }
+    void beginFocusedImpl() noexcept { writeChar('\x81'); }
 
-    void endFocusedImpl() { writeChar('\x80'); }
+    void endFocusedImpl() noexcept { writeChar('\x80'); }
 
-    void beginBlockImpl() {
-        writeChar('[');
-    }
+    void beginBlockImpl() noexcept { writeChar('['); }
 
-    void endBlockImpl() {
-        writeChar(']');
-    }
+    void endBlockImpl() noexcept { writeChar(']'); }
 
-    void beginAltBlockImpl() {
-        writeChar('<');
-    }
+    void beginAltBlockImpl() noexcept { writeChar('<'); }
 
-    void endAltBlockImpl() {
-        writeChar('>');
-    }
+    void endAltBlockImpl() noexcept { writeChar('>'); }
 
-    void beginWidgetImpl(usize) {} // No-op for text renderer
-    void endWidgetImpl() { writeChar('\n'); }
+    void beginWidgetImpl(usize) noexcept {} // No-op for text renderer
+
+    void endWidgetImpl() noexcept { writeChar('\n'); }
 };
 
 } // namespace ui

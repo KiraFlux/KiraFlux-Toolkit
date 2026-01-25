@@ -155,7 +155,7 @@ public:
     /// @brief Append integer to string
     /// @param value Integer value to append
     /// @return Number of characters appended
-    kf_nodiscard usize append(i32 value) {
+    kf_nodiscard usize append(i32 value) noexcept {
         if (value == 0) {
             return push('0') ? 1 : 0;
         }
@@ -191,7 +191,7 @@ public:
     /// @param value Floating-point value
     /// @param decimal_places Number of decimal places to show
     /// @return Number of characters appended
-    kf_nodiscard usize append(f64 value, u8 decimal_places) {
+    kf_nodiscard usize append(f64 value, u8 decimal_places) noexcept {
         usize start_size = size_;
 
         // Handle special cases

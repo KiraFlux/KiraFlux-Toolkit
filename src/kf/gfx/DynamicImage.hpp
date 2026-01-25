@@ -75,7 +75,7 @@ public:
     }
 
     /// @brief Default constructor - invalid view
-    DynamicImage() :
+    DynamicImage() noexcept:
         buffer{nullptr}, stride{0}, offset_x{0}, offset_y{0}, width{0}, height{0} {};
 
     /// @brief Creates FrameView without validation
@@ -117,7 +117,7 @@ public:
     kf_nodiscard DynamicImage subUnchecked(
         Pixel sub_width, Pixel sub_height,
         Pixel sub_offset_x, Pixel sub_offset_y
-    ) {
+    ) noexcept {
         return DynamicImage{
             buffer, stride, sub_width, sub_height,
             static_cast<Pixel>(offset_x + sub_offset_x),
@@ -128,16 +128,16 @@ public:
     /// @brief Checks if X coordinate is within view bounds
     /// @param x Relative X coordinate
     /// @return True if coordinate is valid
-    kf_nodiscard inline bool isInsideX(Pixel x) const { return x >= 0 and x < width; }
+    kf_nodiscard inline bool isInsideX(Pixel x) const noexcept { return x >= 0 and x < width; }
 
     /// @brief Checks if Y coordinate is within view bounds
     /// @param y Relative Y coordinate
     /// @return True if coordinate is valid
-    kf_nodiscard inline bool isInsideY(Pixel y) const { return y >= 0 and y < height; }
+    kf_nodiscard inline bool isInsideY(Pixel y) const noexcept { return y >= 0 and y < height; }
 
     /// @brief Checks if view references valid buffer
     /// @return True if buffer pointer is not null
-    kf_nodiscard bool isValid() const { return nullptr != buffer; }
+    kf_nodiscard bool isValid() const noexcept { return nullptr != buffer; }
 
     /// @brief Sets single pixel color
     /// @param x Relative X coordinate

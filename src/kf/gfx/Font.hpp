@@ -51,7 +51,7 @@ struct Font final {
     /// a placeholder or default. When used for rendering, all characters
     /// will appear as spaces (no visible glyphs).
     /// @note The blank font has nominal dimensions of 3×5 pixels
-    static const Font &blank() {
+    static const Font &blank() noexcept {
         static Font instance{
             nullptr,
             3,

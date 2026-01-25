@@ -47,20 +47,20 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
 
         /// @brief Render widget content (must be implemented by derived classes)
         /// @param render Renderer instance to use for drawing
-        virtual void doRender(RenderImpl &render) const = 0;
+        virtual void doRender(RenderImpl &render) const noexcept = 0;
 
         /// @brief Handle click event
         /// @return true if redraw required, false otherwise
-        virtual bool onClick() { return false; }
+        virtual bool onClick() noexcept { return false; }
 
         /// @brief Handle value event
         /// @return true if redraw required, false otherwise
-        virtual bool onValue(EventValue value) { return false; }
+        virtual bool onValue(EventValue value) noexcept { return false; }
 
         /// @brief External widget rendering with focus handling
         /// @param render Renderer instance to use for drawing
         /// @param focused true if widget currently has focus
-        void render(RenderImpl &render, bool focused) const {
+        void render(RenderImpl &render, bool focused) const noexcept {
             if (focused) {
                 render.beginFocused();
                 doRender(render);
@@ -88,14 +88,14 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
 
             /// @brief Set target page as active on click
             /// @return true (redraw always required after page change)
-            bool onClick() override {
+            bool onClick() noexcept override {
                 UI::instance().bindPage(target);
                 return true;
             }
 
             /// @brief Render page navigation indicator
             /// @param render Renderer instance
-            void doRender(RenderImpl &render) const override {
+            void doRender(RenderImpl &render) const noexcept override {
                 render.arrow();
                 render.value(target.title);
             }
@@ -113,13 +113,13 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
             title{title} {}
 
         /// @brief Page behavior on entry
-        virtual void onEntry() {}
+        virtual void onEntry() noexcept {}
 
         /// @brief Page behavior on leave
-        virtual void onExit() {}
+        virtual void onExit() noexcept {}
 
         /// @brief Page behavior on external update
-        virtual void onUpdate() {}
+        virtual void onUpdate() noexcept {}
 
         /// @brief Add widget to this page
         /// @param widget Widget to add (must remain valid for page lifetime)
@@ -137,7 +137,7 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
         /// @brief Render page content to display
         /// @param render Renderer instance to use for drawing
         /// @note Handles cursor positioning and widget focus
-        void render(RenderImpl &render) {
+        void render(RenderImpl &render) noexcept {
             render.title(title);
 
             const auto available = render.widgetsAvailable();
@@ -154,7 +154,7 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
         /// @brief Process incoming UI event
         /// @param event Event to process
         /// @return true if redraw required after event processing
-        bool onEvent(Event event) {
+        bool onEvent(Event event) noexcept {
             switch (event.type()) {
                 case Event::Type::Update: {
                     return true;
@@ -178,17 +178,17 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
 
         /// @brief Get total widget count on page
         /// @return Number of widgets on this page
-        kf_nodiscard inline usize totalWidgets() const { return static_cast<int>(widgets.size()); }
+        kf_nodiscard inline usize totalWidgets() const noexcept { return static_cast<int>(widgets.size()); }
 
     private:
         /// @brief Get maximum cursor position (last widget index)
         /// @return Maximum cursor index (totalWidgets() - 1)
-        kf_nodiscard inline usize cursorPositionMax() const { return totalWidgets() - 1; }
+        kf_nodiscard inline usize cursorPositionMax() const noexcept { return totalWidgets() - 1; }
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
         /// @return true if cursor position changed (redraw required)
-        kf_nodiscard bool moveCursor(isize delta) {
+        kf_nodiscard bool moveCursor(isize delta) noexcept {
             const auto n = totalWidgets();
             if (n > 1) {
                 cursor += delta;
@@ -209,11 +209,11 @@ private:
 public:
     /// @brief Access renderer configuration settings
     /// @return Reference to renderer settings structure
-    RenderConfig &renderConfig() { return render_system.config; }
+    RenderConfig &renderConfig() noexcept { return render_system.config; }
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
-    void bindPage(Page &page) {
+    void bindPage(Page &page) noexcept {
         if (nullptr != active_page) {
             active_page->onExit();
         }
@@ -230,7 +230,7 @@ public:
 
     /// @brief Process active page update, pending events and render if needed
     /// @note Must be called regularly (e.g., in main loop)
-    void poll() {
+    void poll() noexcept {
         if (nullptr == active_page) {
             return;
         }
@@ -261,7 +261,7 @@ public:
         Function<void(T)> change_handler{nullptr};
 
     protected:
-        void invokeHandler(T value) const {
+        void invokeHandler(T value) const noexcept {
             if (nullptr != change_handler) {
                 change_handler(value);
             }
@@ -289,7 +289,7 @@ public:
 
         /// @brief Handle button click event
         /// @return false (button click typically doesn't require redraw)
-        bool onClick() override {
+        bool onClick() noexcept override {
             if (nullptr != on_click) {
                 on_click();
             }
@@ -299,7 +299,7 @@ public:
 
         /// @brief Render button with block styling
         /// @param render Renderer instance
-        void doRender(RenderImpl &render) const override {
+        void doRender(RenderImpl &render) const noexcept override {
             render.beginBlock();
             render.value(label);
             render.endBlock();
@@ -327,7 +327,7 @@ public:
 
         /// @brief Toggle state on click
         /// @return true (redraw required after state change)
-        bool onClick() override {
+        bool onClick() noexcept override {
             setState(not state);
             return true;
         }
@@ -335,21 +335,21 @@ public:
         /// @brief Set state based on direction
         /// @param value Positive sets true, negative sets false
         /// @return true (redraw required after state change)
-        bool onValue(EventValue value) override {
+        bool onValue(EventValue value) noexcept override {
             setState(value > 0);
             return true;
         }
 
         /// @brief Render checkbox with visual state indicator
         /// @param render Renderer instance
-        void doRender(RenderImpl &render) const override {
+        void doRender(RenderImpl &render) const noexcept override {
             render.checkbox(state);
         }
 
     private:
         /// @brief update checkbox state and notify handler
         /// @param new_state New checkbox state
-        void setState(bool new_state) {
+        void setState(bool new_state) noexcept {
             state = new_state;
             HasChangeHandler<bool>::invokeHandler(state);
         }
@@ -390,7 +390,7 @@ public:
         /// @brief Change selection based on direction
         /// @param direction Navigation direction (positive/negative)
         /// @return true (redraw required after selection change)
-        bool onValue(EventValue direction) override {
+        bool onValue(EventValue direction) noexcept override {
             moveCursor(direction);
             HasChangeHandler<T>::invokeHandler(items[cursor].value);
             return true;
@@ -398,7 +398,7 @@ public:
 
         /// @brief Render current selection
         /// @param render Renderer instance
-        void doRender(RenderImpl &render) const override {
+        void doRender(RenderImpl &render) const noexcept override {
             render.beginAltBlock();
             render.value(items[cursor].key);
             render.endAltBlock();
@@ -407,7 +407,7 @@ public:
     private:
         /// @brief Move selection cursor with circular wrapping
         /// @param delta Cursor movement delta
-        void moveCursor(int delta) {
+        void moveCursor(int delta) noexcept {
             cursor += delta;
             cursor += N;
             cursor %= N;
@@ -434,7 +434,7 @@ public:
 
         /// @brief Render value with appropriate formatting
         /// @param render Renderer instance
-        void doRender(RenderImpl &render) const override {
+        void doRender(RenderImpl &render) const noexcept override {
             render.value(value);
         }
     };
@@ -461,16 +461,16 @@ public:
 
         /// @brief Forward click event to wrapped widget
         /// @return Result from wrapped widget's onClick()
-        bool onClick() override { return impl.onClick(); }
+        bool onClick() noexcept override { return impl.onClick(); }
 
         /// @brief Forward change event to wrapped widget
         /// @param value Change direction
         /// @return Result from wrapped widget's onValue()
-        bool onValue(EventValue value) override { return impl.onValue(value); }
+        bool onValue(EventValue value) noexcept override { return impl.onValue(value); }
 
         /// @brief Render label followed by wrapped widget
         /// @param render Renderer instance
-        void doRender(RenderImpl &render) const override {
+        void doRender(RenderImpl &render) const noexcept override {
             render.value(label);
             render.colon();
             impl.doRender(render);
@@ -519,7 +519,7 @@ public:
 
         /// @brief Toggle between value adjustment and step adjustment modes
         /// @return true (redraw required after mode change)
-        bool onClick() override {
+        bool onClick() noexcept override {
             is_step_setting_mode = not is_step_setting_mode;
             return true;
         }
@@ -527,7 +527,7 @@ public:
         /// @brief Adjust value or step based on current mode
         /// @param direction Adjustment direction (positive/negative)
         /// @return true (redraw required after adjustment)
-        bool onValue(EventValue direction) override {
+        bool onValue(EventValue direction) noexcept override {
             if (is_step_setting_mode) {
                 changeStep(direction);
             } else {
@@ -538,7 +538,7 @@ public:
 
         /// @brief Render current value or step size based on mode
         /// @param render Renderer instance
-        void doRender(RenderImpl &render) const override {
+        void doRender(RenderImpl &render) const noexcept override {
             render.beginAltBlock();
 
             if (is_step_setting_mode) {
@@ -555,7 +555,7 @@ public:
 
         /// @brief Adjust controlled value based on mode and direction
         /// @param direction Adjustment direction (positive/negative)
-        void changeValue(int direction) {
+        void changeValue(int direction) noexcept {
             if (mode == Mode::Geometric) {
                 if (direction > 0) {
                     value *= step;
@@ -574,7 +574,7 @@ public:
 
         /// @brief Adjust step size with multiplier protection
         /// @param direction Adjustment direction (positive/negative)
-        void changeStep(int direction) {
+        void changeStep(int direction) noexcept {
             constexpr T step_multiplier{static_cast<T>(10)};
 
             if (direction > 0) {

@@ -63,33 +63,33 @@ public:
     };
 
     /// @brief Initialize the display hardware
-    kf_nodiscard bool init() { return impl().initImpl(); }
+    kf_nodiscard bool init() noexcept { return impl().initImpl(); }
 
     /// @brief Get current display width in pixels (may differ from physical width due to orientation)
-    kf_nodiscard u8 width() const { return c_impl().getWidthImpl(); }
+    kf_nodiscard u8 width() const noexcept { return c_impl().getWidthImpl(); }
 
     /// @brief Get current display height in pixels (may differ from physical width due to orientation)
-    kf_nodiscard u8 height() const { return c_impl().getHeightImpl(); }
+    kf_nodiscard u8 height() const noexcept { return c_impl().getHeightImpl(); }
 
     /// @brief Transfer software buffer to display hardware
-    void send() const { c_impl().sendImpl(); }
+    void send() const noexcept { c_impl().sendImpl(); }
 
     /// @brief Set display orientation
-    void setOrientation(Orientation orientation) { impl().setOrientationImpl(orientation); }
+    void setOrientation(Orientation orientation) noexcept { impl().setOrientationImpl(orientation); }
 
     /// @brief Get writable software frame buffer
-    kf_nodiscard Slice<BufferType> buffer() { return {software_screen_buffer, buffer_items}; }
+    kf_nodiscard Slice<BufferType> buffer() noexcept { return {software_screen_buffer, buffer_items}; }
 
     /// @brief Get maximum valid X coordinate for current orientation
-    kf_nodiscard u8 maxX() const { return width() - 1; }
+    kf_nodiscard u8 maxX() const noexcept { return width() - 1; }
 
     /// @brief Get maximum valid Y coordinate for current orientation
-    kf_nodiscard u8 maxY() const { return height() - 1; }
+    kf_nodiscard u8 maxY() const noexcept { return height() - 1; }
 
 private:
-    inline Impl &impl() { return *static_cast<Impl *>(this); }
+    inline Impl &impl() noexcept{ return *static_cast<Impl *>(this); }
 
-    inline const Impl &c_impl() const { return *static_cast<const Impl *>(this); }
+    inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
 }// namespace kf

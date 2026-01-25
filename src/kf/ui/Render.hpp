@@ -24,65 +24,65 @@ template<typename Impl> struct Render {
     // Control operations
 
     /// @brief Prepare render buffer for new frame
-    void prepare() { impl().prepareImpl(); }
+    void prepare() noexcept { impl().prepareImpl(); }
 
     /// @brief Finalize frame after rendering
-    void finish() { impl().finishImpl(); }
+    void finish() noexcept { impl().finishImpl(); }
 
     /// @brief Begin rendering specific widget
     /// @param index Widget index in UI hierarchy
-    void beginWidget(usize index) { impl().beginWidgetImpl(index); }
+    void beginWidget(usize index) noexcept { impl().beginWidgetImpl(index); }
 
     /// @brief Finish rendering current widget
-    void endWidget() { impl().endWidgetImpl(); }
+    void endWidget() noexcept { impl().endWidgetImpl(); }
 
     /// @brief Get remaining widget rendering capacity
     /// @return Number of widgets that can still be rendered in current frame
-    kf_nodiscard usize widgetsAvailable() { return impl().widgetsAvailableImpl(); }
+    kf_nodiscard usize widgetsAvailable() noexcept { return impl().widgetsAvailableImpl(); }
 
     // Value rendering
 
     /// @brief Render page title
     /// @param title Title text string
-    void title(StringView title) { impl().titleImpl(title); }
+    void title(StringView title) noexcept { impl().titleImpl(title); }
 
     /// @brief Render checkbox
-    void checkbox(bool enabled) { impl().checkboxImpl(enabled); }
+    void checkbox(bool enabled) noexcept { impl().checkboxImpl(enabled); }
 
     /// @brief Render value
     /// @param value Value to display
-    template<typename T> void value(T value) { impl().valueImpl(value); }
+    template<typename T> void value(T value) noexcept { impl().valueImpl(value); }
 
     // Decoration and layout
 
     /// @brief Render arrow pointing from edge to widget
-    void arrow() { impl().arrowImpl(); }
+    void arrow() noexcept { impl().arrowImpl(); }
 
     /// @brief Render colon separator
-    void colon() { impl().colonImpl(); }
+    void colon() noexcept { impl().colonImpl(); }
 
     /// @brief Begin contrasting text region (higher visibility)
-    void beginFocused() { impl().beginFocusedImpl(); }
+    void beginFocused() noexcept { impl().beginFocusedImpl(); }
 
     /// @brief End contrasting text region
-    void endFocused() { impl().endFocusedImpl(); }
+    void endFocused() noexcept { impl().endFocusedImpl(); }
 
     /// @brief Begin standard content block
-    void beginBlock() { impl().beginBlockImpl(); }
+    void beginBlock() noexcept { impl().beginBlockImpl(); }
 
     /// @brief End standard content block
-    void endBlock() { impl().endBlockImpl(); }
+    void endBlock() noexcept { impl().endBlockImpl(); }
 
     /// @brief Begin alternative content block (different styling)
-    void beginAltBlock() { impl().beginAltBlockImpl(); }
+    void beginAltBlock() noexcept { impl().beginAltBlockImpl(); }
 
     /// @brief End alternative content block
-    void endAltBlock() { impl().endAltBlockImpl(); }
+    void endAltBlock() noexcept { impl().endAltBlockImpl(); }
 
 private:
     /// @brief Get reference to derived implementation
     /// @return Reference to concrete renderer instance
-    inline Impl &impl() { return *static_cast<Impl *>(this); }
+    inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
 };
 
 }// namespace ui

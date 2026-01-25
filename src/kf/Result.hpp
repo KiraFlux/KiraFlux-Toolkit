@@ -26,25 +26,25 @@ private:
 public:
     /// @brief Construct successful result with value
     /// @param val Value to store as successful result
-    constexpr Result(T val) :// NOLINT(*-explicit-constructor)
+    constexpr Result(T val) noexcept:// NOLINT(*-explicit-constructor)
         is_ok{true}, value{val} {}
 
     /// @brief Construct error result with error
     /// @param error Error value to store
-    constexpr Result(E error) :// NOLINT(*-explicit-constructor)
+    constexpr Result(E error) noexcept:// NOLINT(*-explicit-constructor)
         is_ok{false}, err{error} {}
 
     /// @brief Check if result contains a value (success)
     /// @return true if result is successful (contains value)
-    kf_nodiscard bool isOk() const { return is_ok; }
+    kf_nodiscard bool isOk() const noexcept { return is_ok; }
 
     /// @brief Check if result contains an error
     /// @return true if result contains an error
-    kf_nodiscard bool isError() const { return not is_ok; }
+    kf_nodiscard bool isError() const noexcept { return not is_ok; }
 
     /// @brief Get successful value as Option
     /// @return Option containing value if successful, empty Option otherwise
-    Option<T> ok() const {
+    Option<T> ok() const noexcept {
         if (is_ok) {
             return {value};
         } else {
@@ -54,7 +54,7 @@ public:
 
     /// @brief Get error value as Option
     /// @return Option containing error if failed, empty Option otherwise
-    Option<E> error() const {
+    Option<E> error() const noexcept {
         if (is_ok) {
             return {};
         } else {
@@ -74,25 +74,25 @@ private:
 
 public:
     /// @brief Construct successful void result
-    constexpr Result() :
+    constexpr Result() noexcept:
         is_ok{true} {}
 
     /// @brief Construct error result with error
     /// @param error Error value to store
-    constexpr Result(E error) :// NOLINT(*-explicit-constructor)
+    constexpr Result(E error) noexcept:// NOLINT(*-explicit-constructor)
         is_ok{false}, err{error} {}
 
     /// @brief Check if result is successful
     /// @return true if operation succeeded (no error)
-    kf_nodiscard bool isOk() const { return is_ok; }
+    kf_nodiscard bool isOk() const noexcept { return is_ok; }
 
     /// @brief Check if result contains an error
     /// @return true if operation failed (contains error)
-    kf_nodiscard bool isError() const { return not is_ok; }
+    kf_nodiscard bool isError() const noexcept { return not is_ok; }
 
     /// @brief Get error value as Option
     /// @return Option containing error if failed, empty Option otherwise
-    Option<E> error() const {
+    Option<E> error() const noexcept {
         if (is_ok) {
             return {};
         } else {

@@ -7,6 +7,7 @@
 
 #include "kf/Logger.hpp"
 
+
 namespace kf {
 
 /// @brief Persistent storage wrapper for ESP32 Preferences
@@ -24,7 +25,7 @@ public:
     /// @brief Load settings from persistent storage (FLASH)
     /// @return true if settings loaded successfully, false otherwise
     /// @note Logs debug and error messages via kf_Logger
-    bool load() {
+    bool load() noexcept {
         kf_Logger_debug("Loading storage %s", key);
 
         Preferences preferences;
@@ -50,7 +51,7 @@ public:
     /// @brief Save settings to persistent storage (FLASH)
     /// @return true if settings saved successfully, false otherwise
     /// @note Logs debug messages via kf_Logger
-    bool save() {
+    bool save() noexcept {
         kf_Logger_debug("Saving storage %s", key);
 
         Preferences preferences;
@@ -67,7 +68,7 @@ public:
     /// @brief Erase settings from persistent storage (FLASH)
     /// @return true if settings erased successfully, false otherwise
     /// @note Logs debug and error messages via kf_Logger
-    bool erase() {
+    bool erase() noexcept {
         kf_Logger_debug("Saving storage %s", key);
 
         Preferences preferences;
@@ -89,7 +90,7 @@ private:
     /// @param preferences Preferences instance to initialize
     /// @param read_only Open in read-only mode if true
     /// @return true if Preferences opened successfully
-    bool begin(Preferences &preferences, bool read_only) const {
+    bool begin(Preferences &preferences, bool read_only) const noexcept {
         if (preferences.begin(preferences_namespace, read_only)) {
             return true;
         } else {

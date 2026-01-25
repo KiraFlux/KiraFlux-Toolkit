@@ -6,6 +6,7 @@
 #include "kf/core/attributes.hpp"
 #include "kf/math/units.hpp"
 
+
 namespace kf {
 
 /// @brief Service for tracking timeout expiration moments
@@ -19,20 +20,20 @@ private:
 public:
     /// @brief Construct timeout manager instance
     /// @param timeout_duration Timeout duration in milliseconds
-    explicit TimeoutManager(Milliseconds timeout_duration) :
+    explicit TimeoutManager(Milliseconds timeout_duration) noexcept:
         timeout{timeout_duration} {}
 
     /// @brief Update timeout expiration time
     /// @param now Current time in milliseconds
     /// @note Sets next timeout to current time plus configured duration
-    void update(Milliseconds now) {
+    void update(Milliseconds now) noexcept {
         next_timeout = now + timeout;
     }
 
     /// @brief Check if timeout has expired
     /// @param now Current time in milliseconds
     /// @return true if timeout has expired, false otherwise
-    kf_nodiscard inline bool expired(Milliseconds now) const { return now >= next_timeout; }
+    kf_nodiscard inline bool expired(Milliseconds now) const noexcept { return now >= next_timeout; }
 };
 
 }// namespace kf

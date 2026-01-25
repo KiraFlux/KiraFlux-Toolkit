@@ -9,6 +9,7 @@
 #include "kf/math/time/TimeoutManager.hpp"
 #include "kf/math/time/Timer.hpp"
 
+
 namespace kf {
 
 /// @brief Monitors joystick for discrete directional changes with autorepeat
@@ -35,11 +36,11 @@ private:
 
 public:
     /// @brief Construct listener for specific joystick
-    explicit JoystickListener(Joystick &joy, float threshold = 0.6f) :
+    explicit JoystickListener(Joystick &joy, float threshold = 0.6f) noexcept:
         joystick{joy}, threshold{threshold} {}
 
     /// @brief Poll joystick state and update internal direction with autorepeat
-    void poll(Milliseconds now) {
+    void poll(Milliseconds now) noexcept {
         const Direction new_direction = calculateDirection();
 
         // Check for real direction change
@@ -54,7 +55,7 @@ public:
                 repeat_timer = Timer{repeat_timer.period};// Reset repeat timer
             }
         }
-        // Same direction, check for autorepeat
+            // Same direction, check for autorepeat
         else if (current_direction != Direction::Home) {
             if (not in_repeat_mode) {
                 // Waiting for initial delay (500ms)
@@ -75,20 +76,20 @@ public:
     }
 
     /// @brief Get current logical direction based on threshold
-    kf_nodiscard Direction direction() const { return current_direction; }
+    kf_nodiscard Direction direction() const noexcept { return current_direction; }
 
     /// @brief Check if currently in autorepeat mode
-    kf_nodiscard bool repeating() const { return in_repeat_mode; }
+    kf_nodiscard bool repeating() const noexcept { return in_repeat_mode; }
 
     /// @brief Check if direction has changed since last poll()
-    kf_nodiscard bool changed() {
+    kf_nodiscard bool changed() noexcept {
         const bool changed = has_changed;
         has_changed = false;
         return changed;
     }
 
     /// @brief Calculate raw direction without updating internal state
-    kf_nodiscard Direction calculateDirection() const {
+    kf_nodiscard Direction calculateDirection() const noexcept {
         const auto x = joystick.axis_x.read();
         const auto y = joystick.axis_y.read();
         const auto abs_x = std::abs(x);
@@ -106,7 +107,7 @@ public:
     }
 
     /// @brief Reset internal state to Home direction
-    void reset() {
+    void reset() noexcept {
         current_direction = Direction::Home;
         has_changed = false;
         in_repeat_mode = false;

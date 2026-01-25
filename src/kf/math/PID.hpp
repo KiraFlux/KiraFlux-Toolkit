@@ -9,6 +9,7 @@
 #include "kf/core/attributes.hpp"
 #include "kf/math/filters/LowFrequencyFilter.hpp"
 
+
 namespace kf {
 
 /// @brief PID controller implementation with external settings reference
@@ -36,7 +37,7 @@ public:
     /// @brief Construct PID controller instance
     /// @param settings PID tuning parameters
     /// @param dx_filter_alpha Derivative filter smoothing factor (default: 1.0 = no filtering)
-    explicit PID(const Settings &settings, f32 dx_filter_alpha = 1.0f) :
+    explicit PID(const Settings &settings, f32 dx_filter_alpha = 1.0f) noexcept:
         settings{settings}, dx_filter{dx_filter_alpha} {}
 
     /// @brief Calculate PID controller output
@@ -44,7 +45,7 @@ public:
     /// @param dt Time step in seconds since last calculation
     /// @return Controller output (saturated to output_limit)
     /// @note Skips calculation for invalid dt values (≤0 or >0.1s)
-    kf_nodiscard f32 calc(f32 error, f32 dt) {
+    kf_nodiscard f32 calc(f32 error, f32 dt) noexcept {
         constexpr auto max_dt = 0.1f;
 
         if (dt <= 0.0f or dt > max_dt) {
@@ -68,7 +69,7 @@ public:
     }
 
     /// @brief Reset controller internal state (integral and derivative terms)
-    void reset() {
+    void reset() noexcept {
         dx = 0.0f;
         ix = 0.0f;
         last_error = NAN;

@@ -9,6 +9,7 @@
 #include "kf/aliases.hpp"
 #include "kf/core/attributes.hpp"
 
+
 namespace kf {
 
 /// @brief 3D vector template for graphics and calculations
@@ -21,14 +22,14 @@ template<typename T> struct vec3 final {
     T z;///< Z component
 
     /// @brief Default constructor (initializes to zero)
-    vec3() :
+    vec3() noexcept:
         x{0}, y{0}, z{0} {}
 
     /// @brief Construct from x, y, z components
     /// @param x X component value
     /// @param y Y component value
     /// @param z Z component value
-    vec3(T x, T y, T z) :
+    vec3(T x, T y, T z) noexcept:
         x{x}, y{y}, z{z} {}
 
     /// @brief Vector addition
@@ -123,7 +124,8 @@ template<typename T> struct vec3 final {
         return {
             y * other.z - z * other.y,
             z * other.x - x * other.z,
-            x * other.y - y * other.x};
+            x * other.y - y * other.x
+        };
     }
 
     /// @brief Check if vector is zero (all components zero)
