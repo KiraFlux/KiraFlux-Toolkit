@@ -6,82 +6,128 @@
 #include <Arduino.h>
 
 #include "kf/aliases.hpp"
+#include "kf/algorithm.hpp"
 #include "kf/core/attributes.hpp"
 #include "kf/math/filters/ExponentialFilter.hpp"
+#include "kf/Tuner.hpp"
+
 
 namespace kf {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
 /// @note Uses ESP32's 12-bit ADC (0-4095 range) with configurable filtering
 struct AnalogAxis final {
+    using AdcSignedValue = i16;
+
+    struct Config {
+        using tuned_type = AdcSignedValue;
+
+        static constexpr unsigned adc_bits{12};
+
+        static constexpr AdcSignedValue max_analog_value{(1 << adc_bits) - 1};
+        static constexpr AdcSignedValue default_analog_center{max_analog_value / 2};
+
+        enum class Mode : u8 {
+            Normal,
+            Inverted,
+        } mode;
+        u8 pin;
+        AdcSignedValue dead_zone{0};
+        AdcSignedValue range_positive{calcPositiveRange(default_analog_center)};
+        AdcSignedValue range_negative{calcNegativeRange(default_analog_center)};
+
+        Config(gpio_num_t pin, Mode mode) noexcept:
+            pin{static_cast<u8>(pin)}, mode{mode} {}
+
+        kf_nodiscard constexpr static AdcSignedValue calcPositiveRange(AdcSignedValue center) noexcept {
+            return static_cast<AdcSignedValue>(max_analog_value - center);
+        }
+
+        kf_nodiscard constexpr static AdcSignedValue calcNegativeRange(AdcSignedValue center) noexcept {
+            return center;
+        }
+    };
+
+    struct AxisTuner final : Tuner<AxisTuner, Config> {
+    private:
+        AdcSignedValue max_sample{};
+        AdcSignedValue min_sample{};
+        i64 sum{};
+
+    public:
+
+        explicit AxisTuner(Config &config, u16 samples) :
+            Tuner{config, samples} {}
+
+        void onStart() noexcept {
+            max_sample = 0;
+            min_sample = Config::max_analog_value;
+            sum = 0;
+        }
+
+        void onSample(AdcSignedValue sample) noexcept {
+            max_sample = kf::max(max_sample, sample);
+            min_sample = kf::min(min_sample, sample);
+            sum += sample;
+        }
+
+        void calculate(Config &c) const noexcept {
+            constexpr auto margin{10};
+            constexpr auto zone_percents{10};
+            c.dead_zone = static_cast<AdcSignedValue>((max_sample - min_sample) / zone_percents + margin);
+
+            const auto center = static_cast<AdcSignedValue>(sum / samples_total);
+            c.range_positive = Config::calcPositiveRange(center);
+            c.range_negative = Config::calcNegativeRange(center);
+        }
+    };
 
 private:
-    /// @brief Maximum raw analog value (12-bit ADC)
-    static constexpr auto max_analog_value = 4095;
-
-    /// @brief Default center position (half of ADC range)
-    static constexpr auto default_analog_center = max_analog_value / 2;
+    const Config &config;
+    ExponentialFilter<f32> filter;
 
 public:
-    bool inverted{false};///< Invert axis direction (swap positive/negative)
 
-private:
-    const u8 pin;                                                ///< GPIO pin for analog input
-    ExponentialFilter<f32> filter;                               ///< Exponential smoothing filter
-    i16 range_negative{default_analog_center};                   ///< Negative range from center
-    i16 range_positive{max_analog_value - default_analog_center};///< Positive range from center
-
-public:
-    i16 dead_zone{0};///< Raw value dead zone (absolute units)
-
-    /// @brief Construct analog axis instance
     /// @param k Filter coefficient (0.0 to 1.0, higher = more smoothing)
-    explicit AnalogAxis(gpio_num_t pin, f32 k) noexcept :
-        pin{static_cast<u8>(pin)}, filter{k} {}
+    explicit AnalogAxis(const Config &config, f32 k) noexcept:
+        config{config}, filter{k} {}
 
-    /// @brief Initialize axis hardware (set pin mode)
     inline void init() const noexcept {
-        pinMode(pin, INPUT);
+        pinMode(config.pin, INPUT);
     }
 
-    /// @brief Update calibration center point
-    /// @param new_center New center position in raw ADC units
-    /// @note Adjusts range calculations for normalization
-    void updateCenter(i16 new_center) noexcept {
-        range_negative = new_center;
-        range_positive = static_cast<i16>(max_analog_value - new_center);
-    }
-
-    /// @brief Read raw ADC value without processing
-    /// @return Raw 12-bit ADC reading (0-4095)
-    kf_nodiscard inline int readRaw() const noexcept {
-        return analogRead(pin);
+    kf_nodiscard inline AdcSignedValue readRaw() const noexcept {
+        return static_cast<AdcSignedValue>(analogRead(config.pin));
     }
 
     /// @brief Read normalized axis position
     /// @return Filtered value normalized to [-1.0, 1.0] range
     /// @note Applies dead zone, filtering, and optional inversion
     kf_nodiscard f32 read() noexcept {
-        return inverted ? -pureRead() : pureRead();
+        if (config.mode == Config::Mode::Inverted) {
+            return -pureRead();
+        } else {
+            return pureRead();
+        }
     }
 
 private:
     /// @brief Internal normalized reading without inversion
-    /// @return Filtered normalized value [0.0, 1.0] without direction
     kf_nodiscard f32 pureRead() noexcept {
-        const auto deviation = readRaw() - range_negative;
+        const auto deviation = readRaw() - config.range_negative;
 
-        if (std::abs(deviation) < dead_zone) {
+        if (kf::abs(deviation) < config.dead_zone) {
             return 0.0f;
         }
 
         const auto filtered = filter.calc(static_cast<f32>(deviation));
 
         if (filtered < 0.0f) {
-            return filtered / static_cast<f32>(range_negative);
+            return filtered / static_cast<f32>(config.range_negative);
         } else {
-            return filtered / static_cast<f32>(range_positive);
+            return filtered / static_cast<f32>(config.range_positive);
         }
     }
 };
+
 }// namespace kf
