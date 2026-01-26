@@ -15,6 +15,7 @@
 #include "kf/memory/Queue.hpp"
 #include "kf/pattern/Singleton.hpp"
 #include "kf/ui/Event.hpp"
+#include "kf/math/units.hpp"
 
 
 namespace kf {
@@ -119,7 +120,7 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
         virtual void onExit() noexcept {}
 
         /// @brief Page behavior on external update
-        virtual void onUpdate() noexcept {}
+        virtual void onUpdate(Milliseconds now) noexcept {}
 
         /// @brief Add widget to this page
         /// @param widget Widget to add (must remain valid for page lifetime)
@@ -230,12 +231,12 @@ public:
 
     /// @brief Process active page update, pending events and render if needed
     /// @note Must be called regularly (e.g., in main loop)
-    void poll() noexcept {
+    void poll(Milliseconds now) noexcept {
         if (nullptr == active_page) {
             return;
         }
 
-        active_page->onUpdate();
+        active_page->onUpdate(now);
 
         if (events.empty()) {
             return;
