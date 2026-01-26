@@ -13,9 +13,10 @@ namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 namespace ui {
 
 /// @brief Incoming UI event with type and value packed into single byte
-template<u8 T, u8 V> struct Event {
+/// @tparam V Event Value width in bits
+template<u8 V> struct Event {
 
-    static constexpr u8 type_bits = T;
+    static constexpr u8 type_bits = 2;
     static constexpr u8 value_bits = V;
     static constexpr u8 total_bits = type_bits + value_bits;
 
