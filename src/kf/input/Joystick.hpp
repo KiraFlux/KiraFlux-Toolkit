@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/drivers/input/AnalogAxis.hpp"
+#include "AnalogAxis.hpp"
 #include "kf/Tuner.hpp"
 
 
