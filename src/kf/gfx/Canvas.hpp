@@ -127,6 +127,12 @@ public:
     /// @brief Get current font glyph height
     kf_nodiscard Pixel glyphHeight() const noexcept { return current_font->heightTotal(); }
 
+    /// Current Foreground color
+    kf_nodiscard ColorType foreground() const noexcept { return foreground_color; }
+
+    /// Current Background color
+    kf_nodiscard ColorType background() const noexcept { return background_color; }
+
     // Control
 
     /// @brief Set current font for text rendering
