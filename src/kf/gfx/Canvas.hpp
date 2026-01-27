@@ -25,9 +25,9 @@ template<PixelFormat F> struct Canvas {
 
 private:
     using traits = pixel_traits<F>;
-    using Palette = ColorPalette<F>;
 
 public:
+    using Palette = ColorPalette<F>; ///<Color Palette
     using ColorType = typename traits::ColorType;///< Color representation type
 
 private:
