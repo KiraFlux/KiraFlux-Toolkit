@@ -13,8 +13,8 @@
 namespace kf::gfx {
 
 /// @brief Dynamic display region with runtime dimensions
-/// @tparam Format Pixel format for the image data
-template<PixelFormat Format> struct DynamicImage final {
+/// @tparam F Pixel format for the image data
+template<PixelFormat F> struct DynamicImage final {
 
 public:
     /// @brief Possible errors when creating FrameView
@@ -33,29 +33,17 @@ public:
     };
 
 private:
-    using Traits = pixel_traits<Format>;
+    using traits = pixel_traits<F>;
 
 public:
-    using BufferType = typename Traits::BufferType;///< Raw buffer element type
-    using ColorType = typename Traits::ColorType;  ///< Pixel color representation
+    using BufferType = typename traits::BufferType;///< Raw buffer element type
+    using ColorType = typename traits::ColorType;  ///< Pixel color representation
+    static constexpr auto pixel_format{F};         ///< Pixel format
 
-    /// @brief Pointer to display buffer memory
-    BufferType *buffer;
-
-    /// @brief Row stride (full display width)
-    Pixel stride;
-
-    /// @brief Absolute X offset from buffer origin
-    Pixel offset_x;
-
-    /// @brief Absolute Y offset from buffer origin
-    Pixel offset_y;
-
-    /// @brief Region width in pixels
-    Pixel width;
-
-    /// @brief Region height in pixels
-    Pixel height;
+    BufferType *buffer;       ///< Pointer to display buffer memory
+    Pixel stride;             ///< Row stride (full display width)
+    Pixel offset_x, offset_y; ///< Absolute offset from buffer origin
+    Pixel width, height;      ///< Region size in pixels
 
     /// @brief Creates FrameView with validation
     kf_nodiscard static Result<DynamicImage, Error> create(
@@ -144,13 +132,13 @@ public:
     /// @param y Relative Y coordinate
     /// @param color Pixel color value
     inline void setPixel(Pixel x, Pixel y, ColorType color) const noexcept {
-        Traits::setPixel(buffer, stride, toAbsoluteX(x), toAbsoluteY(y), color);
+        traits::setPixel(buffer, stride, toAbsoluteX(x), toAbsoluteY(y), color);
     }
 
     /// @brief Fills entire region with solid color
     /// @param color Fill color value
     inline void fill(ColorType color) const noexcept {
-        Traits::fill(buffer, stride, offset_x, offset_y, width, height, color);
+        traits::fill(buffer, stride, offset_x, offset_y, width, height, color);
     }
 
     /// @brief Fills rect region with solid color
@@ -160,7 +148,7 @@ public:
         Pixel x1, Pixel y1,
         ColorType color
     ) const noexcept {
-        Traits::fill(
+        traits::fill(
             buffer,
             stride,
             static_cast<Pixel>(offset_x + x0),
