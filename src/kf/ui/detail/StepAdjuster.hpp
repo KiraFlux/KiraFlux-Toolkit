@@ -7,29 +7,42 @@ namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 namespace ui {// NOLINT(*-concat-nested-namespaces)
 namespace detail {// NOLINT(*-concat-nested-namespaces)
 
-template<typename T> struct step_adjuster_traits;
 
-template<> struct step_adjuster_traits<int> {
-    static constexpr int min_step{1};
-    static constexpr int default_step{1};
+template<typename T> struct step_adjuster_min_step;
+
+template<> struct step_adjuster_min_step<int> {
+    static constexpr int value{1};
 };
 
-template<> struct step_adjuster_traits<float> {
-    static constexpr float min_step{1e-3f};
-    static constexpr float default_step{0.1f};
+template<> struct step_adjuster_min_step<float> {
+    static constexpr float value{1e-3f};
 };
 
-template<> struct step_adjuster_traits<double> {
-    static constexpr double min_step{1e-6};
-    static constexpr double default_step{0.01};
+template<> struct step_adjuster_min_step<double> {
+    static constexpr double value{1e-6};
+};
+
+
+template<typename T> struct step_adjuster_default_step;
+
+template<> struct step_adjuster_default_step<int> {
+    static constexpr int value{1};
+};
+
+template<> struct step_adjuster_default_step<float> {
+    static constexpr float value{0.1f};
+};
+
+template<> struct step_adjuster_default_step<double> {
+    static constexpr double value{0.01};
 };
 
 
 /// @brief Step adjustment with type-specific protection
 template<typename T> struct StepAdjuster {
     static constexpr T step_multiplier{static_cast<T>(10)};
-    static constexpr T min_step{step_adjuster_traits<T>::min_step};
-    static constexpr T default_step{step_adjuster_traits<T>::default_step};
+    static constexpr T min_step{step_adjuster_min_step<T>::value};
+    static constexpr T default_step{step_adjuster_default_step<T>::value};
 
     static void adjust(T &step, int direction) noexcept {
         if (direction > 0) {
