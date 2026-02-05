@@ -5,7 +5,6 @@
 
 #include "kf/pixel/PixelFormat.hpp"
 
-
 namespace kf {
 namespace pixel {
 
@@ -15,7 +14,7 @@ struct Rgb565 final : PixelFormat<Rgb565, u16, u16, 16> {
 private:
     friend Base;
 
-    static constexpr usize getBufferSizeImpl(u16 width, u16 height) noexcept {
+    static constexpr usize getBufferSizeImpl(usize width, usize height) noexcept {
         return width * height;
     }
 
@@ -42,14 +41,15 @@ private:
 
     static void copyImpl(
         const BufferType *source_buffer, PositionType source_width, PositionType source_height,
-        BufferType *dest_buffer, PositionType dest_stride, PositionType dest_width, PositionType dest_height, PositionType dest_x, PositionType dest_y
-    ) noexcept {
+        BufferType *dest_buffer, PositionType dest_stride, PositionType dest_width, PositionType dest_height,
+        PositionType dest_x, PositionType dest_y) noexcept {
+        // Enhanced boundary checks
+        if (dest_x < 0 or dest_y < 0 or dest_x >= dest_width or dest_y >= dest_height) {
+            return;
+        }
 
-        // Boundary checks
-        if (dest_x >= dest_width or dest_y >= dest_height) { return; }
-
-        int copy_width = source_width;
-        int copy_height = source_height;
+        PositionType copy_width = source_width;
+        PositionType copy_height = source_height;
 
         if (dest_x + copy_width > dest_width) {
             copy_width = dest_width - dest_x;
@@ -60,22 +60,33 @@ private:
 
         if (copy_width <= 0 or copy_height <= 0) { return; }
 
-        for (usize y = 0; y < copy_height; y += 1) {
-            const auto dest_row = dest_y + y;
-            if (dest_row >= dest_height) { break; }
+        for (PositionType y = 0; y < copy_height; y++) {
+            const PositionType dest_row = dest_y + y;
+            if (dest_row < 0 or dest_row >= dest_height) { continue; }
 
             const usize src_row_start = y * source_width;
             const usize dest_row_start = dest_row * dest_stride + dest_x;
 
-            for (usize x = 0; x < copy_width; x += 1) {
-                const auto dest_col = dest_x + x;
-                if (dest_col >= dest_width) { break; }
+            // Check dest_row_start is within bounds
+            if (dest_row_start >= dest_stride * dest_height) { continue; }
 
-                dest_buffer[dest_row_start + x] = source_buffer[src_row_start + x];
+            for (PositionType x = 0; x < copy_width; x++) {
+                const PositionType dest_col = dest_x + x;
+                if (dest_col < 0 or dest_col >= dest_stride) { continue; }
+
+                const usize src_index = src_row_start + x;
+                const usize dest_index = dest_row_start + x;
+
+                // Final bounds check
+                if (src_index >= source_width * source_height or dest_index >= dest_stride * dest_height) {
+                    continue;
+                }
+
+                dest_buffer[dest_index] = source_buffer[src_index];
             }
         }
     }
 };
 
-}
-}
+}// namespace pixel
+}// namespace kf

@@ -3,16 +3,16 @@
 
 #pragma once
 
+#include "kf/algorithm.hpp"
 #include "kf/pixel/PixelFormat.hpp"
 
-
-namespace kf { // NOLINT(*-concat-nested-namespaces)
+namespace kf {// NOLINT(*-concat-nested-namespaces)
 namespace pixel {
 
 /// @brief 1-bit monochrome format (1 bit per pixel)
 struct Monochrome final : PixelFormat<Monochrome, u8, bool, 1> {
 
-    static constexpr u8 page_height{8};   ///< Vertical pixels per memory page
+    static constexpr u8 page_height{8};///< Vertical pixels per memory page
 
     /// @brief Calculate number of memory pages for given height
     /// @return Number of 8-pixel memory pages
@@ -22,7 +22,7 @@ struct Monochrome final : PixelFormat<Monochrome, u8, bool, 1> {
 private:
     friend Base;
 
-    static constexpr usize getBufferSizeImpl(PositionType width, PositionType height) noexcept {
+    static constexpr usize getBufferSizeImpl(usize width, usize height) noexcept {
         return (width * height + 7) / 8;
     }
 
@@ -49,8 +49,7 @@ private:
         PositionType offset_y,
         PositionType width,
         PositionType height,
-        ColorType on
-    ) noexcept {
+        ColorType on) noexcept {
         const auto start_page = offset_y / page_height;
         const auto end_page = ((offset_y + height + page_height - 1) / page_height);
         const u8 fill_byte = on ? 0xFF : 0x00;
@@ -73,21 +72,17 @@ private:
         const BufferType *source_buffer,
         PositionType source_width,
         PositionType source_height,
-
         BufferType *dest_buffer,
         PositionType dest_stride,
         PositionType dest_width,
         PositionType dest_height,
-
         PositionType dest_x,
-        PositionType dest_y
-    ) noexcept {
-
+        PositionType dest_y) noexcept {
         // Boundary checks
         if (dest_x >= dest_width or dest_y >= dest_height) { return; }
 
-        int copy_width = source_width;
-        int copy_height = source_height;
+        PositionType copy_width = source_width;
+        PositionType copy_height = source_height;
 
         if (dest_x + copy_width > dest_width) {
             copy_width = dest_width - dest_x;
@@ -100,27 +95,27 @@ private:
 
         const usize source_pages = (source_height + page_height - 1) / page_height;
 
-        for (auto src_page = 0; src_page < source_pages; src_page += 1) {
-            const auto src_y_start = src_page * page_height;
-            const auto src_y_end = kf::min(src_y_start + page_height, copy_height);
+        for (usize src_page = 0; src_page < source_pages; src_page++) {
+            const PositionType src_y_start = src_page * page_height;
+            const auto src_y_end = kf::min(int(src_y_start + page_height), int(copy_height));
 
             if (src_y_start >= src_y_end) { continue; }
 
             const usize rows_in_page = src_y_end - src_y_start;
-            const auto dest_y_start = dest_y + src_y_start;
+            const PositionType dest_y_start = dest_y + src_y_start;
             const usize dest_page = dest_y_start / page_height;
 
-            const u8 src_bit_offset = static_cast<u8>(src_y_start % page_height);
-            const u8 dest_bit_offset = static_cast<u8>(dest_y_start % page_height);
+            const u8 src_bit_offset = src_y_start % page_height;
+            const u8 dest_bit_offset = dest_y_start % page_height;
 
-            // Destination bit mask
+            // Create destination bit mask
             u8 dest_mask = 0;
-            for (usize i = 0; i < rows_in_page; i += 1) {
-                dest_mask |= static_cast<u8>(1 << (dest_bit_offset + i));
+            for (usize i = 0; i < rows_in_page; i++) {
+                dest_mask |= (1u << (dest_bit_offset + i));
             }
 
-            for (auto x = 0; x < copy_width; x += 1) {
-                const auto dest_col = dest_x + x;
+            for (PositionType x = 0; x < copy_width; x++) {
+                const PositionType dest_col = dest_x + x;
                 if (dest_col >= dest_stride) { continue; }
 
                 // Read from source
@@ -129,15 +124,15 @@ private:
 
                 // Extract and shift bits
                 u8 src_bits = 0;
-                for (usize i = 0; i < rows_in_page; i += 1) {
-                    if (src_byte & static_cast<u8>(1 << (src_bit_offset + i))) {
-                        src_bits |= static_cast<u8>(1 << (dest_bit_offset + i));
+                for (usize i = 0; i < rows_in_page; i++) {
+                    if (src_byte & (1u << (src_bit_offset + i))) {
+                        src_bits |= (1u << (dest_bit_offset + i));
                     }
                 }
 
-                // Write to destination (clear old bits first)
+                // Write to destination
                 const usize dest_index = dest_page * dest_stride + dest_col;
-                dest_buffer[dest_index] = (dest_buffer[dest_index] & ~dest_mask) | (src_bits & dest_mask);
+                dest_buffer[dest_index] = (dest_buffer[dest_index] & ~dest_mask) | src_bits;
             }
         }
     }
@@ -156,8 +151,7 @@ private:
 
         return createMask(
             static_cast<u8>(visible_top - page_top),
-            static_cast<u8>(visible_bottom - page_top - 1)
-        );
+            static_cast<u8>(visible_bottom - page_top - 1));
     }
 
     /// @brief Create bit mask for specified bit range
@@ -171,5 +165,5 @@ private:
     }
 };
 
-}
-}
+}// namespace pixel
+}// namespace kf

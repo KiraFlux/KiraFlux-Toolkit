@@ -114,7 +114,9 @@ template<typename F> struct DynamicImage final {
         Pixel x_relative, Pixel y_relative,
         ColorType color
     ) const noexcept {
-        PixelFormat::setPixel(buffer, stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
+        if (isInsideX(x_relative) and isInsideY(y_relative)) {
+            PixelFormat::setPixel(buffer, stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
+        }
     }
 
     /// @brief Fills entire region with solid color
