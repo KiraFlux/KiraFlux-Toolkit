@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/algorithm.hpp"
 #include "kf/pixel/PixelFormat.hpp"
 
 namespace kf {
@@ -24,65 +25,68 @@ private:
         return static_cast<ColorType>(((color & 0xFF) << 8) | (color >> 8));
     }
 
-    static void setPixelImpl(BufferType *buffer, PositionType stride, PositionType abs_x, PositionType abs_y, ColorType color) noexcept {
-        buffer[abs_y * stride + abs_x] = color;
+    static void setPixelImpl(Slice<BufferType> buffer, PositionType stride, PositionType abs_x, PositionType abs_y, ColorType color) noexcept {
+        const auto target = buffer.data() + (abs_y * stride + abs_x);
+        if (target < buffer.end()) {
+            *target = color;
+        }
     }
 
-    static void fillImpl(BufferType *buffer, PositionType stride, PositionType offset_x, PositionType offset_y, PositionType width, PositionType height, ColorType color) noexcept {
-        for (usize y = 0; y < height; y += 1) {
-            const auto abs_y = offset_y + y;
-            const usize row_start = abs_y * stride + offset_x;
+    static void fillImpl(Slice<BufferType> buffer, PositionType stride, PositionType offset_x, PositionType offset_y, PositionType width, PositionType height, ColorType color) noexcept {
+        const PositionType total_height = buffer.size() / stride;
 
-            for (usize x = 0; x < width; x += 1) {
-                buffer[row_start + x] = color;
+        const auto end_y = kf::min(offset_y + height, int(total_height));
+        const auto end_x = kf::min(offset_x + width, int(stride));
+
+        for (auto y = offset_y; y < end_y; y += 1) {
+            for (auto x = offset_x; x < end_x; x += 1) {
+                buffer[y * stride + x] = color;
             }
         }
     }
 
     static void copyImpl(
-        const BufferType *source_buffer, PositionType source_width, PositionType source_height,
-        BufferType *dest_buffer, PositionType dest_stride, PositionType dest_width, PositionType dest_height,
-        PositionType dest_x, PositionType dest_y) noexcept {
-        // Enhanced boundary checks
-        if (dest_x < 0 or dest_y < 0 or dest_x >= dest_width or dest_y >= dest_height) {
+        const Slice<BufferType> source,
+        PositionType src_width,
+        PositionType src_height,
+        Slice<BufferType> dest,
+        PositionType dst_stride,
+        PositionType dst_width,
+        PositionType dst_height,
+        PositionType dst_x,
+        PositionType dst_y) noexcept {
+
+        if (src_width <= 0 or src_height <= 0 or
+            dst_stride <= 0 or dst_width <= 0 or dst_height <= 0) {
             return;
         }
 
-        PositionType copy_width = source_width;
-        PositionType copy_height = source_height;
-
-        if (dest_x + copy_width > dest_width) {
-            copy_width = dest_width - dest_x;
-        }
-        if (dest_y + copy_height > dest_height) {
-            copy_height = dest_height - dest_y;
+        if (static_cast<usize>(src_width) * src_height > source.size() or
+            static_cast<usize>(dst_stride) * dst_height > dest.size()) {
+            return;
         }
 
-        if (copy_width <= 0 or copy_height <= 0) { return; }
+        const auto copy_w = kf::min(int(src_width), dst_width - dst_x);
+        const auto copy_h = kf::min(int(src_height), dst_height - dst_y);
 
-        for (PositionType y = 0; y < copy_height; y++) {
-            const PositionType dest_row = dest_y + y;
-            if (dest_row < 0 or dest_row >= dest_height) { continue; }
+        if (copy_w <= 0 or copy_h <= 0) {
+            return;
+        }
 
-            const usize src_row_start = y * source_width;
-            const usize dest_row_start = dest_row * dest_stride + dest_x;
+        for (PositionType y = 0; y < copy_h; ++y) {
+            const PositionType src_y = y;
+            const PositionType dst_y_abs = dst_y + y;
 
-            // Check dest_row_start is within bounds
-            if (dest_row_start >= dest_stride * dest_height) { continue; }
+            if (dst_y_abs >= dst_height) {
+                break;
+            }
 
-            for (PositionType x = 0; x < copy_width; x++) {
-                const PositionType dest_col = dest_x + x;
-                if (dest_col < 0 or dest_col >= dest_stride) { continue; }
+            const usize src_row_start = static_cast<usize>(src_y) * src_width;
+            const usize dst_row_start = static_cast<usize>(dst_y_abs) * dst_stride + dst_x;
 
-                const usize src_index = src_row_start + x;
-                const usize dest_index = dest_row_start + x;
-
-                // Final bounds check
-                if (src_index >= source_width * source_height or dest_index >= dest_stride * dest_height) {
-                    continue;
-                }
-
-                dest_buffer[dest_index] = source_buffer[src_index];
+            // Копируем строку
+            for (PositionType x = 0; x < copy_w; ++x) {
+                dest[dst_row_start + x] = source[src_row_start + x];
             }
         }
     }

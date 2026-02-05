@@ -26,18 +26,18 @@ template<typename F> struct DynamicImage final {
         OffsetOutOfBounds, ///< Offset falls outside parent region
     };
 
-    BufferType *buffer; ///< Pointer to display buffer memory
+    Slice<BufferType> buffer; ///< display buffer memory view
     Pixel stride;             ///< Row stride (full display width)
     Pixel offset_x, offset_y; ///< Absolute offset from buffer origin
     Pixel width, height;      ///< Region size in pixels
 
     /// @brief Creates FrameView with validation
     kf_nodiscard static Result<DynamicImage, Error> create(
-        BufferType *buffer, Pixel stride,
+        Slice<BufferType> buffer, Pixel stride,
         Pixel width, Pixel height,
         Pixel offset_x, Pixel offset_y
     ) noexcept {
-        if (nullptr == buffer) {
+        if (nullptr == buffer.data()) {
             return Error::BufferNotInit;
         }
 
@@ -50,12 +50,12 @@ template<typename F> struct DynamicImage final {
 
     /// @brief Default constructor - invalid view
     DynamicImage() noexcept:
-        buffer{nullptr}, stride{0}, offset_x{0}, offset_y{0}, width{0}, height{0} {};
+        buffer{}, stride{0}, offset_x{0}, offset_y{0}, width{0}, height{0} {};
 
     /// @brief Creates FrameView without validation
     /// @warning Caller must ensure parameters are valid
     explicit DynamicImage(
-        BufferType *buffer, Pixel stride,
+        Slice<BufferType> buffer, Pixel stride,
         Pixel width, Pixel height,
         Pixel offset_x, Pixel offset_y
     ) noexcept:
@@ -95,7 +95,7 @@ template<typename F> struct DynamicImage final {
     }
 
     /// @brief Checks if view references valid buffer
-    kf_nodiscard bool isValid() const noexcept { return nullptr != buffer; }
+    kf_nodiscard bool isValid() const noexcept { return nullptr != buffer.data(); }
 
     /// @brief Checks if X coordinate is within view bounds
     kf_nodiscard bool isInsideX(Pixel x_relative) const noexcept { return x_relative >= 0 and x_relative < width; }
@@ -114,9 +114,7 @@ template<typename F> struct DynamicImage final {
         Pixel x_relative, Pixel y_relative,
         ColorType color
     ) const noexcept {
-        if (isInsideX(x_relative) and isInsideY(y_relative)) {
-            PixelFormat::setPixel(buffer, stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
-        }
+        PixelFormat::setPixel(buffer, stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
     }
 
     /// @brief Fills entire region with solid color

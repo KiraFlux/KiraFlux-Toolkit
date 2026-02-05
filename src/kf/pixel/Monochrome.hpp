@@ -30,7 +30,7 @@ private:
         return (r + g + b) > 128 * 3;
     }
 
-    static void setPixelImpl(BufferType *buffer, PositionType stride, PositionType abs_x, PositionType abs_y, ColorType color) noexcept {
+    static void setPixelImpl(Slice<BufferType> buffer, PositionType stride, PositionType abs_x, PositionType abs_y, ColorType color) noexcept {
         const auto page = abs_y / page_height;
         const auto bit_mask = static_cast<u8>(1 << (abs_y % page_height));
         const usize index = page * stride + abs_x;
@@ -43,7 +43,7 @@ private:
     }
 
     static void fillImpl(
-        BufferType *buffer,
+        Slice<BufferType> buffer,
         PositionType stride,
         PositionType offset_x,
         PositionType offset_y,
@@ -63,16 +63,18 @@ private:
                 if (abs_x < 0 or abs_x >= stride) { continue; }
 
                 const usize index = page * stride + abs_x;
-                buffer[index] = (buffer[index] & ~mask) | (fill_byte & mask);
+                if (index < buffer.size()) {
+                    buffer[index] = (buffer[index] & ~mask) | (fill_byte & mask);
+                }
             }
         }
     }
 
     static void copyImpl(
-        const BufferType *source_buffer,
+        const Slice<BufferType> source_buffer,
         PositionType source_width,
         PositionType source_height,
-        BufferType *dest_buffer,
+        Slice<BufferType> dest_buffer,
         PositionType dest_stride,
         PositionType dest_width,
         PositionType dest_height,
@@ -120,6 +122,9 @@ private:
 
                 // Read from source
                 const usize src_index = src_page * source_width + x;
+                if (src_index >= source_buffer.size()) {
+                    continue;
+                }
                 const u8 src_byte = source_buffer[src_index];
 
                 // Extract and shift bits
@@ -132,7 +137,9 @@ private:
 
                 // Write to destination
                 const usize dest_index = dest_page * dest_stride + dest_col;
-                dest_buffer[dest_index] = (dest_buffer[dest_index] & ~dest_mask) | src_bits;
+                if (dest_index < dest_buffer.size()) {
+                    dest_buffer[dest_index] = (dest_buffer[dest_index] & ~dest_mask) | src_bits;
+                }
             }
         }
     }

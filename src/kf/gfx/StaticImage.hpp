@@ -26,6 +26,9 @@ template<typename F, Pixel W, Pixel H> struct StaticImage final {
     /// @brief Get the image height in pixels (compile-time constant)
     kf_nodiscard inline constexpr Pixel height() const noexcept { return H; }
 
+    /// @brief Get the image size
+    kf_nodiscard inline constexpr usize size() const noexcept { return PixelFormat::template buffer_size<W, H>; }
+
     /// @brief Raw image buffer data
     /// @details Contains the pixel data for the entire image.
     /// The buffer size is calculated at compile time based on:

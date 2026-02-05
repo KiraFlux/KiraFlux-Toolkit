@@ -3,11 +3,12 @@
 
 #pragma once
 
-#include "kf/core/attributes.hpp"
 #include "kf/aliases.hpp"
+#include "kf/core/attributes.hpp"
+#include "kf/memory/Slice.hpp"
 
 
-namespace kf { // NOLINT(*-concat-nested-namespaces) //c++11 capability
+namespace kf {// NOLINT(*-concat-nested-namespaces) //c++11 capability
 namespace pixel {
 
 template<typename I, typename Tb, typename Tc, u8 bits> struct PixelFormat {
@@ -28,75 +29,68 @@ template<typename I, typename Tb, typename Tc, u8 bits> struct PixelFormat {
     kf_nodiscard static constexpr ColorType fromRgb(
         u8 r,
         u8 g,
-        u8 b
-    ) noexcept { return I::fromRgbImpl(r, g, b); }
+        u8 b) noexcept { return I::fromRgbImpl(r, g, b); }
 
     // draw
 
     /// @brief set pixel color
     static void setPixel(
-        BufferType *buffer,
+        Slice<BufferType> buffer,
         PositionType stride,
         PositionType abs_x,
         PositionType abs_y,
-        ColorType color
-    ) noexcept {
+        ColorType color) noexcept {
         I::setPixelImpl(
             buffer, stride,
             abs_x, abs_y,
-            color
-        );
+            color);
     }
 
     /// @brief Effective fill rectangular region with specified color
     static void fill(
-        BufferType *buffer,
+        Slice<BufferType> buffer,
         PositionType stride,
         PositionType offset_x,
         PositionType offset_y,
         PositionType width,
         PositionType height,
-        ColorType color
-    ) noexcept {
+        ColorType color) noexcept {
         I::fillImpl(
             buffer, stride,
             offset_x, offset_y,
             width, height,
-            color
-        );
+            color);
     }
 
     /// @brief Copy rectangular region from source to destination buffer
     static void copy(
         // source buffer
-        const BufferType *source_buffer, //(stride = width)
+        const Slice<BufferType> source_buffer,//(stride = width)
         PositionType source_width,
         PositionType source_height,
 
         // dest buffer
-        BufferType *dest_buffer,
+        Slice<BufferType> dest_buffer,
         PositionType dest_stride,
         PositionType dest_width,
         PositionType dest_height,
 
         // dest paste position
         PositionType dest_paste_abs_x,
-        PositionType dest_paste_abs_y
-    ) noexcept {
+        PositionType dest_paste_abs_y) noexcept {
         I::copyImpl(
             source_buffer, source_width, source_height,
             dest_buffer, dest_stride, dest_width, dest_height,
-            dest_paste_abs_x, dest_paste_abs_y
-        );
+            dest_paste_abs_x, dest_paste_abs_y);
     }
-
 
     // CRTP
 
     friend I;
+
 protected:
     using Base = PixelFormat;
 };
 
-}
-}
+}// namespace pixel
+}// namespace kf

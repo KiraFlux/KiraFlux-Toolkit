@@ -9,12 +9,11 @@
 #include "kf/core/attributes.hpp"
 #include "kf/memory/Array.hpp"
 
+#include "ColorPalette.hpp"
 #include "kf/gfx/ColorPalette.hpp"
 #include "kf/gfx/DynamicImage.hpp"
 #include "kf/gfx/Font.hpp"
 #include "kf/gfx/StaticImage.hpp"
-#include "ColorPalette.hpp"
-
 
 namespace kf::gfx {
 
@@ -23,7 +22,7 @@ namespace kf::gfx {
 template<typename F> struct Canvas {
     using PixelFormat = F;
     using ColorType = typename F::ColorType;
-    using Palette = ColorPalette<F>; ///<Color Palette
+    using Palette = ColorPalette<F>;///<Color Palette
 
 private:
     static constexpr ColorType default_foreground_color{Palette::getAnsiColor(Palette::Ansi::WhiteBright)};
@@ -40,8 +39,7 @@ public:
         const DynamicImage<F> &frame,
         const Font &font = Font::blank(),
         ColorType foreground = default_foreground_color,
-        ColorType background = default_background_color
-    ) noexcept:
+        ColorType background = default_background_color) noexcept :
         frame{frame},
         current_font{&font},
         foreground_color{foreground},
@@ -49,7 +47,7 @@ public:
         auto_next_line{false} {}
 
     /// @brief Default constructor - creates invalid canvas
-    explicit Canvas() noexcept:
+    explicit Canvas() noexcept :
         frame{},
         current_font{&Font::blank()},
         foreground_color{default_foreground_color},
@@ -59,8 +57,7 @@ public:
     /// @brief Creates validated sub-canvas within current bounds
     Result<Canvas, typename DynamicImage<F>::Error> sub(
         Pixel sub_width, Pixel sub_height,
-        Pixel sub_offset_x, Pixel sub_offset_y
-    ) noexcept {
+        Pixel sub_offset_x, Pixel sub_offset_y) noexcept {
         const auto frame_result = frame.sub(sub_width, sub_height, sub_offset_x, sub_offset_y);
         if (frame_result.isOk()) {
             return {Canvas{frame_result.ok().value(), *current_font, foreground_color, background_color}};
@@ -73,14 +70,12 @@ public:
     /// @warning No bounds checking - caller must ensure parameters are valid
     Canvas subUnchecked(
         Pixel width, Pixel height,
-        Pixel offset_x, Pixel offset_y
-    ) noexcept {
+        Pixel offset_x, Pixel offset_y) noexcept {
         return Canvas{
             frame.subUnchecked(width, height, offset_x, offset_y),
             *current_font,
             foreground_color,
-            background_color
-        };
+            background_color};
     }
 
     // Attributes
@@ -199,10 +194,9 @@ public:
     /// @param image Image to draw
     template<Pixel W, Pixel H> void image(Pixel x, Pixel y, const StaticImage<F, W, H> &image) noexcept {
         PixelFormat::copy(
-            image.buffer, image.width(), image.height(),
+            {image.buffer, image.size()}, image.width(), image.height(),
             frame.buffer, frame.stride, frame.width, frame.height,
-            x, y
-        );
+            x, y);
     }
 
     /// @brief Draw line (x0, y0), (x1, y1) between two points
@@ -431,8 +425,7 @@ private:
             frame.fill(
                 cursor_x, cursor_y,
                 end_x, current_font->heightTotal() + cursor_y,
-                color
-            );
+                color);
         }
     }
 
