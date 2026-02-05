@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include <kf/core/attributes.hpp>
-#include <kf/core/pixel_traits.hpp>
-#include <kf/memory/Slice.hpp>
+#include "kf/core/attributes.hpp"
+#include "kf/memory/Slice.hpp"
 
 
 namespace kf {
@@ -15,22 +14,9 @@ namespace kf {
 /// @tparam F Physical display pixel format
 /// @tparam W Physical display width in pixels
 /// @tparam H Physical display height in pixels
-template<typename Impl, PixelFormat F, usize W, usize H> struct DisplayDriver {
-    friend Impl;
-
-protected:
-    using Base = DisplayDriver;
-    using traits = pixel_traits<F>;
-
-public:
-    /// @brief Type used for buffer storage
-    using BufferType = typename traits::BufferType;
-
-    /// @brief Type used for color representation
-    using ColorType = typename traits::ColorType;
-
-    /// @brief Pixel format
-    static constexpr auto pixel_format{F};
+template<typename Impl, typename F, usize W, usize H> struct DisplayDriver {
+    using PixelFormat = F;
+    using BufferType = typename F::BufferType;
 
 protected:
     /// @brief Physical display width
@@ -46,7 +32,7 @@ protected:
     static constexpr auto max_phys_y{phys_height - 1};
 
     /// @brief Required buffer size for the display
-    static constexpr auto buffer_items{traits::template buffer_size<W, H>};
+    static constexpr auto buffer_items{PixelFormat::template buffer_size<W, H>};
 
     /// @brief Software frame buffer for display operations
     BufferType software_screen_buffer[buffer_items]{};
@@ -86,10 +72,17 @@ public:
     /// @brief Get maximum valid Y coordinate for current orientation
     kf_nodiscard u8 maxY() const noexcept { return height() - 1; }
 
+
+    // CRTP
+    friend Impl;
+
 private:
-    inline Impl &impl() noexcept{ return *static_cast<Impl *>(this); }
+    inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
 
     inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
+
+protected:
+    using Base = DisplayDriver;
 };
 
 }// namespace kf

@@ -3,44 +3,30 @@
 
 #pragma once
 
-#include "kf/Result.hpp"
-#include "kf/algorithm.hpp"
 #include "kf/core/attributes.hpp"
-#include "kf/core/pixel_traits.hpp"
+#include "kf/Result.hpp"
 #include "kf/math/units.hpp"
 
 
-namespace kf::gfx {
+namespace kf { // NOLINT(*-concat-nested-namespaces)
+namespace gfx {
 
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam F Pixel format for the image data
-template<PixelFormat F> struct DynamicImage final {
+template<typename F> struct DynamicImage final {
+    using PixelFormat = F;
+    using BufferType = typename F::BufferType;
+    using ColorType = typename F::ColorType;
 
-public:
     /// @brief Possible errors when creating FrameView
     enum class Error : u8 {
-        /// @brief Buffer pointer is null
-        BufferNotInit,
-
-        /// @brief Region dimensions are less than 1 pixel
-        SizeTooSmall,
-
-        /// @brief Sub-region exceeds parent bounds
-        SizeTooLarge,
-
-        /// @brief Offset falls outside parent region
-        OffsetOutOfBounds,
+        BufferNotInit, ///< Buffer pointer is null
+        SizeTooSmall, ///< Region dimensions are less than 1 pixel
+        SizeTooLarge, ///< Sub-region exceeds parent bounds
+        OffsetOutOfBounds, ///< Offset falls outside parent region
     };
 
-private:
-    using traits = pixel_traits<F>;
-
-public:
-    using BufferType = typename traits::BufferType;///< Raw buffer element type
-    using ColorType = typename traits::ColorType;  ///< Pixel color representation
-    static constexpr auto pixel_format{F};         ///< Pixel format
-
-    BufferType *buffer;       ///< Pointer to display buffer memory
+    BufferType *buffer; ///< Pointer to display buffer memory
     Pixel stride;             ///< Row stride (full display width)
     Pixel offset_x, offset_y; ///< Absolute offset from buffer origin
     Pixel width, height;      ///< Region size in pixels
@@ -73,12 +59,7 @@ public:
         Pixel width, Pixel height,
         Pixel offset_x, Pixel offset_y
     ) noexcept:
-        buffer{buffer},
-        stride{stride},
-        offset_x{offset_x},
-        offset_y{offset_y},
-        width{width},
-        height{height} {}
+        buffer{buffer}, stride{stride}, offset_x{offset_x}, offset_y{offset_y}, width{width}, height{height} {}
 
     /// @brief Creates validated sub-region
     /// @return Sub-view or error if out of bounds
@@ -93,11 +74,11 @@ public:
         if (sub_width > width - sub_offset_x or sub_height > height - sub_offset_y) {
             return Error::SizeTooLarge;
         }
-
-        const auto new_x = static_cast<Pixel>(offset_x + sub_offset_x);
-        const auto new_y = static_cast<Pixel>(offset_y + sub_offset_y);
-
-        return create(buffer, stride, sub_width, sub_height, new_x, new_y);
+        return create(
+            buffer, stride,
+            sub_width, sub_height,
+            static_cast<Pixel>(offset_x + sub_offset_x), static_cast<Pixel>(offset_y + sub_offset_y)
+        );
     }
 
     /// @brief Creates sub-region without validation
@@ -113,42 +94,43 @@ public:
         };
     }
 
-    /// @brief Checks if X coordinate is within view bounds
-    /// @param x Relative X coordinate
-    /// @return True if coordinate is valid
-    kf_nodiscard inline bool isInsideX(Pixel x) const noexcept { return x >= 0 and x < width; }
-
-    /// @brief Checks if Y coordinate is within view bounds
-    /// @param y Relative Y coordinate
-    /// @return True if coordinate is valid
-    kf_nodiscard inline bool isInsideY(Pixel y) const noexcept { return y >= 0 and y < height; }
-
     /// @brief Checks if view references valid buffer
-    /// @return True if buffer pointer is not null
     kf_nodiscard bool isValid() const noexcept { return nullptr != buffer; }
 
+    /// @brief Checks if X coordinate is within view bounds
+    kf_nodiscard bool isInsideX(Pixel x_relative) const noexcept { return x_relative >= 0 and x_relative < width; }
+
+    /// @brief Checks if Y coordinate is within view bounds
+    kf_nodiscard bool isInsideY(Pixel y_relative) const noexcept { return y_relative >= 0 and y_relative < height; }
+
+    /// @brief Converts relative X to absolute buffer coordinate
+    kf_nodiscard Pixel toAbsoluteX(Pixel x) const noexcept { return static_cast<Pixel>(offset_x + x); }
+
+    /// @brief Converts relative Y to absolute buffer coordinate
+    kf_nodiscard Pixel toAbsoluteY(Pixel y) const noexcept { return static_cast<Pixel>(offset_y + y); }
+
     /// @brief Sets single pixel color
-    /// @param x Relative X coordinate
-    /// @param y Relative Y coordinate
-    /// @param color Pixel color value
-    inline void setPixel(Pixel x, Pixel y, ColorType color) const noexcept {
-        traits::setPixel(buffer, stride, toAbsoluteX(x), toAbsoluteY(y), color);
+    void setPixel(
+        Pixel x_relative, Pixel y_relative,
+        ColorType color
+    ) const noexcept {
+        PixelFormat::setPixel(buffer, stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
     }
 
     /// @brief Fills entire region with solid color
-    /// @param color Fill color value
-    inline void fill(ColorType color) const noexcept {
-        traits::fill(buffer, stride, offset_x, offset_y, width, height, color);
+    void fill(
+        ColorType color
+    ) const noexcept {
+        PixelFormat::fill(buffer, stride, offset_x, offset_y, width, height, color);
     }
 
     /// @brief Fills rect region with solid color
-    /// @param color Fill color value
     void fill(
         Pixel x0, Pixel y0,
         Pixel x1, Pixel y1,
         ColorType color
     ) const noexcept {
-        traits::fill(
+        PixelFormat::fill(
             buffer,
             stride,
             static_cast<Pixel>(offset_x + x0),
@@ -158,16 +140,7 @@ public:
             color
         );
     }
-
-private:
-    /// @brief Converts relative X to absolute buffer coordinate
-    kf_nodiscard inline Pixel toAbsoluteX(Pixel x) const noexcept {
-        return static_cast<Pixel>(offset_x + x);
-    }
-
-    /// @brief Converts relative Y to absolute buffer coordinate
-    kf_nodiscard inline Pixel toAbsoluteY(Pixel y) const noexcept {
-        return static_cast<Pixel>(offset_y + y);
-    }
 };
-}// namespace kf::gfx
+
+}
+}

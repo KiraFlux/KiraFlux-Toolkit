@@ -6,16 +6,14 @@
 #include <Wire.h>
 
 #include "kf/aliases.hpp"
-#include "kf/core/pixel_traits.hpp"
+#include "kf/pixel/Monochrome.hpp"
 #include "kf/drivers/display/DisplayDriver.hpp"
 
 
 namespace kf {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-struct SSD1306 : DisplayDriver<SSD1306, PixelFormat::Monochrome, 128, 64> {
-    friend Base;
-
+struct SSD1306 final : DisplayDriver<SSD1306, pixel::Monochrome, 128, 64> {
     struct Config {
         u32 i2c_clock_frequency;
         u8 address;
@@ -122,7 +120,7 @@ private:
             max_phys_x,
             PageAddr,
             0,
-            traits::template pages<phys_height> - 1,
+            PixelFormat::template pages<phys_height> - 1,
         };
 
         wire.beginTransmission(config.address);
@@ -190,6 +188,8 @@ private:
         (void) wire.write(static_cast<u8>(command));
         (void) wire.endTransmission();
     }
+
+    friend Base; // CRTP
 };
 
 }// namespace kf

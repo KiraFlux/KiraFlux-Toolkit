@@ -7,7 +7,6 @@
 
 #include "kf/Result.hpp"
 #include "kf/core/attributes.hpp"
-#include "kf/core/pixel_traits.hpp"
 #include "kf/memory/Array.hpp"
 
 #include "kf/gfx/ColorPalette.hpp"
@@ -21,14 +20,10 @@ namespace kf::gfx {
 
 /// @brief Drawing context with graphics primitives and text rendering
 /// @tparam F Pixel format for canvas operations
-template<PixelFormat F> struct Canvas {
-
-private:
-    using traits = pixel_traits<F>;
-
-public:
+template<typename F> struct Canvas {
+    using PixelFormat = F;
+    using ColorType = typename F::ColorType;
     using Palette = ColorPalette<F>; ///<Color Palette
-    using ColorType = typename traits::ColorType;///< Color representation type
 
 private:
     static constexpr ColorType default_foreground_color{Palette::getAnsiColor(Palette::Ansi::WhiteBright)};
@@ -62,20 +57,16 @@ public:
         auto_next_line{false} {}
 
     /// @brief Creates validated sub-canvas within current bounds
-    /// @param width Sub-canvas width
-    /// @param height Sub-canvas height
-    /// @param offset_x X offset within current canvas
-    /// @param offset_y Y offset within current canvas
-    /// @return Sub-canvas or error if out of bounds
     Result<Canvas, typename DynamicImage<F>::Error> sub(
-        Pixel width, Pixel height,
-        Pixel offset_x, Pixel offset_y
+        Pixel sub_width, Pixel sub_height,
+        Pixel sub_offset_x, Pixel sub_offset_y
     ) noexcept {
-        const auto frame_result = frame.sub(width, height, offset_x, offset_y);
+        const auto frame_result = frame.sub(sub_width, sub_height, sub_offset_x, sub_offset_y);
         if (frame_result.isOk()) {
             return {Canvas{frame_result.ok().value(), *current_font, foreground_color, background_color}};
+        } else {
+            return {frame_result.error().value()};
         }
-        return {frame_result.error().value()};
     }
 
     /// @brief Creates sub-canvas without validation
@@ -154,7 +145,6 @@ public:
     /// @tparam N Number of sub-canvases to create
     /// @param weights Relative weights for each sub-canvas
     /// @param horizontal True for horizontal split, false for vertical
-    /// @return Array of sub-canvases with proportional sizes
     template<usize N> Array<Canvas, N> split(Array<usize, N> weights, bool horizontal = true) noexcept {
         static_assert(N > 0, "Cannot split with zero items");
         for (auto &w: weights) {
@@ -208,10 +198,11 @@ public:
     /// @param y Top position
     /// @param image Image to draw
     template<Pixel W, Pixel H> void image(Pixel x, Pixel y, const StaticImage<F, W, H> &image) noexcept {
-        traits::copy(
+        PixelFormat::copy(
             image.buffer, image.width(), image.height(),
             frame.buffer, frame.stride, frame.width, frame.height,
-            x, y);
+            x, y
+        );
     }
 
     /// @brief Draw line (x0, y0), (x1, y1) between two points

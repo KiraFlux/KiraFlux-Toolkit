@@ -7,28 +7,15 @@
 #include <SPI.h>
 
 #include "kf/aliases.hpp"
-#include "kf/core/pixel_traits.hpp"
+#include "kf/pixel/Rgb565.hpp"
 #include "kf/drivers/display/DisplayDriver.hpp"
 
 
 namespace kf {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-struct ST7735 : DisplayDriver<ST7735, PixelFormat::RGB565, 128, 160> {
-    friend Base;
+struct ST7735 final: DisplayDriver<ST7735, pixel::Rgb565, 128, 160> {
 
-private:
-    /// @brief Memory Access Control (MADCTL) register bits
-    enum MadCtl : u8 {
-        RgbMode = 0x00,///< RGB color order
-        BgrMode = 0x08,///< BGR color order
-
-        MirrorTranspose = 0x20,///< Swap X and Y axes (rotation)
-        MirrorX = 0x40,        ///< Horizontal mirror
-        MirrorY = 0x80,        ///< Vertical mirror
-    };
-
-public:
     /// @brief Hardware configuration settings for ST7735
     struct Config {
         u32 spi_frequency;      ///< SPI clock frequency in Hz
@@ -52,6 +39,17 @@ public:
     };
 
 private:
+
+    /// @brief Memory Access Control (MADCTL) register bits
+    enum MadCtl : u8 {
+        RgbMode = 0x00,///< RGB color order
+        BgrMode = 0x08,///< BGR color order
+
+        MirrorTranspose = 0x20,///< Swap X and Y axes (rotation)
+        MirrorX = 0x40,        ///< Horizontal mirror
+        MirrorY = 0x80,        ///< Vertical mirror
+    };
+
     const Config &settings;///< Hardware configuration
     SPIClass &spi;           ///< SPI bus instance
 
@@ -180,6 +178,8 @@ private:
         spi.write(static_cast<u8>(command));
         digitalWrite(settings.pin_spi_slave_select, HIGH);
     }
+
+    friend Base; // CRTP
 };
 
 }// namespace kf
