@@ -136,9 +136,6 @@ public:
     void setAutoNextLine(bool enable) noexcept { auto_next_line = enable; }
 
     /// @brief Split canvas into weighted sub-canvases
-    /// @tparam N Number of sub-canvases to create
-    /// @param weights Relative weights for each sub-canvas
-    /// @param horizontal True for horizontal split, false for vertical
     template<usize N> Array<Canvas, N> split(Array<usize, N> weights, bool horizontal = true) noexcept {
         static_assert(N > 0, "Cannot split with zero items");
         for (auto &w: weights) {
@@ -179,15 +176,11 @@ public:
     }
 
     /// @brief Draw single pixel at specified coordinates
-    /// @param x X coordinate
-    /// @param y Y coordinate
     void dot(Pixel x, Pixel y) const noexcept {
         frame.setPixel(x, y, foreground_color);
     }
 
     /// @brief Draw static image at specified position
-    /// @tparam W Image width
-    /// @tparam H Image height
     /// @param x Left position
     /// @param y Top position
     /// @param image Image to draw
@@ -302,9 +295,9 @@ public:
     /// @details Supports formatting codes:
     ///   \x80 - Normal color mode (text - fg, bg)
     ///   \x81 - Invert color mode (bg, text - fg)
-    ///   \x82 - Set cursor at center x
-    ///   \x83 - Set custom foreground color (ANSI color index)
-    ///   \x84 - Set custom background color (ANSI color index)
+    ///   \x82 - swap bg <-> fg colors
+    ///   \xF* - Set custom foreground color (ANSI color index)
+    ///   \xB* - Set custom background color (ANSI color index)
     ///   \n - New line
     ///   \t - Tab (4 character widths)
     void text(Pixel start_x, Pixel start_y, const char *text) noexcept {
@@ -323,6 +316,7 @@ public:
                     current_background_color = background_color;
                     continue;
                 }
+
                 case '\x81': {
                     current_foreground_color = background_color;
                     current_background_color = foreground_color;
@@ -333,6 +327,7 @@ public:
                     std::swap(current_background_color, current_foreground_color);
                     continue;
                 }
+
                 case '\xF0':
                 case '\xF1':
                 case '\xF2':
@@ -458,7 +453,6 @@ private:
     /// @param x Left position
     /// @param y Top position
     /// @param glyph Pointer to glyph bitmap data
-    /// @param color_on Color for "on" pixels
     void drawGlyph(Pixel x, Pixel y, const u8 *glyph, ColorType color_on, ColorType color_off) noexcept {
         if (nullptr == glyph) {
             // Draw box for unknown character
