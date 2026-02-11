@@ -6,7 +6,7 @@
 #include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
 
-namespace kf::gfx {
+namespace kf::image {
 
 /// @brief Predefined bitmap image with compile-time dimensions
 /// @tparam F Pixel format for the image
@@ -43,4 +43,4 @@ template<typename F, Pixel W, Pixel H> struct StaticImage final {
     StaticImage() = delete;
 };
 
-}// namespace kf::gfx
+}// namespace kf::image

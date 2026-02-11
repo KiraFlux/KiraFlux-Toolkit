@@ -8,7 +8,7 @@
 #include "kf/math/units.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces)
-namespace gfx {
+namespace image {
 
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam F Pixel format for the image data
@@ -131,5 +131,5 @@ template<typename F> struct DynamicImage final {
     }
 };
 
-}// namespace gfx
+}// namespace image
 }// namespace kf

@@ -9,6 +9,6 @@
 namespace kf::gfx {}
 
 #include "kf/gfx/Canvas.hpp"
-#include "kf/gfx/DynamicImage.hpp"
 #include "kf/gfx/Font.hpp"
-#include "kf/gfx/StaticImage.hpp"
+#include "kf/image/DynamicImage.hpp"
+#include "kf/image/StaticImage.hpp"

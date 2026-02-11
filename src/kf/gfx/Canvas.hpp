@@ -10,9 +10,9 @@
 #include "kf/memory/Array.hpp"
 
 #include "kf/gfx/ColorPalette.hpp"
-#include "kf/gfx/DynamicImage.hpp"
 #include "kf/gfx/Font.hpp"
-#include "kf/gfx/StaticImage.hpp"
+#include "kf/image/DynamicImage.hpp"
+#include "kf/image/StaticImage.hpp"
 
 namespace kf::gfx {
 
@@ -27,15 +27,15 @@ private:
     static constexpr ColorType default_foreground_color{Palette::getAnsiColor(Palette::Ansi::WhiteBright)};
     static constexpr ColorType default_background_color{Palette::getAnsiColor(Palette::Ansi::Black)};
 
-    DynamicImage<F> frame;     ///< Target drawing surface
-    const Font *current_font;  ///< Currently selected font
-    ColorType foreground_color;///< Drawing color
-    ColorType background_color;///< Background/fill color
-    bool auto_next_line;       ///< Automatically wrap text to next line
+    image::DynamicImage<F> frame;///< Target drawing surface
+    const Font *current_font;    ///< Currently selected font
+    ColorType foreground_color;  ///< Drawing color
+    ColorType background_color;  ///< Background/fill color
+    bool auto_next_line;         ///< Automatically wrap text to next line
 
 public:
     explicit Canvas(
-        const DynamicImage<F> &frame,
+        const image::DynamicImage<F> &frame,
         const Font &font = Font::blank(),
         ColorType foreground = default_foreground_color,
         ColorType background = default_background_color) noexcept :
@@ -54,7 +54,7 @@ public:
         auto_next_line{false} {}
 
     /// @brief Creates validated sub-canvas within current bounds
-    Result<Canvas, typename DynamicImage<F>::Error> sub(
+    Result<Canvas, typename image::DynamicImage<F>::Error> sub(
         Pixel sub_width, Pixel sub_height,
         Pixel sub_offset_x, Pixel sub_offset_y) noexcept {
         const auto frame_result = frame.sub(sub_width, sub_height, sub_offset_x, sub_offset_y);
@@ -183,8 +183,7 @@ public:
     /// @brief Draw static image at specified position
     /// @param x Left position
     /// @param y Top position
-    /// @param image Image to draw
-    template<Pixel W, Pixel H> void image(Pixel x, Pixel y, const StaticImage<F, W, H> &image) noexcept {
+    template<Pixel W, Pixel H> void image(Pixel x, Pixel y, const image::StaticImage<F, W, H> &image) noexcept {
         PixelFormat::copy(
             {image.buffer, image.size()}, image.width(), image.height(),
             frame.buffer, frame.stride, frame.width, frame.height,
