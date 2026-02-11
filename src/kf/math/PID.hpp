@@ -6,9 +6,8 @@
 #include <Arduino.h>
 
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/math/filters/LowFrequencyFilter.hpp"
-
 
 namespace kf {
 
@@ -37,7 +36,7 @@ public:
     /// @brief Construct PID controller instance
     /// @param settings PID tuning parameters
     /// @param dx_filter_alpha Derivative filter smoothing factor (default: 1.0 = no filtering)
-    explicit PID(const Settings &settings, f32 dx_filter_alpha = 1.0f) noexcept:
+    explicit PID(const Settings &settings, f32 dx_filter_alpha = 1.0f) noexcept :
         settings{settings}, dx_filter{dx_filter_alpha} {}
 
     /// @brief Calculate PID controller output

@@ -7,7 +7,6 @@
 
 #include "kf/memory/Allocator.hpp"
 
-
 namespace kf {
 
 /// @brief Associative container that stores key-value pairs with unique keys

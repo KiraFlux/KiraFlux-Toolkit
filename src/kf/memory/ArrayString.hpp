@@ -5,12 +5,11 @@
 
 #include <cstdarg>
 
+#include "kf/algorithm.hpp"
+#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/Slice.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/core/attributes.hpp"
-#include "kf/algorithm.hpp"
-
 
 namespace kf {
 
@@ -21,8 +20,8 @@ template<usize N> class ArrayString {
     static_assert(N > 0, "ArrayString capacity must be positive");
 
 private:
-    Array<char, N + 1> buffer_;  // +1 for null terminator
-    usize size_{0};              // Current length (excluding null terminator)
+    Array<char, N + 1> buffer_;// +1 for null terminator
+    usize size_{0};            // Current length (excluding null terminator)
 
 public:
     /// @brief Default constructor (empty string)
@@ -37,7 +36,7 @@ public:
         assign(StringView(str, min(M - 1, N)));
     }
 
-    template<usize M, typename ...Args> constexpr static ArrayString formatted(const char (&fmt)[M], Args ...args) noexcept {
+    template<usize M, typename... Args> constexpr static ArrayString formatted(const char (&fmt)[M], Args... args) noexcept {
         static_assert(M > 0, "String literal must not be empty");
         static_assert(N >= M, "String capacity must be greater than format string");
         ArrayString ret{};
@@ -193,7 +192,6 @@ public:
         return size_ - start_size;
     }
 
-
     /// @brief Append floating-point number to string
     /// @param value Floating-point value
     /// @param decimal_places Number of decimal places to show
@@ -226,7 +224,7 @@ public:
                 (void) push('0' + digit);
                 fraction -= digit;
 
-                if (fraction < 1e-12) { // Avoid floating point issues
+                if (fraction < 1e-12) {// Avoid floating point issues
                     break;
                 }
             }
@@ -307,7 +305,7 @@ public:
         }
 
         size_ = min(static_cast<usize>(result), N);
-        buffer_[size_] = '\0';  // vsnprintf already null-terminates, but be safe
+        buffer_[size_] = '\0';// vsnprintf already null-terminates, but be safe
         return size_;
     }
 
@@ -423,7 +421,6 @@ public:
         return assign(StringView(str, min(M - 1, N)));
     }
 
-
     /// @brief Compare with StringView
     kf_nodiscard constexpr int compare(StringView other) const noexcept {
         return view().compare(other);
@@ -480,4 +477,4 @@ template<usize N, typename T> constexpr bool operator!=(const T &lhs, const Arra
     return !(lhs == rhs);
 }
 
-} // namespace kf
+}// namespace kf

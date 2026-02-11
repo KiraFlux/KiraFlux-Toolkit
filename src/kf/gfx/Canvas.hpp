@@ -6,10 +6,9 @@
 #include <cmath>
 
 #include "kf/Result.hpp"
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
 
-#include "ColorPalette.hpp"
 #include "kf/gfx/ColorPalette.hpp"
 #include "kf/gfx/DynamicImage.hpp"
 #include "kf/gfx/Font.hpp"

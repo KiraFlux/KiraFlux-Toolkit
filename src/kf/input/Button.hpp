@@ -6,9 +6,8 @@
 #include <Arduino.h>
 
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
-
 
 namespace kf {
 
@@ -33,8 +32,7 @@ struct Button {
             gpio_num_t pin,
             Mode mode,
             PullType pull_type,
-            Milliseconds debounce = 30
-        ) noexcept:
+            Milliseconds debounce = 30) noexcept :
             pin{static_cast<u8>(pin)}, mode{mode}, pull_type{pull_type}, debounce{debounce} {}
 
         kf_nodiscard bool normalize(bool state) const noexcept {
@@ -50,7 +48,6 @@ struct Button {
     };
 
 private:
-
     const Config &config;
     Milliseconds next{0};
     bool last_stable{false};
@@ -58,7 +55,7 @@ private:
     bool click_ready{false};
 
 public:
-    explicit Button(const Config &config) noexcept:
+    explicit Button(const Config &config) noexcept :
         config{config} {}
 
     void init() const noexcept {
@@ -102,4 +99,4 @@ public:
     }
 };
 
-} // namespace kf
+}// namespace kf

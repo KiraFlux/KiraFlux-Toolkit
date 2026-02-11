@@ -7,8 +7,7 @@
 
 #include "kf/Option.hpp"
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
-
+#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -22,13 +21,13 @@ template<typename T> struct vec2 final {
     T y;///< Y component
 
     /// @brief Default constructor (initializes to zero)
-    vec2() noexcept:
+    vec2() noexcept :
         x{0}, y{0} {}
 
     /// @brief Construct from x and y components
     /// @param x X component value
     /// @param y Y component value
-    vec2(T x, T y) noexcept:
+    vec2(T x, T y) noexcept :
         x{x}, y{y} {}
 
     /// @brief Vector addition

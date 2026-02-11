@@ -3,9 +3,8 @@
 
 #pragma once
 
+#include "attributes.hpp"
 #include "kf/Logger.hpp"
-#include "kf/core/attributes.hpp"
-
 
 namespace kf {
 
@@ -22,18 +21,18 @@ public:
     /// @param condition_ok Boolean result of the condition
     /// @param condition_string String representation of the condition (for logging)
     void check(const char *scope, bool condition_ok, const char *condition_string) noexcept {
-//        constexpr auto logger = kf::Logger::create();
+        //        constexpr auto logger = kf::Logger::create();
 
         if (condition_ok) {
-//            logger.log( // todo modernize
-//                "[  OK  ]",
-//                scope,
-//                ": %s", condition_string);
+            //            logger.log( // todo modernize
+            //                "[  OK  ]",
+            //                scope,
+            //                ": %s", condition_string);
         } else {
-//            logger.log(
-//                "[ FAIL ]",
-//                scope,
-//                ": %s", condition_string);
+            //            logger.log(
+            //                "[ FAIL ]",
+            //                scope,
+            //                ": %s", condition_string);
 
             errors += 1;
         }

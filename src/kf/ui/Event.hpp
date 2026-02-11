@@ -5,9 +5,8 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/core/bit_traits.hpp"
-
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 namespace ui {
@@ -47,12 +46,11 @@ public:
     };
 
     /// @brief Construct event with type and optional value
-    constexpr explicit Event(Type type, Value value = 0) noexcept:
+    constexpr explicit Event(Type type, Value value = 0) noexcept :
         storage{
             static_cast<Storage>(
                 (static_cast<Storage>(type) & type_mask) |
-                (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))
-        } {}
+                (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))} {}
 
     /// @brief Get event type
     kf_nodiscard constexpr Type type() const noexcept {

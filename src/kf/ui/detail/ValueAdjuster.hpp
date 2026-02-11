@@ -5,11 +5,9 @@
 
 #include "kf/ui/StepMode.hpp"
 
-
-namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
-namespace ui {// NOLINT(*-concat-nested-namespaces)
+namespace kf {    // NOLINT(*-concat-nested-namespaces) // for c++11 capability
+namespace ui {    // NOLINT(*-concat-nested-namespaces)
 namespace detail {// NOLINT(*-concat-nested-namespaces)
-
 
 /// @brief Generic spin box value adjustment
 template<typename T, StepMode M> struct ValueAdjuster;
@@ -40,6 +38,6 @@ template<typename T> struct ValueAdjuster<T, StepMode::Geometric> {
     }
 };
 
-}
-}
-}
+}// namespace detail
+}// namespace ui
+}// namespace kf

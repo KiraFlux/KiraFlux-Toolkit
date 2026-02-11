@@ -4,11 +4,10 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
-#include "Joystick.hpp"
+#include "kf/attributes.hpp"
+#include "kf/input/Joystick.hpp"
 #include "kf/math/time/TimeoutManager.hpp"
 #include "kf/math/time/Timer.hpp"
-
 
 namespace kf {
 
@@ -36,7 +35,7 @@ private:
 
 public:
     /// @brief Construct listener for specific joystick
-    explicit JoystickListener(Joystick &joy, float threshold = 0.6f) noexcept:
+    explicit JoystickListener(Joystick &joy, float threshold = 0.6f) noexcept :
         joystick{joy}, threshold{threshold} {}
 
     /// @brief Poll joystick state and update internal direction with autorepeat
@@ -55,7 +54,7 @@ public:
                 repeat_timer = Timer{repeat_timer.period};// Reset repeat timer
             }
         }
-            // Same direction, check for autorepeat
+        // Same direction, check for autorepeat
         else if (current_direction != Direction::Home) {
             if (not in_repeat_mode) {
                 // Waiting for initial delay (500ms)

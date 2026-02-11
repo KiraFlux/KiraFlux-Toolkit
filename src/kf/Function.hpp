@@ -3,15 +3,14 @@
 
 #pragma once
 
-#include <utility>
-#include <type_traits>
 #include <cassert>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
+#include <type_traits>
+#include <utility>
 
-#include "kf/core/attributes.hpp"
-
+#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -32,7 +31,7 @@ private:
     template<typename Fn> struct Impl final : Base {
         Fn f;
 
-        explicit Impl(Fn &&func) noexcept:
+        explicit Impl(Fn &&func) noexcept :
             f(std::forward<Fn>(func)) {}
 
         R invoke(Args... args) override {
@@ -40,11 +39,11 @@ private:
         }
 
         void move_to(void *dest) noexcept override {
-            new(dest) Impl(std::move(f));
+            new (dest) Impl(std::move(f));
         }
 
         Base *clone_to(void *dest) const noexcept override {
-            new(dest) Impl(f);
+            new (dest) Impl(f);
             return reinterpret_cast<Base *>(dest);
         }
     };
@@ -74,7 +73,7 @@ private:
         static_assert(alignof(Impl<F>) <= Alignment, "Callable object requires too strict alignment");
         static_assert(std::is_invocable_r<R, F, Args...>::value, "Callable object is not invocable with given arguments");
 
-        func = new(storage) Impl<F>(std::forward<F>(f));
+        func = new (storage) Impl<F>(std::forward<F>(f));
     }
 
 public:
@@ -83,8 +82,8 @@ public:
     explicit Function(std::nullptr_t) noexcept {}
 
     template<typename F, typename = std::enable_if_t<
-        not std::is_same<std::decay_t<F>, Function>::value and
-        std::is_invocable_r<R, F, Args...>::value>>
+                             not std::is_same<std::decay_t<F>, Function>::value and
+                             std::is_invocable_r<R, F, Args...>::value>>
     Function(F &&f) {
         construct(std::forward<F>(f));
     }
@@ -109,7 +108,7 @@ public:
         destroy();
     }
 
-    template<typename... CallArgs> R operator()(CallArgs &&... args) const {
+    template<typename... CallArgs> R operator()(CallArgs &&...args) const {
         if constexpr (std::is_void<R>::value) {
             if (func) {
                 func->invoke(std::forward<CallArgs>(args)...);
@@ -179,7 +178,7 @@ private:
     template<typename Fn> struct Impl final : Base {
         Fn f;
 
-        explicit Impl(Fn &&func) noexcept:
+        explicit Impl(Fn &&func) noexcept :
             f(std::forward<Fn>(func)) {}
 
         void invoke(Args... args) override {
@@ -187,7 +186,7 @@ private:
         }
 
         void move_to(void *dest) noexcept override {
-            new(dest) Impl(std::move(f));
+            new (dest) Impl(std::move(f));
         }
     };
 
@@ -215,7 +214,7 @@ private:
         static_assert(alignof(Impl<F>) <= Alignment, "Callable object requires too strict alignment");
         static_assert(std::is_invocable<F, Args...>::value, "Callable object is not invocable with given arguments");
 
-        func = new(storage) Impl<F>(std::forward<F>(f));
+        func = new (storage) Impl<F>(std::forward<F>(f));
     }
 
 public:
@@ -224,8 +223,8 @@ public:
     explicit Function(std::nullptr_t) noexcept {}
 
     template<typename F, typename = std::enable_if_t<
-        not std::is_same<std::decay_t<F>, Function>::value and
-        std::is_invocable<F, Args...>::value>>
+                             not std::is_same<std::decay_t<F>, Function>::value and
+                             std::is_invocable<F, Args...>::value>>
     Function(F &&f) {
         construct(std::forward<F>(f));
     }
@@ -250,7 +249,7 @@ public:
         destroy();
     }
 
-    template<typename... CallArgs> void operator()(CallArgs &&... args) const {
+    template<typename... CallArgs> void operator()(CallArgs &&...args) const {
         if (func) {
             func->invoke(std::forward<CallArgs>(args)...);
         }
@@ -272,5 +271,4 @@ public:
     using result_type = void;
 };
 
-
-} // namespace kf
+}// namespace kf

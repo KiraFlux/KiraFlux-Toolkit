@@ -7,7 +7,6 @@
 
 #include "kf/Logger.hpp"
 
-
 namespace kf {
 
 /// @brief Persistent storage wrapper for ESP32 Preferences

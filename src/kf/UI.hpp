@@ -4,20 +4,20 @@
 #pragma once
 
 // Std
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 // Lib
+#include "kf/attributes.hpp"
 #include "kf/Function.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
+#include "kf/math/units.hpp"
 #include "kf/memory/Array.hpp"
-#include "kf/memory/StringView.hpp"
 #include "kf/memory/ArrayList.hpp"
 #include "kf/memory/Queue.hpp"
+#include "kf/memory/StringView.hpp"
 #include "kf/pattern/Singleton.hpp"
-#include "kf/math/units.hpp"
 
 // Public UI API
 #include "kf/ui/Event.hpp"
@@ -28,7 +28,6 @@
 #include "kf/ui/detail/StepAdjuster.hpp"
 #include "kf/ui/detail/ValueAdjuster.hpp"
 
-
 namespace kf {
 
 /// @brief User interface framework with widget-based rendering
@@ -37,15 +36,15 @@ namespace kf {
 template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
     friend struct Singleton<UI<R, E>>;
 
-    using RenderImpl = R;                             ///< Renderer implementation type
-    using RenderConfig = typename RenderImpl::Config; ///< Renderer Configuration type
+    using RenderImpl = R;                            ///< Renderer implementation type
+    using RenderConfig = typename RenderImpl::Config;///< Renderer Configuration type
 
-    using Event = E;                          ///< UI Event type
-    using EventValue = typename Event::Value; ///< UI Event Value type
+    using Event = E;                         ///< UI Event type
+    using EventValue = typename Event::Value;///< UI Event Value type
 
     using StepMode = ui::StepMode;
 
-    struct Page; // forward declaration for Widget
+    struct Page;// forward declaration for Widget
 
     /// @brief Base widget class for all UI components
     /// @note All interactive UI elements inherit from this class
@@ -83,7 +82,6 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
     };
 
 private:
-
     /// @brief Special widget for creating page navigation buttons
     /// @note Internal use only - use Page::link() for page navigation
     struct PageSetter final : Widget {
@@ -91,13 +89,13 @@ private:
         Page &target;///< Target page for navigation
 
     public:
-        explicit PageSetter(Page &target) noexcept:
+        explicit PageSetter(Page &target) noexcept :
             target{target} {}
 
         /// @brief Set target page as active on click
         kf_nodiscard bool onClick() noexcept override {
             UI::instance().bindPage(target);
-            return true; // redraw always required after page change
+            return true;// redraw always required after page change
         }
 
         void doRender(RenderImpl &render) const noexcept override {
@@ -107,17 +105,15 @@ private:
     };
 
 public:
-
     /// @brief UI page containing widgets and title
     struct Page {
     private:
-        ArrayList<Widget *> widgets{};  ///< List of widgets on this page
-        PageSetter to_this{*this};      ///< Navigation widget to this page
-        usize cursor{0};                ///< Current widget cursor position (focused widget index)
-        StringView title_;               ///< Page title displayed in header
+        ArrayList<Widget *> widgets{};///< List of widgets on this page
+        PageSetter to_this{*this};    ///< Navigation widget to this page
+        usize cursor{0};              ///< Current widget cursor position (focused widget index)
+        StringView title_;            ///< Page title displayed in header
 
     public:
-
         explicit Page(StringView title) :
             title_{title} {}
 
@@ -277,7 +273,7 @@ public:
         using ClickHandler = Function<void()>;///< Button click handler type
 
     private:
-        StringView label;    ///< Button label text
+        StringView label;///< Button label text
 
     public:
         ClickHandler on_click{nullptr};///< Click event handler
@@ -291,7 +287,7 @@ public:
                 on_click();
             }
 
-            return false; // button click typically doesn't require redraw
+            return false;// button click typically doesn't require redraw
         }
 
         /// @brief Render button with block styling
@@ -308,7 +304,7 @@ public:
         bool state_;
 
     public:
-        explicit CheckBox(bool default_state = false) noexcept:
+        explicit CheckBox(bool default_state = false) noexcept :
             state_{default_state} {}
 
         explicit CheckBox(Page &root, bool default_state = false) :
@@ -354,7 +350,7 @@ public:
         usize cursor{0};          ///< Current selection index
 
     public:
-        explicit ComboBox(ItemContainer items) noexcept:
+        explicit ComboBox(ItemContainer items) noexcept :
             items{items} {}
 
         explicit ComboBox(Page &root, ItemContainer items) :
@@ -365,7 +361,7 @@ public:
         kf_nodiscard bool onValue(EventValue value) noexcept override {
             moveCursor(value);
             HasChangeHandler<T>::invokeHandler(items[cursor].value());
-            return true; // redraw required after selection change
+            return true;// redraw required after selection change
         }
 
         /// @brief Render current selection
@@ -392,7 +388,7 @@ public:
         explicit Display(Page &root, const T &val) :
             Widget{root}, value{val} {}
 
-        explicit Display(const T &val) noexcept:
+        explicit Display(const T &val) noexcept :
             value{val} {}
 
         /// @brief Render value with appropriate formatting
@@ -412,7 +408,7 @@ public:
         StringView label;///< Label text
 
     public:
-        W impl;           ///< Wrapped widget instance
+        W impl;///< Wrapped widget instance
 
         explicit Labeled(Page &root, StringView label, W impl) :
             Widget{root}, label{label}, impl{std::move(impl)} {}
@@ -436,7 +432,7 @@ public:
     /// @brief Spin box for adjusting numeric values with different modes
     /// @tparam T Numeric type for spin box value (must be arithmetic)
     template<typename T, StepMode M> struct SpinBox final : Widget, HasChangeHandler<T> {
-        using Value = T;///< Numeric value type
+        using Value = T;                   ///< Numeric value type
         static constexpr auto step_mode{M};///< Specialization step mode
 
     private:
@@ -450,15 +446,13 @@ public:
     public:
         explicit SpinBox(
             T default_value = T{},
-            T step = StepAdjuster::default_step
-        ) noexcept:
+            T step = StepAdjuster::default_step) noexcept :
             value_{default_value}, step{step} {}
 
         explicit SpinBox(
             Page &root,
             T default_value = T{},
-            T step = StepAdjuster::default_step
-        ) :
+            T step = StepAdjuster::default_step) :
             Widget{root}, value_{default_value}, step{step} {}
 
         void setValue(T value) noexcept {
@@ -484,7 +478,7 @@ public:
                 ValueAdjuster::adjust(value_, step, direction);
                 HasChangeHandler<T>::invokeHandler(value_);
             }
-            return true; // redraw required after adjustment
+            return true;// redraw required after adjustment
         }
 
         /// @brief Render current value or step size based on mode

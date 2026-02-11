@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
-
 
 namespace kf::gfx {
 

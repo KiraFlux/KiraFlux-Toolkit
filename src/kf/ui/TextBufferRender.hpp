@@ -7,11 +7,10 @@
 
 #include "kf/Function.hpp"
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/ui/Render.hpp"
-
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 namespace ui {
@@ -22,23 +21,23 @@ namespace ui {
 template<usize N> struct TextBufferRender : Render<TextBufferRender<N>> {
     friend struct Render<TextBufferRender<N>>;
 
-    using Glyph = u8; ///< Text interface measurement unit in glyphs
+    using Glyph = u8;///< Text interface measurement unit in glyphs
 
     /// @brief Text renderer configuration settings
     struct Config {
-        Function<void(StringView)> on_render_finish{nullptr}; ///< Callback invoked when rendering completes
+        Function<void(StringView)> on_render_finish{nullptr};///< Callback invoked when rendering completes
 
-        Glyph row_max_length{16};       ///< Maximum characters per row
-        Glyph rows_total{4};            ///< Total available rows in display
-        Glyph float_places{2};          ///< Decimal places for float
-        Glyph double_places{4};         ///< Decimal places for double
-        bool title_centered{true};      ///< Render Title centered
+        Glyph row_max_length{16}; ///< Maximum characters per row
+        Glyph rows_total{4};      ///< Total available rows in display
+        Glyph float_places{2};    ///< Decimal places for float
+        Glyph double_places{4};   ///< Decimal places for double
+        bool title_centered{true};///< Render Title centered
 
         Config(const Config &) = delete;
     };
 
-    Config config{};          ///< Current renderer configuration
-    ArrayString<N> buffer{};  ///< Output buffer for rendered text
+    Config config{};        ///< Current renderer configuration
+    ArrayString<N> buffer{};///< Output buffer for rendered text
 
 private:
     /// @brief Cursor state for tracking rendering position
@@ -78,14 +77,15 @@ private:
         if (cursor.row >= config.rows_total) { return; }
 
         switch (ch) {
-            case '\n':cursor.newline();
+            case '\n':
+                cursor.newline();
                 break;
 
-            case '\x81': // Start contrast
+            case '\x81':// Start contrast
                 cursor.contrast = true;
                 break;
 
-            case '\x80': // End contrast
+            case '\x80':// End contrast
                 cursor.contrast = false;
                 break;
 
@@ -113,11 +113,10 @@ private:
     }
 
     void writeReal(f64 real, u8 rounding) noexcept {
-        ArrayString<24> temp; // Enough for double with precision
+        ArrayString<24> temp;// Enough for double with precision
         (void) temp.append(real, rounding);
         writeString(temp.view());
     }
-
 
     // Render Interface Implementation
 
@@ -166,12 +165,13 @@ private:
 
     void valueImpl(bool value) noexcept {
         constexpr StringView _true{"\xF2true\x80"};
-        constexpr StringView _false{"\xF1""false\x80"};
+        constexpr StringView _false{"\xF1"
+                                    "false\x80"};
         writeString(value ? _true : _false);
     }
 
     void valueImpl(i32 integer) noexcept {
-        ArrayString<12> temp; // Enough for 32-bit int
+        ArrayString<12> temp;// Enough for 32-bit int
         (void) temp.append(integer);
         writeString(temp.view());
     }
@@ -202,10 +202,10 @@ private:
 
     void endAltBlockImpl() noexcept { writeChar('>'); }
 
-    void beginWidgetImpl(usize) noexcept {} // No-op for text renderer
+    void beginWidgetImpl(usize) noexcept {}// No-op for text renderer
 
     void endWidgetImpl() noexcept { writeChar('\n'); }
 };
 
-} // namespace ui
-} // namespace kf
+}// namespace ui
+}// namespace kf

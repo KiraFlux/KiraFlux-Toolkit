@@ -84,12 +84,12 @@ public:
     /// @param output_stream Output stream for writing
     /// @param code Instruction code to identify this instruction
     /// @param call_handler Handler function for argument serialization
-    Instruction(OutputStream &output_stream, Code code, Handler call_handler) noexcept:
+    Instruction(OutputStream &output_stream, Code code, Handler call_handler) noexcept :
         out{output_stream}, handler{kf::move(call_handler)}, code{code} {}
 
     /// @brief Move constructor
     /// @param other Instruction to move from
-    Instruction(Instruction &&other) noexcept:
+    Instruction(Instruction &&other) noexcept :
         out{other.out}, handler{kf::move(other.handler)}, code{other.code} {}
 
     /// @brief Execute instruction with given arguments
@@ -125,7 +125,7 @@ private:
 public:
     /// @brief Construct sender with output stream
     /// @param output_stream Output stream for writing instructions
-    explicit Sender(OutputStream &&output_stream) noexcept:
+    explicit Sender(OutputStream &&output_stream) noexcept :
         out{output_stream} {}
 
     /// @brief Create new send instruction with auto-assigned code
@@ -133,7 +133,7 @@ public:
     /// @param handler Function to serialize arguments to output stream
     /// @return Instruction object ready to be called with arguments
     /// @note Automatically assigns next available instruction code
-    template<typename... Args> Instruction<Code, Args...> createInstruction(typename Instruction<Code, Args...>::Handler handler) noexcept{
+    template<typename... Args> Instruction<Code, Args...> createInstruction(typename Instruction<Code, Args...>::Handler handler) noexcept {
         return Instruction<Code, Args...>{out, next_code++, kf::move(handler)};
     }
 };

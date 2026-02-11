@@ -7,7 +7,6 @@
 
 #include "kf/memory/Deque.hpp"
 
-
 namespace kf {
 
 /// @brief FIFO (first-in, first-out) queue adapter
@@ -16,4 +15,4 @@ namespace kf {
 /// @note Wrapper around std::queue for platforms with standard library support
 template<typename T, typename Container = kf::Deque<T>> using Queue = std::queue<T, Container>;
 
-}
+}// namespace kf

@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
-
 
 namespace kf {
 
@@ -20,7 +19,7 @@ private:
 public:
     /// @brief Construct timeout manager instance
     /// @param timeout_duration Timeout duration in milliseconds
-    explicit TimeoutManager(Milliseconds timeout_duration) noexcept:
+    explicit TimeoutManager(Milliseconds timeout_duration) noexcept :
         timeout{timeout_duration} {}
 
     /// @brief Update timeout expiration time

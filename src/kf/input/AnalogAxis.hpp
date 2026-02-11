@@ -5,12 +5,11 @@
 
 #include <Arduino.h>
 
-#include "kf/aliases.hpp"
-#include "kf/algorithm.hpp"
-#include "kf/core/attributes.hpp"
-#include "kf/math/filters/ExponentialFilter.hpp"
 #include "kf/Tuner.hpp"
-
+#include "kf/algorithm.hpp"
+#include "kf/aliases.hpp"
+#include "kf/attributes.hpp"
+#include "kf/math/filters/ExponentialFilter.hpp"
 
 namespace kf {
 
@@ -36,7 +35,7 @@ struct AnalogAxis final {
         AdcSignedValue range_positive{calcPositiveRange(default_analog_center)};
         AdcSignedValue range_negative{calcNegativeRange(default_analog_center)};
 
-        Config(gpio_num_t pin, Mode mode) noexcept:
+        Config(gpio_num_t pin, Mode mode) noexcept :
             pin{static_cast<u8>(pin)}, mode{mode} {}
 
         kf_nodiscard constexpr static AdcSignedValue calcPositiveRange(AdcSignedValue center) noexcept {
@@ -55,7 +54,6 @@ struct AnalogAxis final {
         i64 sum{};
 
     public:
-
         explicit AxisTuner(Config &config, u16 samples) :
             Tuner{config, samples} {}
 
@@ -87,9 +85,8 @@ private:
     ExponentialFilter<f32> filter;
 
 public:
-
     /// @param k Filter coefficient (0.0 to 1.0, higher = more smoothing)
-    explicit AnalogAxis(const Config &config, f32 k) noexcept:
+    explicit AnalogAxis(const Config &config, f32 k) noexcept :
         config{config}, filter{k} {}
 
     inline void init() const noexcept {

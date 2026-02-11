@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include "kf/core/attributes.hpp"
-#include "kf/memory/StringView.hpp"
+#include "kf/attributes.hpp"
 #include "kf/memory/ArrayString.hpp"
-
+#include "kf/memory/StringView.hpp"
 
 namespace kf {
 
@@ -19,7 +18,7 @@ struct Logger final {
 private:
     const StringView key;
 
-    constexpr explicit Logger(StringView key) noexcept:
+    constexpr explicit Logger(StringView key) noexcept :
         key{key} {}
 
 public:
@@ -27,10 +26,10 @@ public:
         return Logger{StringView{key, N - 1}};
     }
 
-#define MAKE(__entry_name__)\
-void __entry_name__(const StringView message) const noexcept {\
-    write(StringView{#__entry_name__}, message);\
-}
+#define MAKE(__entry_name__)                                       \
+    void __entry_name__(const StringView message) const noexcept { \
+        write(StringView{#__entry_name__}, message);               \
+    }
 
     MAKE(info)
 

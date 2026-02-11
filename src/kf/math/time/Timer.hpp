@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
-
 
 namespace kf {
 
@@ -21,12 +20,12 @@ private:
 public:
     /// @brief Construct timer with period in milliseconds
     /// @param period Time interval in milliseconds
-    explicit Timer(Milliseconds period) noexcept:
+    explicit Timer(Milliseconds period) noexcept :
         period{period} {}
 
     /// @brief Construct timer with frequency in Hz
     /// @param frequency Trigger frequency in Hertz
-    explicit Timer(Hertz frequency) noexcept:
+    explicit Timer(Hertz frequency) noexcept :
         period{static_cast<Milliseconds>(1000 / frequency)} {}
 
     /// @brief Check if timer interval has elapsed

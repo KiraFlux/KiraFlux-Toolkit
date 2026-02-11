@@ -4,8 +4,7 @@
 #pragma once
 
 #include "kf/Option.hpp"
-#include "kf/core/attributes.hpp"
-
+#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -26,12 +25,12 @@ private:
 public:
     /// @brief Construct successful result with value
     /// @param val Value to store as successful result
-    constexpr Result(T val) noexcept:// NOLINT(*-explicit-constructor)
+    constexpr Result(T val) noexcept :// NOLINT(*-explicit-constructor)
         is_ok{true}, value{val} {}
 
     /// @brief Construct error result with error
     /// @param error Error value to store
-    constexpr Result(E error) noexcept:// NOLINT(*-explicit-constructor)
+    constexpr Result(E error) noexcept :// NOLINT(*-explicit-constructor)
         is_ok{false}, err{error} {}
 
     /// @brief Check if result contains a value (success)
@@ -74,12 +73,12 @@ private:
 
 public:
     /// @brief Construct successful void result
-    constexpr Result() noexcept:
+    constexpr Result() noexcept :
         is_ok{true} {}
 
     /// @brief Construct error result with error
     /// @param error Error value to store
-    constexpr Result(E error) noexcept:// NOLINT(*-explicit-constructor)
+    constexpr Result(E error) noexcept :// NOLINT(*-explicit-constructor)
         is_ok{false}, err{error} {}
 
     /// @brief Check if result is successful

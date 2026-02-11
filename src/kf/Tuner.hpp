@@ -4,8 +4,7 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
-
+#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -26,8 +25,7 @@ private:
     } state{State::Idle};
 
 public:
-
-    explicit Tuner(T &config, u16 samples) noexcept:
+    explicit Tuner(T &config, u16 samples) noexcept :
         config{config}, samples_total{samples} {}
 
     kf_nodiscard bool running() const noexcept { return state != State::Idle; }
@@ -66,4 +64,4 @@ private:
     inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
-}
+}// namespace kf

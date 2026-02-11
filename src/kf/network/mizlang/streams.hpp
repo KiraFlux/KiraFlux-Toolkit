@@ -4,8 +4,7 @@
 
 #include "kf/Option.hpp"
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
-
+#include "kf/attributes.hpp"
 
 namespace kf::mizlang {
 
@@ -19,7 +18,7 @@ private:
 public:
     /// @brief Construct input stream from Stream reference
     /// @param s Stream object to read from
-    explicit InputStream(Stream &s) noexcept:
+    explicit InputStream(Stream &s) noexcept :
         stream{s} {}
 
     /// @brief Discard all available data in stream
@@ -75,7 +74,7 @@ private:
 public:
     /// @brief Construct output stream from Stream reference
     /// @param s Stream object to write to
-    explicit OutputStream(Stream &s) noexcept:
+    explicit OutputStream(Stream &s) noexcept :
         stream{s} {}
 
     /// @brief Write single byte to stream

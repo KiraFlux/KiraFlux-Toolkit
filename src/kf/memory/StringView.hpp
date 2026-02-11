@@ -5,11 +5,10 @@
 
 #include <type_traits>
 
-#include "kf/memory/Slice.hpp"
-#include "kf/core/attributes.hpp"
-#include "kf/algorithm.hpp"
 #include "kf/Option.hpp"
-
+#include "kf/algorithm.hpp"
+#include "kf/attributes.hpp"
+#include "kf/memory/Slice.hpp"
 
 namespace kf {
 
@@ -22,29 +21,29 @@ private:
 
 public:
     /// @brief Default constructor (empty string)
-    constexpr StringView() noexcept:
+    constexpr StringView() noexcept :
         data_{nullptr}, size_{0} {}
 
     /// @brief Construct from null-terminated C-string
     /// @param str Null-terminated string (must remain valid)
-    constexpr StringView(const char *str) noexcept:
+    constexpr StringView(const char *str) noexcept :
         data_{str}, size_{calculateSize(str)} {}
 
     /// @brief Construct from pointer and size
     /// @param data Pointer to string data
     /// @param size String length (not including null terminator if present)
-    constexpr StringView(const char *data, usize size) noexcept:
+    constexpr StringView(const char *data, usize size) noexcept :
         data_{data}, size_{size} {}
 
     /// @brief Construct from string literal (compile-time known size)
     /// @tparam N Compile-time string length (includes null terminator)
     /// @param str String literal
     template<usize N> constexpr StringView(const char (&str)[N]) noexcept :
-        data_{str}, size_{N - 1} {}  // Exclude null terminator
+        data_{str}, size_{N - 1} {}// Exclude null terminator
 
     /// @brief Construct from Slice<const char>
     /// @param slice Slice containing string data
-    constexpr explicit StringView(Slice<const char> slice) noexcept:
+    constexpr explicit StringView(Slice<const char> slice) noexcept :
         data_{slice.data()}, size_{slice.size()} {}
 
     /// @brief Get pointer to string data
@@ -263,5 +262,4 @@ constexpr bool operator>=(StringView lhs, StringView rhs) noexcept {
     return lhs.compare(rhs) >= 0;
 }
 
-
-} // namespace kf
+}// namespace kf

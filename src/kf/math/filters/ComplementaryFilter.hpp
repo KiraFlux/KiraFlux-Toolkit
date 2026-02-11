@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf {
@@ -23,7 +23,7 @@ public:
     /// @brief Construct complementary filter instance
     /// @param alpha Filter coefficient (higher = more trust in prediction)
     /// @note alpha=0.0: trust only measurement, alpha=1.0: trust only prediction
-    explicit ComplementaryFilter(f32 alpha) noexcept:
+    explicit ComplementaryFilter(f32 alpha) noexcept :
         alpha{alpha}, one_minus_alpha{1.0f - alpha} {}
 
     /// @brief Calculate filtered value from measurement and rate of change

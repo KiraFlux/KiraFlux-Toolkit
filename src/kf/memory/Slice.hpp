@@ -4,8 +4,7 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
-
+#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -20,13 +19,13 @@ private:
 
 public:
     /// @brief Default constructor (empty slice)
-    constexpr Slice() noexcept:
+    constexpr Slice() noexcept :
         ptr_{nullptr}, size_{0} {}
 
     /// @brief Construct slice from pointer and size
     /// @param ptr Pointer to first element
     /// @param size Number of elements
-    constexpr Slice(T *ptr, usize size) noexcept:
+    constexpr Slice(T *ptr, usize size) noexcept :
         ptr_{ptr}, size_{size} {}
 
     /// @brief Get iterator to beginning

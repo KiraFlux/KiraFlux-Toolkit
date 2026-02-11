@@ -13,13 +13,12 @@
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
+#include "kf/memory/ArrayString.hpp"
 #include "kf/memory/Map.hpp"
 #include "kf/memory/Slice.hpp"
-#include "kf/memory/ArrayString.hpp"
 #include "kf/pattern/Singleton.hpp"
-
 
 namespace kf {
 
@@ -172,7 +171,7 @@ struct EspNow : Singleton<EspNow> {
         }
 
         /// @brief Private constructor (use Peer::add)
-        explicit Peer(const Mac &mac) noexcept:
+        explicit Peer(const Mac &mac) noexcept :
             mac_{mac} {}
     };
 
@@ -186,8 +185,7 @@ private:
             Mac ret{};
             esp_read_mac(ret.data(), ESP_MAC_WIFI_STA);
             return ret;
-        }()
-    };
+        }()};
 
 public:
     /// @brief Initialize ESP-NOW protocol
@@ -311,7 +309,7 @@ public:
             return_case(kf::EspNow::Error::PeerListIsFull);
             return_case(kf::EspNow::Error::PeerAlreadyExists);
             default:
-            return_case(kf::EspNow::Error::UnknownError);
+                return_case(kf::EspNow::Error::UnknownError);
         }
     }
 

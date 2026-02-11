@@ -4,9 +4,8 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 #include "kf/memory/StringView.hpp"
-
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 

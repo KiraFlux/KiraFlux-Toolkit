@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
+#include "kf/attributes.hpp"
 
 namespace kf::gfx {
 

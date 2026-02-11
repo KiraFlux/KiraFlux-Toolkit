@@ -4,8 +4,7 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/core/attributes.hpp"
-
+#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -24,7 +23,7 @@ public:
     /// @brief Construct low-frequency filter instance
     /// @param alpha Smoothing factor (higher = more smoothing, slower response)
     /// @note alpha=0.0: output never changes, alpha=1.0: no filtering (direct pass-through)
-    explicit LowFrequencyFilter(f32 alpha) noexcept:
+    explicit LowFrequencyFilter(f32 alpha) noexcept :
         alpha{alpha}, one_minus_alpha{1.0f - alpha} {}
 
     /// @brief Update filter with new sample
@@ -47,7 +46,7 @@ public:
     }
 
     /// @brief Reset filter state (next sample will initialize filter)
-    void reset() noexcept{
+    void reset() noexcept {
         first_step = true;
     }
 };

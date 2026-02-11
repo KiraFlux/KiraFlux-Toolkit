@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include "kf/core/attributes.hpp"
 #include "kf/Result.hpp"
+#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
 
-
-namespace kf { // NOLINT(*-concat-nested-namespaces)
+namespace kf {// NOLINT(*-concat-nested-namespaces)
 namespace gfx {
 
 /// @brief Dynamic display region with runtime dimensions
@@ -20,23 +19,22 @@ template<typename F> struct DynamicImage final {
 
     /// @brief Possible errors when creating FrameView
     enum class Error : u8 {
-        BufferNotInit, ///< Buffer pointer is null
-        SizeTooSmall, ///< Region dimensions are less than 1 pixel
-        SizeTooLarge, ///< Sub-region exceeds parent bounds
-        OffsetOutOfBounds, ///< Offset falls outside parent region
+        BufferNotInit,    ///< Buffer pointer is null
+        SizeTooSmall,     ///< Region dimensions are less than 1 pixel
+        SizeTooLarge,     ///< Sub-region exceeds parent bounds
+        OffsetOutOfBounds,///< Offset falls outside parent region
     };
 
-    Slice<BufferType> buffer; ///< display buffer memory view
-    Pixel stride;             ///< Row stride (full display width)
-    Pixel offset_x, offset_y; ///< Absolute offset from buffer origin
-    Pixel width, height;      ///< Region size in pixels
+    Slice<BufferType> buffer;///< display buffer memory view
+    Pixel stride;            ///< Row stride (full display width)
+    Pixel offset_x, offset_y;///< Absolute offset from buffer origin
+    Pixel width, height;     ///< Region size in pixels
 
     /// @brief Creates FrameView with validation
     kf_nodiscard static Result<DynamicImage, Error> create(
         Slice<BufferType> buffer, Pixel stride,
         Pixel width, Pixel height,
-        Pixel offset_x, Pixel offset_y
-    ) noexcept {
+        Pixel offset_x, Pixel offset_y) noexcept {
         if (nullptr == buffer.data()) {
             return Error::BufferNotInit;
         }
@@ -49,7 +47,7 @@ template<typename F> struct DynamicImage final {
     }
 
     /// @brief Default constructor - invalid view
-    DynamicImage() noexcept:
+    DynamicImage() noexcept :
         buffer{}, stride{0}, offset_x{0}, offset_y{0}, width{0}, height{0} {};
 
     /// @brief Creates FrameView without validation
@@ -57,16 +55,14 @@ template<typename F> struct DynamicImage final {
     explicit DynamicImage(
         Slice<BufferType> buffer, Pixel stride,
         Pixel width, Pixel height,
-        Pixel offset_x, Pixel offset_y
-    ) noexcept:
+        Pixel offset_x, Pixel offset_y) noexcept :
         buffer{buffer}, stride{stride}, offset_x{offset_x}, offset_y{offset_y}, width{width}, height{height} {}
 
     /// @brief Creates validated sub-region
     /// @return Sub-view or error if out of bounds
     kf_nodiscard Result<DynamicImage, Error> sub(
         Pixel sub_width, Pixel sub_height,
-        Pixel sub_offset_x, Pixel sub_offset_y
-    ) const noexcept {
+        Pixel sub_offset_x, Pixel sub_offset_y) const noexcept {
         if (sub_offset_x >= width or sub_offset_y >= height) {
             return Error::OffsetOutOfBounds;
         }
@@ -77,21 +73,18 @@ template<typename F> struct DynamicImage final {
         return create(
             buffer, stride,
             sub_width, sub_height,
-            static_cast<Pixel>(offset_x + sub_offset_x), static_cast<Pixel>(offset_y + sub_offset_y)
-        );
+            static_cast<Pixel>(offset_x + sub_offset_x), static_cast<Pixel>(offset_y + sub_offset_y));
     }
 
     /// @brief Creates sub-region without validation
     /// @warning No bounds checking - caller must ensure parameters are valid
     kf_nodiscard DynamicImage subUnchecked(
         Pixel sub_width, Pixel sub_height,
-        Pixel sub_offset_x, Pixel sub_offset_y
-    ) noexcept {
+        Pixel sub_offset_x, Pixel sub_offset_y) noexcept {
         return DynamicImage{
             buffer, stride, sub_width, sub_height,
             static_cast<Pixel>(offset_x + sub_offset_x),
-            static_cast<Pixel>(offset_y + sub_offset_y)
-        };
+            static_cast<Pixel>(offset_y + sub_offset_y)};
     }
 
     /// @brief Checks if view references valid buffer
@@ -112,15 +105,13 @@ template<typename F> struct DynamicImage final {
     /// @brief Sets single pixel color
     void setPixel(
         Pixel x_relative, Pixel y_relative,
-        ColorType color
-    ) const noexcept {
+        ColorType color) const noexcept {
         PixelFormat::setPixel(buffer, stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
     }
 
     /// @brief Fills entire region with solid color
     void fill(
-        ColorType color
-    ) const noexcept {
+        ColorType color) const noexcept {
         PixelFormat::fill(buffer, stride, offset_x, offset_y, width, height, color);
     }
 
@@ -128,8 +119,7 @@ template<typename F> struct DynamicImage final {
     void fill(
         Pixel x0, Pixel y0,
         Pixel x1, Pixel y1,
-        ColorType color
-    ) const noexcept {
+        ColorType color) const noexcept {
         PixelFormat::fill(
             buffer,
             stride,
@@ -137,10 +127,9 @@ template<typename F> struct DynamicImage final {
             static_cast<Pixel>(offset_y + y0),
             static_cast<Pixel>(x1 - x0 + 1),
             static_cast<Pixel>(y1 - y0 + 1),
-            color
-        );
+            color);
     }
 };
 
-}
-}
+}// namespace gfx
+}// namespace kf

@@ -5,8 +5,7 @@
 
 #include <cstdlib>
 
-#include "kf/core/attributes.hpp"
-
+#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -25,11 +24,11 @@ private:
 public:
     /// @brief Construct Option with value (copy)
     /// @param value Value to store in Option
-    constexpr Option(const T &value) noexcept:// NOLINT(*-explicit-constructor)
+    constexpr Option(const T &value) noexcept :// NOLINT(*-explicit-constructor)
         engaged{true}, val{value} {}
 
     /// @brief Construct empty Option (no value)
-    constexpr Option() noexcept:
+    constexpr Option() noexcept :
         engaged{false}, dummy{0} {}
 
     /// @brief Check if Option contains a value
