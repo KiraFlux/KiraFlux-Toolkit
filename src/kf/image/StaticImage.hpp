@@ -21,6 +21,11 @@ namespace kf::image {
 template<typename F, Pixel W, Pixel H> struct StaticImage final : Image<StaticImage<F, W, H>, F> {
     using PixelFormat = F;
     using BufferType = typename F::BufferType;
+    using ColorType = typename F::ColorType;
+
+    static constexpr auto width_value{W};
+    static constexpr auto height_value{H};
+
     using BufferStorage = Array<BufferType, PixelFormat::template buffer_size<W, H>>;
 
 private:
