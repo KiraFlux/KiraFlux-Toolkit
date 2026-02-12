@@ -1,7 +1,7 @@
 {
   "name": "KiraFlux-Toolkit",
-  "version": "0.0.0",
-  "description": "Cross-platform embedded C++ utilities library",
+  "version": "0.1.0",
+  "description": "ESP32 C++ utilities library",
   "keywords": [
     "embedded",
     "c++",
