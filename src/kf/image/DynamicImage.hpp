@@ -5,6 +5,7 @@
 
 #include "kf/Result.hpp"
 #include "kf/attributes.hpp"
+#include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces)
@@ -12,7 +13,7 @@ namespace image {
 
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam F Pixel format for the image data
-template<typename F> struct DynamicImage final {
+template<typename F> struct DynamicImage final : Image<DynamicImage<F>, F> {
     using PixelFormat = F;
     using BufferType = typename F::BufferType;
     using ColorType = typename F::ColorType;
@@ -25,11 +26,13 @@ template<typename F> struct DynamicImage final {
         OffsetOutOfBounds,///< Offset falls outside parent region
     };
 
-    Slice<BufferType> buffer;///< display buffer memory view
-    Pixel stride;            ///< Row stride (full display width)
-    Pixel offset_x, offset_y;///< Absolute offset from buffer origin
-    Pixel width, height;     ///< Region size in pixels
+private:
+    Slice<BufferType> _buffer;///< display buffer memory view
+    Pixel _width, _height;    ///< Region size in pixels
+    Pixel _stride;            ///< Row stride (full display width)
+    Pixel offset_x, offset_y; ///< Absolute offset from buffer origin
 
+public:
     /// @brief Creates FrameView with validation
     kf_nodiscard static Result<DynamicImage, Error> create(
         Slice<BufferType> buffer, Pixel stride,
@@ -48,7 +51,7 @@ template<typename F> struct DynamicImage final {
 
     /// @brief Default constructor - invalid view
     DynamicImage() noexcept :
-        buffer{}, stride{0}, offset_x{0}, offset_y{0}, width{0}, height{0} {};
+        _buffer{}, _stride{0}, offset_x{0}, offset_y{0}, _width{0}, _height{0} {};
 
     /// @brief Creates FrameView without validation
     /// @warning Caller must ensure parameters are valid
@@ -56,22 +59,22 @@ template<typename F> struct DynamicImage final {
         Slice<BufferType> buffer, Pixel stride,
         Pixel width, Pixel height,
         Pixel offset_x, Pixel offset_y) noexcept :
-        buffer{buffer}, stride{stride}, offset_x{offset_x}, offset_y{offset_y}, width{width}, height{height} {}
+        _buffer{buffer}, _stride{stride}, offset_x{offset_x}, offset_y{offset_y}, _width{width}, _height{height} {}
 
     /// @brief Creates validated sub-region
     /// @return Sub-view or error if out of bounds
     kf_nodiscard Result<DynamicImage, Error> sub(
         Pixel sub_width, Pixel sub_height,
         Pixel sub_offset_x, Pixel sub_offset_y) const noexcept {
-        if (sub_offset_x >= width or sub_offset_y >= height) {
+        if (sub_offset_x >= _width or sub_offset_y >= _height) {
             return Error::OffsetOutOfBounds;
         }
 
-        if (sub_width > width - sub_offset_x or sub_height > height - sub_offset_y) {
+        if (sub_width > _width - sub_offset_x or sub_height > _height - sub_offset_y) {
             return Error::SizeTooLarge;
         }
         return create(
-            buffer, stride,
+            _buffer, _stride,
             sub_width, sub_height,
             static_cast<Pixel>(offset_x + sub_offset_x), static_cast<Pixel>(offset_y + sub_offset_y));
     }
@@ -82,19 +85,19 @@ template<typename F> struct DynamicImage final {
         Pixel sub_width, Pixel sub_height,
         Pixel sub_offset_x, Pixel sub_offset_y) noexcept {
         return DynamicImage{
-            buffer, stride, sub_width, sub_height,
+            _buffer, _stride, sub_width, sub_height,
             static_cast<Pixel>(offset_x + sub_offset_x),
             static_cast<Pixel>(offset_y + sub_offset_y)};
     }
 
     /// @brief Checks if view references valid buffer
-    kf_nodiscard bool isValid() const noexcept { return nullptr != buffer.data(); }
+    kf_nodiscard bool isValid() const noexcept { return nullptr != _buffer.data(); }
 
     /// @brief Checks if X coordinate is within view bounds
-    kf_nodiscard bool isInsideX(Pixel x_relative) const noexcept { return x_relative >= 0 and x_relative < width; }
+    kf_nodiscard bool isInsideX(Pixel x_relative) const noexcept { return x_relative >= 0 and x_relative < _width; }
 
     /// @brief Checks if Y coordinate is within view bounds
-    kf_nodiscard bool isInsideY(Pixel y_relative) const noexcept { return y_relative >= 0 and y_relative < height; }
+    kf_nodiscard bool isInsideY(Pixel y_relative) const noexcept { return y_relative >= 0 and y_relative < _height; }
 
     /// @brief Converts relative X to absolute buffer coordinate
     kf_nodiscard Pixel toAbsoluteX(Pixel x) const noexcept { return static_cast<Pixel>(offset_x + x); }
@@ -103,16 +106,13 @@ template<typename F> struct DynamicImage final {
     kf_nodiscard Pixel toAbsoluteY(Pixel y) const noexcept { return static_cast<Pixel>(offset_y + y); }
 
     /// @brief Sets single pixel color
-    void setPixel(
-        Pixel x_relative, Pixel y_relative,
-        ColorType color) const noexcept {
-        PixelFormat::setPixel(buffer, stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
+    void setPixel(Pixel x_relative, Pixel y_relative, ColorType color) const noexcept {
+        PixelFormat::setPixel(_buffer, _stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
     }
 
     /// @brief Fills entire region with solid color
-    void fill(
-        ColorType color) const noexcept {
-        PixelFormat::fill(buffer, stride, offset_x, offset_y, width, height, color);
+    void fill(ColorType color) const noexcept {
+        PixelFormat::fill(_buffer, _stride, offset_x, offset_y, _width, _height, color);
     }
 
     /// @brief Fills rect region with solid color
@@ -121,14 +121,28 @@ template<typename F> struct DynamicImage final {
         Pixel x1, Pixel y1,
         ColorType color) const noexcept {
         PixelFormat::fill(
-            buffer,
-            stride,
+            _buffer,
+            _stride,
             static_cast<Pixel>(offset_x + x0),
             static_cast<Pixel>(offset_y + y0),
             static_cast<Pixel>(x1 - x0 + 1),
             static_cast<Pixel>(y1 - y0 + 1),
             color);
     }
+
+    // CRTP
+private:
+    friend Image<DynamicImage<F>, F>;
+
+    kf_nodiscard constexpr Pixel getWidthImpl() const noexcept { return _width; }
+
+    kf_nodiscard constexpr Pixel getHeightImpl() const noexcept { return _height; }
+
+    kf_nodiscard constexpr Pixel getStrideImpl() const noexcept { return _stride; }
+
+    kf_nodiscard constexpr Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
+
+    kf_nodiscard constexpr Slice<const BufferType> getBufferImpl() const noexcept { return _buffer; }
 };
 
 }// namespace image

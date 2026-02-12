@@ -43,6 +43,8 @@ private:
 
     kf_nodiscard constexpr Pixel getHeightImpl() const noexcept { return H; }
 
+    kf_nodiscard constexpr Pixel getStrideImpl() const noexcept { return getWidthImpl(); }
+
     kf_nodiscard constexpr Slice<BufferType> getBufferImpl() noexcept {
         return {_buffer.data(), _buffer.size()};
     }

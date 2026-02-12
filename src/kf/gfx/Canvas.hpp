@@ -77,19 +77,19 @@ public:
             background_color};
     }
 
-    // Attributes
+    // Properties
 
     /// @brief Get canvas width in pixels
-    kf_nodiscard Pixel width() const noexcept { return frame.width; }
+    kf_nodiscard Pixel width() const noexcept { return frame.width(); }
 
     /// @brief Get canvas height in pixels
-    kf_nodiscard Pixel height() const noexcept { return frame.height; }
+    kf_nodiscard Pixel height() const noexcept { return frame.height(); }
 
     /// @brief Get maximum valid X coordinate (rightmost pixel)
-    kf_nodiscard Pixel maxX() const noexcept { return static_cast<Pixel>(width() - 1); }
+    kf_nodiscard Pixel maxX() const noexcept { return frame.maxX(); }
 
     /// @brief Get maximum valid Y coordinate (bottommost pixel)
-    kf_nodiscard Pixel maxY() const noexcept { return static_cast<Pixel>(height() - 1); }
+    kf_nodiscard Pixel maxY() const noexcept { return frame.maxY(); }
 
     /// @brief Get horizontal center coordinate
     kf_nodiscard Pixel centerX() const noexcept { return static_cast<Pixel>(maxX() / 2); }
@@ -100,17 +100,17 @@ public:
     /// @brief Get tab width based on current font (4 character widths)
     kf_nodiscard Pixel tabWidth() const noexcept { return static_cast<Pixel>(current_font->widthTotal() * 4); }
 
-    /// @brief Get canvas width in glyphs
-    kf_nodiscard u8 widthInGlyphs() const noexcept { return frame.width / current_font->widthTotal(); }
-
-    /// @brief Get canvas height in glyphs
-    kf_nodiscard u8 heightInGlyphs() const noexcept { return frame.height / current_font->heightTotal(); }
-
     /// @brief Get current font glyph width
     kf_nodiscard Pixel glyphWidth() const noexcept { return current_font->widthTotal(); }
 
     /// @brief Get current font glyph height
     kf_nodiscard Pixel glyphHeight() const noexcept { return current_font->heightTotal(); }
+
+    /// @brief Get canvas width in glyphs
+    kf_nodiscard u8 widthInGlyphs() const noexcept { return width() / glyphWidth(); }
+
+    /// @brief Get canvas height in glyphs
+    kf_nodiscard u8 heightInGlyphs() const noexcept { return height() / glyphHeight(); }
 
     /// Current Foreground color
     kf_nodiscard ColorType foreground() const noexcept { return foreground_color; }
@@ -186,7 +186,7 @@ public:
     template<Pixel W, Pixel H> void image(Pixel x, Pixel y, const image::StaticImage<F, W, H> &image) noexcept {
         PixelFormat::copy(
             image.buffer(), image.width(), image.height(),
-            frame.buffer, frame.stride,
+            frame.buffer(), frame.stride(),
             frame.toAbsoluteX(x), frame.toAbsoluteY(y));
     }
 

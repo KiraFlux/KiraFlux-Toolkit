@@ -19,16 +19,19 @@ template<typename Impl, typename F> struct Image {
 
     // Abstract properties
 
-    /// @brief Get current display width in pixels (may differ from physical width due to orientation)
+    /// @brief Get current width in pixels (may differ from physical width due to orientation)
     kf_nodiscard Pixel width() const noexcept { return c_impl().getWidthImpl(); }
 
-    /// @brief Get current display height in pixels (may differ from physical width due to orientation)
+    /// @brief Get current height in pixels (may differ from physical width due to orientation)
     kf_nodiscard Pixel height() const noexcept { return c_impl().getHeightImpl(); }
 
-    /// @brief Get writable software frame buffer
+    /// @brief Get current full width in pixels (may differ from physical width due to orientation)
+    kf_nodiscard Pixel stride() const noexcept { return c_impl().getStrideImpl(); }
+
+    /// @brief Get writable frame buffer
     kf_nodiscard Slice<BufferType> buffer() noexcept { return impl().getBufferImpl(); }
 
-    /// @brief Get readonly software frame buffer
+    /// @brief Get readonly frame buffer
     kf_nodiscard Slice<const BufferType> buffer() const noexcept { return c_impl().getBufferImpl(); }
 
     // properties
