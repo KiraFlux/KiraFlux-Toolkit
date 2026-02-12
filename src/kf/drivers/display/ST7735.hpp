@@ -7,14 +7,15 @@
 #include <SPI.h>
 
 #include "kf/aliases.hpp"
-#include "kf/pixel/Rgb565.hpp"
 #include "kf/drivers/display/DisplayDriver.hpp"
-
+#include "kf/image/ViewportImage.hpp"
+#include "kf/pixel/Rgb565Pixel.hpp"
 
 namespace kf {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-struct ST7735 final: DisplayDriver<ST7735, pixel::Rgb565, 128, 160> {
+struct ST7735 final : DisplayDriver<ST7735, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {
+    using PixelImpl = pixel::Rgb565Pixel;
 
     /// @brief Hardware configuration settings for ST7735
     struct Config {
@@ -29,8 +30,7 @@ struct ST7735 final: DisplayDriver<ST7735, pixel::Rgb565, 128, 160> {
             gpio_num_t dc,
             gpio_num_t reset,
             u32 spi_freq = 27000000u,
-            Orientation orientation = Orientation::Normal
-        ) noexcept:
+            Orientation orientation = Orientation::Normal) noexcept :
             pin_spi_slave_select{static_cast<u8>(spi_cs)},
             pin_data_command{static_cast<u8>(dc)},
             pin_reset{static_cast<u8>(reset)},
@@ -39,7 +39,6 @@ struct ST7735 final: DisplayDriver<ST7735, pixel::Rgb565, 128, 160> {
     };
 
 private:
-
     /// @brief Memory Access Control (MADCTL) register bits
     enum MadCtl : u8 {
         RgbMode = 0x00,///< RGB color order
@@ -51,24 +50,13 @@ private:
     };
 
     const Config &settings;///< Hardware configuration
-    SPIClass &spi;           ///< SPI bus instance
+    SPIClass &spi;         ///< SPI bus instance
 
-    u8 logical_width{phys_width};        ///< Current logical width (after orientation)
-    u8 logical_height{phys_height};      ///< Current logical height (after orientation)
     u8 madctl_base_mode{MadCtl::RgbMode};///< Base MADCTL value
 
 public:
-    explicit ST7735(const Config &settings, SPIClass &spi_instance) noexcept:
+    explicit ST7735(const Config &settings, SPIClass &spi_instance) noexcept :
         settings{settings}, spi{spi_instance} {}
-
-private:
-    // DisplayDriver interface implementation
-
-    /// @brief Get current logical display width (after orientation transform)
-    kf_nodiscard u8 getWidthImpl() const noexcept { return logical_width; }
-
-    /// @brief Get current logical display height (after orientation transform)
-    kf_nodiscard u8 getHeightImpl() const noexcept { return logical_height; }
 
     /// @brief Initialize display hardware via SPI
     /// @return Always returns true (hardware errors not checked)
@@ -105,8 +93,7 @@ private:
 
     void sendImpl() const noexcept {
         sendCommand(Command::RAMWR);
-        sendData(reinterpret_cast<const u8 *>(software_screen_buffer),
-                 sizeof(software_screen_buffer));
+        sendData(reinterpret_cast<const u8 *>(screen_image.buffer().data()), imageBufferSizeBytes());
     }
 
     /// @brief Apply orientation transformation (full 6-way support)
@@ -122,22 +109,16 @@ private:
 
         const u8 madctl = madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
 
-        if (madctl & MadCtl::MirrorTranspose) {
-            logical_width = phys_height;
-            logical_height = phys_width;
-        } else {
-            logical_width = phys_width;
-            logical_height = phys_height;
-        }
+        screen_image.setTransposed((madctl & MadCtl::MirrorTranspose) != 0);
 
         sendCommand(Command::MADCTL);
         sendData(&madctl, sizeof(madctl));
 
-        u8 data[4] = {0x00, 0x00, 0x00, static_cast<u8>(logical_width - 1)};
+        u8 data[4] = {0x00, 0x00, 0x00, static_cast<u8>(screen_image.maxX())};
         sendCommand(Command::CASET);
         sendData(data, sizeof(data));
 
-        data[3] = logical_height - 1;
+        data[3] = screen_image.maxY();
         sendCommand(Command::RASET);
         sendData(data, sizeof(data));
     }
@@ -179,7 +160,7 @@ private:
         digitalWrite(settings.pin_spi_slave_select, HIGH);
     }
 
-    friend Base; // CRTP
+    friend Base;// CRTP
 };
 
 }// namespace kf

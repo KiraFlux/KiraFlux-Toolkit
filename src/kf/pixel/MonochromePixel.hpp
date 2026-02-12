@@ -4,13 +4,13 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/pixel/PixelFormat.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces)
 namespace pixel {
 
 /// @brief 1-bit monochrome format (1 bit per pixel)
-struct Monochrome final : PixelFormat<Monochrome, u8, bool, 1> {
+struct MonochromePixel final : Pixel<MonochromePixel, u8, bool, 1> {
 
     static constexpr u8 page_height{8};///< Vertical pixels per memory page
 
@@ -71,75 +71,52 @@ private:
     }
 
     static void copyImpl(
-        const Slice<BufferType> source_buffer,
-        PositionType source_width,
-        PositionType source_height,
-        Slice<BufferType> dest_buffer,
-        PositionType dest_stride,
-        PositionType dest_width,
-        PositionType dest_height,
-        PositionType dest_x,
-        PositionType dest_y) noexcept {
-        // Boundary checks
-        if (dest_x >= dest_width or dest_y >= dest_height) { return; }
+        Slice<const BufferType> src,
+        PositionType src_w,
+        PositionType src_h,
+        PositionType src_x,
+        PositionType src_y,
+        PositionType copy_w,
+        PositionType copy_h,
+        Slice<BufferType> dst,
+        PositionType dst_stride,
+        PositionType dst_x,
+        PositionType dst_y) noexcept {
+        const PositionType src_page_h = page_height;
+        const PositionType src_start_page = src_y / src_page_h;
+        const PositionType src_end_page = (src_y + copy_h + src_page_h - 1) / src_page_h;
 
-        PositionType copy_width = source_width;
-        PositionType copy_height = source_height;
+        for (PositionType p = src_start_page; p < src_end_page; ++p) {
+            const PositionType src_page_y = p * src_page_h;
+            const PositionType src_row_begin = kf::max(src_y, src_page_y);
+            const PositionType src_row_end = kf::min(src_y + copy_h, src_page_y + src_page_h);
+            const PositionType rows = src_row_end - src_row_begin;
+            if (rows <= 0) continue;
 
-        if (dest_x + copy_width > dest_width) {
-            copy_width = dest_width - dest_x;
-        }
-        if (dest_y + copy_height > dest_height) {
-            copy_height = dest_height - dest_y;
-        }
+            const u8 src_bit_offs = static_cast<u8>(src_row_begin - src_page_y);
+            const PositionType dst_global_y = dst_y + (src_row_begin - src_y);
+            const PositionType dst_page = dst_global_y / src_page_h;
+            const u8 dst_bit_offs = static_cast<u8>(dst_global_y % src_page_h);
 
-        if (copy_width <= 0 or copy_height <= 0) { return; }
+            const u8 dst_mask = static_cast<u8>(((1u << rows) - 1u) << dst_bit_offs);
+            const u8 src_mask = static_cast<u8>(((1u << rows) - 1u) << src_bit_offs);
 
-        const usize source_pages = (source_height + page_height - 1) / page_height;
+            for (PositionType x = 0; x < copy_w; ++x) {
+                const PositionType src_col = src_x + x;
+                const PositionType dst_col = dst_x + x;
+                if (dst_col >= dst_stride) continue;
 
-        for (usize src_page = 0; src_page < source_pages; src_page++) {
-            const PositionType src_y_start = src_page * page_height;
-            const auto src_y_end = kf::min(int(src_y_start + page_height), int(copy_height));
+                const usize src_idx = static_cast<usize>(p) * src_w + src_col;
+                if (src_idx >= src.size()) continue;
 
-            if (src_y_start >= src_y_end) { continue; }
+                u8 src_byte = src[src_idx];
+                u8 src_bits = static_cast<u8>((src_byte & src_mask) >> src_bit_offs);
+                src_bits = static_cast<u8>(src_bits << dst_bit_offs);
 
-            const usize rows_in_page = src_y_end - src_y_start;
-            const PositionType dest_y_start = dest_y + src_y_start;
-            const usize dest_page = dest_y_start / page_height;
+                const usize dst_idx = static_cast<usize>(dst_page) * dst_stride + dst_col;
+                if (dst_idx >= dst.size()) continue;
 
-            const u8 src_bit_offset = src_y_start % page_height;
-            const u8 dest_bit_offset = dest_y_start % page_height;
-
-            // Create destination bit mask
-            u8 dest_mask = 0;
-            for (usize i = 0; i < rows_in_page; i++) {
-                dest_mask |= (1u << (dest_bit_offset + i));
-            }
-
-            for (PositionType x = 0; x < copy_width; x++) {
-                const PositionType dest_col = dest_x + x;
-                if (dest_col >= dest_stride) { continue; }
-
-                // Read from source
-                const usize src_index = src_page * source_width + x;
-                if (src_index >= source_buffer.size()) {
-                    continue;
-                }
-                const u8 src_byte = source_buffer[src_index];
-
-                // Extract and shift bits
-                u8 src_bits = 0;
-                for (usize i = 0; i < rows_in_page; i++) {
-                    if (src_byte & (1u << (src_bit_offset + i))) {
-                        src_bits |= (1u << (dest_bit_offset + i));
-                    }
-                }
-
-                // Write to destination
-                const usize dest_index = dest_page * dest_stride + dest_col;
-                if (dest_index < dest_buffer.size()) {
-                    dest_buffer[dest_index] = (dest_buffer[dest_index] & ~dest_mask) | src_bits;
-                }
+                dst[dst_idx] = static_cast<u8>((dst[dst_idx] & ~dst_mask) | src_bits);
             }
         }
     }

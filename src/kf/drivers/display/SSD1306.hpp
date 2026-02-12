@@ -6,19 +6,21 @@
 #include <Wire.h>
 
 #include "kf/aliases.hpp"
-#include "kf/pixel/Monochrome.hpp"
 #include "kf/drivers/display/DisplayDriver.hpp"
-
+#include "kf/image/StaticImage.hpp"
+#include "kf/pixel/MonochromePixel.hpp"
 
 namespace kf {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-struct SSD1306 final : DisplayDriver<SSD1306, pixel::Monochrome, 128, 64> {
+struct SSD1306 final : DisplayDriver<SSD1306, image::StaticImage<pixel::MonochromePixel, 128, 64>> {
+    using PixelImpl = pixel::MonochromePixel;
+
     struct Config {
         u32 i2c_clock_frequency;
         u8 address;
 
-        explicit Config(u32 clock_frequency, u8 address = 0x3C) noexcept:
+        explicit Config(u32 clock_frequency, u8 address = 0x3C) noexcept :
             i2c_clock_frequency{clock_frequency}, address{address} {}
     };
 
@@ -28,7 +30,7 @@ private:
 
 public:
     /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(const Config &config, TwoWire &wire) noexcept:
+    explicit SSD1306(const Config &config, TwoWire &wire) noexcept :
         config{config}, wire{wire} {}
 
     /// @brief Set display contrast level (0..255)
@@ -52,12 +54,6 @@ public:
 
 private:
     // DisplayDriver interface implementation
-
-    /// @brief Get physical display width
-    kf_nodiscard static u8 getWidthImpl() noexcept { return phys_width; }
-
-    /// @brief Get physical display height
-    kf_nodiscard static u8 getHeightImpl() noexcept { return phys_height; }
 
     /// @brief Initialize display hardware via I2C
     kf_nodiscard bool initImpl() const noexcept {
@@ -92,8 +88,7 @@ private:
             SetComPins, 0x12,
 
             // Multiplex (64 lines)
-            SetMultiplex, 0x3F
-        };
+            SetMultiplex, 0x3F};
 
         if (not wire.begin()) { return false; }
 
@@ -117,18 +112,18 @@ private:
             // Set full display window
             ColumnAddr,
             0,
-            max_phys_x,
+            127,
             PageAddr,
             0,
-            PixelFormat::template pages<phys_height> - 1,
+            PixelImpl::template pages<64> - 1,
         };
 
         wire.beginTransmission(config.address);
         (void) wire.write(set_area_commands, sizeof(set_area_commands));
         (void) wire.endTransmission();
 
-        auto p = software_screen_buffer;
-        const auto *end = p + sizeof(software_screen_buffer);
+        auto p = screen_image.buffer().data();
+        const auto *end = screen_image.buffer().end();
 
         while (p < end) {
             wire.beginTransmission(config.address);
@@ -189,7 +184,7 @@ private:
         (void) wire.endTransmission();
     }
 
-    friend Base; // CRTP
+    friend Base;// CRTP
 };
 
 }// namespace kf
