@@ -71,7 +71,7 @@ private:
     }
 
     static void copyImpl(
-        const Slice<BufferType> source_buffer,
+        Slice<const BufferType> source_buffer,
         PositionType source_width,
         PositionType source_height,
         Slice<BufferType> dest_buffer,

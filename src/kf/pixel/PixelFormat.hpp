@@ -64,7 +64,7 @@ template<typename I, typename Tb, typename Tc, u8 bits> struct PixelFormat {
     /// @brief Copy rectangular region from source to destination buffer
     static void copy(
         // source buffer
-        const Slice<BufferType> source_buffer,//(stride = width)
+        Slice<const BufferType> source_buffer,//(stride = width)
         PositionType source_width,
         PositionType source_height,
 
