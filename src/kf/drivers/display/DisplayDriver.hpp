@@ -12,12 +12,13 @@ namespace kf {
 /// @tparam Impl Concrete driver implementation type
 /// @tparam I Image buffer type
 template<typename Impl, typename I> struct DisplayDriver {
-    using Image = I;
-    using ColorType = typename Image::ColorType;
+    using ImageImpl = I;
+    using ColorType = typename I::ColorType;
+    using BufferType = typename I::BufferType;
 
 protected:
     /// @brief Software frame buffer for display operations
-    Image screen_image{};
+    ImageImpl screen_image{};
 
 public:
     /// @brief Display orientation modes
@@ -31,29 +32,25 @@ public:
     };
 
     /// @brief image buffer
-    kf_nodiscard Image &image() noexcept { return screen_image; }
+    kf_nodiscard ImageImpl &image() noexcept { return screen_image; }
 
     /// @brief Initialize the display hardware
-    kf_nodiscard bool init() noexcept { return impl().initImpl(); }
+    kf_nodiscard bool init() noexcept { return static_cast<Impl *>(this)->initImpl(); }
 
     /// @brief Transfer software buffer to display hardware
-    void send() const noexcept { c_impl().sendImpl(); }
+    void send() const noexcept { static_cast<const Impl *>(this)->sendImpl(); }
 
     /// @brief Set display orientation
-    void setOrientation(Orientation orientation) noexcept { impl().setOrientationImpl(orientation); }
+    void setOrientation(Orientation orientation) noexcept { static_cast<Impl *>(this)->setOrientationImpl(orientation); }
 
 protected:
     kf_nodiscard constexpr usize imageBufferSizeBytes() const noexcept {
-        return sizeof(typename Image::BufferType) * screen_image.buffer().size();
+        return sizeof(BufferType) * screen_image.buffer().size();
     }
 
     // CRTP
-private:
-    friend Impl;
-    inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
-    inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
-
 protected:
+    friend Impl;
     using Base = DisplayDriver;
 };
 

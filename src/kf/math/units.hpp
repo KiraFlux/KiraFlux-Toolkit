@@ -11,7 +11,7 @@ namespace kf {
 using Degrees = u16;
 
 /// @brief Pixel position coordinate
-using Pixel = i16;
+using Pixels = i16;
 
 /// @brief Physical distance in millimeters
 using Millimeters = f64;

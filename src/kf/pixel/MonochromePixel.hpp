@@ -4,13 +4,13 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/pixel/PixelFormat.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces)
 namespace pixel {
 
 /// @brief 1-bit monochrome format (1 bit per pixel)
-struct Monochrome final : PixelFormat<Monochrome, u8, bool, 1> {
+struct MonochromePixel final : Pixel<MonochromePixel, u8, bool, 1> {
 
     static constexpr u8 page_height{8};///< Vertical pixels per memory page
 
@@ -69,8 +69,6 @@ private:
             }
         }
     }
-
-    // Monochrome.hpp
 
     static void copyImpl(
         Slice<const BufferType> src,

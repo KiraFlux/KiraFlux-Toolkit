@@ -9,12 +9,13 @@
 #include "kf/aliases.hpp"
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/image/ViewportImage.hpp"
-#include "kf/pixel/Rgb565.hpp"
+#include "kf/pixel/Rgb565Pixel.hpp"
 
 namespace kf {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-struct ST7735 final : DisplayDriver<ST7735, image::ViewportImage<pixel::Rgb565, 128, 160>> {
+struct ST7735 final : DisplayDriver<ST7735, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {
+    using PixelImpl = pixel::Rgb565Pixel;
 
     /// @brief Hardware configuration settings for ST7735
     struct Config {

@@ -11,22 +11,22 @@ namespace kf::image {
 
 /// @brief Image
 /// @tparam Impl Image implementation
-/// @tparam F kf::pixel::PixelFormat type
-template<typename Impl, typename F> struct Image {
-    using PixelFormat = F;
-    using BufferType = typename F::BufferType;
-    using ColorType = typename F::ColorType;
+/// @tparam P Pixel implementation
+template<typename Impl, typename P> struct Image {
+    using PixelImpl = P;
+    using BufferType = typename P::BufferType;
+    using ColorType = typename P::ColorType;
 
     // Abstract properties
 
     /// @brief Get current width in pixels (may differ from physical width due to orientation)
-    kf_nodiscard Pixel width() const noexcept { return c_impl().getWidthImpl(); }
+    kf_nodiscard Pixels width() const noexcept { return c_impl().getWidthImpl(); }
 
     /// @brief Get current height in pixels (may differ from physical width due to orientation)
-    kf_nodiscard Pixel height() const noexcept { return c_impl().getHeightImpl(); }
+    kf_nodiscard Pixels height() const noexcept { return c_impl().getHeightImpl(); }
 
     /// @brief Get current full width in pixels (may differ from physical width due to orientation)
-    kf_nodiscard Pixel stride() const noexcept { return c_impl().getStrideImpl(); }
+    kf_nodiscard Pixels stride() const noexcept { return c_impl().getStrideImpl(); }
 
     /// @brief Get writable frame buffer
     kf_nodiscard Slice<BufferType> buffer() noexcept { return impl().getBufferImpl(); }

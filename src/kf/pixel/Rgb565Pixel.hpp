@@ -4,13 +4,13 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/pixel/PixelFormat.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf {
 namespace pixel {
 
 /// @brief 16-bit BIG ENDIAN RGB565 format (5-6-5 bits per channel)
-struct Rgb565 final : PixelFormat<Rgb565, u16, u16, 16> {
+struct Rgb565Pixel final : Pixel<Rgb565Pixel, u16, u16, 16> {
     // PixelFormat implementation
 private:
     friend Base;

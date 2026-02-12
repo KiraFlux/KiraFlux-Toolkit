@@ -10,7 +10,7 @@
 namespace kf {// NOLINT(*-concat-nested-namespaces) //c++11 capability
 namespace pixel {
 
-template<typename I, typename Tb, typename Tc, u8 bits> struct PixelFormat {
+template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel {
     // types
 
     using PositionType = i16;
@@ -21,14 +21,14 @@ template<typename I, typename Tb, typename Tc, u8 bits> struct PixelFormat {
 
     static constexpr auto bits_per_pixel{bits};
 
-    template<PositionType W, PositionType H> static constexpr usize buffer_size{I::getBufferSizeImpl(W, H)};
+    template<PositionType W, PositionType H> static constexpr usize buffer_size{Impl::getBufferSizeImpl(W, H)};
 
     // conventions
 
     kf_nodiscard static constexpr ColorType fromRgb(
         u8 r,
         u8 g,
-        u8 b) noexcept { return I::fromRgbImpl(r, g, b); }
+        u8 b) noexcept { return Impl::fromRgbImpl(r, g, b); }
 
     // draw
 
@@ -39,7 +39,7 @@ template<typename I, typename Tb, typename Tc, u8 bits> struct PixelFormat {
         PositionType abs_x,
         PositionType abs_y,
         ColorType color) noexcept {
-        I::setPixelImpl(
+        Impl::setPixelImpl(
             buffer, stride,
             abs_x, abs_y,
             color);
@@ -54,7 +54,7 @@ template<typename I, typename Tb, typename Tc, u8 bits> struct PixelFormat {
         PositionType width,
         PositionType height,
         ColorType color) noexcept {
-        I::fillImpl(
+        Impl::fillImpl(
             buffer, stride,
             offset_x, offset_y,
             width, height,
@@ -99,15 +99,15 @@ template<typename I, typename Tb, typename Tc, u8 bits> struct PixelFormat {
             if (copy_h <= 0) return;
         }
 
-        I::copyImpl(src, src_w, src_h, dst, dst_stride, dst_x, dst_y, copy_w, copy_h);
+        Impl::copyImpl(src, src_w, src_h, dst, dst_stride, dst_x, dst_y, copy_w, copy_h);
     }
 
     // CRTP
 
-    friend I;
+    friend Impl;
 
 protected:
-    using Base = PixelFormat;
+    using Base = Pixel;
 };
 
 }// namespace pixel

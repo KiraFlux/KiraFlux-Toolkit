@@ -12,11 +12,11 @@ namespace kf {// NOLINT(*-concat-nested-namespaces)
 namespace image {
 
 /// @brief Dynamic display region with runtime dimensions
-/// @tparam F Pixel format for the image data
-template<typename F> struct DynamicImage final : Image<DynamicImage<F>, F> {
-    using PixelFormat = F;
-    using BufferType = typename F::BufferType;
-    using ColorType = typename F::ColorType;
+/// @tparam P Pixel implementation
+template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
+    using PixelImpl = P;
+    using BufferType = typename P::BufferType;
+    using ColorType = typename P::ColorType;
 
     /// @brief Possible errors when creating FrameView
     enum class Error : u8 {
@@ -28,16 +28,16 @@ template<typename F> struct DynamicImage final : Image<DynamicImage<F>, F> {
 
 private:
     Slice<BufferType> _buffer;///< display buffer memory view
-    Pixel _width, _height;    ///< Region size in pixels
-    Pixel _stride;            ///< Row stride (full display width)
-    Pixel offset_x, offset_y; ///< Absolute offset from buffer origin
+    Pixels _width, _height;   ///< Region size in pixels
+    Pixels _stride;           ///< Row stride (full display width)
+    Pixels offset_x, offset_y;///< Absolute offset from buffer origin
 
 public:
     /// @brief Creates FrameView with validation
     kf_nodiscard static Result<DynamicImage, Error> create(
-        Slice<BufferType> buffer, Pixel stride,
-        Pixel width, Pixel height,
-        Pixel offset_x, Pixel offset_y) noexcept {
+        Slice<BufferType> buffer, Pixels stride,
+        Pixels width, Pixels height,
+        Pixels offset_x, Pixels offset_y) noexcept {
         if (nullptr == buffer.data()) {
             return Error::BufferNotInit;
         }
@@ -56,16 +56,20 @@ public:
     /// @brief Creates FrameView without validation
     /// @warning Caller must ensure parameters are valid
     explicit DynamicImage(
-        Slice<BufferType> buffer, Pixel stride,
-        Pixel width, Pixel height,
-        Pixel offset_x, Pixel offset_y) noexcept :
-        _buffer{buffer}, _stride{stride}, offset_x{offset_x}, offset_y{offset_y}, _width{width}, _height{height} {}
+        Slice<BufferType> buffer, Pixels stride,
+        Pixels width, Pixels height,
+        Pixels offset_x, Pixels offset_y) noexcept :
+        _buffer{buffer}, _stride{stride}, _width{width}, _height{height}, offset_x{offset_x}, offset_y{offset_y} {}
+
+    template<typename I> explicit DynamicImage(
+        I &image) noexcept :
+        _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, offset_x{0}, offset_y{0} {}
 
     /// @brief Creates validated sub-region
     /// @return Sub-view or error if out of bounds
     kf_nodiscard Result<DynamicImage, Error> sub(
-        Pixel sub_width, Pixel sub_height,
-        Pixel sub_offset_x, Pixel sub_offset_y) const noexcept {
+        Pixels sub_width, Pixels sub_height,
+        Pixels sub_offset_x, Pixels sub_offset_y) const noexcept {
         if (sub_offset_x >= _width or sub_offset_y >= _height) {
             return Error::OffsetOutOfBounds;
         }
@@ -76,69 +80,69 @@ public:
         return create(
             _buffer, _stride,
             sub_width, sub_height,
-            static_cast<Pixel>(offset_x + sub_offset_x), static_cast<Pixel>(offset_y + sub_offset_y));
+            static_cast<Pixels>(offset_x + sub_offset_x), static_cast<Pixels>(offset_y + sub_offset_y));
     }
 
     /// @brief Creates sub-region without validation
     /// @warning No bounds checking - caller must ensure parameters are valid
     kf_nodiscard DynamicImage subUnchecked(
-        Pixel sub_width, Pixel sub_height,
-        Pixel sub_offset_x, Pixel sub_offset_y) noexcept {
+        Pixels sub_width, Pixels sub_height,
+        Pixels sub_offset_x, Pixels sub_offset_y) noexcept {
         return DynamicImage{
             _buffer, _stride, sub_width, sub_height,
-            static_cast<Pixel>(offset_x + sub_offset_x),
-            static_cast<Pixel>(offset_y + sub_offset_y)};
+            static_cast<Pixels>(offset_x + sub_offset_x),
+            static_cast<Pixels>(offset_y + sub_offset_y)};
     }
 
     /// @brief Checks if view references valid buffer
     kf_nodiscard bool isValid() const noexcept { return nullptr != _buffer.data(); }
 
     /// @brief Checks if X coordinate is within view bounds
-    kf_nodiscard bool isInsideX(Pixel x_relative) const noexcept { return x_relative >= 0 and x_relative < _width; }
+    kf_nodiscard bool isInsideX(Pixels x_relative) const noexcept { return x_relative >= 0 and x_relative < _width; }
 
     /// @brief Checks if Y coordinate is within view bounds
-    kf_nodiscard bool isInsideY(Pixel y_relative) const noexcept { return y_relative >= 0 and y_relative < _height; }
+    kf_nodiscard bool isInsideY(Pixels y_relative) const noexcept { return y_relative >= 0 and y_relative < _height; }
 
     /// @brief Converts relative X to absolute buffer coordinate
-    kf_nodiscard Pixel toAbsoluteX(Pixel x) const noexcept { return static_cast<Pixel>(offset_x + x); }
+    kf_nodiscard Pixels toAbsoluteX(Pixels x) const noexcept { return static_cast<Pixels>(offset_x + x); }
 
     /// @brief Converts relative Y to absolute buffer coordinate
-    kf_nodiscard Pixel toAbsoluteY(Pixel y) const noexcept { return static_cast<Pixel>(offset_y + y); }
+    kf_nodiscard Pixels toAbsoluteY(Pixels y) const noexcept { return static_cast<Pixels>(offset_y + y); }
 
     /// @brief Sets single pixel color
-    void setPixel(Pixel x_relative, Pixel y_relative, ColorType color) const noexcept {
-        PixelFormat::setPixel(_buffer, _stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
+    void setPixel(Pixels x_relative, Pixels y_relative, ColorType color) const noexcept {
+        PixelImpl::setPixel(_buffer, _stride, toAbsoluteX(x_relative), toAbsoluteY(y_relative), color);
     }
 
     /// @brief Fills entire region with solid color
     void fill(ColorType color) const noexcept {
-        PixelFormat::fill(_buffer, _stride, offset_x, offset_y, _width, _height, color);
+        PixelImpl::fill(_buffer, _stride, offset_x, offset_y, _width, _height, color);
     }
 
     /// @brief Fills rect region with solid color
     void fill(
-        Pixel x0, Pixel y0,
-        Pixel x1, Pixel y1,
+        Pixels x0, Pixels y0,
+        Pixels x1, Pixels y1,
         ColorType color) const noexcept {
-        PixelFormat::fill(
+        PixelImpl::fill(
             _buffer,
             _stride,
-            static_cast<Pixel>(offset_x + x0),
-            static_cast<Pixel>(offset_y + y0),
-            static_cast<Pixel>(x1 - x0 + 1),
-            static_cast<Pixel>(y1 - y0 + 1),
+            static_cast<Pixels>(offset_x + x0),
+            static_cast<Pixels>(offset_y + y0),
+            static_cast<Pixels>(x1 - x0 + 1),
+            static_cast<Pixels>(y1 - y0 + 1),
             color);
     }
 
     // CRTP
 private:
-    friend Image<DynamicImage<F>, F>;
+    friend Image<DynamicImage<P>, P>;
 
-    kf_nodiscard constexpr Pixel getWidthImpl() const noexcept { return _width; }
+    kf_nodiscard constexpr Pixels getWidthImpl() const noexcept { return _width; }
 
-    kf_nodiscard constexpr Pixel getHeightImpl() const noexcept { return _height; }
+    kf_nodiscard constexpr Pixels getHeightImpl() const noexcept { return _height; }
 
-    kf_nodiscard constexpr Pixel getStrideImpl() const noexcept { return _stride; }
+    kf_nodiscard constexpr Pixels getStrideImpl() const noexcept { return _stride; }
 
     kf_nodiscard constexpr Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
 

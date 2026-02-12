@@ -18,15 +18,12 @@ namespace kf::image {
 /// @details Represents a static image with fixed dimensions stored in memory.
 /// The image buffer is embedded directly in the object and cannot be resized.
 /// Useful for storing icons, logos, and other predefined graphics.
-template<typename F, Pixel W, Pixel H> struct StaticImage final : Image<StaticImage<F, W, H>, F> {
-    using PixelFormat = F;
+template<typename F, Pixels W, Pixels H> struct StaticImage final : Image<StaticImage<F, W, H>, F> {
+    using PixelImpl = F;
     using BufferType = typename F::BufferType;
     using ColorType = typename F::ColorType;
 
-    static constexpr auto width_value{W};
-    static constexpr auto height_value{H};
-
-    using BufferStorage = Array<BufferType, PixelFormat::template buffer_size<W, H>>;
+    using BufferStorage = Array<BufferType, F::template buffer_size<W, H>>;
 
 private:
     /// @brief Raw image buffer data
@@ -44,11 +41,11 @@ public:
 private:
     friend Image<StaticImage<F, W, H>, F>;
 
-    kf_nodiscard constexpr Pixel getWidthImpl() const noexcept { return W; }
+    kf_nodiscard constexpr Pixels getWidthImpl() const noexcept { return W; }
 
-    kf_nodiscard constexpr Pixel getHeightImpl() const noexcept { return H; }
+    kf_nodiscard constexpr Pixels getHeightImpl() const noexcept { return H; }
 
-    kf_nodiscard constexpr Pixel getStrideImpl() const noexcept { return getWidthImpl(); }
+    kf_nodiscard constexpr Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
 
     kf_nodiscard constexpr Slice<BufferType> getBufferImpl() noexcept {
         return {_buffer.data(), _buffer.size()};

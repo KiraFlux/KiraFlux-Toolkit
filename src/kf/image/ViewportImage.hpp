@@ -11,17 +11,14 @@
 namespace kf::image {
 
 template<typename F, usize W, usize H> struct ViewportImage final : Image<ViewportImage<F, W, H>, F> {
-    using PixelFormat = F;
+    using PixelImpl = F;
     using BufferType = typename F::BufferType;
     using ColorType = typename F::ColorType;
-
-    static constexpr auto width_value{W};
-    static constexpr auto height_value{H};
 
 private:
     /// @brief Raw image buffer data
     StaticImage<F, W, H> image{};
-    Pixel logical_width{W}, logical_height{H};
+    Pixels logical_width{W}, logical_height{H};
 
 public:
     void setTransposed(bool transposed) {
@@ -33,11 +30,11 @@ public:
 private:
     friend Image<ViewportImage<F, W, H>, F>;
 
-    kf_nodiscard constexpr Pixel getWidthImpl() const noexcept { return logical_width; }
+    kf_nodiscard constexpr Pixels getWidthImpl() const noexcept { return logical_width; }
 
-    kf_nodiscard constexpr Pixel getHeightImpl() const noexcept { return logical_height; }
+    kf_nodiscard constexpr Pixels getHeightImpl() const noexcept { return logical_height; }
 
-    kf_nodiscard constexpr Pixel getStrideImpl() const noexcept { return logical_width; }
+    kf_nodiscard constexpr Pixels getStrideImpl() const noexcept { return logical_width; }
 
     kf_nodiscard constexpr Slice<BufferType> getBufferImpl() noexcept {
         return image.buffer().first(logical_width * logical_height);
