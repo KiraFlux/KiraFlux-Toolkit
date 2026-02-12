@@ -33,9 +33,8 @@ private:
     }
 
     static void fillImpl(Slice<BufferType> buffer, PositionType stride, PositionType offset_x, PositionType offset_y, PositionType width, PositionType height, ColorType color) noexcept {
-        const PositionType total_height = buffer.size() / stride;
-
-        const auto end_y = kf::min(offset_y + height, int(total_height));
+        const auto total_height = int(buffer.size()) / stride;
+        const auto end_y = kf::min(offset_y + height, total_height);
         const auto end_x = kf::min(offset_x + width, int(stride));
 
         for (auto y = offset_y; y < end_y; y += 1) {
@@ -46,47 +45,21 @@ private:
     }
 
     static void copyImpl(
-        Slice<const BufferType> source,
-        PositionType src_width,
-        PositionType src_height,
-        Slice<BufferType> dest,
+        Slice<const BufferType> src,
+        PositionType src_w,
+        PositionType src_h,
+        Slice<BufferType> dst,
         PositionType dst_stride,
-        PositionType dst_width,
-        PositionType dst_height,
         PositionType dst_x,
-        PositionType dst_y) noexcept {
+        PositionType dst_y,
+        PositionType copy_w,
+        PositionType copy_h) noexcept {
+        for (auto y = 0; y < copy_h; y += 1) {
+            const auto src_row = y * src_w;
+            const auto dst_row = (dst_y + y) * dst_stride + dst_x;
 
-        if (src_width <= 0 or src_height <= 0 or
-            dst_stride <= 0 or dst_width <= 0 or dst_height <= 0) {
-            return;
-        }
-
-        if (static_cast<usize>(src_width) * src_height > source.size() or
-            static_cast<usize>(dst_stride) * dst_height > dest.size()) {
-            return;
-        }
-
-        const auto copy_w = kf::min(int(src_width), dst_width - dst_x);
-        const auto copy_h = kf::min(int(src_height), dst_height - dst_y);
-
-        if (copy_w <= 0 or copy_h <= 0) {
-            return;
-        }
-
-        for (PositionType y = 0; y < copy_h; ++y) {
-            const PositionType src_y = y;
-            const PositionType dst_y_abs = dst_y + y;
-
-            if (dst_y_abs >= dst_height) {
-                break;
-            }
-
-            const usize src_row_start = static_cast<usize>(src_y) * src_width;
-            const usize dst_row_start = static_cast<usize>(dst_y_abs) * dst_stride + dst_x;
-
-            // Копируем строку
-            for (PositionType x = 0; x < copy_w; ++x) {
-                dest[dst_row_start + x] = source[src_row_start + x];
+            for (auto x = 0; x < copy_w; x += 1) {
+                dst[dst_row + x] = src[src_row + x];
             }
         }
     }

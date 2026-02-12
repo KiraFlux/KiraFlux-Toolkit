@@ -186,8 +186,8 @@ public:
     template<Pixel W, Pixel H> void image(Pixel x, Pixel y, const image::StaticImage<F, W, H> &image) noexcept {
         PixelFormat::copy(
             image.buffer(), image.width(), image.height(),
-            frame.buffer, frame.stride, frame.width, frame.height,
-            x, y);
+            frame.buffer, frame.stride,
+            frame.toAbsoluteX(x), frame.toAbsoluteY(y));
     }
 
     /// @brief Draw line (x0, y0), (x1, y1) between two points
