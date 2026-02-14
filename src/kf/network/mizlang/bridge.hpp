@@ -8,7 +8,8 @@
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
 #include "kf/memory/Array.hpp"
-#include "kf/network/mizlang/streams.hpp"
+#include "kf/memory/io/InputStream.hpp"
+#include "kf/memory/io/OutputStream.hpp"
 
 namespace kf::mizlang::bridge {
 
