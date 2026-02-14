@@ -86,12 +86,12 @@ public:
     /// @param code Instruction code to identify this instruction
     /// @param call_handler Handler function for argument serialization
     Instruction(OutputStream &output_stream, Code code, Handler call_handler) noexcept :
-        out{output_stream}, handler{kf::move(call_handler)}, code{code} {}
+        out{output_stream}, handler{std::move(call_handler)}, code{code} {}
 
     /// @brief Move constructor
     /// @param other Instruction to move from
     Instruction(Instruction &&other) noexcept :
-        out{other.out}, handler{kf::move(other.handler)}, code{other.code} {}
+        out{other.out}, handler{std::move(other.handler)}, code{other.code} {}
 
     /// @brief Execute instruction with given arguments
     /// @param args Arguments to pass to handler for serialization
@@ -135,7 +135,7 @@ public:
     /// @return Instruction object ready to be called with arguments
     /// @note Automatically assigns next available instruction code
     template<typename... Args> Instruction<Code, Args...> createInstruction(typename Instruction<Code, Args...>::Handler handler) noexcept {
-        return Instruction<Code, Args...>{out, next_code++, kf::move(handler)};
+        return Instruction<Code, Args...>{out, next_code++, std::move(handler)};
     }
 };
 
