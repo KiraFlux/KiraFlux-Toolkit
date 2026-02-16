@@ -23,7 +23,6 @@ template<typename Tlc, typename Trc, usize N> struct MizLangBridge {
     using LocalCodeType = Tlc;
     using RemoteCodeType = Trc;
 
-
     /// @brief Instruction processing errors
     /// @note Used for error handling in instruction-based communication protocol
     enum class Error : u8 {
@@ -35,40 +34,41 @@ template<typename Tlc, typename Trc, usize N> struct MizLangBridge {
         InstructionArgumentWriteFail ///< Failed to write instruction argument (for user instructions)
     };
 
-
     /// @brief Handler type for sending instruction arguments
-    using ReceiveHandler = Function<Result<void, Error>(io::OutputStream &, Args...)>;
+    template<typename... Args> using ReceiveHandler = Function<Result<void, Error>(io::OutputStream &, Args...)>;
 
     using SendHandler = Function<Result<void, Error>(io::InputStream &)>;
 
+    using InstructionTable = Array<SendHandler, N>;
+
 private:
-    Array<SendHandler, N> instructions;///< Table of instruction handlers indexed by code
+    InstructionTable instructions;///< Table of instruction handlers indexed by code
     io::InputStream in;
     io::OutputStream out;
     RemoteCodeType next_code{0};///< Next available instruction code (auto-incremented)
 
 public:
     explicit MizLangBridge(
-        io::InputStream &&input_stream,
-        io::OutputStream &&output_stream,
-        std::initializer_list<ReceiveHandler> instructions) noexcept :
-        in{input_stream}, out{output_stream}, instructions{instructions} {}
+        io::InputStream input_stream,
+        io::OutputStream output_stream,
+        InstructionTable instructions) noexcept :
+        in{input_stream}, out{output_stream}, instructions{std::move(instructions)} {}
 
     /// @brief Send instruction wrapper for serializing and transmitting commands
     /// @tparam Args Types of arguments to send with instruction
     /// @note Encapsulates instruction code and handler for sending arguments
     template<typename... Args> struct Instruction {
     private:
-        io::OutputStream &out;    ///< Output stream for writing data
-        const Handler handler;    ///< Handler function for argument serialization
-        const RemoteCodeType code;///< Instruction code to send
+        io::OutputStream &out;                ///< Output stream for writing data
+        const ReceiveHandler<Args...> handler;///< ReceiveHandler function for argument serialization
+        const RemoteCodeType code;            ///< Instruction code to send
 
     public:
         /// @brief Construct instruction with stream, code and handler
         /// @param output_stream Output stream for writing
         /// @param code Instruction code to identify this instruction
-        /// @param call_handler Handler function for argument serialization
-        Instruction(io::OutputStream &output_stream, RemoteCodeType code, Handler call_handler) noexcept :
+        /// @param call_handler ReceiveHandler function for argument serialization
+        Instruction(io::OutputStream &output_stream, RemoteCodeType code, ReceiveHandler<Args...> call_handler) noexcept :
             out{output_stream}, handler{std::move(call_handler)}, code{code} {}
 
         Instruction(Instruction &&other) noexcept :
@@ -99,9 +99,8 @@ public:
     /// @param handler Function to serialize arguments to output stream
     /// @return Instruction object ready to be called with arguments
     /// @note Automatically assigns next available instruction code
-    template<typename... Args> kf_nodiscard Instruction<RemoteCodeType, Args...> createInstruction(
-        typename Instruction<RemoteCodeType, Args...>::Handler handler) noexcept {
-        return Instruction<RemoteCodeType, Args...>{out, next_code++, std::move(handler)};
+    template<typename... Args> kf_nodiscard Instruction<Args...> createInstruction(ReceiveHandler<Args...> handler) noexcept {
+        return Instruction<Args...>{out, next_code++, std::move(handler)};
     }
 
     /// @brief Poll for incoming instructions and process them
