@@ -15,97 +15,68 @@
 
 namespace kf {
 
-/// @brief MizLang structural packet P2P Protocol
-/// @tparam Tlc Local instruction code type
-/// @tparam Trc Remote instruction code type
-/// @tparam N Local instruction table len
 template<typename Tlc, typename Trc, usize N> struct MizLangBridge {
     using LocalCodeType = Tlc;
     using RemoteCodeType = Trc;
 
-    /// @brief Instruction processing errors
-    /// @note Used for error handling in instruction-based communication protocol
     enum class Error : u8 {
-        UnknownInstruction,          ///< Received instruction code doesn't match any known instruction
-        InstructionCodeReadFail,     ///< Failed to read instruction code from stream
-        InstructionCodeWriteFail,    ///< Failed to write instruction code to stream
-        InstructionSendHandlerIsNull,///< Instruction send handler not set (nullptr)
-        InstructionArgumentReadFail, ///< Failed to read instruction argument (for user instructions)
-        InstructionArgumentWriteFail ///< Failed to write instruction argument (for user instructions)
+        UnknownInstruction,
+        InstructionCodeReadFail,
+        InstructionCodeWriteFail,
+        InstructionSendHandlerNotReady,// добавлено
+        InstructionArgumentReadFail,
+        InstructionArgumentWriteFail
     };
 
-    /// @brief Handler type for sending instruction arguments
-    template<typename... Args> using ReceiveHandler = Function<Result<void, Error>(io::OutputStream &, Args...)>;
-
-    using SendHandler = Function<Result<void, Error>(io::InputStream &)>;
-
-    using InstructionTable = Array<SendHandler, N>;
+    using SendHandler = Function<Result<void, Error>(io::OutputStream &, void *)>;
+    using ReceiveHandler = Function<Result<void, Error>(io::InputStream &)>;
+    using InstructionTable = Array<ReceiveHandler, N>;
 
 private:
-    InstructionTable instructions;///< Table of instruction handlers indexed by code
+    InstructionTable instructions;
     io::InputStream in;
     io::OutputStream out;
-    RemoteCodeType next_code{0};///< Next available instruction code (auto-incremented)
+    RemoteCodeType next_code{0};
 
 public:
     explicit MizLangBridge(
         io::InputStream input_stream,
         io::OutputStream output_stream,
         InstructionTable instructions) noexcept :
-        in{input_stream}, out{output_stream}, instructions{std::move(instructions)} {}
+        in{std::move(input_stream)},
+        out{std::move(output_stream)},
+        instructions{std::move(instructions)} {}
 
-    /// @brief Send instruction wrapper for serializing and transmitting commands
-    /// @tparam Args Types of arguments to send with instruction
-    /// @note Encapsulates instruction code and handler for sending arguments
-    template<typename... Args> struct Instruction {
+    struct Instruction {
     private:
-        io::OutputStream &out;                ///< Output stream for writing data
-        const ReceiveHandler<Args...> handler;///< ReceiveHandler function for argument serialization
-        const RemoteCodeType code;            ///< Instruction code to send
+        io::OutputStream &out;
+        const SendHandler handler;
+        const RemoteCodeType code;
 
     public:
-        /// @brief Construct instruction with stream, code and handler
-        /// @param output_stream Output stream for writing
-        /// @param code Instruction code to identify this instruction
-        /// @param call_handler ReceiveHandler function for argument serialization
-        Instruction(io::OutputStream &output_stream, RemoteCodeType code, ReceiveHandler<Args...> call_handler) noexcept :
+        Instruction(io::OutputStream &output_stream, RemoteCodeType code, SendHandler call_handler) noexcept :
             out{output_stream}, handler{std::move(call_handler)}, code{code} {}
 
         Instruction(Instruction &&other) noexcept :
             out{other.out}, handler{std::move(other.handler)}, code{other.code} {}
 
-        /// @brief Execute instruction with given arguments
-        /// @param args Arguments to pass to handler for serialization
-        /// @return Result indicating success or specific error
-        /// @note Writes instruction code then calls handler for argument serialization
-        kf_nodiscard Result<void, Error> send(Args... args) noexcept {
+        kf_nodiscard Result<void, Error> send(void *args) noexcept {
             if (not handler) {
                 return {Error::InstructionSendHandlerNotReady};
             }
-
             if (not out.write(code)) {
                 return {Error::InstructionCodeWriteFail};
             }
-
-            return handler(out, args...);
+            return handler(out, args);
         }
 
-        /// @brief Deleted default constructor
         Instruction() = delete;
     };
 
-    /// @brief Create new send instruction with auto-assigned code
-    /// @tparam Args Types of arguments for the instruction
-    /// @param handler Function to serialize arguments to output stream
-    /// @return Instruction object ready to be called with arguments
-    /// @note Automatically assigns next available instruction code
-    template<typename... Args> kf_nodiscard Instruction<Args...> createInstruction(ReceiveHandler<Args...> handler) noexcept {
-        return Instruction<Args...>{out, next_code++, std::move(handler)};
+    kf_nodiscard Instruction createInstruction(SendHandler handler) noexcept {
+        return Instruction{out, next_code++, std::move(handler)};
     }
 
-    /// @brief Poll for incoming instructions and process them
-    /// @return Result indicating success or specific error
-    /// @note Checks for available data and dispatches to appropriate handler
     kf_nodiscard Result<void, Error> poll() noexcept {
         if (in.available() < sizeof(LocalCodeType)) { return {}; }
 
@@ -116,7 +87,6 @@ public:
         }
 
         const auto code = code_option.value();
-
         if (code >= instructions.size()) {
             in.clean();
             return {Error::UnknownInstruction};
