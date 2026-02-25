@@ -7,7 +7,6 @@
 
 #include "kf/Function.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/ui/Render.hpp"
@@ -57,7 +56,7 @@ private:
 
         /// @brief Check if we can write more characters in current row
         /// @param row_max_length Maximum columns per row
-        kf_nodiscard bool canWrite(Glyph row_max_length) const noexcept {
+        [[nodiscard]] bool canWrite(Glyph row_max_length) const noexcept {
             return col < row_max_length;
         }
 
@@ -120,7 +119,7 @@ private:
 
     // Render Interface Implementation
 
-    kf_nodiscard usize widgetsAvailableImpl() const noexcept {
+    [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
         // Subtract 1 for title row
         if (config.rows_total > cursor.row + 1) {
             return config.rows_total - cursor.row - 1;

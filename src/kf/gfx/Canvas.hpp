@@ -6,7 +6,6 @@
 #include <cmath>
 
 #include "kf/Result.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
 
 #include "kf/gfx/Font.hpp"
@@ -80,43 +79,43 @@ public:
     // Properties
 
     /// @brief Get canvas width in pixels
-    kf_nodiscard Pixels width() const noexcept { return frame.width(); }
+    [[nodiscard]] Pixels width() const noexcept { return frame.width(); }
 
     /// @brief Get canvas height in pixels
-    kf_nodiscard Pixels height() const noexcept { return frame.height(); }
+    [[nodiscard]] Pixels height() const noexcept { return frame.height(); }
 
     /// @brief Get maximum valid X coordinate (rightmost pixel)
-    kf_nodiscard Pixels maxX() const noexcept { return frame.maxX(); }
+    [[nodiscard]] Pixels maxX() const noexcept { return frame.maxX(); }
 
     /// @brief Get maximum valid Y coordinate (bottommost pixel)
-    kf_nodiscard Pixels maxY() const noexcept { return frame.maxY(); }
+    [[nodiscard]] Pixels maxY() const noexcept { return frame.maxY(); }
 
     /// @brief Get horizontal center coordinate
-    kf_nodiscard Pixels centerX() const noexcept { return static_cast<Pixels>(maxX() / 2); }
+    [[nodiscard]] Pixels centerX() const noexcept { return static_cast<Pixels>(maxX() / 2); }
 
     /// @brief Get vertical center coordinate
-    kf_nodiscard Pixels centerY() const noexcept { return static_cast<Pixels>(maxY() / 2); }
+    [[nodiscard]] Pixels centerY() const noexcept { return static_cast<Pixels>(maxY() / 2); }
 
     /// @brief Get tab width based on current font (4 character widths)
-    kf_nodiscard Pixels tabWidth() const noexcept { return static_cast<Pixels>(current_font->widthTotal() * 4); }
+    [[nodiscard]] Pixels tabWidth() const noexcept { return static_cast<Pixels>(current_font->widthTotal() * 4); }
 
     /// @brief Get current font glyph width
-    kf_nodiscard Pixels glyphWidth() const noexcept { return current_font->widthTotal(); }
+    [[nodiscard]] Pixels glyphWidth() const noexcept { return current_font->widthTotal(); }
 
     /// @brief Get current font glyph height
-    kf_nodiscard Pixels glyphHeight() const noexcept { return current_font->heightTotal(); }
+    [[nodiscard]] Pixels glyphHeight() const noexcept { return current_font->heightTotal(); }
 
     /// @brief Get canvas width in glyphs
-    kf_nodiscard u8 widthInGlyphs() const noexcept { return width() / glyphWidth(); }
+    [[nodiscard]] u8 widthInGlyphs() const noexcept { return width() / glyphWidth(); }
 
     /// @brief Get canvas height in glyphs
-    kf_nodiscard u8 heightInGlyphs() const noexcept { return height() / glyphHeight(); }
+    [[nodiscard]] u8 heightInGlyphs() const noexcept { return height() / glyphHeight(); }
 
     /// Current Foreground color
-    kf_nodiscard ColorType foreground() const noexcept { return foreground_color; }
+    [[nodiscard]] ColorType foreground() const noexcept { return foreground_color; }
 
     /// Current Background color
-    kf_nodiscard ColorType background() const noexcept { return background_color; }
+    [[nodiscard]] ColorType background() const noexcept { return background_color; }
 
     // Control
 

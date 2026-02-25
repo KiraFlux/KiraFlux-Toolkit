@@ -5,7 +5,6 @@
 
 #include <Arduino.h>
 
-#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 
@@ -22,14 +21,14 @@ struct PwmPositionServo {
 
         /// @brief Calculate maximum duty cycle value
         /// @return Maximum duty cycle value (2^resolution - 1)
-        kf_nodiscard constexpr u32 maxDuty() const noexcept {
+        [[nodiscard]] constexpr u32 maxDuty() const noexcept {
             return (1u << ledc_resolution_bits) - 1u;
         }
 
         /// @brief Convert pulse width to duty cycle value
         /// @param pulse_width Pulse width in microseconds
         /// @return Duty cycle value for LEDC hardware
-        kf_nodiscard u16 dutyFromPulseWidth(Milliseconds pulse_width) const noexcept {
+        [[nodiscard]] u16 dutyFromPulseWidth(Milliseconds pulse_width) const noexcept {
             const auto t = u64(pulse_width) * ledc_frequency_hz * maxDuty();
             return u16(t / 1000000u);
         }
@@ -72,7 +71,7 @@ struct PwmPositionServo {
         /// @brief Convert angle to pulse width using linear interpolation
         /// @param angle Target servo angle
         /// @return Required pulse width in microseconds
-        kf_nodiscard Microseconds pulseWidthFromAngle(Degrees angle) const noexcept {
+        [[nodiscard]] Microseconds pulseWidthFromAngle(Degrees angle) const noexcept {
             return map(
                 constrain(angle, min_position.angle, max_position.angle),
                 min_position.angle,
@@ -108,7 +107,7 @@ public:
     /// @brief Initialize servo driver hardware
     /// @return true if PWM channel setup successful
     /// @note Configures ESP32 LEDC hardware for PWM generation
-    kf_nodiscard bool init() const noexcept {
+    [[nodiscard]] bool init() const noexcept {
         const auto freq = ledcSetup(
             driver_settings.ledc_channel,
             pwm_settings.ledc_frequency_hz,

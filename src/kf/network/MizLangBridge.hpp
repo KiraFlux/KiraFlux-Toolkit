@@ -8,7 +8,6 @@
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/io/InputStream.hpp"
 #include "kf/memory/io/OutputStream.hpp"
@@ -64,7 +63,7 @@ public:
         Instruction(Instruction &&other) noexcept :
             out{other.out}, sender{std::move(other.sender)}, code{other.code} {}
 
-        kf_nodiscard Result<void, Error> send(void *args) noexcept {
+        [[nodiscard]] Result<void, Error> send(void *args) noexcept {
             if (not sender) {
                 return {Error::Sender_FunctionNotReady};
             }
@@ -75,11 +74,11 @@ public:
         }
     };
 
-    kf_nodiscard Instruction createInstruction(SendFunctionType sender_function) noexcept {
+    [[nodiscard]] Instruction createInstruction(SendFunctionType sender_function) noexcept {
         return Instruction{out, next_code++, std::move(sender_function)};
     }
 
-    kf_nodiscard Result<void, Error> poll() noexcept {
+    [[nodiscard]] Result<void, Error> poll() noexcept {
         if (in.available() < sizeof(LocalCodeType)) { return {}; }
 
         auto code_option = in.read<LocalCodeType>();

@@ -5,7 +5,6 @@
 
 #include <cstdlib>
 
-#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -33,13 +32,13 @@ public:
 
     /// @brief Check if Option contains a value
     /// @return true if value is present, false otherwise
-    kf_nodiscard bool hasValue() const noexcept { return engaged; }
+    [[nodiscard]] bool hasValue() const noexcept { return engaged; }
 
     /// @brief Get stored value (unsafe)
     /// @return Reference to stored value
     /// @warning Causes abort() if Option is empty
     /// @note Use hasValue() to check before calling
-    kf_nodiscard T &value() noexcept {
+    [[nodiscard]] T &value() noexcept {
         if (engaged) {
             return val;
         } else {
@@ -51,7 +50,7 @@ public:
     /// @param default_value Value to return if Option is empty
     /// @return Stored value if present, default_value otherwise
     /// @note Safe alternative to value() that doesn't terminate
-    kf_nodiscard T valueOr(const T &default_value) const noexcept {
+    [[nodiscard]] T valueOr(const T &default_value) const noexcept {
         return engaged ? val : default_value;
     }
 };

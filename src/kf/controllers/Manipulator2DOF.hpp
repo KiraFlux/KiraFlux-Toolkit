@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/drivers/zms/PwmPositionServo.hpp"
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
@@ -46,7 +45,7 @@ public:
     /// @brief Initialize both servo axes
     /// @return true if both servos initialized successfully
     /// @note Logs error message if initialization fails
-    kf_nodiscard bool init() noexcept {
+    [[nodiscard]] bool init() noexcept {
         if (not arm_axis.init()) {
             kf_Logger_error("arm axis fail");
             return false;

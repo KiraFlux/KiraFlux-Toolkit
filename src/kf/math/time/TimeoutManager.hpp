@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf {
@@ -32,7 +31,7 @@ public:
     /// @brief Check if timeout has expired
     /// @param now Current time in milliseconds
     /// @return true if timeout has expired, false otherwise
-    kf_nodiscard inline bool expired(Milliseconds now) const noexcept { return now >= next_timeout; }
+    [[nodiscard]] inline bool expired(Milliseconds now) const noexcept { return now >= next_timeout; }
 };
 
 }// namespace kf

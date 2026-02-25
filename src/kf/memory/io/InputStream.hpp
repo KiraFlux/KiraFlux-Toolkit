@@ -7,7 +7,6 @@
 
 #include "kf/Option.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 
 namespace kf::io {
 
@@ -33,13 +32,13 @@ public:
 
     /// @brief Get number of bytes available for reading
     /// @return Count of bytes available in stream
-    kf_nodiscard usize available() noexcept {
+    [[nodiscard]] usize available() noexcept {
         return stream.available();
     }
 
     /// @brief Read single byte from stream
     /// @return Optional byte value (empty if no data available)
-    kf_nodiscard Option<u8> readByte() noexcept {
+    [[nodiscard]] Option<u8> readByte() noexcept {
         const auto result = stream.read();
 
         if (result == -1) {
@@ -52,7 +51,7 @@ public:
     /// @brief Read object of type T from stream
     /// @tparam T Type to read (must be trivially copyable)
     /// @return Optional object (empty if insufficient data available)
-    template<typename T> kf_nodiscard Option<T> read() noexcept {
+    template<typename T> [[nodiscard]] Option<T> read() noexcept {
         T value;
 
         const usize bytes_read = stream.readBytes(

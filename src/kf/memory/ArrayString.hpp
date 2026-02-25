@@ -6,7 +6,6 @@
 #include <cstdarg>
 
 #include "kf/algorithm.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/Slice.hpp"
 #include "kf/memory/StringView.hpp"
@@ -55,47 +54,47 @@ public:
     }
 
     /// @brief Get string data pointer
-    kf_nodiscard constexpr char *data() noexcept {
+    [[nodiscard]] constexpr char *data() noexcept {
         return buffer_.data();
     }
 
     /// @brief Get const string data pointer
-    kf_nodiscard constexpr const char *data() const noexcept {
+    [[nodiscard]] constexpr const char *data() const noexcept {
         return buffer_.data();
     }
 
     /// @brief Get string as StringView
-    kf_nodiscard constexpr StringView view() const noexcept {
+    [[nodiscard]] constexpr StringView view() const noexcept {
         return StringView(buffer_.data(), size_);
     }
 
     /// @brief Get string as Slice
-    kf_nodiscard constexpr Slice<const char> slice() const noexcept {
+    [[nodiscard]] constexpr Slice<const char> slice() const noexcept {
         return Slice<const char>{buffer_.data(), size_};
     }
 
     /// @brief Get mutable Slice (use with caution)
-    kf_nodiscard constexpr Slice<char> slice_mut() noexcept {
+    [[nodiscard]] constexpr Slice<char> slice_mut() noexcept {
         return Slice<char>{buffer_.data(), size_};
     }
 
     /// @brief Get current string length
-    kf_nodiscard constexpr usize size() const noexcept {
+    [[nodiscard]] constexpr usize size() const noexcept {
         return size_;
     }
 
     /// @brief Get maximum capacity (excluding null terminator)
-    kf_nodiscard constexpr usize capacity() const noexcept {
+    [[nodiscard]] constexpr usize capacity() const noexcept {
         return N;
     }
 
     /// @brief Check if string is empty
-    kf_nodiscard constexpr bool empty() const noexcept {
+    [[nodiscard]] constexpr bool empty() const noexcept {
         return size_ == 0;
     }
 
     /// @brief Check if string is full (no more characters can be added)
-    kf_nodiscard constexpr bool full() const noexcept {
+    [[nodiscard]] constexpr bool full() const noexcept {
         return size_ == N;
     }
 
@@ -118,7 +117,7 @@ public:
     /// @brief Append character
     /// @param ch Character to append
     /// @return true if character was appended, false if buffer full
-    kf_nodiscard constexpr bool push(char ch) noexcept {
+    [[nodiscard]] constexpr bool push(char ch) noexcept {
         if (size_ >= N) { return false; }
         buffer_[size_] = ch;
         ++size_;
@@ -128,7 +127,7 @@ public:
 
     /// @brief Remove last character
     /// @return true if character was removed, false if string empty
-    kf_nodiscard constexpr bool pop() noexcept {
+    [[nodiscard]] constexpr bool pop() noexcept {
         if (size_ == 0) { return false; }
         --size_;
         buffer_[size_] = '\0';
@@ -138,7 +137,7 @@ public:
     /// @brief Append StringView
     /// @param view String to append
     /// @return Number of characters actually appended
-    kf_nodiscard constexpr usize append(StringView view) noexcept {
+    [[nodiscard]] constexpr usize append(StringView view) noexcept {
         const usize available = N - size_;
         const usize to_append = min(view.size(), available);
 
@@ -154,14 +153,14 @@ public:
     /// @brief Append C-string
     /// @param str C-string to append
     /// @return Number of characters actually appended
-    kf_nodiscard constexpr usize append(const char *str) noexcept {
+    [[nodiscard]] constexpr usize append(const char *str) noexcept {
         return append(StringView(str));
     }
 
     /// @brief Append integer to string
     /// @param value Integer value to append
     /// @return Number of characters appended
-    kf_nodiscard usize append(i32 value) noexcept {
+    [[nodiscard]] usize append(i32 value) noexcept {
         if (value == 0) {
             return push('0') ? 1 : 0;
         }
@@ -196,7 +195,7 @@ public:
     /// @param value Floating-point value
     /// @param decimal_places Number of decimal places to show
     /// @return Number of characters appended
-    kf_nodiscard usize append(f64 value, u8 decimal_places) noexcept {
+    [[nodiscard]] usize append(f64 value, u8 decimal_places) noexcept {
         usize start_size = size_;
 
         // Handle special cases
@@ -237,7 +236,7 @@ public:
     /// @param pos Position to insert at (0 <= pos <= size())
     /// @param view String to insert
     /// @return Number of characters inserted
-    kf_nodiscard constexpr usize insert(usize pos, StringView view) noexcept {
+    [[nodiscard]] constexpr usize insert(usize pos, StringView view) noexcept {
         if (pos > size_) { pos = size_; }
 
         const usize available = N - size_;
@@ -262,7 +261,7 @@ public:
     /// @param pos Starting position
     /// @param count Number of characters to erase
     /// @return Number of characters erased
-    kf_nodiscard constexpr usize erase(usize pos, usize count = 1) noexcept {
+    [[nodiscard]] constexpr usize erase(usize pos, usize count = 1) noexcept {
         if (pos >= size_) { return 0; }
 
         const usize remaining = size_ - pos;
@@ -283,7 +282,7 @@ public:
     /// @param ... Variable arguments matching format specifiers
     /// @return Number of characters written (excluding null terminator)
     /// @note Always null-terminates the result
-    kf_nodiscard usize format(const char *format, ...) noexcept {
+    [[nodiscard]] usize format(const char *format, ...) noexcept {
         if (N == 0) {
             buffer_[0] = '\0';
             return 0;
@@ -349,7 +348,7 @@ public:
     /// @param ch Character to find
     /// @param pos Starting position
     /// @return Option containing position of character if found
-    kf_nodiscard constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
+    [[nodiscard]] constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
         for (usize i = pos; i < size_; ++i) {
             if (buffer_[i] == ch) {
                 return i;
@@ -362,7 +361,7 @@ public:
     /// @param str Substring to find
     /// @param pos Starting position
     /// @return Option containing position of substring if found
-    kf_nodiscard constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
+    [[nodiscard]] constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
         if (str.size() > size_ or pos > size_ - str.size()) {
             return {};
         }
@@ -385,24 +384,24 @@ public:
     /// @brief Check if string starts with prefix
     /// @param prefix Prefix to check
     /// @return true if string starts with prefix
-    kf_nodiscard constexpr bool startsWith(StringView prefix) const noexcept {
+    [[nodiscard]] constexpr bool startsWith(StringView prefix) const noexcept {
         return view().startsWith(prefix);
     }
 
     /// @brief Check if string ends with suffix
     /// @param suffix Suffix to check
     /// @return true if string ends with suffix
-    kf_nodiscard constexpr bool endsWith(StringView suffix) const noexcept {
+    [[nodiscard]] constexpr bool endsWith(StringView suffix) const noexcept {
         return view().endsWith(suffix);
     }
 
     /// @brief Get character at index (no bounds checking)
-    kf_nodiscard constexpr char operator[](usize index) const noexcept {
+    [[nodiscard]] constexpr char operator[](usize index) const noexcept {
         return buffer_[index];
     }
 
     /// @brief Get mutable character at index (no bounds checking)
-    kf_nodiscard constexpr char &operator[](usize index) noexcept {
+    [[nodiscard]] constexpr char &operator[](usize index) noexcept {
         return buffer_[index];
     }
 
@@ -422,22 +421,22 @@ public:
     }
 
     /// @brief Compare with StringView
-    kf_nodiscard constexpr int compare(StringView other) const noexcept {
+    [[nodiscard]] constexpr int compare(StringView other) const noexcept {
         return view().compare(other);
     }
 
     /// @brief Compare with C-string
-    kf_nodiscard constexpr int compare(const char *str) const noexcept {
+    [[nodiscard]] constexpr int compare(const char *str) const noexcept {
         return view().compare(StringView(str));
     }
 
     /// @brief Implicit conversion to StringView
-    kf_nodiscard constexpr operator StringView() const noexcept {
+    [[nodiscard]] constexpr operator StringView() const noexcept {
         return view();
     }
 
     /// @brief Implicit conversion to const char*
-    kf_nodiscard constexpr operator const char *() const noexcept {
+    [[nodiscard]] constexpr operator const char *() const noexcept {
         return data();
     }
 

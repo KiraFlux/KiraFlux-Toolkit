@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -24,7 +23,7 @@ template<typename T> struct ExponentialFilter {
     /// @brief Update filter with new sample
     /// @param value New input value
     /// @return Current filtered value after update
-    kf_nodiscard const T &calc(const T &value) noexcept {
+    [[nodiscard]] const T &calc(const T &value) noexcept {
         filtered += (value - filtered) * k;
         return filtered;
     }

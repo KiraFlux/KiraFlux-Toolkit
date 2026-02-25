@@ -40,7 +40,7 @@ public:
 
     /// @brief Check if all validation conditions passed
     /// @return true if no errors were recorded, false otherwise
-    kf_nodiscard bool passed() const noexcept {
+    [[nodiscard]] bool passed() const noexcept {
         return errors == 0;
     }
 };
@@ -51,7 +51,7 @@ public:
 template<typename Impl> struct Validable {
     /// @brief Perform validation and return result
     /// @return true if object passed all validation checks
-    kf_nodiscard bool isValid() const noexcept {
+    [[nodiscard]] bool isValid() const noexcept {
         Validator validator{};
 
         static_cast<const Impl *>(this)->check(validator);

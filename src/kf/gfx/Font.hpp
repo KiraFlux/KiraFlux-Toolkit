@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 
 namespace kf::gfx {
 
@@ -64,13 +63,13 @@ struct Font final {
     /// @return Total advance width in pixels (glyph_width + 1)
     /// @details Includes 1 pixel of spacing between characters.
     /// Use this for cursor positioning and text layout calculations.
-    kf_nodiscard inline u8 widthTotal() const noexcept { return glyph_width + 1; }
+    [[nodiscard]] inline u8 widthTotal() const noexcept { return glyph_width + 1; }
 
     /// @brief Get total height including inter-line spacing
     /// @return Total line height in pixels (glyph_height + 1)
     /// @details Includes 1 pixel of spacing between lines.
     /// Use this for multi-line text layout calculations.
-    kf_nodiscard inline u8 heightTotal() const noexcept { return glyph_height + 1; }
+    [[nodiscard]] inline u8 heightTotal() const noexcept { return glyph_height + 1; }
 
     /// @brief Get pointer to glyph data for a character
     /// @param c Character code (ASCII)
@@ -81,7 +80,7 @@ struct Font final {
     /// bitmap data in the font data array. The glyph data consists of
     /// `glyph_width` consecutive bytes, each representing a vertical column.
     /// @note ASCII code 127 (DEL) is excluded from the font
-    kf_nodiscard const u8 *getGlyph(char c) const noexcept {
+    [[nodiscard]] const u8 *getGlyph(char c) const noexcept {
         if (nullptr == data or c < start_char or c >= end_char) {
             return nullptr;
         }

@@ -6,7 +6,6 @@
 #include <Arduino.h>
 
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf {
@@ -35,11 +34,11 @@ struct Button {
             Milliseconds debounce = 30) noexcept :
             pin{static_cast<u8>(pin)}, mode{mode}, pull_type{pull_type}, debounce{debounce} {}
 
-        kf_nodiscard bool normalize(bool state) const noexcept {
+        [[nodiscard]] bool normalize(bool state) const noexcept {
             return mode == Mode::PullDown == state;
         }
 
-        kf_nodiscard u8 matchMode() const noexcept {
+        [[nodiscard]] u8 matchMode() const noexcept {
             if (pull_type == PullType::External) {
                 return INPUT;
             }
@@ -84,7 +83,7 @@ public:
 
     /// @brief Check if button was clicked (consumes the click)
     /// @return true if button was pressed since last call
-    kf_nodiscard bool clicked() noexcept {
+    [[nodiscard]] bool clicked() noexcept {
         if (click_ready) {
             click_ready = false;
             return true;
@@ -94,7 +93,7 @@ public:
 
     /// @brief Check current button state
     /// @return true if button is currently pressed (after debounce)
-    kf_nodiscard bool pressed() const noexcept {
+    [[nodiscard]] bool pressed() const noexcept {
         return last_stable;
     }
 };

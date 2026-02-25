@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf {
@@ -31,7 +30,7 @@ public:
     /// @param dx Rate of change (derivative) of the value
     /// @param dt Time step in seconds since last update
     /// @return Filtered value combining prediction and measurement
-    kf_nodiscard const T &calc(T x, T dx, Seconds dt) noexcept {
+    [[nodiscard]] const T &calc(T x, T dx, Seconds dt) noexcept {
         if (first_step) {
             first_step = false;
             filtered = x;

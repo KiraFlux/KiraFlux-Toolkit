@@ -7,7 +7,6 @@
 
 #include "kf/Option.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -34,28 +33,28 @@ template<typename T> struct vec3 final {
     /// @brief Vector addition
     /// @param other Vector to add
     /// @return Sum vector
-    kf_nodiscard vec3 operator+(const vec3 &other) const noexcept {
+    [[nodiscard]] vec3 operator+(const vec3 &other) const noexcept {
         return {x + other.x, y + other.y, z + other.z};
     }
 
     /// @brief Vector subtraction
     /// @param other Vector to subtract
     /// @return Difference vector
-    kf_nodiscard vec3 operator-(const vec3 &other) const noexcept {
+    [[nodiscard]] vec3 operator-(const vec3 &other) const noexcept {
         return {x - other.x, y - other.y, z - other.z};
     }
 
     /// @brief Scalar multiplication
     /// @param scalar Multiplication factor
     /// @return Scaled vector
-    kf_nodiscard vec3 operator*(T scalar) const noexcept {
+    [[nodiscard]] vec3 operator*(T scalar) const noexcept {
         return {x * scalar, y * scalar, z * scalar};
     }
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    kf_nodiscard Option<vec3> divChecked(T scalar) const noexcept {
+    [[nodiscard]] Option<vec3> divChecked(T scalar) const noexcept {
         if (scalar == 0) {
             return {};
         }
@@ -67,7 +66,7 @@ template<typename T> struct vec3 final {
     /// @param scalar Division factor
     /// @return Divided vector
     /// @warning No zero-check (use divChecked for safe division)
-    kf_nodiscard vec3 operator/(T scalar) const noexcept {
+    [[nodiscard]] vec3 operator/(T scalar) const noexcept {
         return vec3{x / scalar, y / scalar, z / scalar};
     }
 
@@ -93,13 +92,13 @@ template<typename T> struct vec3 final {
 
     /// @brief Calculate vector length (magnitude)
     /// @return Euclidean length
-    kf_nodiscard T length() const noexcept {
+    [[nodiscard]] T length() const noexcept {
         return std::sqrt(x * x + y * y + z * z);
     }
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    kf_nodiscard Option<vec3> normalized() const noexcept {
+    [[nodiscard]] Option<vec3> normalized() const noexcept {
         const T len = length();
 
         if (len == 0) {
@@ -112,14 +111,14 @@ template<typename T> struct vec3 final {
     /// @brief Calculate dot product with another vector
     /// @param other Second vector
     /// @return Dot product value
-    kf_nodiscard T dot(const vec3 &other) const noexcept {
+    [[nodiscard]] T dot(const vec3 &other) const noexcept {
         return x * other.x + y * other.y + z * other.z;
     }
 
     /// @brief Calculate cross product with another vector
     /// @param other Second vector
     /// @return Cross product vector (perpendicular to both inputs)
-    kf_nodiscard vec3 cross(const vec3 &other) const noexcept {
+    [[nodiscard]] vec3 cross(const vec3 &other) const noexcept {
         return {
             y * other.z - z * other.y,
             z * other.x - x * other.z,
@@ -128,7 +127,7 @@ template<typename T> struct vec3 final {
 
     /// @brief Check if vector is zero (all components zero)
     /// @return true if all components are zero
-    kf_nodiscard inline bool isZero() const noexcept {
+    [[nodiscard]] inline bool isZero() const noexcept {
         return x == 0 and y == 0 and z == 0;
     }
 };

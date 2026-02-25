@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/memory/Slice.hpp"
 
 namespace kf {
@@ -32,10 +31,10 @@ public:
     };
 
     /// @brief image buffer
-    kf_nodiscard ImageImpl &image() noexcept { return screen_image; }
+    [[nodiscard]] ImageImpl &image() noexcept { return screen_image; }
 
     /// @brief Initialize the display hardware
-    kf_nodiscard bool init() noexcept { return static_cast<Impl *>(this)->initImpl(); }
+    [[nodiscard]] bool init() noexcept { return static_cast<Impl *>(this)->initImpl(); }
 
     /// @brief Transfer software buffer to display hardware
     void send() const noexcept { static_cast<const Impl *>(this)->sendImpl(); }
@@ -44,7 +43,7 @@ public:
     void setOrientation(Orientation orientation) noexcept { static_cast<Impl *>(this)->setOrientationImpl(orientation); }
 
 protected:
-    kf_nodiscard constexpr usize imageBufferSizeBytes() const noexcept {
+    [[nodiscard]] constexpr usize imageBufferSizeBytes() const noexcept {
         return sizeof(BufferType) * screen_image.buffer().size();
     }
 

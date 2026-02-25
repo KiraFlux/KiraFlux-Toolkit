@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/Slice.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) //c++11 capability
@@ -25,7 +24,7 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel {
 
     // conventions
 
-    kf_nodiscard static constexpr ColorType fromRgb(
+    [[nodiscard]] static constexpr ColorType fromRgb(
         u8 r,
         u8 g,
         u8 b) noexcept { return Impl::fromRgbImpl(r, g, b); }

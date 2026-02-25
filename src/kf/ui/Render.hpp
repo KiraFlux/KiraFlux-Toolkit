@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/StringView.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
@@ -37,7 +36,7 @@ template<typename Impl> struct Render {
 
     /// @brief Get remaining widget rendering capacity
     /// @return Number of widgets that can still be rendered in current frame
-    kf_nodiscard usize widgetsAvailable() noexcept { return impl().widgetsAvailableImpl(); }
+    [[nodiscard]] usize widgetsAvailable() noexcept { return impl().widgetsAvailableImpl(); }
 
     // Value rendering
 

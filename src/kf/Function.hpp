@@ -8,7 +8,6 @@
 #include <type_traits>
 #include <utility>
 
-#include "kf/attributes.hpp"
 
 namespace kf {
 

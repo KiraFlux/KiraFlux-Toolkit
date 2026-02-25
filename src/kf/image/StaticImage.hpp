@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
 #include "kf/memory/Array.hpp"
@@ -41,17 +40,17 @@ public:
 private:
     friend Image<StaticImage<F, W, H>, F>;
 
-    kf_nodiscard constexpr Pixels getWidthImpl() const noexcept { return W; }
+    [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return W; }
 
-    kf_nodiscard constexpr Pixels getHeightImpl() const noexcept { return H; }
+    [[nodiscard]] constexpr Pixels getHeightImpl() const noexcept { return H; }
 
-    kf_nodiscard constexpr Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
+    [[nodiscard]] constexpr Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
 
-    kf_nodiscard constexpr Slice<BufferType> getBufferImpl() noexcept {
+    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
         return {_buffer.data(), _buffer.size()};
     }
 
-    kf_nodiscard constexpr Slice<const BufferType> getBufferImpl() const noexcept {
+    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept {
         return {_buffer.data(), _buffer.size()};
     }
 };

@@ -5,7 +5,6 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/core/bit_traits.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
@@ -53,12 +52,12 @@ public:
                 (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))} {}
 
     /// @brief Get event type
-    kf_nodiscard constexpr Type type() const noexcept {
+    [[nodiscard]] constexpr Type type() const noexcept {
         return static_cast<Type>(storage & type_mask);
     }
 
     /// @brief Get event value with sign extension
-    kf_nodiscard Value value() const noexcept {
+    [[nodiscard]] Value value() const noexcept {
         const auto result = static_cast<Value>(storage & value_mask);
         return (result & sign_bit_mask) ? static_cast<Value>(result | ~value_mask) : result;
     }
@@ -66,17 +65,17 @@ public:
     // Predefined event instances
 
     /// @brief Create update event (forces redraw)
-    kf_nodiscard static constexpr Event update() noexcept { return Event{Type::Update}; }
+    [[nodiscard]] static constexpr Event update() noexcept { return Event{Type::Update}; }
 
     /// @brief Create pageCursorMove event with offset
     /// @param offset Cursor movement offset
-    kf_nodiscard static constexpr Event pageCursorMove(Value offset) noexcept { return Event{Type::PageCursorMove, offset}; }
+    [[nodiscard]] static constexpr Event pageCursorMove(Value offset) noexcept { return Event{Type::PageCursorMove, offset}; }
 
     /// @brief Create widgetClick event
-    kf_nodiscard static constexpr Event widgetClick() noexcept { return Event{Type::WidgetClick}; }
+    [[nodiscard]] static constexpr Event widgetClick() noexcept { return Event{Type::WidgetClick}; }
 
     /// @brief Create widgetValue event with delta
-    kf_nodiscard static constexpr Event widgetValue(Value value) noexcept { return Event{Type::WidgetValueChange, value}; }
+    [[nodiscard]] static constexpr Event widgetValue(Value value) noexcept { return Event{Type::WidgetValueChange, value}; }
 };
 
 }// namespace ui

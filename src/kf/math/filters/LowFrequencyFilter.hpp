@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 
 namespace kf {
 
@@ -29,7 +28,7 @@ public:
     /// @brief Update filter with new sample
     /// @param x New input value
     /// @return Current filtered value
-    kf_nodiscard const T &calc(const T &x) noexcept {
+    [[nodiscard]] const T &calc(const T &x) noexcept {
         if (first_step) {
             first_step = false;
             filtered = x;

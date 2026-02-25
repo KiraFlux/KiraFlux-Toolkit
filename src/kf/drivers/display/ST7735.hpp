@@ -60,7 +60,7 @@ public:
 
     /// @brief Initialize display hardware via SPI
     /// @return Always returns true (hardware errors not checked)
-    kf_nodiscard bool initImpl() noexcept {
+    [[nodiscard]] bool initImpl() noexcept {
         pinMode(settings.pin_spi_slave_select, OUTPUT);
         pinMode(settings.pin_data_command, OUTPUT);
         pinMode(settings.pin_reset, OUTPUT);

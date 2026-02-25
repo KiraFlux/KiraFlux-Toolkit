@@ -56,7 +56,7 @@ private:
     // DisplayDriver interface implementation
 
     /// @brief Initialize display hardware via I2C
-    kf_nodiscard bool initImpl() const noexcept {
+    [[nodiscard]] bool initImpl() const noexcept {
         static constexpr u8 init_commands[] = {
             CommandMode,
 
