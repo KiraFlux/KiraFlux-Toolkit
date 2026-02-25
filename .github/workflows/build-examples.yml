@@ -1,0 +1,23 @@
+name: Build Examples
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PlatformIO
+        run: pip install platformio
+      - name: Build all examples
+        run: |
+          for example in examples/*; do
+            if [ -d "$example" ]; then
+              echo "Building $example"
+              pio run -d "$example"
+            fi
+          done
