@@ -25,7 +25,7 @@ struct Sharp {
 
         /// @brief Calculate maximum ADC value based on resolution
         /// @return Maximum possible ADC value (2^resolution - 1)
-        kf_nodiscard constexpr AnalogValue maxValue() const noexcept {
+        [[nodiscard]] constexpr AnalogValue maxValue() const noexcept {
             return static_cast<AnalogValue>((1u << resolution) - 1u);
         }
 
@@ -49,7 +49,7 @@ public:
     /// @brief Initialize sensor hardware
     /// @return Always returns true (initialization cannot fail)
     /// @note Sets pin mode and configures ADC resolution
-    kf_nodiscard bool init() noexcept {
+    [[nodiscard]] bool init() noexcept {
         max_value = settings.maxValue();
 
         pinMode(settings.pin, INPUT);
@@ -60,14 +60,14 @@ public:
 
     /// @brief Read raw ADC value from sensor
     /// @return Raw ADC reading (0 to maxValue)
-    kf_nodiscard inline AnalogValue readRaw() const noexcept {
+    [[nodiscard]] inline AnalogValue readRaw() const noexcept {
         return analogRead(settings.pin);
     }
 
     /// @brief Read distance in millimeters
     /// @return Distance in millimeters (inverse of voltage)
     /// @note Takes multiple samples for noise reduction
-    kf_nodiscard Millimeters read() const noexcept {
+    [[nodiscard]] Millimeters read() const noexcept {
         // 65535 / analogRead(a)
         long sum = 0;
 

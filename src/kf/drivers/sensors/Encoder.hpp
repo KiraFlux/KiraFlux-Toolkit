@@ -27,12 +27,12 @@ struct Encoder {
         f32 ticks_in_one_mm;///< Ticks per millimeter (must be positive)
 
         /// @brief Convert ticks to millimeters
-        kf_nodiscard constexpr Millimeters toMillimeters(Ticks ticks) const noexcept {
+        [[nodiscard]] constexpr Millimeters toMillimeters(Ticks ticks) const noexcept {
             return Millimeters(ticks) / ticks_in_one_mm;
         }
 
         /// @brief Convert millimeters to ticks
-        kf_nodiscard constexpr Ticks toTicks(Millimeters mm) const noexcept {
+        [[nodiscard]] constexpr Ticks toTicks(Millimeters mm) const noexcept {
             return Ticks(mm * ticks_in_one_mm);
         }
 
@@ -90,7 +90,7 @@ struct Encoder {
 
     /// @brief Get current position in ticks
     /// @return Encoder position in ticks
-    kf_nodiscard inline Ticks getPositionTicks() const noexcept {
+    [[nodiscard]] inline Ticks getPositionTicks() const noexcept {
         return position;
     }
 
@@ -102,7 +102,7 @@ struct Encoder {
 
     /// @brief Get current position in millimeters
     /// @return Encoder position in millimeters
-    kf_nodiscard inline Millimeters getPositionMillimeters() const noexcept {
+    [[nodiscard]] inline Millimeters getPositionMillimeters() const noexcept {
         return conversion.toMillimeters(position);
     }
 

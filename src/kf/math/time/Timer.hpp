@@ -32,7 +32,7 @@ public:
     /// @param now Current time in milliseconds
     /// @return true if period has elapsed, false otherwise
     /// @note Resets internal timestamp when interval elapses
-    kf_nodiscard bool ready(Milliseconds now) noexcept {
+    [[nodiscard]] bool ready(Milliseconds now) noexcept {
         const auto delta = now - last;
 
         if (delta < period) {

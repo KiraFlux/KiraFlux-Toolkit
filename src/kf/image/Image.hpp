@@ -20,27 +20,27 @@ template<typename Impl, typename P> struct Image {
     // Abstract properties
 
     /// @brief Get current width in pixels (may differ from physical width due to orientation)
-    kf_nodiscard Pixels width() const noexcept { return c_impl().getWidthImpl(); }
+    [[nodiscard]] Pixels width() const noexcept { return c_impl().getWidthImpl(); }
 
     /// @brief Get current height in pixels (may differ from physical width due to orientation)
-    kf_nodiscard Pixels height() const noexcept { return c_impl().getHeightImpl(); }
+    [[nodiscard]] Pixels height() const noexcept { return c_impl().getHeightImpl(); }
 
     /// @brief Get current full width in pixels (may differ from physical width due to orientation)
-    kf_nodiscard Pixels stride() const noexcept { return c_impl().getStrideImpl(); }
+    [[nodiscard]] Pixels stride() const noexcept { return c_impl().getStrideImpl(); }
 
     /// @brief Get writable frame buffer
-    kf_nodiscard Slice<BufferType> buffer() noexcept { return impl().getBufferImpl(); }
+    [[nodiscard]] Slice<BufferType> buffer() noexcept { return impl().getBufferImpl(); }
 
     /// @brief Get readonly frame buffer
-    kf_nodiscard Slice<const BufferType> buffer() const noexcept { return c_impl().getBufferImpl(); }
+    [[nodiscard]] Slice<const BufferType> buffer() const noexcept { return c_impl().getBufferImpl(); }
 
     // properties
 
     /// @brief Get maximum valid X coordinate
-    kf_nodiscard u8 maxX() const noexcept { return width() - 1; }
+    [[nodiscard]] u8 maxX() const noexcept { return width() - 1; }
 
     /// @brief Get maximum valid Y coordinate
-    kf_nodiscard u8 maxY() const noexcept { return height() - 1; }
+    [[nodiscard]] u8 maxY() const noexcept { return height() - 1; }
 
     // CRTP
     friend Impl;

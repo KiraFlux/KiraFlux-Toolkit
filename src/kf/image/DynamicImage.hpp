@@ -34,7 +34,7 @@ private:
 
 public:
     /// @brief Creates FrameView with validation
-    kf_nodiscard static Result<DynamicImage, Error> create(
+    [[nodiscard]] static Result<DynamicImage, Error> create(
         Slice<BufferType> buffer, Pixels stride,
         Pixels width, Pixels height,
         Pixels offset_x, Pixels offset_y) noexcept {
@@ -67,7 +67,7 @@ public:
 
     /// @brief Creates validated sub-region
     /// @return Sub-view or error if out of bounds
-    kf_nodiscard Result<DynamicImage, Error> sub(
+    [[nodiscard]] Result<DynamicImage, Error> sub(
         Pixels sub_width, Pixels sub_height,
         Pixels sub_offset_x, Pixels sub_offset_y) const noexcept {
         if (sub_offset_x >= _width or sub_offset_y >= _height) {
@@ -85,7 +85,7 @@ public:
 
     /// @brief Creates sub-region without validation
     /// @warning No bounds checking - caller must ensure parameters are valid
-    kf_nodiscard DynamicImage subUnchecked(
+    [[nodiscard]] DynamicImage subUnchecked(
         Pixels sub_width, Pixels sub_height,
         Pixels sub_offset_x, Pixels sub_offset_y) noexcept {
         return DynamicImage{
@@ -95,19 +95,19 @@ public:
     }
 
     /// @brief Checks if view references valid buffer
-    kf_nodiscard bool isValid() const noexcept { return nullptr != _buffer.data(); }
+    [[nodiscard]] bool isValid() const noexcept { return nullptr != _buffer.data(); }
 
     /// @brief Checks if X coordinate is within view bounds
-    kf_nodiscard bool isInsideX(Pixels x_relative) const noexcept { return x_relative >= 0 and x_relative < _width; }
+    [[nodiscard]] bool isInsideX(Pixels x_relative) const noexcept { return x_relative >= 0 and x_relative < _width; }
 
     /// @brief Checks if Y coordinate is within view bounds
-    kf_nodiscard bool isInsideY(Pixels y_relative) const noexcept { return y_relative >= 0 and y_relative < _height; }
+    [[nodiscard]] bool isInsideY(Pixels y_relative) const noexcept { return y_relative >= 0 and y_relative < _height; }
 
     /// @brief Converts relative X to absolute buffer coordinate
-    kf_nodiscard Pixels toAbsoluteX(Pixels x) const noexcept { return static_cast<Pixels>(offset_x + x); }
+    [[nodiscard]] Pixels toAbsoluteX(Pixels x) const noexcept { return static_cast<Pixels>(offset_x + x); }
 
     /// @brief Converts relative Y to absolute buffer coordinate
-    kf_nodiscard Pixels toAbsoluteY(Pixels y) const noexcept { return static_cast<Pixels>(offset_y + y); }
+    [[nodiscard]] Pixels toAbsoluteY(Pixels y) const noexcept { return static_cast<Pixels>(offset_y + y); }
 
     /// @brief Sets single pixel color
     void setPixel(Pixels x_relative, Pixels y_relative, ColorType color) const noexcept {
@@ -138,15 +138,15 @@ public:
 private:
     friend Image<DynamicImage<P>, P>;
 
-    kf_nodiscard constexpr Pixels getWidthImpl() const noexcept { return _width; }
+    [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return _width; }
 
-    kf_nodiscard constexpr Pixels getHeightImpl() const noexcept { return _height; }
+    [[nodiscard]] constexpr Pixels getHeightImpl() const noexcept { return _height; }
 
-    kf_nodiscard constexpr Pixels getStrideImpl() const noexcept { return _stride; }
+    [[nodiscard]] constexpr Pixels getStrideImpl() const noexcept { return _stride; }
 
-    kf_nodiscard constexpr Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
+    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
 
-    kf_nodiscard constexpr Slice<const BufferType> getBufferImpl() const noexcept { return _buffer; }
+    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept { return _buffer; }
 };
 
 }// namespace image

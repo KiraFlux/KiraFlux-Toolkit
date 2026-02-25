@@ -40,7 +40,7 @@ struct Joystick final {
     /// @brief Read current joystick position with normalization
     /// @return Normalized X, Y coordinates and magnitude
     /// @note Output is normalized to unit circle (clamped at magnitude 1.0)
-    kf_nodiscard Data read() noexcept {
+    [[nodiscard]] Data read() noexcept {
         const auto x = axis_x.read();
         const auto y = axis_y.read();
         const auto h = std::hypot(x, y);

@@ -28,7 +28,7 @@ public:
     explicit Tuner(T &config, u16 samples) noexcept :
         config{config}, samples_total{samples} {}
 
-    kf_nodiscard bool running() const noexcept { return state != State::Idle; }
+    [[nodiscard]] bool running() const noexcept { return state != State::Idle; }
 
     void start() noexcept {
         samples_processed = 0;

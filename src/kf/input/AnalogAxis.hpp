@@ -38,11 +38,11 @@ struct AnalogAxis final {
         Config(gpio_num_t pin, Mode mode) noexcept :
             pin{static_cast<u8>(pin)}, mode{mode} {}
 
-        kf_nodiscard constexpr static AdcSignedValue calcPositiveRange(AdcSignedValue center) noexcept {
+        [[nodiscard]] constexpr static AdcSignedValue calcPositiveRange(AdcSignedValue center) noexcept {
             return static_cast<AdcSignedValue>(max_analog_value - center);
         }
 
-        kf_nodiscard constexpr static AdcSignedValue calcNegativeRange(AdcSignedValue center) noexcept {
+        [[nodiscard]] constexpr static AdcSignedValue calcNegativeRange(AdcSignedValue center) noexcept {
             return center;
         }
     };
@@ -93,14 +93,14 @@ public:
         pinMode(config.pin, INPUT);
     }
 
-    kf_nodiscard inline AdcSignedValue readRaw() const noexcept {
+    [[nodiscard]] inline AdcSignedValue readRaw() const noexcept {
         return static_cast<AdcSignedValue>(analogRead(config.pin));
     }
 
     /// @brief Read normalized axis position
     /// @return Filtered value normalized to [-1.0, 1.0] range
     /// @note Applies dead zone, filtering, and optional inversion
-    kf_nodiscard f32 read() noexcept {
+    [[nodiscard]] f32 read() noexcept {
         if (config.mode == Config::Mode::Inverted) {
             return -pureRead();
         } else {
@@ -110,7 +110,7 @@ public:
 
 private:
     /// @brief Internal normalized reading without inversion
-    kf_nodiscard f32 pureRead() noexcept {
+    [[nodiscard]] f32 pureRead() noexcept {
         const auto deviation = readRaw() - config.range_negative;
 
         if (kf::abs(deviation) < config.dead_zone) {

@@ -30,17 +30,17 @@ public:
 private:
     friend Image<ViewportImage<F, W, H>, F>;
 
-    kf_nodiscard constexpr Pixels getWidthImpl() const noexcept { return logical_width; }
+    [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return logical_width; }
 
-    kf_nodiscard constexpr Pixels getHeightImpl() const noexcept { return logical_height; }
+    [[nodiscard]] constexpr Pixels getHeightImpl() const noexcept { return logical_height; }
 
-    kf_nodiscard constexpr Pixels getStrideImpl() const noexcept { return logical_width; }
+    [[nodiscard]] constexpr Pixels getStrideImpl() const noexcept { return logical_width; }
 
-    kf_nodiscard constexpr Slice<BufferType> getBufferImpl() noexcept {
+    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
         return image.buffer().first(logical_width * logical_height);
     }
 
-    kf_nodiscard constexpr Slice<const BufferType> getBufferImpl() const noexcept {
+    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept {
         return image.buffer().first(logical_width * logical_height);
     }
 };

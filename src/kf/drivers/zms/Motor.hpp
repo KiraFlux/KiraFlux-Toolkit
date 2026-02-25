@@ -56,7 +56,7 @@ struct Motor {
 
         /// @brief Calculate maximum PWM value based on resolution
         /// @return Maximum PWM value (2^resolution - 1)
-        kf_nodiscard constexpr SignedPwm maxPwm() const noexcept {
+        [[nodiscard]] constexpr SignedPwm maxPwm() const noexcept {
             return static_cast<SignedPwm>((1u << ledc_resolution_bits) - 1u);
         }
 
@@ -83,7 +83,7 @@ public:
     /// @brief Initialize motor driver hardware
     /// @return true if initialization successful
     /// @note Configures GPIO pins and PWM channels based on driver type
-    kf_nodiscard bool init() noexcept {
+    [[nodiscard]] bool init() noexcept {
         max_pwm = pwm_settings.maxPwm();
 
         pinMode(driver_settings.pin_a, OUTPUT);
@@ -163,7 +163,7 @@ private:
     /// @brief Map signed PWM to direction signal
     /// @param pwm Signed PWM value
     /// @return true for positive direction, false for negative
-    kf_nodiscard inline bool matchDirection(SignedPwm pwm) const noexcept {
+    [[nodiscard]] inline bool matchDirection(SignedPwm pwm) const noexcept {
         const bool positive = pwm > 0;
         return driver_settings.direction == Direction::CW == positive;
     }
@@ -171,7 +171,7 @@ private:
     /// @brief Convert normalized value to signed PWM
     /// @param value Normalized speed (-1.0 to 1.0)
     /// @return Signed PWM value with dead zone applied
-    kf_nodiscard SignedPwm fromNormalized(float value) const noexcept {
+    [[nodiscard]] SignedPwm fromNormalized(float value) const noexcept {
         constexpr auto normalized_dead_zone = 1e-2f;
 
         if (std::isnan(value)) { return 0; }

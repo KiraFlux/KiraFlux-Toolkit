@@ -37,7 +37,7 @@ template<typename Impl> struct Render {
 
     /// @brief Get remaining widget rendering capacity
     /// @return Number of widgets that can still be rendered in current frame
-    kf_nodiscard usize widgetsAvailable() noexcept { return impl().widgetsAvailableImpl(); }
+    [[nodiscard]] usize widgetsAvailable() noexcept { return impl().widgetsAvailableImpl(); }
 
     // Value rendering
 

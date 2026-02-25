@@ -75,20 +75,20 @@ public:
     }
 
     /// @brief Get current logical direction based on threshold
-    kf_nodiscard Direction direction() const noexcept { return current_direction; }
+    [[nodiscard]] Direction direction() const noexcept { return current_direction; }
 
     /// @brief Check if currently in autorepeat mode
-    kf_nodiscard bool repeating() const noexcept { return in_repeat_mode; }
+    [[nodiscard]] bool repeating() const noexcept { return in_repeat_mode; }
 
     /// @brief Check if direction has changed since last poll()
-    kf_nodiscard bool changed() noexcept {
+    [[nodiscard]] bool changed() noexcept {
         const bool changed = has_changed;
         has_changed = false;
         return changed;
     }
 
     /// @brief Calculate raw direction without updating internal state
-    kf_nodiscard Direction calculateDirection() const noexcept {
+    [[nodiscard]] Direction calculateDirection() const noexcept {
         const auto x = joystick.axis_x.read();
         const auto y = joystick.axis_y.read();
         const auto abs_x = std::abs(x);

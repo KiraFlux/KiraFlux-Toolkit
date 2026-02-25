@@ -47,37 +47,37 @@ public:
         data_{slice.data()}, size_{slice.size()} {}
 
     /// @brief Get pointer to string data
-    kf_nodiscard constexpr const char *data() const noexcept { return data_; }
+    [[nodiscard]] constexpr const char *data() const noexcept { return data_; }
 
     /// @brief Get string size (excluding null terminator)
-    kf_nodiscard constexpr usize size() const noexcept { return size_; }
+    [[nodiscard]] constexpr usize size() const noexcept { return size_; }
 
     /// @brief Check if string is empty
-    kf_nodiscard constexpr bool empty() const noexcept { return size_ == 0; }
+    [[nodiscard]] constexpr bool empty() const noexcept { return size_ == 0; }
 
     /// @brief Get character at index (no bounds checking)
-    kf_nodiscard constexpr char operator[](usize index) const noexcept {
+    [[nodiscard]] constexpr char operator[](usize index) const noexcept {
         return data_[index];
     }
 
     /// @brief Get first character
-    kf_nodiscard constexpr char front() const noexcept {
+    [[nodiscard]] constexpr char front() const noexcept {
         return data_[0];
     }
 
     /// @brief Get last character
-    kf_nodiscard constexpr char back() const noexcept {
+    [[nodiscard]] constexpr char back() const noexcept {
         return data_[size_ - 1];
     }
 
     /// @brief Get iterator to beginning
-    kf_nodiscard constexpr const char *begin() const noexcept { return data_; }
+    [[nodiscard]] constexpr const char *begin() const noexcept { return data_; }
 
     /// @brief Get iterator to end
-    kf_nodiscard constexpr const char *end() const noexcept { return data_ + size_; }
+    [[nodiscard]] constexpr const char *end() const noexcept { return data_ + size_; }
 
     /// @brief Get string as Slice
-    kf_nodiscard constexpr Slice<const char> slice() const noexcept {
+    [[nodiscard]] constexpr Slice<const char> slice() const noexcept {
         return Slice<const char>{data_, size_};
     }
 
@@ -85,7 +85,7 @@ public:
     /// @param pos Starting position
     /// @param count Number of characters
     /// @return Sub-string view, empty if out of bounds
-    kf_nodiscard constexpr StringView sub(usize pos, usize count) const noexcept {
+    [[nodiscard]] constexpr StringView sub(usize pos, usize count) const noexcept {
         if (pos >= size_) { return StringView{}; }
         const usize actual_count = min(count, size_ - pos);
         return {data_ + pos, actual_count};
@@ -94,7 +94,7 @@ public:
     /// @brief Create sub-string view from position to end
     /// @param pos Starting position
     /// @return Sub-string view from pos to end, empty if out of bounds
-    kf_nodiscard constexpr StringView subFrom(usize pos) const noexcept {
+    [[nodiscard]] constexpr StringView subFrom(usize pos) const noexcept {
         if (pos >= size_) { return StringView{}; }
         return {data_ + pos, size_ - pos};
     }
@@ -102,7 +102,7 @@ public:
     /// @brief Check if string starts with prefix
     /// @param prefix Prefix to check
     /// @return true if string starts with prefix
-    kf_nodiscard constexpr bool startsWith(StringView prefix) const noexcept {
+    [[nodiscard]] constexpr bool startsWith(StringView prefix) const noexcept {
         if (prefix.size() > size_) { return false; }
         for (usize i = 0; i < prefix.size(); ++i) {
             if (data_[i] != prefix[i]) { return false; }
@@ -113,7 +113,7 @@ public:
     /// @brief Check if string ends with suffix
     /// @param suffix Suffix to check
     /// @return true if string ends with suffix
-    kf_nodiscard constexpr bool endsWith(StringView suffix) const noexcept {
+    [[nodiscard]] constexpr bool endsWith(StringView suffix) const noexcept {
         if (suffix.size() > size_) { return false; }
         const usize offset = size_ - suffix.size();
         for (usize i = 0; i < suffix.size(); ++i) {
@@ -125,7 +125,7 @@ public:
     /// @brief Compare with another string view
     /// @param other String to compare with
     /// @return Negative if less, zero if equal, positive if greater
-    kf_nodiscard constexpr int compare(StringView other) const noexcept {
+    [[nodiscard]] constexpr int compare(StringView other) const noexcept {
         const usize min_size = min(size_, other.size_);
         for (usize i = 0; i < min_size; ++i) {
             if (data_[i] != other.data_[i]) {
@@ -139,7 +139,7 @@ public:
     /// @param ch Character to find
     /// @param pos Starting position
     /// @return Option containing position of character if found, empty otherwise
-    kf_nodiscard constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
+    [[nodiscard]] constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
         for (usize i = pos; i < size_; ++i) {
             if (data_[i] == ch) { return i; }
         }
@@ -150,7 +150,7 @@ public:
     /// @param str Substring to find
     /// @param pos Starting position
     /// @return Option containing position of substring if found, empty otherwise
-    kf_nodiscard constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
+    [[nodiscard]] constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
         if (str.size() > size_ or pos > size_ - str.size()) { return {}; }
         for (usize i = pos; i <= size_ - str.size(); ++i) {
             bool found = true;
@@ -169,7 +169,7 @@ public:
     /// @param ch Character to find
     /// @param pos Starting position (search backwards from this position)
     /// @return Option containing position of character if found, empty otherwise
-    kf_nodiscard constexpr Option<usize> rfind(char ch, usize pos = static_cast<usize>(-1)) const noexcept {
+    [[nodiscard]] constexpr Option<usize> rfind(char ch, usize pos = static_cast<usize>(-1)) const noexcept {
         if (size_ == 0) { return {}; }
 
         usize start = (pos >= size_) ? size_ - 1 : pos;
@@ -196,7 +196,7 @@ public:
 
     /// @brief Trim whitespace from beginning
     /// @return StringView with leading whitespace removed
-    kf_nodiscard constexpr StringView trimStart() const noexcept {
+    [[nodiscard]] constexpr StringView trimStart() const noexcept {
         usize i = 0;
         while (i < size_ and isWhitespace(data_[i])) { ++i; }
         return subFrom(i);
@@ -204,7 +204,7 @@ public:
 
     /// @brief Trim whitespace from end
     /// @return StringView with trailing whitespace removed
-    kf_nodiscard constexpr StringView trimEnd() const noexcept {
+    [[nodiscard]] constexpr StringView trimEnd() const noexcept {
         if (size_ == 0) { return *this; }
         usize i = size_;
         while (i > 0 and isWhitespace(data_[i - 1])) { --i; }
@@ -213,7 +213,7 @@ public:
 
     /// @brief Trim whitespace from both ends
     /// @return StringView with leading and trailing whitespace removed
-    kf_nodiscard constexpr StringView trim() const noexcept {
+    [[nodiscard]] constexpr StringView trim() const noexcept {
         return trimStart().trimStart();
     }
 

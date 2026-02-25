@@ -55,7 +55,7 @@ private:
     };
 
 public:
-    kf_nodiscard static constexpr ColorType getAnsiColor(Ansi ansi_color_index) noexcept {
+    [[nodiscard]] static constexpr ColorType getAnsiColor(Ansi ansi_color_index) noexcept {
         return ansi_colors[static_cast<u8>(ansi_color_index) & 0xf];
     }
 };

@@ -44,7 +44,7 @@ public:
     /// @param dt Time step in seconds since last calculation
     /// @return Controller output (saturated to output_limit)
     /// @note Skips calculation for invalid dt values (≤0 or >0.1s)
-    kf_nodiscard f32 calc(f32 error, f32 dt) noexcept {
+    [[nodiscard]] f32 calc(f32 error, f32 dt) noexcept {
         constexpr auto max_dt = 0.1f;
 
         if (dt <= 0.0f or dt > max_dt) {

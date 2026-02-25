@@ -22,7 +22,7 @@ private:
         key{key} {}
 
 public:
-    template<usize N> kf_nodiscard static constexpr Logger create(const char (&key)[N]) noexcept {
+    template<usize N> [[nodiscard]] static constexpr Logger create(const char (&key)[N]) noexcept {
         return Logger{StringView{key, N - 1}};
     }
 

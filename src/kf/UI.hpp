@@ -63,11 +63,11 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
 
         /// @brief Handle click event
         /// @return true if redraw required, false otherwise
-        kf_nodiscard virtual bool onClick() noexcept { return false; }
+        [[nodiscard]] virtual bool onClick() noexcept { return false; }
 
         /// @brief Handle value event
         /// @return true if redraw required, false otherwise
-        kf_nodiscard virtual bool onValue(EventValue value) noexcept { return false; }
+        [[nodiscard]] virtual bool onValue(EventValue value) noexcept { return false; }
 
         /// @brief External widget rendering with focus handling
         void render(RenderImpl &render, bool focused) const noexcept {
@@ -93,7 +93,7 @@ private:
             target{target} {}
 
         /// @brief Set target page as active on click
-        kf_nodiscard bool onClick() noexcept override {
+        [[nodiscard]] bool onClick() noexcept override {
             UI::instance().bindPage(target);
             return true;// redraw always required after page change
         }
@@ -157,7 +157,7 @@ public:
 
         /// @brief Process incoming UI event
         /// @return true if redraw required after event processing
-        kf_nodiscard bool onEvent(Event event) noexcept {
+        [[nodiscard]] bool onEvent(Event event) noexcept {
             switch (event.type()) {
                 case Event::Type::Update: {
                     return true;
@@ -180,16 +180,16 @@ public:
         }
 
         /// @brief Get total widget count on page
-        kf_nodiscard inline usize widgetsTotal() const noexcept { return widgets.size(); }
+        [[nodiscard]] inline usize widgetsTotal() const noexcept { return widgets.size(); }
 
         /// @brief Get page title
-        kf_nodiscard StringView title() const noexcept { return title_; }
+        [[nodiscard]] StringView title() const noexcept { return title_; }
 
     private:
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
         /// @return true if cursor position changed (redraw required)
-        kf_nodiscard bool moveCursor(isize delta) noexcept {
+        [[nodiscard]] bool moveCursor(isize delta) noexcept {
             const auto n = widgetsTotal();
             if (n > 1) {
                 cursor = (cursor + delta + n) % n;
@@ -208,7 +208,7 @@ private:
 public:
     /// @brief Access renderer configuration settings
     /// @return Reference to renderer settings structure
-    kf_nodiscard RenderConfig &renderConfig() noexcept { return render_system.config; }
+    [[nodiscard]] RenderConfig &renderConfig() noexcept { return render_system.config; }
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
@@ -282,7 +282,7 @@ public:
             Widget{root}, label{label} {}
 
         /// @brief Handle button click event
-        kf_nodiscard bool onClick() noexcept override {
+        [[nodiscard]] bool onClick() noexcept override {
             if (on_click) {
                 on_click();
             }
@@ -315,16 +315,16 @@ public:
             HasChangeHandler<bool>::invokeHandler(state_);
         }
 
-        kf_nodiscard bool state() const noexcept {
+        [[nodiscard]] bool state() const noexcept {
             return state_;
         }
 
-        kf_nodiscard bool onClick() noexcept override {
+        [[nodiscard]] bool onClick() noexcept override {
             setState(not state_);
             return true;
         }
 
-        kf_nodiscard bool onValue(EventValue value) noexcept override {
+        [[nodiscard]] bool onValue(EventValue value) noexcept override {
             setState(value > 0);
             return true;
         }
@@ -358,7 +358,7 @@ public:
 
         /// @brief Change selection based on direction
         /// @param value Navigation direction (positive/negative)
-        kf_nodiscard bool onValue(EventValue value) noexcept override {
+        [[nodiscard]] bool onValue(EventValue value) noexcept override {
             moveCursor(value);
             HasChangeHandler<T>::invokeHandler(items[cursor].value());
             return true;// redraw required after selection change
@@ -415,11 +415,11 @@ public:
 
         /// @brief Forward click event to wrapped widget
         /// @return Result from wrapped widget's onClick()
-        kf_nodiscard bool onClick() noexcept override { return impl.onClick(); }
+        [[nodiscard]] bool onClick() noexcept override { return impl.onClick(); }
 
         /// @brief Forward change event to wrapped widget
         /// @return Result from wrapped widget's onValue()
-        kf_nodiscard bool onValue(EventValue value) noexcept override { return impl.onValue(value); }
+        [[nodiscard]] bool onValue(EventValue value) noexcept override { return impl.onValue(value); }
 
         /// @brief Render label followed by wrapped widget
         void doRender(RenderImpl &render) const noexcept override {
@@ -460,18 +460,18 @@ public:
             HasChangeHandler<T>::invokeHandler(value_);
         }
 
-        kf_nodiscard T value() const noexcept { return value_; }
+        [[nodiscard]] T value() const noexcept { return value_; }
 
         /// @brief Toggle between value adjustment and step adjustment modes
         /// @return true (redraw required after mode change)
-        kf_nodiscard bool onClick() noexcept override {
+        [[nodiscard]] bool onClick() noexcept override {
             is_step_setting_mode = not is_step_setting_mode;
             return true;
         }
 
         /// @brief Adjust value or step based on current mode
         /// @param direction Adjustment direction (positive/negative)
-        kf_nodiscard bool onValue(EventValue direction) noexcept override {
+        [[nodiscard]] bool onValue(EventValue direction) noexcept override {
             if (is_step_setting_mode) {
                 StepAdjuster::adjust(step, direction);
             } else {
