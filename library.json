@@ -1,10 +1,10 @@
 {
   "name": "KiraFlux-Toolkit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ESP32 C++ utilities library",
   "keywords": [
     "embedded",
-    "c++",
+    "c++17",
     "arduino",
     "esp32",
     "avr",
