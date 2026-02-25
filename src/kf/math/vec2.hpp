@@ -7,7 +7,6 @@
 
 #include "kf/Option.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 
 namespace kf {
 

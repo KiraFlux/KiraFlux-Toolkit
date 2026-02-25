@@ -7,7 +7,6 @@
 
 #include "kf/Function.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/ui/Render.hpp"

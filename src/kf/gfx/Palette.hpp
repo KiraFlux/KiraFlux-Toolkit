@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces)

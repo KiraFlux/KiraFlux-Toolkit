@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/Tuner.hpp"
-#include "kf/attributes.hpp"
 #include "kf/input/AnalogAxis.hpp"
 
 namespace kf {

@@ -6,7 +6,6 @@
 #include <Arduino.h>
 
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf {

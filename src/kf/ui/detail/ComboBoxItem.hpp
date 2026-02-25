@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/memory/StringView.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability

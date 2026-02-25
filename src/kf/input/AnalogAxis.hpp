@@ -8,7 +8,6 @@
 #include "kf/Tuner.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/math/filters/ExponentialFilter.hpp"
 
 namespace kf {

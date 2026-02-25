@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/attributes.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
 

@@ -5,7 +5,6 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/core/bit_traits.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability

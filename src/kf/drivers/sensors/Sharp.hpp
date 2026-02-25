@@ -5,7 +5,6 @@
 
 #include <Arduino.h>
 
-#include "kf/attributes.hpp"
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 

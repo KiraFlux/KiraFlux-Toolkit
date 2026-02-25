@@ -5,7 +5,6 @@
 
 #include <cstdlib>
 
-#include "kf/attributes.hpp"
 
 namespace kf {
 

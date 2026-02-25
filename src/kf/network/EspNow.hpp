@@ -13,7 +13,6 @@
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/Map.hpp"

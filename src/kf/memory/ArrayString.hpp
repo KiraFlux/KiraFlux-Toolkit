@@ -6,7 +6,6 @@
 #include <cstdarg>
 
 #include "kf/algorithm.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/Slice.hpp"
 #include "kf/memory/StringView.hpp"

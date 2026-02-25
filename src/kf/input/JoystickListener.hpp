@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/input/Joystick.hpp"
 #include "kf/math/time/TimeoutManager.hpp"
 #include "kf/math/time/Timer.hpp"

@@ -6,7 +6,6 @@
 #include <cmath>
 
 #include "kf/Result.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
 
 #include "kf/gfx/Font.hpp"

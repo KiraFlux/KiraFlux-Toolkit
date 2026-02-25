@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
 

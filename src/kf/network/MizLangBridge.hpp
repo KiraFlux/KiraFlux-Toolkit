@@ -8,7 +8,6 @@
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/io/InputStream.hpp"
 #include "kf/memory/io/OutputStream.hpp"

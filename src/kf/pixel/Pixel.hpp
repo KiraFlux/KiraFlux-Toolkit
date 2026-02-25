@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/attributes.hpp"
 #include "kf/memory/Slice.hpp"
 
 namespace kf {// NOLINT(*-concat-nested-namespaces) //c++11 capability

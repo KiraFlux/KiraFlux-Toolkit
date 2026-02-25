@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
 #include "kf/memory/Array.hpp"

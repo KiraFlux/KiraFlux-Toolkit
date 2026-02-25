@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/Option.hpp"
-#include "kf/attributes.hpp"
 
 namespace kf {
 

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/attributes.hpp"
 #include "kf/drivers/zms/PwmPositionServo.hpp"
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"

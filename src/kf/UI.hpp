@@ -8,7 +8,6 @@
 #include <utility>
 
 // Lib
-#include "kf/attributes.hpp"
 #include "kf/Function.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
