@@ -34,7 +34,7 @@ lib_deps = https://github.com/KiraFlux/KiraFlux-Toolkit.git
 На данный момент документация представлена в виде комментариев в заголовочных файлах.  
 Примеры использования можно найти в папке [`examples`](examples)
 
-Прогресс работы над примерами указан в #45
+Прогресс работы над примерами указан в https://github.com/KiraFlux/KiraFlux-Toolkit/issues/45
 
 ## Лицензия
 
