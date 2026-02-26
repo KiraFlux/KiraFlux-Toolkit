@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/ui/StepMode.hpp"
+#include "kf/ui/internal/StepMode.hpp"
 
 namespace kf {    // NOLINT(*-concat-nested-namespaces) // for c++11 capability
 namespace ui {    // NOLINT(*-concat-nested-namespaces)

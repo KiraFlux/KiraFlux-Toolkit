@@ -20,11 +20,11 @@
 
 // Public UI API
 #include "kf/ui/Event.hpp"
-#include "kf/ui/StepMode.hpp"
 
 // Internal UI
 #include "kf/ui/internal/ComboBoxItem.hpp"
 #include "kf/ui/internal/StepAdjuster.hpp"
+#include "kf/ui/internal/StepMode.hpp"
 #include "kf/ui/internal/ValueAdjuster.hpp"
 
 namespace kf {
@@ -41,7 +41,7 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
     using Event = E;                         ///< UI Event type
     using EventValue = typename Event::Value;///< UI Event Value type
 
-    using StepMode = ui::StepMode;
+    using StepMode = kf::ui::internal::StepMode;
 
     struct Page;// forward declaration for Widget
 
@@ -122,7 +122,7 @@ public:
         /// @brief Page behavior on leave
         virtual void onExit() noexcept {}
 
-        /// @brief Page behavior on external update
+        /// @brief Page behavior on UI polling
         virtual void onUpdate(Milliseconds now) noexcept {}
 
         /// @brief Add widget to this page
@@ -179,7 +179,7 @@ public:
         }
 
         /// @brief Get total widget count on page
-        [[nodiscard]] inline usize widgetsTotal() const noexcept { return widgets.size(); }
+        [[nodiscard]] usize widgetsTotal() const noexcept { return widgets.size(); }
 
         /// @brief Get page title
         [[nodiscard]] StringView title() const noexcept { return title_; }
@@ -340,9 +340,9 @@ public:
     template<typename T, usize N> struct ComboBox final : Widget, HasChangeHandler<T> {
         static_assert(N >= 1, "N >= 1");
 
-        using Value = T;                             ///< ComboBox value type
+        using Value = T;                               ///< ComboBox value type
         using Item = kf::ui::internal::ComboBoxItem<T>;///< Item type (in option)
-        using ItemContainer = Array<Item, N>;        ///< Container type for options
+        using ItemContainer = Array<Item, N>;          ///< Container type for options
 
     private:
         const ItemContainer items;///< Available options
@@ -401,30 +401,30 @@ public:
     template<typename W> struct Labeled final : Widget {
         static_assert(std::is_base_of<Widget, W>::value, "W must be a Widget Subclass");
 
-        using Impl = W;///< Type of wrapped widget implementation
+        using WrappedType = W;///< Type of wrapped widget implementation
 
     private:
         StringView label;///< Label text
 
     public:
-        W impl;///< Wrapped widget instance
+        W wrapped;///< Wrapped widget instance
 
         explicit Labeled(Page &root, StringView label, W impl) :
-            Widget{root}, label{label}, impl{std::move(impl)} {}
+            Widget{root}, label{label}, wrapped{std::move(impl)} {}
 
         /// @brief Forward click event to wrapped widget
         /// @return Result from wrapped widget's onClick()
-        [[nodiscard]] bool onClick() noexcept override { return impl.onClick(); }
+        [[nodiscard]] bool onClick() noexcept override { return wrapped.onClick(); }
 
         /// @brief Forward change event to wrapped widget
         /// @return Result from wrapped widget's onValue()
-        [[nodiscard]] bool onValue(EventValue value) noexcept override { return impl.onValue(value); }
+        [[nodiscard]] bool onValue(EventValue value) noexcept override { return wrapped.onValue(value); }
 
         /// @brief Render label followed by wrapped widget
         void doRender(RenderImpl &render) const noexcept override {
             render.value(label);
             render.colon();
-            impl.doRender(render);
+            wrapped.doRender(render);
         }
     };
 
