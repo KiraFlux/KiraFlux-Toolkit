@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include <kf/UI.hpp>
+#include <kf/ui/Event.hpp>
 #include <kf/ui/TextBufferRender.hpp>
 
 // UI specialisation
