@@ -5,7 +5,6 @@
 
 #include <cstdlib>
 
-
 namespace kf {
 
 /// @brief Optional value container (similar to std::optional)
@@ -39,6 +38,14 @@ public:
     /// @warning Causes abort() if Option is empty
     /// @note Use hasValue() to check before calling
     [[nodiscard]] T &value() noexcept {
+        if (engaged) {
+            return val;
+        } else {
+            abort();
+        }
+    }
+
+    [[nodiscard]] const T &value() const noexcept {
         if (engaged) {
             return val;
         } else {
