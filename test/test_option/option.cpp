@@ -34,7 +34,7 @@ template<typename T> void test_option_with_values(const T &value, const T &defau
         TEST_ASSERT_TRUE(copy.hasValue());
         TEST_ASSERT_TRUE(value == original.value());
         TEST_ASSERT_TRUE(value == copy.value());
-        TEST_ASSERT_NOT_TRUE(&original.value() ==, &copy.value());
+        TEST_ASSERT_FALSE(&original.value() == &copy.value());
     }
 
     // Присваивание копированием
@@ -62,7 +62,7 @@ template<typename T> void test_option_with_values(const T &value, const T &defau
     {
         Option<T> original{value};
         Option<T> moved{};
-        moved = std::move{original};
+        moved = std::move(original);
         TEST_ASSERT_TRUE(original.hasValue());
         TEST_ASSERT_TRUE(moved.hasValue());
         TEST_ASSERT_TRUE(value == original.value());
@@ -86,7 +86,9 @@ void test_option_float() {
 }
 
 void test_option_point() {
-    test_option_with_values<Point>(Point{10, 20}, Point{0, 0});
+    Point p{10, 20};
+    Point default_p{0, 0};
+    test_option_with_values<Point>(p, default_p);
 }
 
 // Статические проверки требований к тривиальности
