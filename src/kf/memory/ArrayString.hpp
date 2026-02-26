@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include <cmath>
 #include <cstdarg>
+#include <cstdio>
 
 #include "kf/algorithm.hpp"
 #include "kf/memory/Array.hpp"
@@ -199,8 +201,8 @@ public:
         usize start_size = size_;
 
         // Handle special cases
-        if (isnan(value)) { return append("nan"); }
-        if (isinf(value)) { return append(value > 0 ? "inf" : "-inf"); }
+        if (std::isnan(value)) { return append("nan"); }
+        if (std::isinf(value)) { return append(value > 0 ? "inf" : "-inf"); }
 
         // Handle negative numbers
         if (value < 0) {
@@ -341,7 +343,7 @@ public:
     /// @brief Trim whitespace from both ends
     /// @return Reference to this string
     constexpr ArrayString &trim() noexcept {
-        return trimStart().trimStart();
+        return trimStart().trimEnd();
     }
 
     /// @brief Find character in string
@@ -436,7 +438,7 @@ public:
     }
 
     /// @brief Implicit conversion to const char*
-    [[nodiscard]] constexpr operator const char *() const noexcept {
+    [[nodiscard]] constexpr explicit operator const char *() const noexcept {
         return data();
     }
 
@@ -446,6 +448,14 @@ private:
         return ch == ' ' or ch == '\t' or ch == '\n' or ch == '\r' or ch == '\v' or ch == '\f';
     }
 };
+
+template<usize N> constexpr bool operator==(const ArrayString<N>& lhs, const ArrayString<N>& rhs) noexcept {
+    return lhs.view() == rhs.view();
+}
+
+template<usize N> constexpr bool operator!=(const ArrayString<N>& lhs, const ArrayString<N>& rhs) noexcept {
+    return !(lhs == rhs);
+}
 
 /// @brief Compare FixedString with StringView for equality
 template<usize N> constexpr bool operator==(const ArrayString<N> &lhs, StringView rhs) noexcept {
