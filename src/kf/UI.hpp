@@ -18,9 +18,6 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/pattern/Singleton.hpp"
 
-// Public UI API
-#include "kf/ui/Event.hpp"
-
 // Internal UI
 #include "kf/ui/internal/ComboBoxItem.hpp"
 #include "kf/ui/internal/StepAdjuster.hpp"
