@@ -67,7 +67,7 @@ struct SettingsPage : MyUI::Page {
     PresetInput labeled_ints_combo_box{
         *this,   // attach to this page
         "Preset",// label
-        PresetInput::Impl{
+        PresetInput::WrappedType{
             {{{"Normal", 100}, {"Sport", 200}, {"Quiet", 20}}}// items
         }// spinbox
     };
@@ -84,7 +84,7 @@ struct SettingsPage : MyUI::Page {
     };
 
     explicit SettingsPage() : Page{"Settings"} {
-        labeled_ints_combo_box.impl.change_handler = [](int value) {
+        labeled_ints_combo_box.wrapped.change_handler = [](int value) {
             Serial.print("Int Combo selected: ");
             Serial.println(value);
         };
