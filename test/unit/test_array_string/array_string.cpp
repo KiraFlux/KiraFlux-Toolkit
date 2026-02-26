@@ -4,10 +4,11 @@
 
 using namespace kf;
 
-template<usize N>
-static void assertStr(const ArrayString<N> &s, const char *exp, size_t len) {
+template<usize N> static void assertStr(const ArrayString<N> &s, const char *exp, size_t len) {
     TEST_ASSERT_EQUAL_UINT32(len, s.size());
-    if (len) TEST_ASSERT_EQUAL_MEMORY(exp, s.data(), len);
+    if (len) {
+        TEST_ASSERT_EQUAL_MEMORY(exp, s.data(), len);
+    }
     TEST_ASSERT_EQUAL_UINT8(0, s.data()[len]);
 }
 
@@ -96,6 +97,18 @@ void floating() {
     s.clear();
     TEST_ASSERT_EQUAL(3, s.append(INFINITY, 2));
     assertStr(s, "inf", 3);
+}
+void integer_overflow() {
+    ArrayString<5> s;
+    s = "1234";
+    TEST_ASSERT_EQUAL(0, s.append(-5));
+    assertStr(s, "1234", 4);
+}
+void float_overflow() {
+    ArrayString<5> s;
+    s = "1234";
+    TEST_ASSERT_EQUAL(0, s.append(3.14, 2));
+    assertStr(s, "1234", 4);
 }
 }// namespace append
 
@@ -226,6 +239,8 @@ int main() {
     RUN_TEST(push_pop::sequence);
     RUN_TEST(append::string);
     RUN_TEST(append::integer);
+    RUN_TEST(append::integer_overflow);
+    RUN_TEST(append::float_overflow);
     RUN_TEST(append::floating);
     RUN_TEST(insert::beginning);
     RUN_TEST(insert::middle);
