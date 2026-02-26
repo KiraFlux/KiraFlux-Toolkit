@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
-#include <kf/UI.hpp>
 #include <kf/ui/Event.hpp>
-#include <kf/ui/TextBufferRender.hpp>
+#include <kf/ui/render/TextBufferRender.hpp>
+#include <kf/ui/UI.hpp>
 
 // UI specialisation
 using MyUI = kf::UI<
