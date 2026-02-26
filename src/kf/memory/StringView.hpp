@@ -213,7 +213,7 @@ public:
     /// @brief Trim whitespace from both ends
     /// @return StringView with leading and trailing whitespace removed
     [[nodiscard]] constexpr StringView trim() const noexcept {
-        return trimStart().trimStart();
+        return trimStart().trimEnd();
     }
 
 private:
