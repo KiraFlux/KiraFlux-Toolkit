@@ -6,74 +6,98 @@ using kf::Result;
 
 struct Error {
     char kind;
-
     bool operator==(const Error &other) const { return kind == other.kind; }
 };
 
-const int value{};
-const Error error{0};
+const Error error{'A'};
 
-void test_result_ok() {
-    kf::Result<int, Error> result{value};
+template<typename T> struct ResultTester {
+    static constexpr T value{};
 
-    TEST_ASSERT_TRUE(result.isOk());
-    TEST_ASSERT_TRUE(result.ok().hasValue());
-    TEST_ASSERT_TRUE(result.ok().value() == value);
+    static void test_is_ok() {
+        Result<T, Error> r{value};
+        TEST_ASSERT_TRUE(r.isOk());
+        TEST_ASSERT_TRUE(r.ok().hasValue());
+        TEST_ASSERT_TRUE(value == r.ok().value());
+        TEST_ASSERT_FALSE(r.error().hasValue());
+    }
 
-    TEST_ASSERT_FALSE(result.isError());
-    TEST_ASSERT_FALSE(result.error().hasValue());
+    static void test_is_error() {
+        Result<T, Error> r{error};
+        TEST_ASSERT_TRUE(r.isError());
+        TEST_ASSERT_FALSE(r.ok().hasValue());
+        TEST_ASSERT_TRUE(r.error().hasValue());
+        TEST_ASSERT_TRUE(error == r.error().value());
+    }
+
+    static void test_copy() {
+        Result<T, Error> a{value};
+        Result<T, Error> b{a};
+        TEST_ASSERT_TRUE(a.isOk());
+        TEST_ASSERT_TRUE(b.isOk());
+        TEST_ASSERT_TRUE(a.ok().value() == b.ok().value());
+        TEST_ASSERT_NOT_EQUAL(&a.ok().value(), &b.ok().value());
+    }
+
+    static void test_const() {
+        const Result<T, Error> r{value};
+        TEST_ASSERT_TRUE(r.isOk());
+        const auto ok_opt = r.ok();
+        TEST_ASSERT_TRUE(value == ok_opt.value());
+    }
+};
+
+void test_void_ok() {
+    Result<void, Error> r{};
+    TEST_ASSERT_TRUE(r.isOk());
+    TEST_ASSERT_FALSE(r.isError());
+    TEST_ASSERT_FALSE(r.error().hasValue());
 }
 
-void test_result_is_error() {
-    kf::Result<int, Error> result{error};
-
-    TEST_ASSERT_TRUE(result.isError());
-    TEST_ASSERT_TRUE(result.error().hasValue());
-    TEST_ASSERT_TRUE(result.error().value() == error);
-
-    TEST_ASSERT_FALSE(result.isOk());
-    TEST_ASSERT_FALSE(result.ok().hasValue());
+void test_void_error() {
+    Result<void, Error> r{error};
+    TEST_ASSERT_TRUE(r.isError());
+    TEST_ASSERT_FALSE(r.isOk());
+    TEST_ASSERT_TRUE(r.error().hasValue());
+    TEST_ASSERT_TRUE(error == r.error().value());
 }
 
-void test_void_result_is_ok() {
-    kf::Result<void, Error> result{};
-
-    TEST_ASSERT_TRUE(result.isOk());
-
-    TEST_ASSERT_FALSE(result.isError());
-    TEST_ASSERT_FALSE(result.error().hasValue());
+void test_void_copy() {
+    Result<void, Error> a{};
+    Result<void, Error> b{a};
+    TEST_ASSERT_TRUE(a.isOk());
+    TEST_ASSERT_TRUE(b.isOk());
 }
 
-void test_void_result_is_error() {
-    kf::Result<void, Error> result{error};
-
-    TEST_ASSERT_TRUE(result.isError());
-    TEST_ASSERT_TRUE(result.error().hasValue());
-
-    TEST_ASSERT_TRUE(result.error().value() == error);
-    TEST_ASSERT_FALSE(result.isOk());
+void test_void_move() {
+    Result<void, Error> a{};
+    Result<void, Error> b{std::move(a)};
+    TEST_ASSERT_TRUE(a.isOk());
+    TEST_ASSERT_TRUE(b.isOk());
 }
 
-void test_result_copy() {
-    kf::Result<int, Error> original{value};
-    kf::Result<int, Error> copy{original};
-
-    TEST_ASSERT_TRUE(original.isOk());
-    TEST_ASSERT_TRUE(copy.isOk());
-
-    TEST_ASSERT_EQUAL(copy.ok().value(), original.ok().value());
-    TEST_ASSERT_NOT_EQUAL(&copy.ok().value(), &original.ok().value());
+void test_void_const() {
+    const Result<void, Error> r{};
+    TEST_ASSERT_TRUE(r.isOk());
 }
+
+#define RUN_RESULT_TESTS(T)                   \
+    RUN_TEST(ResultTester<T>::test_is_ok);    \
+    RUN_TEST(ResultTester<T>::test_is_error); \
+    RUN_TEST(ResultTester<T>::test_copy);     \
+    RUN_TEST(ResultTester<T>::test_const)
 
 int main() {
     UNITY_BEGIN();
-    RUN_TEST(test_result_ok);
-    RUN_TEST(test_result_is_error);
 
-    RUN_TEST(test_void_result_is_ok);
-    RUN_TEST(test_void_result_is_error);
+    RUN_RESULT_TESTS(int);
+    RUN_RESULT_TESTS(float);
 
-    RUN_TEST(test_result_copy);
+    RUN_TEST(test_void_ok);
+    RUN_TEST(test_void_error);
+    RUN_TEST(test_void_copy);
+    RUN_TEST(test_void_move);
+    RUN_TEST(test_void_const);
 
     return UNITY_END();
 }
