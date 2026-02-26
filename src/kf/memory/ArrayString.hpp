@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include <cmath>
 #include <cstdarg>
+#include <cstdio>
 
 #include "kf/algorithm.hpp"
 #include "kf/memory/Array.hpp"
@@ -161,75 +163,86 @@ public:
     /// @param value Integer value to append
     /// @return Number of characters appended
     [[nodiscard]] usize append(i32 value) noexcept {
-        if (value == 0) {
-            return push('0') ? 1 : 0;
+        usize start = size_;
+        if (value == 0) { return push('0') ? 1 : 0; }
+
+        bool negative = value < 0;
+        u32 abs_val = negative ? -static_cast<u32>(value) : static_cast<u32>(value);
+
+        int digits = 0;
+        for (u32 v = abs_val; v; v /= 10) {
+            digits += 1;
         }
 
-        usize start_size = size_;
+        if (size_ + (negative ? 1 : 0) + digits > N) { return 0; }
 
-        // Handle negative numbers
-        if (value < 0) {
+        if (negative) {
             (void) push('-');
-            value = -value;
         }
 
-        // Convert to string in reverse order
-        char digits[12];
-        int digit_count = 0;
+        char buf[12];
+        int i = 0;
 
-        while (value > 0) {
-            digits[digit_count] = char('0' + (value % 10));
-            digit_count += 1;
-            value /= 10;
+        for (u32 v = abs_val; v; v /= 10) {
+            buf[i++] = char('0' + (v % 10));
         }
 
-        // Append in correct order
-        for (auto i = digit_count - 1; i >= 0; --i) {
-            if (not push(digits[i])) { break; }
+        while (i--) {
+            (void) push(buf[i]);
         }
 
-        return size_ - start_size;
+        return size_ - start;
     }
 
     /// @brief Append floating-point number to string
     /// @param value Floating-point value
     /// @param decimal_places Number of decimal places to show
     /// @return Number of characters appended
-    [[nodiscard]] usize append(f64 value, u8 decimal_places) noexcept {
-        usize start_size = size_;
+    [[nodiscard]] usize append(f64 value, u8 prec) noexcept {
+        usize start = size_;
 
-        // Handle special cases
-        if (isnan(value)) { return append("nan"); }
-        if (isinf(value)) { return append(value > 0 ? "inf" : "-inf"); }
+        if (std::isnan(value)) { return append("nan"); }
 
-        // Handle negative numbers
-        if (value < 0) {
-            (void) push('-');
-            value = -value;
+        if (std::isinf(value)) { return append(value > 0 ? "inf" : "-inf"); }
+
+        bool negative = value < 0;
+        if (negative) value = -value;
+
+        i32 int_part = static_cast<i32>(value);
+        f64 fraction = value - int_part;
+
+        int int_digits = 0;
+        for (u32 v = static_cast<u32>(int_part); v; v /= 10) { int_digits += 1; }
+        if (int_digits == 0) { int_digits = 1; }
+
+        usize needed = (negative ? 1 : 0) + int_digits;
+
+        if (prec > 0) {
+            needed += 1 + prec;
         }
 
-        // Integer part
-        const auto int_part = static_cast<i32>(value);
+        if (size_ + needed > N) { return 0; }
+
+        if (negative) {
+            (void) push('-');
+        }
+
         (void) append(int_part);
 
-        // Decimal part
-        if (decimal_places > 0) {
+        if (prec > 0) {
             (void) push('.');
+            f64 frac = fraction;
 
-            f64 fraction = value - int_part;
-            for (auto i = 0; i < decimal_places; i += 1) {
-                fraction *= 10.0;
-                auto digit = static_cast<u8>(fraction);
-                (void) push('0' + digit);
-                fraction -= digit;
+            for (u8 i = 0; i < prec; ++i) {
+                frac *= 10.0;
+                u8 d = static_cast<u8>(frac);
+                (void) push('0' + d);
+                frac -= d;
 
-                if (fraction < 1e-12) {// Avoid floating point issues
-                    break;
-                }
+                if (frac < 1e-12) { break; }
             }
         }
-
-        return size_ - start_size;
+        return size_ - start;
     }
 
     /// @brief Insert string at position
@@ -341,7 +354,7 @@ public:
     /// @brief Trim whitespace from both ends
     /// @return Reference to this string
     constexpr ArrayString &trim() noexcept {
-        return trimStart().trimStart();
+        return trimStart().trimEnd();
     }
 
     /// @brief Find character in string
@@ -436,7 +449,7 @@ public:
     }
 
     /// @brief Implicit conversion to const char*
-    [[nodiscard]] constexpr operator const char *() const noexcept {
+    [[nodiscard]] constexpr explicit operator const char *() const noexcept {
         return data();
     }
 
@@ -446,6 +459,14 @@ private:
         return ch == ' ' or ch == '\t' or ch == '\n' or ch == '\r' or ch == '\v' or ch == '\f';
     }
 };
+
+template<usize N> constexpr bool operator==(const ArrayString<N> &lhs, const ArrayString<N> &rhs) noexcept {
+    return lhs.view() == rhs.view();
+}
+
+template<usize N> constexpr bool operator!=(const ArrayString<N> &lhs, const ArrayString<N> &rhs) noexcept {
+    return !(lhs == rhs);
+}
 
 /// @brief Compare FixedString with StringView for equality
 template<usize N> constexpr bool operator==(const ArrayString<N> &lhs, StringView rhs) noexcept {
