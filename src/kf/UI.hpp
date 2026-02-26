@@ -22,10 +22,10 @@
 #include "kf/ui/Event.hpp"
 #include "kf/ui/StepMode.hpp"
 
-// Private UI details
-#include "kf/ui/detail/ComboBoxItem.hpp"
-#include "kf/ui/detail/StepAdjuster.hpp"
-#include "kf/ui/detail/ValueAdjuster.hpp"
+// Internal UI
+#include "kf/ui/internal/ComboBoxItem.hpp"
+#include "kf/ui/internal/StepAdjuster.hpp"
+#include "kf/ui/internal/ValueAdjuster.hpp"
 
 namespace kf {
 
@@ -341,7 +341,7 @@ public:
         static_assert(N >= 1, "N >= 1");
 
         using Value = T;                             ///< ComboBox value type
-        using Item = kf::ui::detail::ComboBoxItem<T>;///< Item type (in option)
+        using Item = kf::ui::internal::ComboBoxItem<T>;///< Item type (in option)
         using ItemContainer = Array<Item, N>;        ///< Container type for options
 
     private:
@@ -435,8 +435,8 @@ public:
         static constexpr auto step_mode{M};///< Specialization step mode
 
     private:
-        using StepAdjuster = kf::ui::detail::StepAdjuster<T>;
-        using ValueAdjuster = kf::ui::detail::ValueAdjuster<T, M>;
+        using StepAdjuster = kf::ui::internal::StepAdjuster<T>;
+        using ValueAdjuster = kf::ui::internal::ValueAdjuster<T, M>;
 
         T value_;                        ///< Reference to value being controlled
         T step;                          ///< Current step size

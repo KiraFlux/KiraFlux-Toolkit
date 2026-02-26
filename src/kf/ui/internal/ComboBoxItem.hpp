@@ -8,8 +8,8 @@
 namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
 namespace ui {// NOLINT(*-concat-nested-namespaces)
 
-/// kf::ui detail
-namespace detail {// NOLINT(*-concat-nested-namespaces)
+/// kf::ui internal
+namespace internal {// NOLINT(*-concat-nested-namespaces)
 
 template<typename T> struct ComboBoxItem {
 
@@ -40,6 +40,6 @@ public:
         key_{str} {}
 };
 
-}// namespace detail
+}// namespace internal
 }// namespace ui
 }// namespace kf
