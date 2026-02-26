@@ -7,75 +7,64 @@
 #include "kf/aliases.hpp"
 #include "kf/core/bit_traits.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
+namespace kf {
 namespace ui {
 
 /// @brief Incoming UI event with type and value packed into single byte
-/// @tparam V Event Value width in bits
+/// @tparam V Number of bits for event value
 template<u8 V> struct Event {
-
     static constexpr u8 type_bits = 2;
     static constexpr u8 value_bits = V;
     static constexpr u8 total_bits = type_bits + value_bits;
 
     using Value = typename bit_traits<value_bits>::min_signed;
     using Storage = typename bit_traits<total_bits>::min_unsigned;
+    using UnsignedValue = typename bit_traits<value_bits>::min_unsigned;
 
     static constexpr u8 storage_bits = sizeof(Storage) * 8;
 
+    static constexpr Value value_max = static_cast<Value>((UnsignedValue(1) << (value_bits - 1)) - 1);
+    static constexpr Value value_min = -value_max - 1;// безопасное вычисление
+
 private:
-    static constexpr Storage event_value_full = (1 << storage_bits) - 1;
-    static constexpr Storage sign_bit_mask = 1 << (value_bits - 1);
-
-    static constexpr Storage value_mask = (1 << value_bits) - 1;
+    static constexpr Storage event_value_full = ~Storage(0);
+    static constexpr Storage value_mask = (Storage(1) << value_bits) - 1;
     static constexpr Storage type_mask = event_value_full & ~value_mask;
+    static constexpr Storage sign_bit_mask = Storage(1) << (value_bits - 1);
 
-    static constexpr Value value_max = (1 << (value_bits - 1)) - 1;
-    static constexpr Value value_min = -(1 << (value_bits - 1));
-
-    Storage storage;///< Packed event data (type + value)
+    Storage storage;
 
 public:
-    /// @brief Event type identifiers
     enum class Type : Storage {
-        Update = (0 << value_bits),           ///< Forced render request
-        PageCursorMove = (1 << value_bits),   ///< Page cursor movement (may contain value)
-        WidgetClick = (2 << value_bits),      ///< Widget click/tap
-        WidgetValueChange = (3 << value_bits),///< Widget value change (may contain value)
+        Update = Storage(0) << value_bits,
+        PageCursorMove = Storage(1) << value_bits,
+        WidgetClick = Storage(2) << value_bits,
+        WidgetValueChange = Storage(3) << value_bits,
     };
 
-    /// @brief Construct event with type and optional value
-    constexpr explicit Event(Type type, Value value = 0) noexcept :
-        storage{
-            static_cast<Storage>(
-                (static_cast<Storage>(type) & type_mask) |
-                (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))} {}
+    constexpr explicit Event(Type type, Value value = 0) noexcept
+        : storage{
+              static_cast<Storage>(
+                  (static_cast<Storage>(type) & type_mask) |
+                  (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))} {}
 
-    /// @brief Get event type
     [[nodiscard]] constexpr Type type() const noexcept {
         return static_cast<Type>(storage & type_mask);
     }
 
-    /// @brief Get event value with sign extension
     [[nodiscard]] Value value() const noexcept {
-        const auto result = static_cast<Value>(storage & value_mask);
-        return (result & sign_bit_mask) ? static_cast<Value>(result | ~value_mask) : result;
+        auto raw = static_cast<Value>(storage & value_mask);
+        return (raw & sign_bit_mask) ? static_cast<Value>(raw | ~value_mask) : raw;
     }
 
-    // Predefined event instances
-
-    /// @brief Create update event (forces redraw)
     [[nodiscard]] static constexpr Event update() noexcept { return Event{Type::Update}; }
-
-    /// @brief Create pageCursorMove event with offset
-    /// @param offset Cursor movement offset
-    [[nodiscard]] static constexpr Event pageCursorMove(Value offset) noexcept { return Event{Type::PageCursorMove, offset}; }
-
-    /// @brief Create widgetClick event
+    [[nodiscard]] static constexpr Event pageCursorMove(Value offset) noexcept {
+        return Event{Type::PageCursorMove, offset};
+    }
     [[nodiscard]] static constexpr Event widgetClick() noexcept { return Event{Type::WidgetClick}; }
-
-    /// @brief Create widgetValue event with delta
-    [[nodiscard]] static constexpr Event widgetValue(Value value) noexcept { return Event{Type::WidgetValueChange, value}; }
+    [[nodiscard]] static constexpr Event widgetValue(Value value) noexcept {
+        return Event{Type::WidgetValueChange, value};
+    }
 };
 
 }// namespace ui
