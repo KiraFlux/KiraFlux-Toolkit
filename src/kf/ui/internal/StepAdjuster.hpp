@@ -3,9 +3,7 @@
 
 #pragma once
 
-namespace kf {    // NOLINT(*-concat-nested-namespaces) // for c++11 capability
-namespace ui {    // NOLINT(*-concat-nested-namespaces)
-namespace internal {// NOLINT(*-concat-nested-namespaces)
+namespace kf::ui::internal {
 
 template<typename T> struct step_adjuster_min_step;
 
@@ -52,6 +50,4 @@ template<typename T> struct StepAdjuster {
     }
 };
 
-}// namespace internal
-}// namespace ui
-}// namespace kf
+}// namespace kf::ui::internal

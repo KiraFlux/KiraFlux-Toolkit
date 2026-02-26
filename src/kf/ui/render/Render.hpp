@@ -6,10 +6,7 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/StringView.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
-
-/// @brief External UI components namespace
-namespace ui {
+namespace kf::ui {
 
 /// @brief CRTP base class for UI rendering systems
 /// @tparam Impl Concrete renderer implementation type
@@ -83,5 +80,4 @@ private:
     inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
 };
 
-}// namespace ui
-}// namespace kf
+}// namespace kf::ui

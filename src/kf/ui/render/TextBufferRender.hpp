@@ -11,8 +11,7 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/ui/render/Render.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
-namespace ui {
+namespace kf::ui {
 
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
@@ -206,5 +205,4 @@ private:
     void endWidgetImpl() noexcept { writeChar('\n'); }
 };
 
-}// namespace ui
-}// namespace kf
+}// namespace kf::ui
