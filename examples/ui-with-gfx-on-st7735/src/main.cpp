@@ -7,6 +7,10 @@
 #include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx.hpp>
 
+// Display Driver specialisation
+using MyDisplayDriver = kf::ST7735;
+using P = MyDisplayDriver::PixelImpl; // shortcut for pixel impl
+
 // UI specialisation
 using MyUI = kf::UI<
     kf::ui::ColoredTextRender<256>,// Render implementation: colored text, buffered (256 Bytes)
@@ -119,26 +123,25 @@ MyUI::Event eventFromChar(char c) {
 
 static auto &ui = MyUI::instance();
 
-using P = kf::ST7735::PixelImpl;
-
-static kf::ST7735::Config display_config{
+// display config
+static MyDisplayDriver::Config display_config{
     GPIO_NUM_5,
     GPIO_NUM_2,
     GPIO_NUM_15,
     27000000,
-    kf::ST7735::Orientation::Normal,
+    MyDisplayDriver::Orientation::ClockWise,
 };
 
-static kf::ST7735 display{
+// display
+static MyDisplayDriver display{
     display_config,
     SPI,
 };
 
-static kf::gfx::Canvas<P> root_canvas{kf::image::DynamicImage<P>{display.image()}};
-
 void setup() {
     Serial.begin(115200);
 
+    // display setup
     if (not display.init()) {
         Serial.println("Failed to init display. halting...");
 
@@ -147,6 +150,8 @@ void setup() {
 
     // render setup
     MyUI::RenderConfig &config = ui.renderConfig();
+
+    static kf::gfx::Canvas<P> root_canvas{kf::image::DynamicImage<P>{display.image()}};
 
     // post-render procedure
     config.on_render_finish = [](kf::StringView text) {
