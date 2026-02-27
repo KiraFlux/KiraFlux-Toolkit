@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include <cmath>
-
+#include "kf/algorithm.hpp"
 #include "kf/Function.hpp"
 #include "kf/aliases.hpp"
 #include "kf/memory/ArrayString.hpp"
@@ -16,8 +15,8 @@ namespace kf::ui {
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
 /// @note Implements Render CRTP interface for character-based display
-template<usize N> struct TextBufferRender : Render<TextBufferRender<N>> {
-    friend struct Render<TextBufferRender<N>>;
+template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
+    friend struct Render<PlainTextRender<N>>;
 
     using Glyph = u8;///< Text interface measurement unit in glyphs
 
@@ -68,6 +67,7 @@ private:
         }
     } cursor;
 
+public:
     /// @brief Helper to write character with cursor tracking
     /// @param ch Character to write
     void writeChar(char ch) noexcept {
@@ -116,6 +116,7 @@ private:
         writeString(temp.view());
     }
 
+private:
     // Render Interface Implementation
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept {

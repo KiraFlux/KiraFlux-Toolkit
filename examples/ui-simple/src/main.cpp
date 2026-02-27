@@ -1,12 +1,12 @@
 #include <Arduino.h>
 
 #include <kf/ui/Event.hpp>
-#include <kf/ui/render/TextBufferRender.hpp>
+#include <kf/ui/render/PlainTextRender.hpp>
 #include <kf/ui/UI.hpp>
 
 // UI specialisation
 using MyUI = kf::UI<
-    kf::ui::TextBufferRender<256>,// Render implementation: colored, textual, buffered (256 Bytes)
+    kf::ui::PlainTextRender<256>,// Render implementation: colored, textual, buffered (256 Bytes)
     kf::ui::Event<4>              // Event type: 4-bit value
     >;
 
