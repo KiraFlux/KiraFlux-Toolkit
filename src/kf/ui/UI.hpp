@@ -70,7 +70,7 @@ private:
 public:
     /// @brief Access renderer configuration settings
     /// @return Reference to renderer settings structure
-    [[nodiscard]] RenderConfig &renderConfig() noexcept { return render_system.config; }
+    [[nodiscard]] RenderConfig &renderConfig() noexcept { return render_system.getConfig(); }
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
