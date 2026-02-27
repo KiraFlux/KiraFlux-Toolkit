@@ -39,11 +39,11 @@ private:
         wrapped.writeChar('\x80');
     }
 
-    template<typename T> valueImpl(T value) { wrapped.value(value); }
+    template<typename T> void valueImpl(T v) { wrapped.value(v); }
 
     void arrowImpl() noexcept { wrapped.arrow(); }
 
-    void colonImpl() noexcept { wrapped.colon() }
+    void colonImpl() noexcept { wrapped.colon(); }
 
     void beginFocusedImpl() noexcept {
         wrapped.writeChar('\x81');
@@ -62,7 +62,7 @@ private:
 
     void endAltBlockImpl() noexcept { wrapped.endAltBlock(); }
 
-    void beginWidgetImpl(usize) noexcept { wrapped.beginWidget(); }
+    void beginWidgetImpl(usize index) noexcept { wrapped.beginWidget(index); }
 
     void endWidgetImpl() noexcept { wrapped.endWidget(); }
 };
