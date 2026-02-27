@@ -20,10 +20,9 @@ namespace kf::ui::internal {
 
 /// @brief Internal UI Definitions
 /// @tparam R Render System Implementation
-/// @tparam E Event Type
+/// @tparam Ev Event Value Type
 /// @tparam P Page Type
-template<typename R, typename E, typename P> struct UI final {
-    using EventValue = typename E::Value;
+template<typename R, typename Ev, typename P> struct UI final {
 
     /// @brief Base widget class for all UI components
     /// @note All interactive UI elements inherit from this class
@@ -46,7 +45,7 @@ template<typename R, typename E, typename P> struct UI final {
 
         /// @brief Handle value event
         /// @return true if redraw required, false otherwise
-        [[nodiscard]] virtual bool onValue(EventValue value) noexcept { return false; }
+        [[nodiscard]] virtual bool onValue(Ev value) noexcept { return false; }
 
         /// @brief External widget rendering with focus handling
         void render(R &render, bool focused) const noexcept {
@@ -131,7 +130,7 @@ template<typename R, typename E, typename P> struct UI final {
             return true;
         }
 
-        [[nodiscard]] bool onValue(EventValue value) noexcept override {
+        [[nodiscard]] bool onValue(Ev value) noexcept override {
             setState(value > 0);
             return true;
         }
@@ -165,7 +164,7 @@ template<typename R, typename E, typename P> struct UI final {
 
         /// @brief Change selection based on direction
         /// @param value Navigation direction (positive/negative)
-        [[nodiscard]] bool onValue(EventValue value) noexcept override {
+        [[nodiscard]] bool onValue(Ev value) noexcept override {
             moveCursor(value);
             HasChangeHandler<T>::invokeHandler(items[cursor].value());
             return true;// redraw required after selection change
@@ -226,7 +225,7 @@ template<typename R, typename E, typename P> struct UI final {
 
         /// @brief Forward change event to wrapped widget
         /// @return Result from wrapped widget's onValue()
-        [[nodiscard]] bool onValue(EventValue value) noexcept override { return wrapped.onValue(value); }
+        [[nodiscard]] bool onValue(Ev value) noexcept override { return wrapped.onValue(value); }
 
         /// @brief Render label followed by wrapped widget
         void doRender(R &render) const noexcept override {
@@ -278,7 +277,7 @@ template<typename R, typename E, typename P> struct UI final {
 
         /// @brief Adjust value or step based on current mode
         /// @param direction Adjustment direction (positive/negative)
-        [[nodiscard]] bool onValue(EventValue direction) noexcept override {
+        [[nodiscard]] bool onValue(Ev direction) noexcept override {
             if (is_step_setting_mode) {
                 StepAdjusterType::adjust(step, direction);
             } else {

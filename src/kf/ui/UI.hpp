@@ -20,12 +20,6 @@ namespace kf {
 template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
     friend struct Singleton<UI<R, E>>;
 
-    struct Page;
-
-private:
-    using InternalUI = kf::ui::internal::UI<R, E, Page>;
-
-public:
     using RenderImpl = R;                            ///< Renderer implementation type
     using RenderConfig = typename RenderImpl::Config;///< Renderer Configuration type
 
@@ -34,6 +28,12 @@ public:
 
     using StepMode = kf::ui::internal::StepMode;
 
+    struct Page;
+
+private:
+    using InternalUI = kf::ui::internal::UI<R, EventValue, Page>;
+
+public:
     /// @brief Base widget type (provided for inheritance or generic references)
     using Widget = typename InternalUI::Widget;
 
