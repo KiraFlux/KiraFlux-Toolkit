@@ -39,7 +39,7 @@ void test_const_slice() {
 void test_iterators() {
     int data[] = {5, 6, 7, 8};
     Slice<int> s{data, 4};
-    
+
     int sum = 0;
     for (auto it = s.begin(); it != s.end(); it += 1) {
         sum += *it;
@@ -134,10 +134,84 @@ void test_different_types() {
     TEST_ASSERT_EQUAL_FLOAT(1.1, ds[0]);
 }
 
+void test_array_constructor_int() {
+    int data[] = {1, 2, 3, 4, 5};
+    Slice<int> s{data};
+
+    TEST_ASSERT_EQUAL_PTR(data, s.data());
+    TEST_ASSERT_EQUAL(5, s.size());
+    TEST_ASSERT_EQUAL(1, s[0]);
+    TEST_ASSERT_EQUAL(3, s[2]);
+    TEST_ASSERT_EQUAL(5, s[4]);
+}
+
+void test_array_constructor_char() {
+    char data[] = "hello";
+    Slice<char> s{data};
+
+    TEST_ASSERT_EQUAL_PTR(data, s.data());
+    TEST_ASSERT_EQUAL(6, s.size());
+    TEST_ASSERT_EQUAL('h', s[0]);
+    TEST_ASSERT_EQUAL('e', s[1]);
+    TEST_ASSERT_EQUAL('l', s[2]);
+    TEST_ASSERT_EQUAL('l', s[3]);
+    TEST_ASSERT_EQUAL('o', s[4]);
+}
+
+void test_array_constructor_const() {
+    const int data[] = {10, 20, 30};
+    Slice<const int> s{data};
+
+    TEST_ASSERT_EQUAL_PTR(data, s.data());
+    TEST_ASSERT_EQUAL(3, s.size());
+    TEST_ASSERT_EQUAL(10, s[0]);
+    TEST_ASSERT_EQUAL(20, s[1]);
+    TEST_ASSERT_EQUAL(30, s[2]);
+}
+
+void test_array_constructor_modification() {
+    int data[] = {7, 8, 9};
+    Slice<int> s{data};
+
+    s[1] = 99;
+    TEST_ASSERT_EQUAL(99, data[1]);
+    TEST_ASSERT_EQUAL(99, s[1]);
+}
+
+void test_array_constructor_empty() {
+    int data[1] = {42};
+    Slice<int> s{data};
+
+    TEST_ASSERT_EQUAL(1, s.size());
+    TEST_ASSERT_EQUAL(42, s[0]);
+
+    int *nullPtr = nullptr;
+    Slice<int> s2{nullPtr, 0};
+    TEST_ASSERT_NULL(s2.data());
+    TEST_ASSERT_EQUAL(0, s2.size());
+}
+
+void test_array_constructor_foreach() {
+    int data[] = {2, 4, 6, 8};
+    Slice<int> s{data};
+
+    int sum = 0;
+    for (auto it = s.begin(); it != s.end(); it += 1) {
+        sum += *it;
+    }
+    TEST_ASSERT_EQUAL(2 + 4 + 6 + 8, sum);
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_default_ctor);
     RUN_TEST(test_ptr_size_ctor);
+    RUN_TEST(test_array_constructor_int);
+    RUN_TEST(test_array_constructor_char);
+    RUN_TEST(test_array_constructor_const);
+    RUN_TEST(test_array_constructor_modification);
+    RUN_TEST(test_array_constructor_empty);
+    RUN_TEST(test_array_constructor_foreach);
     RUN_TEST(test_access);
     RUN_TEST(test_const_slice);
     RUN_TEST(test_iterators);

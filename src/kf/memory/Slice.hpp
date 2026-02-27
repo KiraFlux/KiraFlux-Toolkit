@@ -27,6 +27,10 @@ public:
     constexpr Slice(T *ptr, usize size) noexcept :
         ptr_{ptr}, size_{size} {}
 
+    /// @brief Array constructor
+    /// @tparam N auto-deducted array length
+    template<usize N> constexpr Slice(T (&arr)[N]) noexcept : ptr_{arr}, size_{N} {}
+
     /// @brief Get iterator to beginning
     /// @return Iterator to first element
     [[nodiscard]] constexpr T *begin() noexcept { return ptr_; }

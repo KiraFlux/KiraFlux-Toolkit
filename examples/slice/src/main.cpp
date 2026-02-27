@@ -10,6 +10,8 @@ void setup() {
     int numbers[] = {10, 20, 30, 40, 50};
     kf::Slice<int> slice{numbers, 5};
 
+    kf::Slice<int> slice_from_array{numbers};
+
     // element access
     Serial.print(F("slice[2] = "));
     Serial.println(slice[2]);
