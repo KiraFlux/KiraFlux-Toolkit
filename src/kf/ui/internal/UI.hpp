@@ -19,21 +19,18 @@
 namespace kf::ui::internal {
 
 /// @brief Internal UI Definitions
-/// @tparam R Render Impl
+/// @tparam R Render System Implementation
 /// @tparam E Event Type
 /// @tparam P Page Type
 template<typename R, typename E, typename P> struct UI final {
-    using Page = P;
-    using RenderImpl = R;
-    using Event = E;
-    using EventValue = typename Event::Value;
+    using EventValue = typename E::Value;
 
     /// @brief Base widget class for all UI components
     /// @note All interactive UI elements inherit from this class
     struct Widget {
         /// @brief Construct widget and add to specified page
         /// @param root Page to add widget to
-        explicit Widget(Page &root) {
+        explicit Widget(P &root) {
             root.addWidget(*this);
         }
 
@@ -41,7 +38,7 @@ template<typename R, typename E, typename P> struct UI final {
         explicit Widget() noexcept = default;
 
         /// @brief Render widget content (must be implemented by derived classes)
-        virtual void doRender(RenderImpl &render) const noexcept = 0;
+        virtual void doRender(R &render) const noexcept = 0;
 
         /// @brief Handle click event
         /// @return true if redraw required, false otherwise
@@ -52,7 +49,7 @@ template<typename R, typename E, typename P> struct UI final {
         [[nodiscard]] virtual bool onValue(EventValue value) noexcept { return false; }
 
         /// @brief External widget rendering with focus handling
-        void render(RenderImpl &render, bool focused) const noexcept {
+        void render(R &render, bool focused) const noexcept {
             if (focused) {
                 render.beginFocused();
                 doRender(render);
@@ -88,7 +85,7 @@ template<typename R, typename E, typename P> struct UI final {
     public:
         ClickHandler on_click{nullptr};///< Click event handler
 
-        explicit Button(Page &root, StringView label) :
+        explicit Button(P &root, StringView label) :
             Widget{root}, label{label} {}
 
         /// @brief Handle button click event
@@ -101,7 +98,7 @@ template<typename R, typename E, typename P> struct UI final {
         }
 
         /// @brief Render button with block styling
-        void doRender(RenderImpl &render) const noexcept override {
+        void doRender(R &render) const noexcept override {
             render.beginBlock();
             render.value(label);
             render.endBlock();
@@ -117,7 +114,7 @@ template<typename R, typename E, typename P> struct UI final {
         explicit CheckBox(bool default_state = false) noexcept :
             state_{default_state} {}
 
-        explicit CheckBox(Page &root, bool default_state = false) :
+        explicit CheckBox(P &root, bool default_state = false) :
             Widget{root}, state_{default_state} {}
 
         void setState(bool state) noexcept {
@@ -140,7 +137,7 @@ template<typename R, typename E, typename P> struct UI final {
         }
 
         /// @brief Render checkbox with visual state indicator
-        void doRender(RenderImpl &render) const noexcept override {
+        void doRender(R &render) const noexcept override {
             render.checkbox(state_);
         }
     };
@@ -163,7 +160,7 @@ template<typename R, typename E, typename P> struct UI final {
         explicit ComboBox(ItemContainer items) noexcept :
             items{items} {}
 
-        explicit ComboBox(Page &root, ItemContainer items) :
+        explicit ComboBox(P &root, ItemContainer items) :
             Widget{root}, items{items} {}
 
         /// @brief Change selection based on direction
@@ -175,7 +172,7 @@ template<typename R, typename E, typename P> struct UI final {
         }
 
         /// @brief Render current selection
-        void doRender(RenderImpl &render) const noexcept override {
+        void doRender(R &render) const noexcept override {
             render.beginAltBlock();
             render.value(items[cursor].key());
             render.endAltBlock();
@@ -195,14 +192,14 @@ template<typename R, typename E, typename P> struct UI final {
         const T &value;///< Reference to value to display
 
     public:
-        explicit Display(Page &root, const T &val) :
+        explicit Display(P &root, const T &val) :
             Widget{root}, value{val} {}
 
         explicit Display(const T &val) noexcept :
             value{val} {}
 
         /// @brief Render value with appropriate formatting
-        void doRender(RenderImpl &render) const noexcept override {
+        void doRender(R &render) const noexcept override {
             render.value(value);
         }
     };
@@ -220,7 +217,7 @@ template<typename R, typename E, typename P> struct UI final {
     public:
         W wrapped;///< Wrapped widget instance
 
-        explicit Labeled(Page &root, StringView label, W impl) :
+        explicit Labeled(P &root, StringView label, W impl) :
             Widget{root}, label{label}, wrapped{std::move(impl)} {}
 
         /// @brief Forward click event to wrapped widget
@@ -232,7 +229,7 @@ template<typename R, typename E, typename P> struct UI final {
         [[nodiscard]] bool onValue(EventValue value) noexcept override { return wrapped.onValue(value); }
 
         /// @brief Render label followed by wrapped widget
-        void doRender(RenderImpl &render) const noexcept override {
+        void doRender(R &render) const noexcept override {
             render.value(label);
             render.colon();
             wrapped.doRender(render);
@@ -260,7 +257,7 @@ template<typename R, typename E, typename P> struct UI final {
             value_{default_value}, step{step} {}
 
         explicit SpinBox(
-            Page &root,
+            P &root,
             T default_value = T{},
             T step = StepAdjusterType::default_step) :
             Widget{root}, value_{default_value}, step{step} {}
@@ -292,7 +289,7 @@ template<typename R, typename E, typename P> struct UI final {
         }
 
         /// @brief Render current value or step size based on mode
-        void doRender(RenderImpl &render) const noexcept override {
+        void doRender(R &render) const noexcept override {
             render.beginAltBlock();
 
             if (is_step_setting_mode) {
