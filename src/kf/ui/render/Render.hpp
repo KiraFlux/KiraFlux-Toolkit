@@ -44,6 +44,11 @@ template<typename Impl> struct Render {
     /// @brief Render checkbox
     void checkbox(bool enabled) noexcept { impl().checkboxImpl(enabled); }
 
+    /// @brief Render slider
+    template<typename T> void slider(T value, T min_value, T max_value, bool show_numeric_value) noexcept {
+        impl().spliderImpl(value, min_value, max_value, show_numeric_value);
+    }
+
     /// @brief Render value
     /// @param value Value to display
     template<typename T> void value(T value) noexcept { impl().valueImpl(value); }

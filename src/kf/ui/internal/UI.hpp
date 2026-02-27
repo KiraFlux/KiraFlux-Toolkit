@@ -15,6 +15,7 @@
 #include "kf/ui/internal/StepAdjuster.hpp"
 #include "kf/ui/internal/StepMode.hpp"
 #include "kf/ui/internal/ValueAdjuster.hpp"
+#include "kf/ui/internal/ValueLimits.hpp"
 
 namespace kf::ui::internal {
 
@@ -301,6 +302,58 @@ template<typename R, typename Ev, typename P> struct UI final {
             }
 
             render.endAltBlock();
+        }
+    };
+
+    template<typename T> struct Slider final : Widget, HasChangeHandler<T> {
+        using ValueType = T;
+
+    private:
+        T _value;
+        T _step;
+
+    public:
+        T min_value{ValueLimits<T>::min_value};
+        T max_value{ValueLimits<T>::max_value};
+        bool show_numeric{false};
+
+        explicit Slider(
+            T default_value = T{},
+            T step = StepAdjuster<T>::default_step) noexcept :
+            _value{default_value}, _step{step} {}
+
+        explicit Slider(
+            P &root,
+            T default_value = T{},
+            T step = StepAdjuster<T>::default_step) :
+            Widget{root}, _value{default_value}, _step{step} {}
+
+        void value(T new_value) noexcept {
+            new_value = kf::clamp(new_value, min_value, max_value);
+            if (_value != new_value) {
+                _value = new_value;
+                HasChangeHandler<T>::invokeHandler(_value);
+            }
+        }
+
+        [[nodiscard]] T value() const noexcept { return _value; }
+
+        /// @brief Toggle slider numeric value display
+        [[nodiscard]] bool onClick() noexcept override {
+            show_numeric = not show_numeric;
+            return true;// redraw required after mode change
+        }
+
+        /// @brief Adjust value
+        [[nodiscard]] bool onValue(Ev delta) noexcept override {
+            ValueAdjuster<T, StepMode::Arithmetic>::adjust(_value, _step, delta);
+            _value = kf::clamp(_value, min_value, max_value);
+            HasChangeHandler<T>::invokeHandler(_value);
+            return true;// redraw required after adjustment
+        }
+
+        void doRender(R &render) const noexcept override {
+            render.slider(_value, min_value, max_value, show_numeric);
         }
     };
 };

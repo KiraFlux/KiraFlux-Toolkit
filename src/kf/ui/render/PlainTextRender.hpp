@@ -140,6 +140,13 @@ private:
         writeString(enabled ? on : off);
     }
 
+    template<typename T> void sliderImpl(T value, T min_value, T max_value, bool show_numeric_value) noexcept {
+        writeString("SLIDER:");
+        if (show_numeric_value) {
+            value(value);
+        }
+    }
+
     // Value rendering implementations
     void valueImpl(StringView str) noexcept { writeString(str); }
 
