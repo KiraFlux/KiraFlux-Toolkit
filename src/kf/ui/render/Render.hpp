@@ -33,7 +33,7 @@ template<typename Impl> struct Render {
 
     /// @brief Get remaining widget rendering capacity
     /// @return Number of widgets that can still be rendered in current frame
-    [[nodiscard]] usize widgetsAvailable() noexcept { return impl().widgetsAvailableImpl(); }
+    [[nodiscard]] usize widgetsAvailable() const noexcept { return c_impl().widgetsAvailableImpl(); }
 
     // Value rendering
 
@@ -78,6 +78,8 @@ private:
     /// @brief Get reference to derived implementation
     /// @return Reference to concrete renderer instance
     inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
+
+    inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
 }// namespace kf::ui
