@@ -116,9 +116,11 @@ template<typename R, typename Ev, typename P> struct UI final {
         explicit CheckBox(P &root, bool default_state = false) :
             Widget{root}, state_{default_state} {}
 
-        void setState(bool state) noexcept {
-            state_ = state;
-            HasChangeHandler<bool>::invokeHandler(state_);
+        void setState(bool new_state) noexcept {
+            if (new_state != state_) {
+                state_ = new_state;
+                HasChangeHandler<bool>::invokeHandler(state_);
+            }
         }
 
         [[nodiscard]] bool state() const noexcept {
