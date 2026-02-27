@@ -6,7 +6,7 @@
 
 // UI specialisation
 using MyUI = kf::UI<
-    kf::ui::PlainTextRender<256>,// Render implementation: colored, textual, buffered (256 Bytes)
+    kf::ui::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes)
     kf::ui::Event<4>             // Event type: 4-bit value
     >;
 
@@ -123,9 +123,9 @@ void setup() {
     MyUI::RenderConfig &config = ui.renderConfig();
 
     // post-render procedure
-    config.on_render_finish = [](kf::StringView sv) {
+    config.on_render_finish = [](kf::StringView text) {
         Serial.println("---");
-        Serial.print(sv.data());
+        Serial.print(text.data());
         Serial.println("---");
     };
 
