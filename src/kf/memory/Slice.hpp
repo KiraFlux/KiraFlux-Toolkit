@@ -111,6 +111,10 @@ public:
     [[nodiscard]] Slice fromOffset(usize offset) const noexcept {
         return sub(offset, _size - offset);
     }
+
+    constexpr operator Slice<const T>() const noexcept {
+        return Slice<const T>{_ptr, _size};
+    }
 };
 
 }// namespace kf
