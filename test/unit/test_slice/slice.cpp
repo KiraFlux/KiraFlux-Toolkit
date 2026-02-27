@@ -153,6 +153,38 @@ void from_offset() {
 }
 }// namespace sub_slice
 
+namespace conversion {
+void to_const() {
+    int data[] = {1, 2, 3};
+    Slice<int> s{data, 3};
+    Slice<const int> cs = s;
+    TEST_ASSERT_EQUAL_PTR(s.data(), cs.data());
+    TEST_ASSERT_EQUAL(s.size(), cs.size());
+    TEST_ASSERT_EQUAL(1, cs[0]);
+    TEST_ASSERT_EQUAL(2, cs[1]);
+    TEST_ASSERT_EQUAL(3, cs[2]);
+}
+
+void empty_to_const() {
+    Slice<int> s{};
+    Slice<const int> cs = s;
+    TEST_ASSERT_NULL(cs.data());
+    TEST_ASSERT_EQUAL(0, cs.size());
+    TEST_ASSERT_TRUE(cs.empty());
+}
+
+void const_slice_from_const_ptr() {
+    const int data[] = {4, 5, 6};
+    Slice<const int> s{data, 3};
+    Slice<const int> cs = s;
+    TEST_ASSERT_EQUAL_PTR(s.data(), cs.data());
+    TEST_ASSERT_EQUAL(s.size(), cs.size());
+    TEST_ASSERT_EQUAL(4, cs[0]);
+    TEST_ASSERT_EQUAL(5, cs[1]);
+    TEST_ASSERT_EQUAL(6, cs[2]);
+}
+}// namespace conversion
+
 namespace misc {
 void empty() {
     int data[] = {1, 2, 3};
@@ -213,6 +245,10 @@ int main() {
     RUN_TEST(sub_slice::first);
     RUN_TEST(sub_slice::last);
     RUN_TEST(sub_slice::from_offset);
+
+    RUN_TEST(conversion::to_const);
+    RUN_TEST(conversion::empty_to_const);
+    RUN_TEST(conversion::const_slice_from_const_ptr);
 
     RUN_TEST(misc::empty);
     RUN_TEST(misc::copy_assign);
