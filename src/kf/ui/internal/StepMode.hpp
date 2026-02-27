@@ -3,8 +3,7 @@
 
 #pragma once
 
-namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
-namespace ui {// NOLINT(*-concat-nested-namespaces)
+namespace kf::ui::internal {
 
 enum class StepMode : char {
     Arithmetic,            ///< Add/subtract step value
@@ -12,5 +11,4 @@ enum class StepMode : char {
     Geometric              ///< Multiply/divide by step value
 };
 
-}
-}// namespace kf
+}// namespace kf::ui::internal

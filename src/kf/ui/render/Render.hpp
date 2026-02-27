@@ -6,10 +6,7 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/StringView.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
-
-/// @brief External UI components namespace
-namespace ui {
+namespace kf::ui {
 
 /// @brief CRTP base class for UI rendering systems
 /// @tparam Impl Concrete renderer implementation type
@@ -36,7 +33,7 @@ template<typename Impl> struct Render {
 
     /// @brief Get remaining widget rendering capacity
     /// @return Number of widgets that can still be rendered in current frame
-    [[nodiscard]] usize widgetsAvailable() noexcept { return impl().widgetsAvailableImpl(); }
+    [[nodiscard]] usize widgetsAvailable() const noexcept { return c_impl().widgetsAvailableImpl(); }
 
     // Value rendering
 
@@ -46,6 +43,11 @@ template<typename Impl> struct Render {
 
     /// @brief Render checkbox
     void checkbox(bool enabled) noexcept { impl().checkboxImpl(enabled); }
+
+    /// @brief Render slider
+    template<typename T> void slider(T value, T min_value, T max_value, bool show_numeric_value) noexcept {
+        impl().spliderImpl(value, min_value, max_value, show_numeric_value);
+    }
 
     /// @brief Render value
     /// @param value Value to display
@@ -81,7 +83,8 @@ private:
     /// @brief Get reference to derived implementation
     /// @return Reference to concrete renderer instance
     inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
+
+    inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
-}// namespace ui
-}// namespace kf
+}// namespace kf::ui

@@ -5,11 +5,7 @@
 
 #include "kf/memory/StringView.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
-namespace ui {// NOLINT(*-concat-nested-namespaces)
-
-/// kf::ui detail
-namespace detail {// NOLINT(*-concat-nested-namespaces)
+namespace kf::ui::internal {
 
 template<typename T> struct ComboBoxItem {
 
@@ -40,6 +36,4 @@ public:
         key_{str} {}
 };
 
-}// namespace detail
-}// namespace ui
-}// namespace kf
+}// namespace kf::ui::internal

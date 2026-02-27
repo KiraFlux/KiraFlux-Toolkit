@@ -3,22 +3,20 @@
 
 #pragma once
 
-#include <cmath>
-
 #include "kf/Function.hpp"
+#include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/ui/Render.hpp"
+#include "kf/ui/render/Render.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces) // for c++11 capability
-namespace ui {
+namespace kf::ui {
 
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
 /// @note Implements Render CRTP interface for character-based display
-template<usize N> struct TextBufferRender : Render<TextBufferRender<N>> {
-    friend struct Render<TextBufferRender<N>>;
+template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
+    friend struct Render<PlainTextRender<N>>;
 
     using Glyph = u8;///< Text interface measurement unit in glyphs
 
@@ -35,10 +33,10 @@ template<usize N> struct TextBufferRender : Render<TextBufferRender<N>> {
         Config(const Config &) = delete;
     };
 
-    Config config{};        ///< Current renderer configuration
-    ArrayString<N> buffer{};///< Output buffer for rendered text
-
 private:
+    ArrayString<N> buffer{};///< Output buffer for rendered text
+    Config config{};        ///< Current renderer configuration
+
     /// @brief Cursor state for tracking rendering position
     struct Cursor {
         Glyph row{0};        ///< Current row position
@@ -69,38 +67,23 @@ private:
         }
     } cursor;
 
+public:
+    Config &getConfig() { return config; }
+
     /// @brief Helper to write character with cursor tracking
     /// @param ch Character to write
     void writeChar(char ch) noexcept {
-        if (buffer.full()) { return; }
-        if (cursor.row >= config.rows_total) { return; }
+        if (buffer.full() or cursor.row >= config.rows_total) { return; }
 
-        switch (ch) {
-            case '\n':
-                cursor.newline();
-                break;
-
-            case '\x81':// Start contrast
-                cursor.contrast = true;
-                break;
-
-            case '\x80':// End contrast
-                cursor.contrast = false;
-                break;
-
-            default:
-                if (not cursor.canWrite(config.row_max_length)) {
-                    // If row is full, and we're in contrast mode, exit it
-                    if (cursor.contrast) {
-                        (void) buffer.push('\x80');
-                        cursor.contrast = false;
-                    }
-                    return;
-                }
-                cursor.advance(1, config.row_max_length);
-                break;
+        if (ch == '\n') {
+            cursor.newline();
+            (void) buffer.push(ch);
+            return;
         }
 
+        if (not cursor.canWrite(config.row_max_length)) { return; }
+
+        cursor.advance(1, config.row_max_length);
         (void) buffer.push(ch);
     }
 
@@ -117,6 +100,7 @@ private:
         writeString(temp.view());
     }
 
+private:
     // Render Interface Implementation
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
@@ -140,8 +124,6 @@ private:
     }
 
     void titleImpl(StringView title) noexcept {
-        writeChar('\xF0');
-        writeChar('\xBC');
         if (config.title_centered) {
             const auto spaces = kf::max(0, (int(config.row_max_length) - int(title.size())) / 2);
             for (int i = 0; i < spaces; i += 1) {
@@ -150,22 +132,27 @@ private:
         }
         writeString(title);
         writeChar('\n');
-        writeChar('\x80');
     }
 
     void checkboxImpl(bool enabled) noexcept {
-        constexpr StringView on{"==\xB2( 1 )\x80"};
-        constexpr StringView off{"\xB1( 0 )\x80--"};
+        constexpr StringView on{"==( 1 )"};
+        constexpr StringView off{"( 0 )--"};
         writeString(enabled ? on : off);
+    }
+
+    template<typename T> void sliderImpl(T value, T min_value, T max_value, bool show_numeric_value) noexcept {
+        writeString("SLIDER:");
+        if (show_numeric_value) {
+            value(value);
+        }
     }
 
     // Value rendering implementations
     void valueImpl(StringView str) noexcept { writeString(str); }
 
     void valueImpl(bool value) noexcept {
-        constexpr StringView _true{"\xF2true\x80"};
-        constexpr StringView _false{"\xF1"
-                                    "false\x80"};
+        constexpr StringView _true{"true"};
+        constexpr StringView _false{"false"};
         writeString(value ? _true : _false);
     }
 
@@ -189,9 +176,9 @@ private:
 
     void colonImpl() noexcept { writeString(": "); }
 
-    void beginFocusedImpl() noexcept { writeChar('\x81'); }
+    void beginFocusedImpl() noexcept { writeString("* "); }
 
-    void endFocusedImpl() noexcept { writeChar('\x80'); }
+    void endFocusedImpl() noexcept {}
 
     void beginBlockImpl() noexcept { writeChar('['); }
 
@@ -201,10 +188,9 @@ private:
 
     void endAltBlockImpl() noexcept { writeChar('>'); }
 
-    void beginWidgetImpl(usize) noexcept {}// No-op for text renderer
+    void beginWidgetImpl(usize) noexcept {}
 
     void endWidgetImpl() noexcept { writeChar('\n'); }
 };
 
-}// namespace ui
-}// namespace kf
+}// namespace kf::ui
