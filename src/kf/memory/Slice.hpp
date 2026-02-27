@@ -13,62 +13,62 @@ namespace kf {
 template<typename T> struct Slice {
 
 private:
-    T *ptr_;    ///< Pointer to the first element
-    usize size_;///< Number of elements in the slice
+    T *_ptr;    ///< Pointer to the first element
+    usize _size;///< Number of elements in the slice
 
 public:
     /// @brief Default constructor (empty slice)
     constexpr Slice() noexcept :
-        ptr_{nullptr}, size_{0} {}
+        _ptr{nullptr}, _size{0} {}
 
     /// @brief Construct slice from pointer and size
     /// @param ptr Pointer to first element
     /// @param size Number of elements
     constexpr Slice(T *ptr, usize size) noexcept :
-        ptr_{ptr}, size_{size} {}
+        _ptr{ptr}, _size{size} {}
 
     /// @brief Array constructor
     /// @tparam N auto-deducted array length
-    template<usize N> constexpr Slice(T (&arr)[N]) noexcept : ptr_{arr}, size_{N} {}
+    template<usize N> constexpr Slice(T (&arr)[N]) noexcept : _ptr{arr}, _size{N} {}
 
     /// @brief Get iterator to beginning
     /// @return Iterator to first element
-    [[nodiscard]] constexpr T *begin() noexcept { return ptr_; }
+    [[nodiscard]] constexpr T *begin() noexcept { return _ptr; }
 
     /// @brief Get iterator to end
     /// @return Iterator to position after last element
-    [[nodiscard]] constexpr T *end() noexcept { return ptr_ + size_; }
+    [[nodiscard]] constexpr T *end() noexcept { return _ptr + _size; }
 
     /// @brief Get const iterator to beginning
     /// @return Const iterator to first element
-    [[nodiscard]] constexpr const T *begin() const noexcept { return ptr_; }
+    [[nodiscard]] constexpr const T *begin() const noexcept { return _ptr; }
 
     /// @brief Get const iterator to end
     /// @return Const iterator to position after last element
-    [[nodiscard]] constexpr const T *end() const noexcept { return ptr_ + size_; }
+    [[nodiscard]] constexpr const T *end() const noexcept { return _ptr + _size; }
 
     /// @brief Get pointer to underlying data
     /// @return Pointer to first element
-    [[nodiscard]] constexpr T *data() noexcept { return ptr_; }
+    [[nodiscard]] constexpr T *data() noexcept { return _ptr; }
 
     /// @brief Get const pointer to underlying data
     /// @return Const pointer to first element
-    [[nodiscard]] constexpr const T *data() const noexcept { return ptr_; }
+    [[nodiscard]] constexpr const T *data() const noexcept { return _ptr; }
 
     /// @brief Get number of elements in slice
     /// @return Size of slice in elements
-    [[nodiscard]] constexpr usize size() const noexcept { return size_; }
+    [[nodiscard]] constexpr usize size() const noexcept { return _size; }
 
     /// @brief Check if slice is empty
     /// @return true if slice contains no elements
-    [[nodiscard]] constexpr bool empty() const noexcept { return size_ == 0; }
+    [[nodiscard]] constexpr bool empty() const noexcept { return _size == 0; }
 
     /// @brief Access element at index without bounds checking
     /// @param index Element position (0-based)
     /// @return Reference to element at index
     /// @warning No bounds checking performed
     [[nodiscard]] T &operator[](usize index) noexcept {
-        return ptr_[index];
+        return _ptr[index];
     }
 
     /// @brief Access element at index without bounds checking (const version)
@@ -76,7 +76,7 @@ public:
     /// @return Const reference to element at index
     /// @warning No bounds checking performed
     [[nodiscard]] const T &operator[](usize index) const noexcept {
-        return ptr_[index];
+        return _ptr[index];
     }
 
     /// @brief Create sub-slice starting at offset
@@ -85,7 +85,7 @@ public:
     /// @return Slice covering specified range
     /// @note No bounds checking - caller must ensure valid range
     [[nodiscard]] Slice sub(usize offset, usize count) const noexcept {
-        return Slice(ptr_ + offset, count);
+        return Slice(_ptr + offset, count);
     }
 
     /// @brief Get first N elements of slice
@@ -101,7 +101,7 @@ public:
     /// @return Slice containing last n elements
     /// @note No bounds checking - caller must ensure n <= size()
     [[nodiscard]] Slice last(usize n) const noexcept {
-        return sub(size_ - n, n);
+        return sub(_size - n, n);
     }
 
     /// @brief Get slice starting from offset to end
@@ -109,7 +109,7 @@ public:
     /// @return Slice from offset to end of original slice
     /// @note No bounds checking - caller must ensure offset <= size()
     [[nodiscard]] Slice fromOffset(usize offset) const noexcept {
-        return sub(offset, size_ - offset);
+        return sub(offset, _size - offset);
     }
 };
 
