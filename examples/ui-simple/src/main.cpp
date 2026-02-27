@@ -1,13 +1,13 @@
 #include <Arduino.h>
 
 #include <kf/ui/Event.hpp>
-#include <kf/ui/render/PlainTextRender.hpp>
 #include <kf/ui/UI.hpp>
+#include <kf/ui/render/PlainTextRender.hpp>
 
 // UI specialisation
 using MyUI = kf::UI<
     kf::ui::PlainTextRender<256>,// Render implementation: colored, textual, buffered (256 Bytes)
-    kf::ui::Event<4>              // Event type: 4-bit value
+    kf::ui::Event<4>             // Event type: 4-bit value
     >;
 
 // User-defined page examples
@@ -105,8 +105,8 @@ struct SettingsPage : MyUI::Page {
 // Simple function for convertion from char to event
 MyUI::Event eventFromChar(char c) {
     switch (c) {
-        case 'w': return MyUI::Event::pageCursorMove(1); // Up
-        case 's': return MyUI::Event::pageCursorMove(-1);// Down
+        case 'w': return MyUI::Event::pageCursorMove(-1);// Up
+        case 's': return MyUI::Event::pageCursorMove(+1);// Down
         case 'a': return MyUI::Event::widgetValue(-1);   // Left
         case 'd': return MyUI::Event::widgetValue(1);    // Right
         case ' ': return MyUI::Event::widgetClick();     // Click
@@ -124,7 +124,9 @@ void setup() {
 
     // post-render procedure
     config.on_render_finish = [](kf::StringView sv) {
+        Serial.println("---");
         Serial.print(sv.data());
+        Serial.println("---");
     };
 
     // misc
