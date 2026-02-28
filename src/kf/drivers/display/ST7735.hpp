@@ -83,7 +83,7 @@ public:
         const u8 color_mode{0x05};// 16-bit color (RGB565)
         sendData(&color_mode, sizeof(color_mode));
 
-        setOrientation(settings.orientation);
+        orientation(settings.orientation);
 
         sendCommand(Command::DISPON);
         delay(100);

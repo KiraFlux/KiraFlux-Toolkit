@@ -40,7 +40,7 @@ public:
     void send() const noexcept { static_cast<const Impl *>(this)->sendImpl(); }
 
     /// @brief Set display orientation
-    void setOrientation(Orientation orientation) noexcept { static_cast<Impl *>(this)->setOrientationImpl(orientation); }
+    void orientation(Orientation new_orientation) noexcept { static_cast<Impl *>(this)->setOrientationImpl(new_orientation); }
 
 protected:
     [[nodiscard]] constexpr usize imageBufferSizeBytes() const noexcept {

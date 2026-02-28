@@ -106,7 +106,7 @@ void setup() {
              kf::ST7735::Orientation::ClockWise,
              kf::ST7735::Orientation::CounterClockWise,
          }) {
-        display.setOrientation(o);// change hardware orientation
+        display.orientation(o);// change hardware orientation
         demo(display, orient_names[static_cast<int>(o)]);
     }
 
