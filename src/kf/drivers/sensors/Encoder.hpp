@@ -8,10 +8,6 @@
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 
-
-/// @brief Primary phase interrupt handler for rotary encoder
-static void IRAM_ATTR encoderInterruptHandler(void *);
-
 namespace kf {
 
 /// @brief Two-phase incremental rotary encoder with position tracking
@@ -27,12 +23,12 @@ struct Encoder {
 
         /// @brief Convert ticks to millimeters
         [[nodiscard]] constexpr Millimeters toMillimeters(Ticks ticks) const noexcept {
-            return Millimeters(ticks) / ticks_in_one_mm;
+            return Millimeters{ticks} / ticks_in_one_mm;
         }
 
         /// @brief Convert millimeters to ticks
         [[nodiscard]] constexpr Ticks toTicks(Millimeters mm) const noexcept {
-            return Ticks(mm * ticks_in_one_mm);
+            return Ticks{mm * ticks_in_one_mm};
         }
 
         /// @brief Validate conversion settings
@@ -57,12 +53,14 @@ struct Encoder {
 
     const PinsSettings &pins;            ///< Pin configuration reference
     const ConversionSettings &conversion;///< Unit conversion settings
-    Ticks position{0};                   ///< Current position in ticks
 
+private:
+    volatile Ticks _position{0};///< Current position in ticks
+
+public:
     explicit Encoder(
         const PinsSettings &pins_settings,
-        const ConversionSettings &conversion_settings
-    ) noexcept:
+        const ConversionSettings &conversion_settings) noexcept :
         pins{pins_settings}, conversion{conversion_settings} {}
 
     /// @brief Initialize encoder GPIO pins
@@ -77,7 +75,7 @@ struct Encoder {
     void enable() {
         attachInterruptArg(
             pins.phase_a,
-            encoderInterruptHandler,
+            interruptHandler,
             static_cast<void *>(this),
             static_cast<int>(pins.edge));
     }
@@ -88,39 +86,36 @@ struct Encoder {
     }
 
     /// @brief Get current position in ticks
-    /// @return Encoder position in ticks
-    [[nodiscard]] inline Ticks getPositionTicks() const noexcept {
-        return position;
+    [[nodiscard]] Ticks position() const noexcept {
+        return _position;
     }
 
     /// @brief Set position in ticks
-    /// @param new_position New tick count
-    void setPositionTicks(Ticks new_position) noexcept {
-        position = new_position;
+    void position(Ticks new_position) noexcept {
+        _position = new_position;
     }
 
     /// @brief Get current position in millimeters
-    /// @return Encoder position in millimeters
-    [[nodiscard]] inline Millimeters getPositionMillimeters() const noexcept {
-        return conversion.toMillimeters(position);
+    [[nodiscard]] Millimeters positionMillimeters() const noexcept {
+        return conversion.toMillimeters(_position);
     }
 
     /// @brief Set position in millimeters
-    /// @param new_position New position in millimeters
-    void setPositionMillimeters(Millimeters new_position) noexcept {
-        position = conversion.toTicks(new_position);
+    void positionMillimeters(Millimeters new_position) noexcept {
+        _position = conversion.toTicks(new_position);
+    }
+
+private:
+    /// @brief Primary phase interrupt handler for rotary encoder
+    IRAM_ATTR static void interruptHandler(void *instance) noexcept {
+        auto &encoder = *static_cast<Encoder *>(instance);
+
+        if (digitalRead(encoder.pins.phase_b)) {
+            encoder._position += 1;
+        } else {
+            encoder._position -= 1;
+        }
     }
 };
 
 }// namespace kf
-
-/// @brief Interrupt handler for rotary encoder
-void encoderInterruptHandler(void *instance) noexcept {
-    auto &encoder = *static_cast<kf::Encoder *>(instance);
-
-    if (digitalRead(encoder.pins.phase_b)) {
-        encoder.position += 1;
-    } else {
-        encoder.position -= 1;
-    }
-}
