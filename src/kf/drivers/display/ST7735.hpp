@@ -109,7 +109,7 @@ public:
 
         const u8 madctl = madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
 
-        screen_image.setTransposed((madctl & MadCtl::MirrorTranspose) != 0);
+        screen_image.transposed((madctl & MadCtl::MirrorTranspose) != 0);
 
         sendCommand(Command::MADCTL);
         sendData(&madctl, sizeof(madctl));
