@@ -6,8 +6,7 @@
 #include "kf/algorithm.hpp"
 #include "kf/pixel/Pixel.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces)
-namespace pixel {
+namespace kf::pixel {
 
 /// @brief 1-bit monochrome format (1 bit per pixel)
 struct MonochromePixel final : Pixel<MonochromePixel, u8, bool, 1> {
@@ -149,5 +148,4 @@ private:
     }
 };
 
-}// namespace pixel
-}// namespace kf
+}// namespace kf::pixel
