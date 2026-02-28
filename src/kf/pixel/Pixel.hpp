@@ -6,8 +6,7 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/Slice.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces) //c++11 capability
-namespace pixel {
+namespace kf::pixel {
 
 template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel {
     // types
@@ -109,5 +108,4 @@ protected:
     using Base = Pixel;
 };
 
-}// namespace pixel
-}// namespace kf
+}// namespace kf::pixel

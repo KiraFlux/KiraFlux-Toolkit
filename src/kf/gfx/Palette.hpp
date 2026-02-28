@@ -5,8 +5,7 @@
 
 #include "kf/pixel/Pixel.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces)
-namespace gfx {
+namespace kf::gfx {
 
 template<typename F> struct Palette final {
     using PixelImpl = F;
@@ -59,5 +58,4 @@ public:
     }
 };
 
-}// namespace gfx
-}// namespace kf
+}// namespace kf::gfx

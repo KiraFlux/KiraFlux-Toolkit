@@ -7,8 +7,7 @@
 #include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces)
-namespace image {
+namespace kf::image {
 
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam P Pixel implementation
@@ -148,5 +147,4 @@ private:
     [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept { return _buffer; }
 };
 
-}// namespace image
-}// namespace kf
+}// namespace kf::image
