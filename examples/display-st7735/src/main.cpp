@@ -31,42 +31,42 @@ void demo(kf::ST7735 &display, const char *orientation_name) {
     // Wrap the display's framebuffer (ViewportImage) into a Canvas.
     // display.image() returns a ViewportImage that automatically handles orientation.
     kf::gfx::Canvas<P> canvas{kf::image::DynamicImage<P>{display.image()}};
-    canvas.setFont(kf::gfx::fonts::gyver_5x7_en);
+    canvas.font(kf::gfx::fonts::gyver_5x7_en);
 
     const auto step_time_ms{1000};
 
     // --- Fill screen with solid colors ---
-    canvas.setBackground(red);
+    canvas.background(red);
     canvas.fill();
     display.send();// transfer framebuffer to hardware
     delay(step_time_ms);
 
-    canvas.setBackground(green);
+    canvas.background(green);
     canvas.fill();
     display.send();
     delay(step_time_ms);
 
-    canvas.setBackground(blue);
+    canvas.background(blue);
     canvas.fill();
     display.send();
     delay(step_time_ms);
 
     // --- Draw diagonal lines ---
-    canvas.setBackground(white);
+    canvas.background(white);
     canvas.fill();
     for (int i = 0; i < canvas.width(); i += 10) {
-        canvas.setForeground(red);
+        canvas.foreground(red);
         canvas.line(0, 0, i, canvas.maxY());
-        canvas.setForeground(blue);
+        canvas.foreground(blue);
         canvas.line(canvas.maxX(), 0, canvas.maxX() - i, canvas.maxY());
     }
     display.send();
     delay(2 * step_time_ms);
 
     // --- Show current orientation name ---
-    canvas.setBackground(black);
+    canvas.background(black);
     canvas.fill();
-    canvas.setForeground(white);
+    canvas.foreground(white);
     canvas.text(10, 10, orientation_name);
     display.send();
     delay(2 * step_time_ms);
@@ -106,7 +106,7 @@ void setup() {
              kf::ST7735::Orientation::ClockWise,
              kf::ST7735::Orientation::CounterClockWise,
          }) {
-        display.setOrientation(o);// change hardware orientation
+        display.orientation(o);// change hardware orientation
         demo(display, orient_names[static_cast<int>(o)]);
     }
 

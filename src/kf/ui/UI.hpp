@@ -63,55 +63,55 @@ public:
     template<typename T, StepMode M> using SpinBox = typename InternalUI::template SpinBox<T, M>;
 
 private:
-    Queue<Event> events{};     ///< Event queue for pending UI events
-    Page *active_page{nullptr};///< Currently active page for rendering
-    RenderImpl render_system{};///< Renderer implementation instance
+    Queue<Event> _events{};     ///< Event queue for pending UI events
+    Page *_active_page{nullptr};///< Currently active page for rendering
+    RenderImpl _render_system{};///< Renderer implementation instance
 
 public:
     /// @brief Access renderer configuration settings
     /// @return Reference to renderer settings structure
-    [[nodiscard]] RenderConfig &renderConfig() noexcept { return render_system.getConfig(); }
+    [[nodiscard]] RenderConfig &renderConfig() noexcept { return _render_system.getConfig(); }
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
     void bindPage(Page &page) noexcept {
-        if (nullptr != active_page) {
-            active_page->onExit();
+        if (nullptr != _active_page) {
+            _active_page->onExit();
         }
 
-        active_page = &page;
-        active_page->onEntry();
+        _active_page = &page;
+        _active_page->onEntry();
     }
 
     /// @brief Add event to processing queue
     void addEvent(Event event) {
-        events.push(event);
+        _events.push(event);
     }
 
     /// @brief Process active page update, pending events and render if needed
     /// @note Must be called regularly (e.g., in main loop)
     void poll(Milliseconds now) noexcept {
-        if (nullptr == active_page) { return; }
+        if (nullptr == _active_page) { return; }
 
-        active_page->onUpdate(now);
+        _active_page->onUpdate(now);
 
-        if (events.empty()) { return; }
+        if (_events.empty()) { return; }
 
         constexpr usize max_events_per_poll{20};
         usize events_processed{0};
 
         bool render_required{false};
 
-        while (not events.empty() and events_processed < max_events_per_poll) {
-            render_required |= active_page->onEvent(events.front());
+        while (not _events.empty() and events_processed < max_events_per_poll) {
+            render_required |= _active_page->onEvent(_events.front());
             events_processed += 1;
-            events.pop();
+            _events.pop();
         }
 
         if (render_required) {
-            render_system.prepare();
-            active_page->render(render_system);
-            render_system.finish();
+            _render_system.prepare();
+            _active_page->render(_render_system);
+            _render_system.finish();
         }
     }
 
@@ -120,21 +120,21 @@ private:
     /// @note Internal use only - use Page::link() for page navigation
     struct PageSetter final : Widget {
     private:
-        Page &target;///< Target page for navigation
+        Page &_target;///< Target page for navigation
 
     public:
         explicit PageSetter(Page &target) noexcept :
-            target{target} {}
+            _target{target} {}
 
         /// @brief Set target page as active on click
         [[nodiscard]] bool onClick() noexcept override {
-            UI::instance().bindPage(target);
+            UI::instance().bindPage(_target);
             return true;// redraw always required after page change
         }
 
         void doRender(RenderImpl &render) const noexcept override {
             render.arrow();
-            render.value(target.title());
+            render.value(_target.title());
         }
     };
 
@@ -142,14 +142,14 @@ public:
     /// @brief UI page containing widgets and title
     struct Page {
     private:
-        ArrayList<Widget *> widgets{};///< List of widgets on this page
-        PageSetter to_this{*this};    ///< Navigation widget to this page
-        usize cursor{0};              ///< Current widget cursor position (focused widget index)
-        StringView title_;            ///< Page title displayed in header
+        ArrayList<Widget *> _widgets{};///< List of widgets on this page
+        PageSetter _to_this{*this};    ///< Navigation widget to this page
+        usize _cursor{0};              ///< Current widget cursor position (focused widget index)
+        StringView _title;             ///< Page title displayed in header
 
     public:
         explicit Page(StringView title) :
-            title_{title} {}
+            _title{title} {}
 
         /// @brief Page behavior on entry
         virtual void onEntry() noexcept {}
@@ -163,28 +163,28 @@ public:
         /// @brief Add widget to this page
         /// @param widget Widget to add (must remain valid for page lifetime)
         void addWidget(Widget &widget) {
-            widgets.push_back(&widget);
+            _widgets.push_back(&widget);
         }
 
         /// @brief Create bidirectional navigation link between pages
         /// @param other Page to link with (adds navigation widgets to both pages)
         void link(Page &other) {
-            this->addWidget(other.to_this);
-            other.addWidget(this->to_this);
+            this->addWidget(other._to_this);
+            other.addWidget(this->_to_this);
         }
 
         /// @brief Render page content to display
         /// @note Handles cursor positioning and widget focus
         void render(RenderImpl &render) noexcept {
-            render.title(title_);
+            render.title(_title);
 
             const auto available = render.widgetsAvailable();
-            const auto start = (widgetsTotal() > available) ? kf::min(cursor, widgetsTotal() - available) : 0;
+            const auto start = (widgetsTotal() > available) ? kf::min(_cursor, widgetsTotal() - available) : 0;
             const auto end = kf::min(start + available, widgetsTotal());
 
             for (auto i = start; i < end; i += 1) {
                 render.beginWidget(i);
-                widgets[i]->render(render, i == cursor);
+                _widgets[i]->render(render, i == _cursor);
                 render.endWidget();
             }
         }
@@ -201,12 +201,12 @@ public:
                 }
                 case Event::Type::WidgetClick: {
                     if (widgetsTotal() > 0) {
-                        return widgets[cursor]->onClick();
+                        return _widgets[_cursor]->onClick();
                     }
                 }
                 case Event::Type::WidgetValueChange: {
                     if (widgetsTotal() > 0) {
-                        return widgets[cursor]->onValue(event.value());
+                        return _widgets[_cursor]->onEventValue(event.value());
                     }
                 }
             }
@@ -214,10 +214,10 @@ public:
         }
 
         /// @brief Get total widget count on page
-        [[nodiscard]] usize widgetsTotal() const noexcept { return widgets.size(); }
+        [[nodiscard]] usize widgetsTotal() const noexcept { return _widgets.size(); }
 
         /// @brief Get page title
-        [[nodiscard]] StringView title() const noexcept { return title_; }
+        [[nodiscard]] StringView title() const noexcept { return _title; }
 
     private:
         /// @brief Move cursor within page bounds
@@ -226,7 +226,7 @@ public:
         [[nodiscard]] bool moveCursor(isize delta) noexcept {
             const auto n = widgetsTotal();
             if (n > 1) {
-                cursor = (cursor + delta + n) % n;
+                _cursor = (_cursor + delta + n) % n;
                 return true;
             } else {
                 return false;

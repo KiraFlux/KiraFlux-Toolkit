@@ -16,32 +16,31 @@ template<typename F, usize W, usize H> struct ViewportImage final : Image<Viewpo
     using ColorType = typename F::ColorType;
 
 private:
-    /// @brief Raw image buffer data
-    StaticImage<F, W, H> image{};
-    Pixels logical_width{W}, logical_height{H};
+    StaticImage<F, W, H> _image{};///< Raw image buffer data
+    Pixels _logical_width{W}, _logical_height{H};
 
 public:
-    void setTransposed(bool transposed) {
-        logical_width = transposed ? H : W;
-        logical_height = transposed ? W : H;
+    void transposed(bool is_transposed) {
+        _logical_width = is_transposed ? H : W;
+        _logical_height = is_transposed ? W : H;
     }
 
     // CRTP
 private:
     friend Image<ViewportImage<F, W, H>, F>;
 
-    [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return logical_width; }
+    [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return _logical_width; }
 
-    [[nodiscard]] constexpr Pixels getHeightImpl() const noexcept { return logical_height; }
+    [[nodiscard]] constexpr Pixels getHeightImpl() const noexcept { return _logical_height; }
 
-    [[nodiscard]] constexpr Pixels getStrideImpl() const noexcept { return logical_width; }
+    [[nodiscard]] constexpr Pixels getStrideImpl() const noexcept { return _logical_width; }
 
     [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
-        return image.buffer().first(logical_width * logical_height);
+        return _image.buffer().first(_logical_width * _logical_height);
     }
 
     [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept {
-        return image.buffer().first(logical_width * logical_height);
+        return _image.buffer().first(_logical_width * _logical_height);
     }
 };
 

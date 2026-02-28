@@ -83,7 +83,7 @@ public:
         const u8 color_mode{0x05};// 16-bit color (RGB565)
         sendData(&color_mode, sizeof(color_mode));
 
-        setOrientation(settings.orientation);
+        orientation(settings.orientation);
 
         sendCommand(Command::DISPON);
         delay(100);
@@ -109,7 +109,7 @@ public:
 
         const u8 madctl = madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
 
-        screen_image.setTransposed((madctl & MadCtl::MirrorTranspose) != 0);
+        screen_image.transposed((madctl & MadCtl::MirrorTranspose) != 0);
 
         sendCommand(Command::MADCTL);
         sendData(&madctl, sizeof(madctl));

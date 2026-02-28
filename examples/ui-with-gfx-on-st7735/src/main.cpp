@@ -161,7 +161,7 @@ void setup() {
         display.send();
     };
 
-    root_canvas.setFont(kf::gfx::fonts::gyver_5x7_en);
+    root_canvas.font(kf::gfx::fonts::gyver_5x7_en);
 
     // misc
     config.float_places = 3;                         // float rendering like:  1234.567

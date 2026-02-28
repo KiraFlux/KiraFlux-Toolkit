@@ -23,14 +23,14 @@ template<typename F> struct Canvas {
     using PaletteType = Palette<F>;///<Color Palette
 
 private:
-    static constexpr ColorType default_foreground_color{PaletteType::getAnsiColor(PaletteType::Ansi::WhiteBright)};
-    static constexpr ColorType default_background_color{PaletteType::getAnsiColor(PaletteType::Ansi::Black)};
+    static constexpr ColorType default_foreground_color{PaletteType::ansiColor(PaletteType::Ansi::WhiteBright)};
+    static constexpr ColorType default_background_color{PaletteType::ansiColor(PaletteType::Ansi::Black)};
 
     image::DynamicImage<F> frame;///< Target drawing surface
     const Font *current_font;    ///< Currently selected font
     ColorType foreground_color;  ///< Drawing color
     ColorType background_color;  ///< Background/fill color
-    bool auto_next_line;         ///< Automatically wrap text to next line
+    bool _auto_next_line;        ///< Automatically wrap text to next line
 
 public:
     explicit Canvas(
@@ -42,7 +42,7 @@ public:
         current_font{&font},
         foreground_color{foreground},
         background_color{background},
-        auto_next_line{false} {}
+        _auto_next_line{false} {}
 
     /// @brief Default constructor - creates invalid canvas
     explicit Canvas() noexcept :
@@ -50,7 +50,7 @@ public:
         current_font{&Font::blank()},
         foreground_color{default_foreground_color},
         background_color{default_background_color},
-        auto_next_line{false} {}
+        _auto_next_line{false} {}
 
     /// @brief Creates validated sub-canvas within current bounds
     Result<Canvas, typename image::DynamicImage<F>::Error> sub(
@@ -114,25 +114,25 @@ public:
     /// Current Foreground color
     [[nodiscard]] ColorType foreground() const noexcept { return foreground_color; }
 
+    /// @brief Set foreground color for drawing operations
+    void foreground(ColorType color) noexcept { foreground_color = color; }
+
     /// Current Background color
     [[nodiscard]] ColorType background() const noexcept { return background_color; }
 
-    // Control
+    /// @brief Set background color for fill and text operations
+    void background(ColorType color) noexcept { background_color = color; }
 
     /// @brief Set current font for text rendering
-    void setFont(const Font &font) noexcept { current_font = &font; }
+    void font(const Font &new_font) noexcept { current_font = &new_font; }
 
-    /// @brief Set background color for fill and text operations
-    void setBackground(ColorType color) noexcept { background_color = color; }
+    /// @brief Enable/disable automatic text wrapping to next line
+    void autoNextLine(bool enable) noexcept { _auto_next_line = enable; }
 
-    /// @brief Set foreground color for drawing operations
-    void setForeground(ColorType color) noexcept { foreground_color = color; }
+    // Control
 
     /// @brief Swap foreground and background colors
     void swapColors() noexcept { std::swap(foreground_color, background_color); }
-
-    /// @brief Enable/disable automatic text wrapping to next line
-    void setAutoNextLine(bool enable) noexcept { auto_next_line = enable; }
 
     /// @brief Split canvas into weighted sub-canvases
     template<usize N> Array<Canvas, N> split(Array<usize, N> weights, bool horizontal = true) noexcept {
@@ -342,7 +342,7 @@ public:
                 case '\xFD':
                 case '\xFE':
                 case '\xFF': {
-                    current_foreground_color = PaletteType::getAnsiColor(static_cast<typename PaletteType::Ansi>(*text));
+                    current_foreground_color = PaletteType::ansiColor(static_cast<typename PaletteType::Ansi>(*text));
                     continue;
                 }
 
@@ -362,7 +362,7 @@ public:
                 case '\xBD':
                 case '\xBE':
                 case '\xBF': {
-                    current_background_color = PaletteType::getAnsiColor(static_cast<typename PaletteType::Ansi>(*text));
+                    current_background_color = PaletteType::ansiColor(static_cast<typename PaletteType::Ansi>(*text));
                     continue;
                 }
 
@@ -384,7 +384,7 @@ public:
 
             if (cursor_x > static_cast<Pixels>(width() - font_width)) {
                 clearLineSegment(cursor_x, cursor_y, maxX(), current_background_color);
-                if (auto_next_line) {
+                if (_auto_next_line) {
                     cursor_x = start_x;
                     cursor_y = static_cast<Pixels>(cursor_y + font_total_height);
                 } else {
