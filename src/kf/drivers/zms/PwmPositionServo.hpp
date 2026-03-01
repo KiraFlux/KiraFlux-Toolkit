@@ -17,7 +17,7 @@ struct PwmPositionServo {
     static constexpr auto logger{Logger::create("PwmPositionServo")};
 
     /// @brief PWM signal configuration for LEDC hardware
-    struct PwmSettings : Validatable<PwmSettings> {
+    struct PwmConfig : Validatable<PwmConfig> {
         u32 ledc_frequency_hz;  ///< PWM frequency in Hz
         u8 ledc_resolution_bits;///< PWM resolution (8-16 bits)
 
@@ -36,7 +36,6 @@ struct PwmPositionServo {
         }
 
         /// @brief Validate PWM configuration parameters
-        /// @param validator Validation context
         void checkImpl(Validator &validator) const noexcept {
             kf_Validator_check(validator, logger, ledc_frequency_hz > 0);
             kf_Validator_check(validator, logger, ledc_resolution_bits >= 8);
@@ -45,14 +44,13 @@ struct PwmPositionServo {
     };
 
     /// @brief Servo driver hardware configuration
-    struct DriverSettings : Validatable<DriverSettings> {
+    struct DriverConfig : Validatable<DriverConfig> {
         u8 signal_pin;    ///< GPIO pin for PWM signal output
         u8 ledc_channel;  ///< LEDC channel (0-15) for ESP32 PWM
         Degrees min_angle;///< Minimum servo rotation angle
         Degrees max_angle;///< Maximum servo rotation angle
 
         /// @brief Validate driver configuration parameters
-        /// @param validator Validation context
         void checkImpl(Validator &validator) const noexcept {
             kf_Validator_check(validator, logger, ledc_channel <= 15);
             kf_Validator_check(validator, logger, min_angle < max_angle);
@@ -60,40 +58,38 @@ struct PwmPositionServo {
     };
 
     /// @brief Pulse width mapping configuration for servo angles
-    struct PulseSettings : Validatable<PulseSettings> {
+    struct PulseConfig : Validatable<PulseConfig> {
         /// @brief Angle-to-pulse width mapping point
         struct Pulse {
             Microseconds pulse;///< Pulse width in microseconds
             Degrees angle;     ///< Corresponding servo angle
         };
 
-        Pulse min_position;///< Minimum position mapping (angle <-> pulse width)
-        Pulse max_position;///< Maximum position mapping (angle <-> pulse width)
+        Pulse min_pulse, max_pulse;///< Position mapping (angle <-> pulse width)
 
         /// @brief Convert angle to pulse width using linear interpolation
         /// @param angle Target servo angle
         /// @return Required pulse width in microseconds
         [[nodiscard]] Microseconds pulseWidthFromAngle(Degrees angle) const noexcept {
             return map(
-                constrain(angle, min_position.angle, max_position.angle),
-                min_position.angle,
-                max_position.angle,
-                static_cast<long>(min_position.pulse),
-                static_cast<long>(max_position.pulse));
+                constrain(angle, min_pulse.angle, max_pulse.angle),
+                min_pulse.angle,
+                max_pulse.angle,
+                static_cast<long>(min_pulse.pulse),
+                static_cast<long>(max_pulse.pulse));
         }
 
         /// @brief Validate pulse mapping configuration
-        /// @param validator Validation context
         void checkImpl(Validator &validator) const noexcept {
-            kf_Validator_check(validator, logger, min_position.pulse < max_position.pulse);
-            kf_Validator_check(validator, logger, min_position.angle < max_position.angle);
+            kf_Validator_check(validator, logger, min_pulse.pulse < max_pulse.pulse);
+            kf_Validator_check(validator, logger, min_pulse.angle < max_pulse.angle);
         }
     };
 
 private:
-    const PwmSettings &pwm_settings;      ///< PWM signal configuration
-    const DriverSettings &driver_settings;///< Servo hardware configuration
-    const PulseSettings &pulse_settings;  ///< Angle-pulse mapping configuration
+    const PwmConfig &pwm_settings;      ///< PWM signal configuration
+    const DriverConfig &driver_settings;///< Servo hardware configuration
+    const PulseConfig &pulse_settings;  ///< Angle-pulse mapping configuration
 
 public:
     /// @brief Construct servo driver instance
@@ -101,9 +97,9 @@ public:
     /// @param driver_settings Servo hardware configuration
     /// @param pulse_settings Angle-pulse mapping configuration
     explicit constexpr PwmPositionServo(
-        const PwmSettings &pwm_settings,
-        const DriverSettings &driver_settings,
-        const PulseSettings &pulse_settings) noexcept :
+        const PwmConfig &pwm_settings,
+        const DriverConfig &driver_settings,
+        const PulseConfig &pulse_settings) noexcept :
         driver_settings{driver_settings}, pwm_settings(pwm_settings), pulse_settings(pulse_settings) {}
 
     /// @brief Initialize servo driver hardware
@@ -115,7 +111,7 @@ public:
             pwm_settings.ledc_frequency_hz,
             pwm_settings.ledc_resolution_bits);
 
-        if (freq == 0) {
+        if (0 == freq) {
             logger.error("LEDC setup failed");
             return false;
         }

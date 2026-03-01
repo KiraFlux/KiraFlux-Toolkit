@@ -17,10 +17,10 @@ struct Manipulator2DOF {
 
     /// @brief Configuration settings for 2DOF manipulator
     struct Settings : Validatable<Settings> {
-        PwmPositionServo::PwmSettings servo_pwm;                     ///< PWM signal configuration
-        PwmPositionServo::PulseSettings servo_generic_pulse_settings;///< Pulse timing settings
-        PwmPositionServo::DriverSettings claw_axis;                  ///< Claw axis servo configuration
-        PwmPositionServo::DriverSettings arm_axis;                   ///< Arm axis servo configuration
+        PwmPositionServo::PwmConfig servo_pwm;                     ///< PWM signal configuration
+        PwmPositionServo::PulseConfig servo_generic_pulse_settings;///< Pulse timing settings
+        PwmPositionServo::DriverConfig claw_axis;                  ///< Claw axis servo configuration
+        PwmPositionServo::DriverConfig arm_axis;                   ///< Arm axis servo configuration
 
         /// @brief Validate all configuration parameters
         void checkImpl(Validator &validator) const noexcept {
