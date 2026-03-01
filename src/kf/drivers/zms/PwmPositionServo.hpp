@@ -30,9 +30,9 @@ struct PwmPositionServo {
         /// @brief Convert pulse width to duty cycle value
         /// @param pulse_width Pulse width in microseconds
         /// @return Duty cycle value for LEDC hardware
-        [[nodiscard]] u16 dutyFromPulseWidth(Milliseconds pulse_width) const noexcept {
-            const auto t = u64(pulse_width) * ledc_frequency_hz * maxDuty();
-            return u16(t / 1000000u);
+        [[nodiscard]] u16 dutyFromPulseWidth(Microseconds pulse_width) const noexcept {
+            const auto t = u64{pulse_width} * ledc_frequency_hz * maxDuty();
+            return u16{t / 1'000'000u};
         }
 
         /// @brief Validate PWM configuration parameters
@@ -67,8 +67,8 @@ struct PwmPositionServo {
             Degrees angle;     ///< Corresponding servo angle
         };
 
-        Pulse min_position;///< Minimum position mapping (angle ↔ pulse width)
-        Pulse max_position;///< Maximum position mapping (angle ↔ pulse width)
+        Pulse min_position;///< Minimum position mapping (angle <-> pulse width)
+        Pulse max_position;///< Maximum position mapping (angle <-> pulse width)
 
         /// @brief Convert angle to pulse width using linear interpolation
         /// @param angle Target servo angle
