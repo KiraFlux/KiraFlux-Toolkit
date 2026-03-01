@@ -134,26 +134,29 @@ private:
             0,
             PixelImpl::template pages<64> - 1,
         };
-        // ignored values will be fixed in fix/drivers
-        wire.beginTransmission(config.address);
-        (void) wire.write(set_area_commands, sizeof(set_area_commands));
-        (void) wire.endTransmission();
 
         auto p = screen_image.buffer().data();
         auto remaining = screen_image.buffer().size();
 
+        wire.beginTransmission(config.address);
+        if (wire.write(set_area_commands, sizeof(set_area_commands)) != sizeof(set_area_commands)) { goto fail; }
+        if (wire.endTransmission() != 0) { goto fail; }
+
         while (remaining > 0) {
             const auto chunk = min(packet_size, remaining);
+
             wire.beginTransmission(config.address);
-            (void) wire.write(Command::DataMode);
-            (void) wire.write(p, chunk);
-            (void) wire.endTransmission();
+            if (wire.write(Command::DataMode) != 1) { goto fail; }
+            if (wire.write(p, chunk) != chunk) { goto fail; }
+            if (wire.endTransmission() != 0) { goto fail; }
 
             p += chunk;
             remaining -= chunk;
         }
 
         return true;
+    fail:
+        return false;
     }
 
     [[nodiscard]] bool supportOrientation(Orientation orientation) const noexcept {
