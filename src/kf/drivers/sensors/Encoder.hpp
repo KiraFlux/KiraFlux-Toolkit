@@ -17,8 +17,10 @@ struct Encoder {
     /// @brief Alias for encoder position in ticks
     using Ticks = i32;
 
+    static constexpr auto logger{Logger::create("Encoder")};
+
     /// @brief Conversion settings between ticks and physical units
-    struct ConversionSettings : Validable<ConversionSettings> {
+    struct ConversionSettings : Validatable<ConversionSettings> {
         f32 ticks_in_one_mm;///< Ticks per millimeter (must be positive)
 
         /// @brief Convert ticks to millimeters
@@ -33,8 +35,8 @@ struct Encoder {
 
         /// @brief Validate conversion settings
         /// @param validator Validation context
-        void check(Validator &validator) const noexcept {
-            kf_Validator_check(validator, ticks_in_one_mm > 0);
+        void checkImpl(Validator &validator) const noexcept {
+            kf_Validator_check(validator, logger, ticks_in_one_mm > 0);
         }
     };
 
