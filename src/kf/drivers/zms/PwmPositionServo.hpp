@@ -32,7 +32,7 @@ struct PwmPositionServo {
         /// @return Duty cycle value for LEDC hardware
         [[nodiscard]] u16 dutyFromPulseWidth(Microseconds pulse_width) const noexcept {
             const auto t = u64{pulse_width} * ledc_frequency_hz * maxDuty();
-            return u16{t / 1'000'000u};
+            return static_cast<u16>(t / 1'000'000u);
         }
 
         /// @brief Validate PWM configuration parameters
