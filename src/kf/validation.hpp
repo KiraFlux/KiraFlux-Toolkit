@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "attributes.hpp"
 #include "kf/Logger.hpp"
 
 namespace kf {
@@ -13,27 +12,15 @@ namespace kf {
 struct Validator {
 
 private:
-    int errors{0};///< Count of failed validation checks
+    usize errors{0};///< Count of failed validation checks
 
 public:
     /// @brief Check a validation condition and log result
-    /// @param scope Source file or context for the check
-    /// @param condition_ok Boolean result of the condition
-    /// @param condition_string String representation of the condition (for logging)
-    void check(const char *scope, bool condition_ok, const char *condition_string) noexcept {
-        //        constexpr auto logger = kf::Logger::create();
-
+    void check(const Logger &logger, bool condition_ok, StringView condition_string) noexcept {
         if (condition_ok) {
-            //            logger.log( // todo modernize
-            //                "[  OK  ]",
-            //                scope,
-            //                ": %s", condition_string);
+            logger.info(condition_string);
         } else {
-            //            logger.log(
-            //                "[ FAIL ]",
-            //                scope,
-            //                ": %s", condition_string);
-
+            logger.error(condition_string);
             errors += 1;
         }
     }
@@ -48,14 +35,12 @@ public:
 /// @brief CRTP base class for objects that can validate themselves
 /// @tparam Impl Concrete type implementing validation
 /// @note Derived classes must implement check(Validator&) method
-template<typename Impl> struct Validable {
+template<typename Impl> struct Validatable {
     /// @brief Perform validation and return result
     /// @return true if object passed all validation checks
-    [[nodiscard]] bool isValid() const noexcept {
+    [[nodiscard]] bool check() const noexcept {
         Validator validator{};
-
-        static_cast<const Impl *>(this)->check(validator);
-
+        static_cast<const Impl *>(this)->checkImpl(validator);
         return validator.passed();
     }
 };
@@ -63,7 +48,4 @@ template<typename Impl> struct Validable {
 }// namespace kf
 
 /// @brief Macro to simplify validation check calls
-/// @param validator_instance Validator object to report to
-/// @param condition Boolean expression to validate
-/// @note Automatically captures file context and condition string
-#define kf_Validator_check(validator_instance, condition) validator_instance.check(__FILE__, condition, #condition)
+#define kf_Validator_check(validator_instance, logger_instance, condition) validator_instance.check(logger_instance, condition, #condition)
