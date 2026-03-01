@@ -17,8 +17,10 @@ struct Sharp {
     /// @brief Raw ADC value type
     using AnalogValue = u16;
 
+    static constexpr auto logger{Logger::create("Encoder")};
+
     /// @brief Sensor configuration settings
-    struct Settings : Validable<Settings> {
+    struct Settings : Validatable<Settings> {
         u8 pin;       ///< Analog input GPIO pin
         u8 resolution;///< ADC resolution in bits (1-16)
 
@@ -30,9 +32,9 @@ struct Sharp {
 
         /// @brief Validate sensor configuration parameters
         /// @param validator Validation context
-        void check(Validator &validator) const noexcept {
-            kf_Validator_check(validator, resolution > 0);
-            kf_Validator_check(validator, resolution <= 16);
+        void checkImpl(Validator &validator) const noexcept {
+            kf_Validator_check(validator, logger, resolution > 0);
+            kf_Validator_check(validator, logger, resolution <= 16);
         }
     };
 
@@ -42,7 +44,7 @@ private:
     AnalogValue max_value{0};///< Cached maximum ADC value
 
 public:
-    explicit Sharp(const Settings &settings) noexcept:
+    explicit Sharp(const Settings &settings) noexcept :
         settings{settings} {}
 
     /// @brief Initialize sensor hardware

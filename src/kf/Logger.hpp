@@ -46,8 +46,6 @@ private:
 
         ArrayString<32> buffer{};
 
-        const auto now = millis();
-        (void) buffer.append(static_cast<i32>(now));
         (void) buffer.append(" [");
         (void) buffer.append(key);
         (void) buffer.push(':');
