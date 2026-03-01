@@ -158,7 +158,7 @@ void setup() {
         root_canvas.fill();
         root_canvas.text(0, 0, text.data());
 
-        display.send();
+        (void) display.send(); // SPI cannot tell anything about error => always true 
     };
 
     root_canvas.font(kf::gfx::fonts::gyver_5x7_en);

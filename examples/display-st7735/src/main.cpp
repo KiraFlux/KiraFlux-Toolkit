@@ -38,17 +38,17 @@ void demo(kf::ST7735 &display, const char *orientation_name) {
     // --- Fill screen with solid colors ---
     canvas.background(red);
     canvas.fill();
-    display.send();// transfer framebuffer to hardware
+    (void) display.send();// transfer framebuffer to hardware
     delay(step_time_ms);
 
     canvas.background(green);
     canvas.fill();
-    display.send();
+    (void) display.send();
     delay(step_time_ms);
 
     canvas.background(blue);
     canvas.fill();
-    display.send();
+    (void) display.send();
     delay(step_time_ms);
 
     // --- Draw diagonal lines ---
@@ -60,7 +60,7 @@ void demo(kf::ST7735 &display, const char *orientation_name) {
         canvas.foreground(blue);
         canvas.line(canvas.maxX(), 0, canvas.maxX() - i, canvas.maxY());
     }
-    display.send();
+    (void) display.send();
     delay(2 * step_time_ms);
 
     // --- Show current orientation name ---
@@ -68,7 +68,7 @@ void demo(kf::ST7735 &display, const char *orientation_name) {
     canvas.fill();
     canvas.foreground(white);
     canvas.text(10, 10, orientation_name);
-    display.send();
+    (void) display.send();
     delay(2 * step_time_ms);
 }
 
@@ -106,7 +106,7 @@ void setup() {
              kf::ST7735::Orientation::ClockWise,
              kf::ST7735::Orientation::CounterClockWise,
          }) {
-        display.orientation(o);// change hardware orientation
+        (void) display.orientation(o);// change hardware orientation
         demo(display, orient_names[static_cast<int>(o)]);
     }
 
