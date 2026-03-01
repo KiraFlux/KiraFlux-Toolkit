@@ -3,7 +3,7 @@
 #include "kf/ui/render/PlainTextRender.hpp"
 #include "kf/ui/render/Render.hpp"
 
-namespace kf::ui {
+namespace kf::ui::render {
 
 template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
     friend struct Render<ColoredTextRender<N>>;
@@ -71,4 +71,4 @@ private:
     void endWidgetImpl() noexcept { wrapped.endWidget(); }
 };
 
-}// namespace kf::ui
+}// namespace kf::ui::render

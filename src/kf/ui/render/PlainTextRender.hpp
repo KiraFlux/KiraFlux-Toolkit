@@ -10,7 +10,7 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/ui/render/Render.hpp"
 
-namespace kf::ui {
+namespace kf::ui::render {
 
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters

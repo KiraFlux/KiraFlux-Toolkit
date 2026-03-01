@@ -6,8 +6,8 @@
 
 // UI specialisation
 using MyUI = kf::UI<
-    kf::ui::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes)
-    kf::ui::Event<4>             // Event type: 4-bit value
+    kf::ui::render::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes)
+    kf::ui::Event<4>                     // Event type: 4-bit value
     >;
 
 // User-defined page examples
