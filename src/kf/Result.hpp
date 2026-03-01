@@ -15,6 +15,8 @@ namespace kf {
 /// @note Embedded-friendly alternative to exceptions for error handling
 template<typename T, typename E> struct Result {
     static_assert(not std::is_same_v<T, E>, "T and E must be different types");
+    static_assert(std::is_trivially_destructible_v<T>, "T must be trivially destructible");
+    static_assert(std::is_trivially_destructible_v<E>, "E must be trivially destructible");
 
 private:
     bool is_ok;///< Flag indicating success (true) or error (false)
@@ -64,6 +66,7 @@ public:
 /// @tparam E Type of error value
 /// @note Used for operations that don't return a value on success
 template<typename E> struct Result<void, E> {
+    static_assert(std::is_trivially_destructible_v<E>, "E must be trivially destructible");
 
 private:
     bool is_ok;///< Flag indicating success (true) or error (false)

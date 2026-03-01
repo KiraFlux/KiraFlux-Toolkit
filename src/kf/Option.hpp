@@ -11,6 +11,7 @@ namespace kf {
 /// @tparam T Value type (must be trivially copyable and destructible)
 /// @note Embedded-friendly implementation without exceptions or heap allocation
 template<typename T> struct Option {
+    static_assert(std::is_trivially_destructible_v<T>, "T must be trivially destructible");
 
 private:
     union {
