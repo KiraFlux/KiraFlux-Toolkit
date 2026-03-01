@@ -115,7 +115,6 @@ private:
         if (wire.endTransmission() != 0) { goto fail; }
 
         return true;
-
     fail:
         return false;
     }
@@ -168,6 +167,19 @@ private:
             default:
                 return false;
         }
+
+        return true;
+    }
+
+    [[nodiscard]] bool supportOrientation(Orientation orientation) const noexcept {
+        switch (orientation) {
+            case Orientation::Normal:
+            case Orientation::MirrorX:
+            case Orientation::MirrorY:
+                return true;
+            default:
+                return false;
+        }
     }
 
     [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {
@@ -181,7 +193,6 @@ private:
         if (not sendCommand((flags & flip_y) ? FlipV : NormalV)) { goto fail; }
 
         return true;
-
     fail:
         return false;
     }
@@ -225,7 +236,6 @@ private:
         if (wire.endTransmission() != 0) { goto fail; }
 
         return true;
-
     fail:
         return false;
     }
