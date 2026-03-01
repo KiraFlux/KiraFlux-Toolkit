@@ -17,7 +17,7 @@ namespace kf {
 struct ST7735 final : DisplayDriver<ST7735, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {
     using PixelImpl = pixel::Rgb565Pixel;
 
-    /// @brief Hardware configuration settings for ST7735
+    /// @brief Hardware configuration for ST7735
     struct Config {
         u32 spi_frequency;      ///< SPI clock frequency in Hz
         Orientation orientation;///< Initial display orientation
@@ -49,28 +49,28 @@ private:
         MirrorY = 0x80,        ///< Vertical mirror
     };
 
-    const Config &settings;///< Hardware configuration
-    SPIClass &spi;         ///< SPI bus instance
+    const Config &config;///< Hardware configuration
+    SPIClass &spi;       ///< SPI bus instance
 
     u8 madctl_base_mode{MadCtl::RgbMode};///< Base MADCTL value
 
 public:
-    explicit ST7735(const Config &settings, SPIClass &spi_instance) noexcept :
-        settings{settings}, spi{spi_instance} {}
+    explicit ST7735(const Config &config, SPIClass &spi_instance) noexcept :
+        config{config}, spi{spi_instance} {}
 
     /// @brief Initialize display hardware via SPI
     /// @return Always returns true (hardware errors not checked)
     [[nodiscard]] bool initImpl() noexcept {
-        pinMode(settings.pin_spi_slave_select, OUTPUT);
-        pinMode(settings.pin_data_command, OUTPUT);
-        pinMode(settings.pin_reset, OUTPUT);
+        pinMode(config.pin_spi_slave_select, OUTPUT);
+        pinMode(config.pin_data_command, OUTPUT);
+        pinMode(config.pin_reset, OUTPUT);
 
         spi.begin();
-        spi.setFrequency(settings.spi_frequency);
+        spi.setFrequency(config.spi_frequency);
 
-        digitalWrite(settings.pin_reset, LOW);
+        digitalWrite(config.pin_reset, LOW);
         delay(10);
-        digitalWrite(settings.pin_reset, HIGH);
+        digitalWrite(config.pin_reset, HIGH);
         delay(120);
 
         sendCommand(Command::SWRESET);
@@ -83,7 +83,7 @@ public:
         const u8 color_mode{0x05};// 16-bit color (RGB565)
         sendData(&color_mode, sizeof(color_mode));
 
-        (void) orientation(settings.orientation); // Ignored becauce always true
+        (void) orientation(config.orientation);// Ignored becauce always true
 
         sendCommand(Command::DISPON);
         delay(100);
@@ -130,10 +130,10 @@ public:
 
     /// @brief Send data bytes to display
     void sendData(const u8 *data, usize size) const noexcept {
-        digitalWrite(settings.pin_data_command, HIGH);
-        digitalWrite(settings.pin_spi_slave_select, LOW);
+        digitalWrite(config.pin_data_command, HIGH);
+        digitalWrite(config.pin_spi_slave_select, LOW);
         spi.writeBytes(data, size);
-        digitalWrite(settings.pin_spi_slave_select, HIGH);
+        digitalWrite(config.pin_spi_slave_select, HIGH);
     }
 
     /// @brief ST7735 command set (partial)
@@ -157,10 +157,10 @@ public:
 
     /// @brief Send single command to display
     void sendCommand(Command command) const noexcept {
-        digitalWrite(settings.pin_data_command, LOW);
-        digitalWrite(settings.pin_spi_slave_select, LOW);
+        digitalWrite(config.pin_data_command, LOW);
+        digitalWrite(config.pin_spi_slave_select, LOW);
         spi.write(static_cast<u8>(command));
-        digitalWrite(settings.pin_spi_slave_select, HIGH);
+        digitalWrite(config.pin_spi_slave_select, HIGH);
     }
 
     friend Base;// CRTP

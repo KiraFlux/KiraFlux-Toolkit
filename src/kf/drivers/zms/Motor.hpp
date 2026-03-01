@@ -33,7 +33,7 @@ struct Motor {
     static constexpr auto logger{Logger::create("Motor")};
 
     /// @brief Motor driver hardware configuration
-    struct DriverSettings : Validatable<DriverSettings> {
+    struct DriverConfig : Validatable<DriverConfig> {
         DriverImpl impl;    ///< Driver hardware type
         Direction direction;///< Positive rotation direction
         u8 pin_a;           ///< Direction pin A (IArduino) / IN1/IN3 (L298N)
@@ -48,7 +48,7 @@ struct Motor {
     };
 
     /// @brief PWM signal configuration
-    struct PwmSettings : Validatable<PwmSettings> {
+    struct PwmConfig : Validatable<PwmConfig> {
         using FrequencyScalar = u16;///< PWM frequency in Hz
 
         FrequencyScalar ledc_frequency_hz;///< PWM frequency (Hz)
@@ -70,15 +70,15 @@ struct Motor {
         }
     };
 
-    const DriverSettings &driver_settings;///< Driver hardware configuration
-    const PwmSettings &pwm_settings;      ///< PWM signal configuration
+    const DriverConfig &driver_settings;///< Driver hardware configuration
+    const PwmConfig &pwm_settings;      ///< PWM signal configuration
 
 private:
     SignedPwm max_pwm{0};///< Cached maximum PWM value
 
 public:
-    explicit constexpr Motor(const DriverSettings &driver_settings,
-                             const PwmSettings &pwm_settings) noexcept :
+    explicit constexpr Motor(const DriverConfig &driver_settings,
+                             const PwmConfig &pwm_settings) noexcept :
         driver_settings{driver_settings}, pwm_settings{pwm_settings} {}
 
     /// @brief Initialize motor driver hardware

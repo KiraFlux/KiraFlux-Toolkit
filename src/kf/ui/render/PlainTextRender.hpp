@@ -20,7 +20,7 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
 
     using Glyph = u8;///< Text interface measurement unit in glyphs
 
-    /// @brief Text renderer configuration settings
+    /// @brief Text renderer configuration
     struct Config {
         Function<void(StringView)> on_render_finish{nullptr};///< Callback invoked when rendering completes
 

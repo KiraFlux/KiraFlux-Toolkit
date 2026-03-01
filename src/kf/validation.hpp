@@ -8,7 +8,7 @@
 namespace kf {
 
 /// @brief Validation helper for checking conditions and collecting errors
-/// @note Used to validate configuration settings and object states
+/// @note Used to validate configuration and object states
 struct Validator {
 
 private:
