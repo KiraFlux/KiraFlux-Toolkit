@@ -23,8 +23,8 @@ template<typename P> struct Canvas {
     using PaletteType = Palette<PixelImpl>;
 
 private:
-    static constexpr ColorType default_foreground_color{PaletteType::ansiColor(PaletteType::Ansi::WhiteBright)};
-    static constexpr ColorType default_background_color{PaletteType::ansiColor(PaletteType::Ansi::Black)};
+    static constexpr ColorType default_foreground_color{PaletteType::bright_white};
+    static constexpr ColorType default_background_color{PaletteType::black};
 
     image::DynamicImage<P> _frame;///< Target drawing surface
     const Font *_active_font;     ///< Currently selected font (not nullptr)
@@ -342,7 +342,7 @@ public:
                 case '\xFD':
                 case '\xFE':
                 case '\xFF': {
-                    current_foreground_color = PaletteType::ansiColor(static_cast<typename PaletteType::Ansi>(*text));
+                    current_foreground_color = PaletteType::ansiColor(static_cast<u8>(*text));
                     continue;
                 }
 
@@ -362,7 +362,7 @@ public:
                 case '\xBD':
                 case '\xBE':
                 case '\xBF': {
-                    current_background_color = PaletteType::ansiColor(static_cast<typename PaletteType::Ansi>(*text));
+                    current_background_color = PaletteType::ansiColor(static_cast<u8>(*text));
                     continue;
                 }
 
