@@ -191,18 +191,20 @@ template<typename R, typename V, typename P> struct UI final {
     /// @tparam T Type of value to display
     template<typename T> struct Display final : Widget {
     private:
-        const T &value;///< Reference to value to display
+        T _value;///< Stored copy of the value
 
     public:
-        explicit Display(P &root, const T &watched_value) :
-            Widget{root}, value{watched_value} {}
+        explicit Display(P &root, const T &value) : Widget{root}, _value{value} {}
+        explicit Display(const T &value) noexcept : _value{value} {}
 
-        explicit Display(const T &watched_value) noexcept :
-            value{watched_value} {}
+        /// Update the displayed value
+        void value(T new_value) noexcept { _value = new_value; }
 
-        /// @brief Render value with appropriate formatting
+        /// Get the current displayed value
+        [[nodiscard]] T value() const noexcept { return _value; }
+
         void doRender(R &render) const noexcept override {
-            render.value(value);
+            render.value(_value);
         }
     };
 
