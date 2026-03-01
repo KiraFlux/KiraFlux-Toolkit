@@ -144,7 +144,7 @@ public:
     private:
         ArrayList<Widget *> _widgets{};///< List of widgets on this page
         PageSetter _to_this{*this};    ///< Navigation widget to this page
-        usize _cursor{0};              ///< Current widget cursor position (focused widget index)
+        isize _cursor{0};              ///< Current widget cursor position (focused widget index)
         StringView _title;             ///< Page title displayed in header
 
     public:
@@ -178,9 +178,9 @@ public:
         void render(RenderImpl &render) noexcept {
             render.title(_title);
 
-            const auto available = render.widgetsAvailable();
-            const auto start = (widgetsTotal() > available) ? kf::min(_cursor, widgetsTotal() - available) : 0;
-            const auto end = kf::min(start + available, widgetsTotal());
+            const usize available = render.widgetsAvailable();
+            const usize start = (widgetsTotal() > available) ? kf::min(static_cast<usize>(_cursor), widgetsTotal() - available) : 0;
+            const usize end = kf::min(start + available, widgetsTotal());
 
             for (auto i = start; i < end; i += 1) {
                 render.beginWidget(i);
