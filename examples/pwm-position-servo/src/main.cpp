@@ -1,4 +1,6 @@
 #include <Arduino.h>
+
+#include <kf/Logger.hpp>
 #include <kf/drivers/zms/PwmPositionServo.hpp>
 
 using kf::PwmPositionServo;
@@ -27,7 +29,16 @@ static PwmPositionServo servo{pwm_config, driver_config, pulse_config};
 
 void setup() {
     Serial.begin(115200);
-    delay(1000);
+    kf::Logger::writer = [](kf::StringView s) { Serial.write(s.data(), s.size()); };
+
+    // check configs
+    bool failed = not pwm_config.check();
+    failed |= not driver_config.check();
+    failed |= not pulse_config.check();
+    if (failed) {
+        Serial.println("Servo config check failed");
+        return;
+    }
 
     if (not servo.init()) {
         Serial.println("Servo init failed");
