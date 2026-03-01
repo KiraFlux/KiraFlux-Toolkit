@@ -8,12 +8,16 @@
 #include "kf/Result.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
+#include "kf/meta/type_check.hpp"
+#include "kf/pixel/PixelTag.hpp"
 
 namespace kf::image {
 
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam P Pixel implementation
 template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
+    kf_crtp_check(P, pixel::PixelTag);
+
     using PixelImpl = P;
     using BufferType = typename P::BufferType;
     using ColorType = typename P::ColorType;

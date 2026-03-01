@@ -6,9 +6,11 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/Slice.hpp"
 
+#include "kf/pixel/PixelTag.hpp"
+
 namespace kf::pixel {
 
-template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel {
+template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelTag {
     // types
 
     using PositionType = i16;

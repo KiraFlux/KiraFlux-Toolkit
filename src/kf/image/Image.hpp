@@ -5,6 +5,8 @@
 
 #include "kf/math/units.hpp"
 #include "kf/memory/Slice.hpp"
+#include "kf/meta/type_check.hpp"
+#include "kf/pixel/PixelTag.hpp"
 
 namespace kf::image {
 
@@ -12,6 +14,8 @@ namespace kf::image {
 /// @tparam Impl Image implementation
 /// @tparam P Pixel implementation
 template<typename Impl, typename P> struct Image {
+    kf_crtp_check(P, pixel::PixelTag);
+
     using PixelImpl = P;
     using BufferType = typename P::BufferType;
     using ColorType = typename P::ColorType;
