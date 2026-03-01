@@ -7,13 +7,18 @@
 
 #include "kf/Result.hpp"
 #include "kf/image/Image.hpp"
+#include "kf/image/Tag.hpp"
 #include "kf/math/units.hpp"
+#include "kf/meta/type_check.hpp"
+#include "kf/pixel/Tag.hpp"
 
 namespace kf::image {
 
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam P Pixel implementation
 template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
+    kf_crtp_check(P, pixel::Tag);
+
     using PixelImpl = P;
     using BufferType = typename P::BufferType;
     using ColorType = typename P::ColorType;
@@ -61,9 +66,10 @@ public:
         Pixels offset_x, Pixels offset_y) noexcept :
         _buffer{buffer}, _stride{stride}, _width{width}, _height{height}, offset_x{offset_x}, offset_y{offset_y} {}
 
-    template<typename I> explicit DynamicImage(
-        I &image) noexcept :
-        _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, offset_x{0}, offset_y{0} {}
+    template<typename I> explicit DynamicImage(I &image) noexcept :
+        _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, offset_x{0}, offset_y{0} {
+        kf_crtp_check(I, image::Tag);
+    }
 
     /// @brief Creates validated sub-region
     /// @return Sub-view or error if out of bounds

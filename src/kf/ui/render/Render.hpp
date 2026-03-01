@@ -5,13 +5,14 @@
 
 #include "kf/aliases.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/ui/render/Tag.hpp"
 
-namespace kf::ui {
+namespace kf::ui::render {
 
 /// @brief CRTP base class for UI rendering systems
 /// @tparam Impl Concrete renderer implementation type
 /// @note Delegates all rendering operations to derived class implementation
-template<typename Impl> struct Render {
+template<typename Impl> struct Render : Tag {
     friend Impl;
 
     using Base = Render;

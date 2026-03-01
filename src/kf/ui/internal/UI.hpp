@@ -10,6 +10,8 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/meta/type_check.hpp"
+#include "kf/ui/render/Tag.hpp"
 
 #include "kf/ui/internal/ComboBoxItem.hpp"
 #include "kf/ui/internal/StepAdjuster.hpp"
@@ -24,6 +26,7 @@ namespace kf::ui::internal {
 /// @tparam V Event Value Type
 /// @tparam P Page Type
 template<typename R, typename V, typename P> struct UI final {
+    kf_crtp_check(R, kf::ui::render::Tag);
 
     /// @brief Base widget class for all UI components
     /// @note All interactive UI elements inherit from this class

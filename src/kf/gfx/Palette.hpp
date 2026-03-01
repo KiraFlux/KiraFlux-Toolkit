@@ -3,11 +3,14 @@
 
 #pragma once
 
-#include "kf/pixel/Pixel.hpp"
+#include "kf/meta/type_check.hpp"
+#include "kf/pixel/Tag.hpp"
 
 namespace kf::gfx {
 
 template<typename P> struct Palette final {
+    kf_crtp_check(P, pixel::Tag);
+
     using PixelImpl = P;
     using ColorType = typename PixelImpl::ColorType;
 
