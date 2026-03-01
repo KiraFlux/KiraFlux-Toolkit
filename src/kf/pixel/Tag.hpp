@@ -5,6 +5,6 @@
 
 namespace kf::pixel {
 
-struct PixelTag {};
+struct Tag {};
 
 }// namespace kf::pixel

@@ -13,14 +13,14 @@
 #include "kf/image/DynamicImage.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/meta/type_check.hpp"
-#include "kf/pixel/PixelTag.hpp"
+#include "kf/pixel/Tag.hpp"
 
 namespace kf::gfx {
 
 /// @brief Drawing context with graphics primitives and text rendering
 /// @tparam P Pixel format for canvas operations
 template<typename P> struct Canvas {
-    kf_crtp_check(P, pixel::PixelTag);
+    kf_crtp_check(P, pixel::Tag);
 
     using PixelImpl = P;
     using ColorType = typename PixelImpl::ColorType;

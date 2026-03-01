@@ -3,18 +3,19 @@
 
 #pragma once
 
+#include "kf/image/Tag.hpp"
 #include "kf/math/units.hpp"
 #include "kf/memory/Slice.hpp"
 #include "kf/meta/type_check.hpp"
-#include "kf/pixel/PixelTag.hpp"
+#include "kf/pixel/Tag.hpp"
 
 namespace kf::image {
 
 /// @brief Image
 /// @tparam Impl Image implementation
 /// @tparam P Pixel implementation
-template<typename Impl, typename P> struct Image {
-    kf_crtp_check(P, pixel::PixelTag);
+template<typename Impl, typename P> struct Image : image::Tag {
+    kf_crtp_check(P, pixel::Tag);
 
     using PixelImpl = P;
     using BufferType = typename P::BufferType;

@@ -8,12 +8,12 @@
 #include "kf/image/StaticImage.hpp"
 #include "kf/math/units.hpp"
 #include "kf/meta/type_check.hpp"
-#include "kf/pixel/PixelTag.hpp"
+#include "kf/pixel/Tag.hpp"
 
 namespace kf::image {
 
 template<typename P, usize W, usize H> struct ViewportImage final : Image<ViewportImage<P, W, H>, P> {
-    kf_crtp_check(P, pixel::PixelTag);
+    kf_crtp_check(P, pixel::Tag);
 
     using PixelImpl = P;
     using BufferType = typename PixelImpl::BufferType;

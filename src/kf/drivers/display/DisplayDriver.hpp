@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "kf/image/Tag.hpp"
 #include "kf/memory/Slice.hpp"
+#include "kf/meta/type_check.hpp"
 
 namespace kf {
 
@@ -11,6 +13,8 @@ namespace kf {
 /// @tparam Impl Concrete driver implementation type
 /// @tparam I Image buffer type
 template<typename Impl, typename I> struct DisplayDriver {
+    kf_crtp_check(I, image::Tag);
+
     using ImageImpl = I;
     using ColorType = typename I::ColorType;
     using BufferType = typename I::BufferType;
