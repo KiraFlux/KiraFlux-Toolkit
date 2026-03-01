@@ -11,18 +11,18 @@
 namespace kf::image {
 
 /// @brief Predefined bitmap image with compile-time dimensions
-/// @tparam F Pixel format for the image
+/// @tparam P Pixel format for the image
 /// @tparam W Image width in pixels (compile-time constant)
 /// @tparam H Image height in pixels (compile-time constant)
 /// @details Represents a static image with fixed dimensions stored in memory.
 /// The image buffer is embedded directly in the object and cannot be resized.
 /// Useful for storing icons, logos, and other predefined graphics.
-template<typename F, Pixels W, Pixels H> struct StaticImage final : Image<StaticImage<F, W, H>, F> {
-    using PixelImpl = F;
-    using BufferType = typename F::BufferType;
-    using ColorType = typename F::ColorType;
+template<typename P, Pixels W, Pixels H> struct StaticImage final : Image<StaticImage<P, W, H>, P> {
+    using PixelImpl = P;
+    using BufferType = typename PixelImpl::BufferType;
+    using ColorType = typename PixelImpl::ColorType;
 
-    using BufferStorage = Array<BufferType, F::template buffer_size<W, H>>;
+    using BufferStorage = Array<BufferType, PixelImpl::template buffer_size<W, H>>;
 
 private:
     /// @brief Raw image buffer data
@@ -38,7 +38,7 @@ public:
 
     // CRTP
 private:
-    friend Image<StaticImage<F, W, H>, F>;
+    friend Image<StaticImage<PixelImpl, W, H>, PixelImpl>;
 
     [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return W; }
 

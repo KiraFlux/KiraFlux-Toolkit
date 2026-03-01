@@ -16,17 +16,17 @@
 namespace kf::gfx {
 
 /// @brief Drawing context with graphics primitives and text rendering
-/// @tparam F Pixel format for canvas operations
-template<typename F> struct Canvas {
-    using PixelImpl = F;
-    using ColorType = typename F::ColorType;
-    using PaletteType = Palette<F>;///<Color Palette
+/// @tparam P Pixel format for canvas operations
+template<typename P> struct Canvas {
+    using PixelImpl = P;
+    using ColorType = typename PixelImpl::ColorType;
+    using PaletteType = Palette<PixelImpl>;
 
 private:
     static constexpr ColorType default_foreground_color{PaletteType::ansiColor(PaletteType::Ansi::WhiteBright)};
     static constexpr ColorType default_background_color{PaletteType::ansiColor(PaletteType::Ansi::Black)};
 
-    image::DynamicImage<F> _frame;///< Target drawing surface
+    image::DynamicImage<P> _frame;///< Target drawing surface
     const Font *_active_font;     ///< Currently selected font (not nullptr)
     ColorType _foreground;        ///< Drawing color
     ColorType _background;        ///< Background/fill color
@@ -34,7 +34,7 @@ private:
 
 public:
     explicit Canvas(
-        const image::DynamicImage<F> &frame,
+        const image::DynamicImage<P> &frame,
         const Font &font = Font::blank(),
         ColorType foreground = default_foreground_color,
         ColorType background = default_background_color) noexcept :
@@ -53,7 +53,7 @@ public:
         _auto_next_line{false} {}
 
     /// @brief Creates validated sub-canvas within current bounds
-    Result<Canvas, typename image::DynamicImage<F>::Error> sub(
+    Result<Canvas, typename image::DynamicImage<PixelImpl>::Error> sub(
         Pixels sub_width, Pixels sub_height,
         Pixels sub_offset_x, Pixels sub_offset_y) noexcept {
         const auto frame_result = _frame.sub(sub_width, sub_height, sub_offset_x, sub_offset_y);
@@ -182,7 +182,7 @@ public:
     /// @brief Draw static image at specified position
     /// @param x Left position
     /// @param y Top position
-    template<Pixels W, Pixels H> void image(Pixels x, Pixels y, const image::StaticImage<F, W, H> &image) noexcept {
+    template<Pixels W, Pixels H> void image(Pixels x, Pixels y, const image::StaticImage<P, W, H> &image) noexcept {
         PixelImpl::copy(
             image.buffer(), image.width(), image.height(),
             _frame.buffer(), _frame.stride(),

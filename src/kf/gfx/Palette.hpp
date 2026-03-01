@@ -7,9 +7,9 @@
 
 namespace kf::gfx {
 
-template<typename F> struct Palette final {
-    using PixelImpl = F;
-    using ColorType = typename F::ColorType;
+template<typename P> struct Palette final {
+    using PixelImpl = P;
+    using ColorType = typename PixelImpl::ColorType;
 
     enum class Ansi : u8 {
         Black = 0x0,
