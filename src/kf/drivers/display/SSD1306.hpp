@@ -5,6 +5,7 @@
 
 #include <Wire.h>
 
+#include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/image/StaticImage.hpp"
@@ -105,7 +106,7 @@ private:
 
     /// @brief Transfer software buffer to display via I2C
     void sendImpl() const noexcept {
-        static constexpr auto packet_size = 64;// Optimal for ESP32 performance
+        static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
 
         static constexpr u8 set_area_commands[] = {
             CommandMode,
@@ -123,15 +124,17 @@ private:
         (void) wire.endTransmission();
 
         auto p = screen_image.buffer().data();
-        const auto *end = screen_image.buffer().end();
+        auto remaining = screen_image.buffer().size();
 
-        while (p < end) {
+        while (remaining > 0) {
+            const auto chunk = min(packet_size, remaining);
             wire.beginTransmission(config.address);
             (void) wire.write(Command::DataMode);
-            (void) wire.write(p, packet_size);
+            (void) wire.write(p, chunk);
             (void) wire.endTransmission();
 
-            p += packet_size;
+            p += chunk;
+            remaining -= chunk;
         }
     }
 
