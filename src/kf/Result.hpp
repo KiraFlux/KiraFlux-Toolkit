@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "kf/Option.hpp"
 
 namespace kf {
@@ -12,39 +14,36 @@ namespace kf {
 /// @tparam E Type of error value
 /// @note Embedded-friendly alternative to exceptions for error handling
 template<typename T, typename E> struct Result {
+    static_assert(not std::is_same_v<T, E>, "T and E must be different types");
 
 private:
     bool is_ok;///< Flag indicating success (true) or error (false)
 
     union {
-        T value;///< Storage for successful result (active when is_ok == true)
-        E err;  ///< Storage for error result (active when is_ok == false)
+        T _value;///< Storage for successful result (active when is_ok == true)
+        E _error;///< Storage for error result (active when is_ok == false)
     };
 
 public:
     /// @brief Construct successful result with value
-    /// @param val Value to store as successful result
-    constexpr Result(T val) noexcept :// NOLINT(*-explicit-constructor)
-        is_ok{true}, value{val} {}
+    constexpr Result(T value) noexcept :
+        is_ok{true}, _value{value} {}
 
     /// @brief Construct error result with error
-    /// @param error Error value to store
-    constexpr Result(E error) noexcept :// NOLINT(*-explicit-constructor)
-        is_ok{false}, err{error} {}
+    constexpr Result(E error) noexcept :
+        is_ok{false}, _error{error} {}
 
     /// @brief Check if result contains a value (success)
-    /// @return true if result is successful (contains value)
     [[nodiscard]] constexpr bool isOk() const noexcept { return is_ok; }
 
     /// @brief Check if result contains an error
-    /// @return true if result contains an error
     [[nodiscard]] constexpr bool isError() const noexcept { return not is_ok; }
 
     /// @brief Get successful value as Option
     /// @return Option containing value if successful, empty Option otherwise
     [[nodiscard]] constexpr Option<T> ok() const noexcept {
         if (is_ok) {
-            return {value};
+            return {_value};
         } else {
             return {};
         }
@@ -56,7 +55,7 @@ public:
         if (is_ok) {
             return {};
         } else {
-            return {err};
+            return {_error};
         }
     }
 };
@@ -68,7 +67,7 @@ template<typename E> struct Result<void, E> {
 
 private:
     bool is_ok;///< Flag indicating success (true) or error (false)
-    E err;     ///< Storage for error result (active when is_ok == false)
+    E _error;  ///< Storage for error result (active when is_ok == false)
 
 public:
     /// @brief Construct successful void result
@@ -76,16 +75,13 @@ public:
         is_ok{true} {}
 
     /// @brief Construct error result with error
-    /// @param error Error value to store
-    constexpr Result(E error) noexcept :// NOLINT(*-explicit-constructor)
-        is_ok{false}, err{error} {}
+    constexpr Result(E error) noexcept :
+        is_ok{false}, _error{error} {}
 
     /// @brief Check if result is successful
-    /// @return true if operation succeeded (no error)
     [[nodiscard]] constexpr bool isOk() const noexcept { return is_ok; }
 
     /// @brief Check if result contains an error
-    /// @return true if operation failed (contains error)
     [[nodiscard]] constexpr bool isError() const noexcept { return not is_ok; }
 
     /// @brief Get error value as Option
@@ -94,7 +90,7 @@ public:
         if (is_ok) {
             return {};
         } else {
-            return {err};
+            return {_error};
         }
     }
 };
