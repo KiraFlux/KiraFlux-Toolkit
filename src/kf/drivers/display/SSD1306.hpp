@@ -5,6 +5,7 @@
 
 #include <Wire.h>
 
+#include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/image/StaticImage.hpp"
@@ -114,14 +115,13 @@ private:
         if (wire.endTransmission() != 0) { goto fail; }
 
         return true;
-
     fail:
         return false;
     }
 
     /// @brief Transfer software buffer to display via I2C
     [[nodiscard]] bool sendImpl() const noexcept {
-        static constexpr auto packet_size = 64;// Optimal for ESP32 performance
+        static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
 
         static constexpr u8 set_area_commands[] = {
             CommandMode,
@@ -133,21 +133,39 @@ private:
             0,
             PixelImpl::template pages<64> - 1,
         };
-        // ignored values will be fixed in fix/drivers
-        wire.beginTransmission(config.address);
-        (void) wire.write(set_area_commands, sizeof(set_area_commands));
-        (void) wire.endTransmission();
 
         auto p = screen_image.buffer().data();
-        const auto *end = screen_image.buffer().end();
+        auto remaining = screen_image.buffer().size();
 
-        while (p < end) {
+        wire.beginTransmission(config.address);
+        if (wire.write(set_area_commands, sizeof(set_area_commands)) != sizeof(set_area_commands)) { goto fail; }
+        if (wire.endTransmission() != 0) { goto fail; }
+
+        while (remaining > 0) {
+            const auto chunk = min(packet_size, remaining);
+
             wire.beginTransmission(config.address);
-            (void) wire.write(Command::DataMode);
-            (void) wire.write(p, packet_size);
-            (void) wire.endTransmission();
+            if (wire.write(Command::DataMode) != 1) { goto fail; }
+            if (wire.write(p, chunk) != chunk) { goto fail; }
+            if (wire.endTransmission() != 0) { goto fail; }
 
-            p += packet_size;
+            p += chunk;
+            remaining -= chunk;
+        }
+
+        return true;
+    fail:
+        return false;
+    }
+
+    [[nodiscard]] bool supportOrientation(Orientation orientation) const noexcept {
+        switch (orientation) {
+            case Orientation::Normal:
+            case Orientation::MirrorX:
+            case Orientation::MirrorY:
+                return true;
+            default:
+                return false;
         }
 
         return true;
@@ -175,7 +193,6 @@ private:
         if (not sendCommand((flags & flip_y) ? FlipV : NormalV)) { goto fail; }
 
         return true;
-
     fail:
         return false;
     }
@@ -219,7 +236,6 @@ private:
         if (wire.endTransmission() != 0) { goto fail; }
 
         return true;
-
     fail:
         return false;
     }

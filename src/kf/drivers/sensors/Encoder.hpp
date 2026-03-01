@@ -19,8 +19,8 @@ struct Encoder {
 
     static constexpr auto logger{Logger::create("Encoder")};
 
-    /// @brief Conversion settings between ticks and physical units
-    struct ConversionSettings : Validatable<ConversionSettings> {
+    /// @brief Conversion configuration between ticks and physical units
+    struct ConversionConfig : Validatable<ConversionConfig> {
         f32 ticks_in_one_mm;///< Ticks per millimeter (must be positive)
 
         /// @brief Convert ticks to millimeters
@@ -33,15 +33,14 @@ struct Encoder {
             return Ticks{mm * ticks_in_one_mm};
         }
 
-        /// @brief Validate conversion settings
-        /// @param validator Validation context
+        /// @brief Validate conversion config
         void checkImpl(Validator &validator) const noexcept {
             kf_Validator_check(validator, logger, ticks_in_one_mm > 0);
         }
     };
 
     /// @brief GPIO pin configuration for encoder
-    struct PinsSettings {
+    struct PinsConfig {
         /// @brief Interrupt trigger edge
         enum class Edge : u8 {
             Rising = RISING, ///< Trigger on rising edge (LOW to HIGH)
@@ -53,16 +52,16 @@ struct Encoder {
         Edge edge; ///< Interrupt trigger edge
     };
 
-    const PinsSettings &pins;            ///< Pin configuration reference
-    const ConversionSettings &conversion;///< Unit conversion settings
+    const PinsConfig &pins;
+    const ConversionConfig &conversion;
 
 private:
     volatile Ticks _position{0};///< Current position in ticks
 
 public:
     explicit Encoder(
-        const PinsSettings &pins_settings,
-        const ConversionSettings &conversion_settings) noexcept :
+        const PinsConfig &pins_settings,
+        const ConversionConfig &conversion_settings) noexcept :
         pins{pins_settings}, conversion{conversion_settings} {}
 
     /// @brief Initialize encoder GPIO pins

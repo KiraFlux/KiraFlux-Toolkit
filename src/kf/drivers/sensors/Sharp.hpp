@@ -19,8 +19,8 @@ struct Sharp {
 
     static constexpr auto logger{Logger::create("Encoder")};
 
-    /// @brief Sensor configuration settings
-    struct Settings : Validatable<Settings> {
+    /// @brief Sensor configuration
+    struct Config : Validatable<Config> {
         u8 pin;       ///< Analog input GPIO pin
         u8 resolution;///< ADC resolution in bits (1-16)
 
@@ -38,23 +38,23 @@ struct Sharp {
         }
     };
 
-    const Settings &settings;///< Reference to configuration settings
+    const Config &_config;
 
 private:
     AnalogValue max_value{0};///< Cached maximum ADC value
 
 public:
-    explicit Sharp(const Settings &settings) noexcept :
-        settings{settings} {}
+    explicit Sharp(const Config &config) noexcept :
+        _config{config} {}
 
     /// @brief Initialize sensor hardware
     /// @return Always returns true (initialization cannot fail)
     /// @note Sets pin mode and configures ADC resolution
     [[nodiscard]] bool init() noexcept {
-        max_value = settings.maxValue();
+        max_value = _config.maxValue();
 
-        pinMode(settings.pin, INPUT);
-        analogReadResolution(settings.resolution);
+        pinMode(_config.pin, INPUT);
+        analogReadResolution(_config.resolution);
 
         return true;
     }
@@ -62,7 +62,7 @@ public:
     /// @brief Read raw ADC value from sensor
     /// @return Raw ADC reading (0 to maxValue)
     [[nodiscard]] inline AnalogValue readRaw() const noexcept {
-        return analogRead(settings.pin);
+        return analogRead(_config.pin);
     }
 
     /// @brief Read distance in millimeters

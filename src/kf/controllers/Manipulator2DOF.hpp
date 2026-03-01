@@ -15,12 +15,12 @@ struct Manipulator2DOF {
 
     static constexpr auto logger{Logger::create("Encoder")};
 
-    /// @brief Configuration settings for 2DOF manipulator
-    struct Settings : Validatable<Settings> {
-        PwmPositionServo::PwmSettings servo_pwm;                     ///< PWM signal configuration
-        PwmPositionServo::PulseSettings servo_generic_pulse_settings;///< Pulse timing settings
-        PwmPositionServo::DriverSettings claw_axis;                  ///< Claw axis servo configuration
-        PwmPositionServo::DriverSettings arm_axis;                   ///< Arm axis servo configuration
+    /// @brief Configuration for 2DOF manipulator
+    struct Config : Validatable<Config> {
+        PwmPositionServo::PwmConfig servo_pwm;                     ///< PWM signal
+        PwmPositionServo::PulseConfig servo_generic_pulse_settings;///< Pulse timing
+        PwmPositionServo::DriverConfig claw_axis;                  ///< Claw axis servo
+        PwmPositionServo::DriverConfig arm_axis;                   ///< Arm axis servo
 
         /// @brief Validate all configuration parameters
         void checkImpl(Validator &validator) const noexcept {
@@ -32,17 +32,16 @@ struct Manipulator2DOF {
     };
 
 private:
-    const Settings &settings;///< Reference to configuration settings
-    PwmPositionServo _arm;   ///< Arm axis servo driver
-    PwmPositionServo _claw;  ///< Claw axis servo driver
+    const Config &_config; ///< Reference to configuration
+    PwmPositionServo _arm; ///< Arm axis servo driver
+    PwmPositionServo _claw;///< Claw axis servo driver
 
 public:
     /// @brief Construct manipulator instance
-    /// @param settings Configuration settings for both axes
-    explicit Manipulator2DOF(const Settings &settings) noexcept :
-        settings{settings},
-        _arm{settings.servo_pwm, settings.arm_axis, settings.servo_generic_pulse_settings},
-        _claw{settings.servo_pwm, settings.claw_axis, settings.servo_generic_pulse_settings} {}
+    explicit Manipulator2DOF(const Config &config) noexcept :
+        _config{config},
+        _arm{config.servo_pwm, config.arm_axis, config.servo_generic_pulse_settings},
+        _claw{config.servo_pwm, config.claw_axis, config.servo_generic_pulse_settings} {}
 
     /// @brief Initialize both servo axes
     /// @return true if both servos initialized successfully

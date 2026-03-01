@@ -68,8 +68,8 @@ private:
     RenderImpl _render_system{};///< Renderer implementation instance
 
 public:
-    /// @brief Access renderer configuration settings
-    /// @return Reference to renderer settings structure
+    /// @brief Access renderer configuration
+    /// @return Reference to renderer config structure
     [[nodiscard]] RenderConfig &renderConfig() noexcept { return _render_system.getConfig(); }
 
     /// @brief Set active page for display
