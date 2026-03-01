@@ -35,22 +35,29 @@ public:
         config{config}, wire{wire} {}
 
     /// @brief Set display contrast level (0..255)
-    void setContrast(u8 value) const {
+    /// @returns true - operation success
+    [[nodiscard]] bool setContrast(u8 value) const {
         wire.beginTransmission(config.address);
-        (void) wire.write(CommandMode);
-        (void) wire.write(Contrast);
-        (void) wire.write(value);
-        (void) wire.endTransmission();
+        if (wire.write(CommandMode) != 1) { goto fail; }
+        if (wire.write(Contrast) != 1) { goto fail; }
+        if (wire.write(value) != 1) { goto fail; }
+        if (wire.endTransmission() != 0) { goto fail; }
+
+        return true;
+    fail:
+        return false;
     }
 
     /// @brief Enable or disable display power
-    void setPower(bool on) noexcept {
-        sendCommand(on ? DisplayOn : DisplayOff);
+    /// @returns true - operation success
+    [[nodiscard]] bool setPower(bool on) noexcept {
+        return sendCommand(on ? DisplayOn : DisplayOff);
     }
 
     /// @brief Invert display colors
-    void invert(bool invert) noexcept {
-        sendCommand(invert ? InvertDisplay : NormalDisplay);
+    /// @returns true - operation success
+    [[nodiscard]] bool invert(bool invert) noexcept {
+        return sendCommand(invert ? InvertDisplay : NormalDisplay);
     }
 
 private:
@@ -65,47 +72,56 @@ private:
             DisplayOff,
 
             // Clock divider
-            ClockDiv, 0x80,
+            ClockDiv,
+            0x80,
 
             // Enable internal charge pump
-            ChargePump, 0x14,
+            ChargePump,
+            0x14,
 
             // Horizontal addressing mode
-            AddressingMode, Horizontal,
+            AddressingMode,
+            Horizontal,
 
             // Default contrast 127
-            Contrast, 0x7F,
+            Contrast,
+            0x7F,
 
             // VCOM voltage
-            SetVcomDetect, 0x40,
+            SetVcomDetect,
+            0x40,
 
             // Normal orientation
-            NormalH, NormalV,
+            NormalH,
+            NormalV,
 
             // Turn display on
             DisplayOn,
 
             // Pin configuration (128x64)
-            SetComPins, 0x12,
+            SetComPins,
+            0x12,
 
             // Multiplex (64 lines)
-            SetMultiplex, 0x3F};
+            SetMultiplex,
+            0x3F,
+        };
 
-        if (not wire.begin()) { return false; }
-
-        if (not wire.setClock(config.i2c_clock_frequency)) { return false; }
+        if (not wire.begin()) { goto fail; }
+        if (not wire.setClock(config.i2c_clock_frequency)) { goto fail; }
 
         wire.beginTransmission(config.address);
+        if (wire.write(init_commands, sizeof(init_commands)) != sizeof(init_commands)) { goto fail; }
+        if (wire.endTransmission() != 0) { goto fail; }
 
-        const auto written = wire.write(init_commands, sizeof(init_commands));
-        if (sizeof(init_commands) != written) { return false; }
+        return true;
 
-        const u8 end_transmission_code = wire.endTransmission();
-        return 0 == end_transmission_code;
+    fail:
+        return false;
     }
 
     /// @brief Transfer software buffer to display via I2C
-    void sendImpl() const noexcept {
+    [[nodiscard]] bool sendImpl() const noexcept {
         static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
 
         static constexpr u8 set_area_commands[] = {
@@ -118,7 +134,7 @@ private:
             0,
             PixelImpl::template pages<64> - 1,
         };
-
+        // ignored values will be fixed in fix/drivers
         wire.beginTransmission(config.address);
         (void) wire.write(set_area_commands, sizeof(set_area_commands));
         (void) wire.endTransmission();
@@ -136,16 +152,35 @@ private:
             p += chunk;
             remaining -= chunk;
         }
+
+        return true;
     }
 
-    /// @brief Apply orientation transformation (only flip operations supported)
-    void setOrientationImpl(Orientation orientation) noexcept {
+    [[nodiscard]] bool supportOrientation(Orientation orientation) const noexcept {
+        switch (orientation) {
+            case Orientation::Normal:
+            case Orientation::MirrorX:
+            case Orientation::MirrorY:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {
+        if (not supportOrientation(orientation)) { return false; }
+
         constexpr auto flip_x = 0b01;
         constexpr auto flip_y = 0b10;
+        const auto flags = static_cast<u8>(orientation);
 
-        const u8 flags = static_cast<u8>(orientation) & (flip_x | flip_y);
-        sendCommand((flags & flip_x) ? FlipH : NormalH);
-        sendCommand((flags & flip_y) ? FlipV : NormalV);
+        if (not sendCommand((flags & flip_x) ? FlipH : NormalH)) { goto fail; }
+        if (not sendCommand((flags & flip_y) ? FlipV : NormalV)) { goto fail; }
+
+        return true;
+
+    fail:
+        return false;
     }
 
     /// @brief SSD1306 command set
@@ -180,11 +215,16 @@ private:
     };
 
     /// @brief Send single command to display
-    void sendCommand(Command command) const noexcept {
+    [[nodiscard]] bool sendCommand(Command c) const noexcept {
         wire.beginTransmission(config.address);
-        (void) wire.write(OneCommandMode);
-        (void) wire.write(static_cast<u8>(command));
-        (void) wire.endTransmission();
+        if (wire.write(OneCommandMode) != 1) { goto fail; }
+        if (wire.write(static_cast<u8>(c)) != 1) { goto fail; }
+        if (wire.endTransmission() != 0) { goto fail; }
+
+        return true;
+
+    fail:
+        return false;
     }
 
     friend Base;// CRTP

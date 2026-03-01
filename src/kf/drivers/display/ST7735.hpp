@@ -83,7 +83,7 @@ public:
         const u8 color_mode{0x05};// 16-bit color (RGB565)
         sendData(&color_mode, sizeof(color_mode));
 
-        orientation(settings.orientation);
+        (void) orientation(settings.orientation); // Ignored becauce always true
 
         sendCommand(Command::DISPON);
         delay(100);
@@ -91,13 +91,14 @@ public:
         return true;
     }
 
-    void sendImpl() const noexcept {
+    [[nodiscard]] bool sendImpl() const noexcept {
         sendCommand(Command::RAMWR);
         sendData(reinterpret_cast<const u8 *>(screen_image.buffer().data()), imageBufferSizeBytes());
+        return true;// Arduino SPI cannot tell anything about errors
     }
 
     /// @brief Apply orientation transformation (full 6-way support)
-    void setOrientationImpl(Orientation orientation) noexcept {
+    [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {
         constexpr u8 orient_to_transform[]{
             0,                                        // Orientation::Normal
             MadCtl::MirrorX,                          // Orientation::MirrorX
@@ -121,6 +122,8 @@ public:
         data[3] = screen_image.maxY();
         sendCommand(Command::RASET);
         sendData(data, sizeof(data));
+
+        return true;
     }
 
     // Low-level SPI communication
