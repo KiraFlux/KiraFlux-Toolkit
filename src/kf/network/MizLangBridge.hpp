@@ -36,64 +36,70 @@ template<usize N, typename Tlc, typename Trc = Tlc> struct MizLangBridge {
     using InstructionTableType = Array<ReceiveFunctionType, N>;
 
 private:
-    InstructionTableType instructions;
-    io::InputStream in;
-    io::OutputStream out;
-    RemoteCodeType next_code{0};
+    InstructionTableType _instructions;
+    io::InputStream _input_stream;
+    io::OutputStream _output_stream;
+    RemoteCodeType _next_code{0};
 
 public:
     explicit MizLangBridge(
         io::InputStream input_stream,
         io::OutputStream output_stream,
         InstructionTableType instructions) noexcept :
-        in{std::move(input_stream)},
-        out{std::move(output_stream)},
-        instructions{std::move(instructions)} {}
+        _input_stream{std::move(input_stream)},
+        _output_stream{std::move(output_stream)},
+        _instructions{std::move(instructions)} {}
 
     struct Instruction {
     private:
-        const SendFunctionType sender;
-        io::OutputStream &out;
-        const RemoteCodeType code;
+        const SendFunctionType _sender;
+        io::OutputStream &_output_stream;
+        const RemoteCodeType _code;
 
     public:
         explicit Instruction(io::OutputStream &output_stream, RemoteCodeType code, SendFunctionType sender) noexcept :
-            out{output_stream}, sender{std::move(sender)}, code{code} {}
+            _output_stream{output_stream}, _sender{std::move(sender)}, _code{code} {}
 
         Instruction(Instruction &&other) noexcept :
-            out{other.out}, sender{std::move(other.sender)}, code{other.code} {}
+            _output_stream{other._output_stream}, _sender{std::move(other._sender)}, _code{other._code} {}
 
         [[nodiscard]] Result<void, Error> send(void *args) noexcept {
-            if (not sender) {
+            if (not _sender) {
                 return {Error::Sender_FunctionNotReady};
             }
-            if (not out.write(code)) {
+            if (not _output_stream.write(_code)) {
                 return {Error::Sender_CodeWriteFail};
             }
-            return sender(out, args);
+            return _sender(_output_stream, args);
         }
     };
 
     [[nodiscard]] Instruction createInstruction(SendFunctionType sender_function) noexcept {
-        return Instruction{out, next_code++, std::move(sender_function)};
+        return Instruction{_output_stream, _next_code++, std::move(sender_function)};
     }
 
+    /// @brief Poll for incoming instructions and process them.
+    /// @return Result<void, Error>:
+    ///   - Success (empty result) if no complete instruction is available (insufficient data).
+    ///   - Error if reading the instruction code fails, the code is unknown, or argument reading fails.
+    /// @note This method does not block. If there isn't enough data to read the instruction code,
+    ///       it returns success without processing anything.
     [[nodiscard]] Result<void, Error> poll() noexcept {
-        if (in.available() < sizeof(LocalCodeType)) { return {}; }
+        if (_input_stream.available() < sizeof(LocalCodeType)) { return {}; }
 
-        auto code_option = in.read<LocalCodeType>();
+        const auto code_option = _input_stream.read<LocalCodeType>();
 
         if (not code_option.hasValue()) {
             return {Error::Receiver_CodeReadFail};
         }
 
         const auto code = code_option.value();
-        if (code >= instructions.size()) {
-            in.clean();
+        if (code >= _instructions.size()) {
+            _input_stream.clean();
             return {Error::Receiver_CodeNotExists};
         }
 
-        return instructions[code](in);
+        return _instructions[code](_input_stream);
     }
 };
 
