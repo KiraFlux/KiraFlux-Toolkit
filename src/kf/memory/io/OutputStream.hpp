@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <Stream.h>
 
 #include "kf/Option.hpp"
@@ -43,6 +45,7 @@ public:
     /// @param value Object to write
     /// @return true if object successfully written
     template<typename T> [[nodiscard]] inline bool write(const T &value) noexcept {
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
         return write(static_cast<const void *>(&value), sizeof(T));
     }
 };

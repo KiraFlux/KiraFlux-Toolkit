@@ -151,12 +151,14 @@ void all() {
 namespace format {
 void simple() {
     ArrayString<10> s;
-    TEST_ASSERT_EQUAL(5, s.format("hello"));
+    const auto result = s.format("hello");
+    TEST_ASSERT_TRUE(result.isOk());
+    TEST_ASSERT_EQUAL(5, result.ok().value());
     assertStr(s, "hello", 5);
 }
 void truncated() {
     ArrayString<10> s;
-    (void) s.format("this is a very long string");
+    (void) s.format("this is a very long string__________________________");
     assertStr(s, "this is a ", 10);
 }
 }// namespace format

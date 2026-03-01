@@ -17,15 +17,15 @@
 #include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx.hpp>
 
-// Pixel format used by the display
-using P = kf::ST7735::PixelImpl;
+using P = kf::ST7735::PixelImpl;    // Pixel format used by the display
+using Palette = kf::gfx::Palette<P>;// Palette for this pixel format
 
 // Predefined colors
 constexpr P::ColorType red = P::fromRgb(0xFF, 0x00, 0x00);
 constexpr P::ColorType green = P::fromRgb(0x00, 0xFF, 0x00);
 constexpr P::ColorType blue = P::fromRgb(0x00, 0x00, 0xFF);
-constexpr P::ColorType black = P::fromRgb(0x00, 0x00, 0x00);
-constexpr P::ColorType white = P::fromRgb(0xFF, 0xFF, 0xFF);
+constexpr P::ColorType black = Palette::black;
+constexpr P::ColorType white = Palette::bright_white;
 
 void demo(kf::ST7735 &display, const char *orientation_name) {
     // Wrap the display's framebuffer (ViewportImage) into a Canvas.

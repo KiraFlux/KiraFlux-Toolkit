@@ -10,13 +10,13 @@
 
 namespace kf::image {
 
-template<typename F, usize W, usize H> struct ViewportImage final : Image<ViewportImage<F, W, H>, F> {
-    using PixelImpl = F;
-    using BufferType = typename F::BufferType;
-    using ColorType = typename F::ColorType;
+template<typename P, usize W, usize H> struct ViewportImage final : Image<ViewportImage<P, W, H>, P> {
+    using PixelImpl = P;
+    using BufferType = typename PixelImpl::BufferType;
+    using ColorType = typename PixelImpl::ColorType;
 
 private:
-    StaticImage<F, W, H> _image{};///< Raw image buffer data
+    StaticImage<PixelImpl, W, H> _image{};///< Raw image buffer data
     Pixels _logical_width{W}, _logical_height{H};
 
 public:
@@ -27,7 +27,7 @@ public:
 
     // CRTP
 private:
-    friend Image<ViewportImage<F, W, H>, F>;
+    friend Image<ViewportImage<PixelImpl, W, H>, PixelImpl>;
 
     [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return _logical_width; }
 

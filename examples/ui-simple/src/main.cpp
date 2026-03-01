@@ -28,19 +28,21 @@ struct MainPage : MyUI::Page {
 
     MyUI::Display<int> value_display{
         *this,  // add to this page
-        my_value// value const reference. (MUST BE VALID ALL WIDGET LIVETIME!)
+        my_value// initial value
     };
 
     explicit MainPage() : Page{"Main"} {
         click_button.on_click = [this]() {
             Serial.println("Test button clicked!");
             my_value += 1;
+            value_display.value(my_value);
         };
 
         check_box.change_handler = [this](bool state) {
             Serial.print("Checkbox changed to: ");
             Serial.println(state ? "ON" : "OFF");
             my_value *= -1;
+            value_display.value(my_value);
         };
     }
 
