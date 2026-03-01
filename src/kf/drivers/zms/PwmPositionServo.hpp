@@ -14,8 +14,10 @@ namespace kf {
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
 struct PwmPositionServo {
 
+    static constexpr auto logger{Logger::create("PwmPositionServo")};
+
     /// @brief PWM signal configuration for LEDC hardware
-    struct PwmSettings : Validable<PwmSettings> {
+    struct PwmSettings : Validatable<PwmSettings> {
         u32 ledc_frequency_hz;  ///< PWM frequency in Hz
         u8 ledc_resolution_bits;///< PWM resolution (8-16 bits)
 
@@ -35,15 +37,15 @@ struct PwmPositionServo {
 
         /// @brief Validate PWM configuration parameters
         /// @param validator Validation context
-        void check(Validator &validator) const noexcept {
-            kf_Validator_check(validator, ledc_frequency_hz > 0);
-            kf_Validator_check(validator, ledc_resolution_bits >= 8);
-            kf_Validator_check(validator, ledc_resolution_bits <= 16);
+        void checkImpl(Validator &validator) const noexcept {
+            kf_Validator_check(validator, logger, ledc_frequency_hz > 0);
+            kf_Validator_check(validator, logger, ledc_resolution_bits >= 8);
+            kf_Validator_check(validator, logger, ledc_resolution_bits <= 16);
         }
     };
 
     /// @brief Servo driver hardware configuration
-    struct DriverSettings : Validable<DriverSettings> {
+    struct DriverSettings : Validatable<DriverSettings> {
         u8 signal_pin;    ///< GPIO pin for PWM signal output
         u8 ledc_channel;  ///< LEDC channel (0-15) for ESP32 PWM
         Degrees min_angle;///< Minimum servo rotation angle
@@ -51,14 +53,14 @@ struct PwmPositionServo {
 
         /// @brief Validate driver configuration parameters
         /// @param validator Validation context
-        void check(Validator &validator) const noexcept {
-            kf_Validator_check(validator, ledc_channel <= 15);
-            kf_Validator_check(validator, min_angle < max_angle);
+        void checkImpl(Validator &validator) const noexcept {
+            kf_Validator_check(validator, logger, ledc_channel <= 15);
+            kf_Validator_check(validator, logger, min_angle < max_angle);
         }
     };
 
     /// @brief Pulse width mapping configuration for servo angles
-    struct PulseSettings : Validable<PulseSettings> {
+    struct PulseSettings : Validatable<PulseSettings> {
         /// @brief Angle-to-pulse width mapping point
         struct Pulse {
             Microseconds pulse;///< Pulse width in microseconds
@@ -82,9 +84,9 @@ struct PwmPositionServo {
 
         /// @brief Validate pulse mapping configuration
         /// @param validator Validation context
-        void check(Validator &validator) const noexcept {
-            kf_Validator_check(validator, min_position.pulse < max_position.pulse);
-            kf_Validator_check(validator, min_position.angle < max_position.angle);
+        void checkImpl(Validator &validator) const noexcept {
+            kf_Validator_check(validator, logger, min_position.pulse < max_position.pulse);
+            kf_Validator_check(validator, logger, min_position.angle < max_position.angle);
         }
     };
 
@@ -101,7 +103,7 @@ public:
     explicit constexpr PwmPositionServo(
         const PwmSettings &pwm_settings,
         const DriverSettings &driver_settings,
-        const PulseSettings &pulse_settings) noexcept:
+        const PulseSettings &pulse_settings) noexcept :
         driver_settings{driver_settings}, pwm_settings(pwm_settings), pulse_settings(pulse_settings) {}
 
     /// @brief Initialize servo driver hardware
@@ -114,7 +116,7 @@ public:
             pwm_settings.ledc_resolution_bits);
 
         if (freq == 0) {
-            kf_Logger_error("LEDC setup failed");
+            logger.error("LEDC setup failed");
             return false;
         }
 
@@ -126,12 +128,12 @@ public:
     /// @brief Set servo to target angle
     /// @param angle Target angle in degrees
     /// @note Automatically converts angle to PWM duty cycle
-    void set(Degrees angle) noexcept{
+    void set(Degrees angle) noexcept {
         write(pwm_settings.dutyFromPulseWidth(pulse_settings.pulseWidthFromAngle(angle)));
     }
 
     /// @brief Disable servo (stop PWM signal)
-    void disable() noexcept{
+    void disable() noexcept {
         write(0);
     }
 

@@ -30,8 +30,10 @@ struct Motor {
         CCW = 0x01///< Counter-clockwise rotation is positive
     };
 
+    static constexpr auto logger{Logger::create("Motor")};
+
     /// @brief Motor driver hardware configuration
-    struct DriverSettings : Validable<DriverSettings> {
+    struct DriverSettings : Validatable<DriverSettings> {
         DriverImpl impl;    ///< Driver hardware type
         Direction direction;///< Positive rotation direction
         u8 pin_a;           ///< Direction pin A (IArduino) / IN1/IN3 (L298N)
@@ -40,13 +42,13 @@ struct Motor {
 
         /// @brief Validate driver configuration parameters
         /// @param validator Validation context
-        void check(Validator &validator) const noexcept {
-            kf_Validator_check(validator, ledc_channel <= 15);
+        void checkImpl(Validator &validator) const noexcept {
+            kf_Validator_check(validator, logger, ledc_channel <= 15);
         }
     };
 
     /// @brief PWM signal configuration
-    struct PwmSettings : Validable<PwmSettings> {
+    struct PwmSettings : Validatable<PwmSettings> {
         using FrequencyScalar = u16;///< PWM frequency in Hz
 
         FrequencyScalar ledc_frequency_hz;///< PWM frequency (Hz)
@@ -61,10 +63,10 @@ struct Motor {
 
         /// @brief Validate PWM configuration parameters
         /// @param validator Validation context
-        void check(Validator &validator) const noexcept {
-            kf_Validator_check(validator, dead_zone >= 0);
-            kf_Validator_check(validator, ledc_resolution_bits >= 8);
-            kf_Validator_check(validator, ledc_resolution_bits <= 12);
+        void checkImpl(Validator &validator) const noexcept {
+            kf_Validator_check(validator, logger, dead_zone >= 0);
+            kf_Validator_check(validator, logger, ledc_resolution_bits >= 8);
+            kf_Validator_check(validator, logger, ledc_resolution_bits <= 12);
         }
     };
 
@@ -76,7 +78,7 @@ private:
 
 public:
     explicit constexpr Motor(const DriverSettings &driver_settings,
-                             const PwmSettings &pwm_settings) noexcept:
+                             const PwmSettings &pwm_settings) noexcept :
         driver_settings{driver_settings}, pwm_settings{pwm_settings} {}
 
     /// @brief Initialize motor driver hardware
@@ -90,7 +92,7 @@ public:
 
         switch (driver_settings.impl) {
             case DriverImpl::IArduino: {
-                kf_Logger_debug("IArduino mode");
+                logger.debug("IArduino mode");
 
                 const auto current_frequency = ledcSetup(
                     driver_settings.ledc_channel,
@@ -98,7 +100,7 @@ public:
                     pwm_settings.ledc_resolution_bits);
 
                 if (current_frequency == 0) {
-                    kf_Logger_error("LEDC setup failed!");
+                    logger.error("LEDC setup failed!");
                     return false;
                 }
 
@@ -106,7 +108,7 @@ public:
             } break;
 
             case DriverImpl::L298nModule: {
-                kf_Logger_debug("L293n mode");
+                logger.debug("L293n mode");
 
                 analogWriteFrequency(pwm_settings.ledc_frequency_hz);
                 analogWriteResolution(pwm_settings.ledc_resolution_bits);
@@ -115,7 +117,7 @@ public:
 
         stop();
 
-        kf_Logger_debug("isOk");
+        logger.debug("isOk");
         return true;
     }
 
