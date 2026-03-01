@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "kf/Result.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
@@ -122,6 +124,9 @@ public:
         Pixels x0, Pixels y0,
         Pixels x1, Pixels y1,
         ColorType color) const noexcept {
+        if (x0 > x1) { std::swap(x0, x1); }
+        if (y0 > y1) { std::swap(y0, y1); }
+
         PixelImpl::fill(
             _buffer,
             _stride,
