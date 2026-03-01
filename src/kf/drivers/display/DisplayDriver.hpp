@@ -34,13 +34,16 @@ public:
     [[nodiscard]] ImageImpl &image() noexcept { return screen_image; }
 
     /// @brief Initialize the display hardware
-    [[nodiscard]] bool init() noexcept { return static_cast<Impl *>(this)->initImpl(); }
+    /// @return true if success
+    [[nodiscard]] bool init() noexcept { return impl().initImpl(); }
 
     /// @brief Transfer software buffer to display hardware
-    void send() const noexcept { static_cast<const Impl *>(this)->sendImpl(); }
+    /// @return true if success
+    [[nodiscard]] bool send() const noexcept { return c_impl().sendImpl(); }
 
     /// @brief Set display orientation
-    void orientation(Orientation new_orientation) noexcept { static_cast<Impl *>(this)->setOrientationImpl(new_orientation); }
+    /// @return true if success
+    [[nodiscard]] bool orientation(Orientation new_orientation) noexcept { return impl().setOrientationImpl(new_orientation); }
 
 protected:
     [[nodiscard]] constexpr usize imageBufferSizeBytes() const noexcept {
@@ -51,6 +54,10 @@ protected:
 protected:
     friend Impl;
     using Base = DisplayDriver;
+
+private:
+    [[nodiscard]] inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
+    [[nodiscard]] inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
 }// namespace kf
