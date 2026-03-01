@@ -34,15 +34,15 @@ public:
 
     /// @brief Check if result contains a value (success)
     /// @return true if result is successful (contains value)
-    [[nodiscard]] bool isOk() const noexcept { return is_ok; }
+    [[nodiscard]] constexpr bool isOk() const noexcept { return is_ok; }
 
     /// @brief Check if result contains an error
     /// @return true if result contains an error
-    [[nodiscard]] bool isError() const noexcept { return not is_ok; }
+    [[nodiscard]] constexpr bool isError() const noexcept { return not is_ok; }
 
     /// @brief Get successful value as Option
     /// @return Option containing value if successful, empty Option otherwise
-    Option<T> ok() const noexcept {
+    [[nodiscard]] constexpr Option<T> ok() const noexcept {
         if (is_ok) {
             return {value};
         } else {
@@ -52,7 +52,7 @@ public:
 
     /// @brief Get error value as Option
     /// @return Option containing error if failed, empty Option otherwise
-    Option<E> error() const noexcept {
+    [[nodiscard]] constexpr Option<E> error() const noexcept {
         if (is_ok) {
             return {};
         } else {
@@ -82,15 +82,15 @@ public:
 
     /// @brief Check if result is successful
     /// @return true if operation succeeded (no error)
-    [[nodiscard]] bool isOk() const noexcept { return is_ok; }
+    [[nodiscard]] constexpr bool isOk() const noexcept { return is_ok; }
 
     /// @brief Check if result contains an error
     /// @return true if operation failed (contains error)
-    [[nodiscard]] bool isError() const noexcept { return not is_ok; }
+    [[nodiscard]] constexpr bool isError() const noexcept { return not is_ok; }
 
     /// @brief Get error value as Option
     /// @return Option containing error if failed, empty Option otherwise
-    Option<E> error() const noexcept {
+    [[nodiscard]] constexpr Option<E> error() const noexcept {
         if (is_ok) {
             return {};
         } else {

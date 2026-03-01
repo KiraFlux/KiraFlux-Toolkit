@@ -31,7 +31,7 @@ public:
 
     /// @brief Check if Option contains a value
     /// @return true if value is present, false otherwise
-    [[nodiscard]] bool hasValue() const noexcept { return engaged; }
+    [[nodiscard]] constexpr bool hasValue() const noexcept { return engaged; }
 
     /// @brief Get stored value (unsafe)
     /// @return Reference to stored value
@@ -57,7 +57,7 @@ public:
     /// @param default_value Value to return if Option is empty
     /// @return Stored value if present, default_value otherwise
     /// @note Safe alternative to value() that doesn't terminate
-    [[nodiscard]] T valueOr(const T &default_value) const noexcept {
+    [[nodiscard]] constexpr T valueOr(const T &default_value) const noexcept {
         return engaged ? val : default_value;
     }
 };
