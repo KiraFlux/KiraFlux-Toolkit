@@ -234,17 +234,21 @@ private:
     static void onReceive(const u8 *raw_mac_address, const u8 *data, int size) noexcept {
         auto &self = EspNow::instance();
 
-        const auto &source_address = *reinterpret_cast<const Mac *>(raw_mac_address);
+        Mac source_mac;
+        std::copy(raw_mac_address, raw_mac_address + ESP_NOW_ETH_ALEN, source_mac.begin());
+
         const Slice<const u8> buffer{data, static_cast<usize>(size)};
 
-        const auto peer_context = self.getPeerContext(source_address);
+        const auto peer_context = self.getPeerContext(source_mac);
 
         if (nullptr == peer_context) {
-            if (not self._on_receive_from_unknown) { return; }
-            self._on_receive_from_unknown(source_address, buffer);
+            if (self._on_receive_from_unknown) {
+                self._on_receive_from_unknown(source_mac, buffer);
+            }
         } else {
-            if (not peer_context->on_receive) { return; }
-            peer_context->on_receive(buffer);
+            if (peer_context->on_receive) {
+                peer_context->on_receive(buffer);
+            }
         }
     }
 
