@@ -24,10 +24,15 @@ private:
     Pixels _logical_width{W}, _logical_height{H};
 
 public:
+    /// @brief Set transpose status for image
+    /// @note Swaps logical width <-> logical height
     void transposed(bool is_transposed) {
         _logical_width = is_transposed ? H : W;
         _logical_height = is_transposed ? W : H;
     }
+
+    /// @brief Is image is actually transposed?
+    [[nodiscard]] constexpr bool transposed() const noexcept { return W == _logical_width; }
 
     // CRTP
 private:
