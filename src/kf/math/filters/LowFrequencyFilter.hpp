@@ -31,16 +31,17 @@ public:
     [[nodiscard]] const T &calc(const T &x) noexcept {
         if (first_step) {
             first_step = false;
-            filtered = x;
-            return filtered;
+            goto set;
         }
 
-        if (alpha == 1.0) {
-            filtered = x;
-            return filtered;
-        }
+        if (alpha == 1.0) { goto set; }
 
         filtered = filtered * one_minus_alpha + x * alpha;
+        goto ret;
+
+    set:
+        filtered = x;
+    ret:
         return filtered;
     }
 
