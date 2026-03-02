@@ -43,20 +43,20 @@ public:
             in_repeat_mode = false;
 
             if (current_direction != Direction::Home) {
-                initial_delay.restart(now);
-                repeat_timer.restart(now);
+                initial_delay.start(now);
+                repeat_timer.start(now);
             }
         } else if (current_direction != Direction::Home) {
             if (in_repeat_mode) {
                 if (repeat_timer.expired(now)) {
                     has_changed = true;
-                    repeat_timer.restart(now);
+                    repeat_timer.start(now);
                 }
             } else {
                 if (initial_delay.expired(now)) {
                     in_repeat_mode = true;
                     has_changed = true;
-                    repeat_timer.restart(now);// restart repeat timer for subsequent repeats
+                    repeat_timer.start(now);// restart repeat timer for subsequent repeats
                 }
             }
         } else {

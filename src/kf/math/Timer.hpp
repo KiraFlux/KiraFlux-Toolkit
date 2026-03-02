@@ -11,8 +11,11 @@ struct Timer final {
 
 private:
     Milliseconds _period, _last{0};
+    bool _enabled{false};
 
 public:
+    constexpr explicit Timer() noexcept : _period{0} {}
+
     constexpr explicit Timer(Milliseconds period) noexcept : _period{period} {}
 
     constexpr explicit Timer(Hertz frequency) noexcept : _period{static_cast<Milliseconds>(1000u / frequency)} {}
@@ -28,11 +31,19 @@ public:
     // control
 
     /// @brief Start (restart) timer
-    void restart(Milliseconds now) noexcept { _last = now; }
+    void start(Milliseconds now) noexcept {
+        _enabled = true;
+        _last = now;
+    }
+
+    /// @brief Stop (Disable) timer
+    void stop() noexcept {
+        _enabled = false;
+    }
 
     /// @brief Expired check
     /// @note Do not automaticly reset
-    [[nodiscard]] bool expired(Milliseconds now) noexcept { return elapsed(now) >= _period; }
+    [[nodiscard]] bool expired(Milliseconds now) noexcept { return _enabled and elapsed(now) >= _period; }
 
     /// @brief Get Time since last start()
     [[nodiscard]] Milliseconds elapsed(Milliseconds now) noexcept { return now - _last; }
@@ -40,7 +51,7 @@ public:
     /// @brief Get Time before Timer expire
     [[nodiscard]] Milliseconds remaining(Milliseconds now) noexcept {
         const auto e = elapsed(now);
-        if (e < _period) {// because of unsigned arithmetic
+        if (_enabled and e < _period) {// because of unsigned arithmetic
             return _period - e;
         } else {
             return 0;
