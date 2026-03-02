@@ -6,6 +6,7 @@
 #include "kf/aliases.hpp"
 #include "kf/input/Joystick.hpp"
 #include "kf/math/Timer.hpp"
+#include "kf/math/units.hpp"
 
 namespace kf {
 
@@ -22,8 +23,8 @@ private:
     Joystick &joystick;
     const float threshold;
 
-    math::Timer repeat_timer{100};
-    math::Timer initial_delay{400};
+    math::Timer repeat_timer{static_cast<kf::Milliseconds>(100)};
+    math::Timer initial_delay{static_cast<kf::Milliseconds>(400)};
 
     bool in_repeat_mode{false};
     bool has_changed{false};
