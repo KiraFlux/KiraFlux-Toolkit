@@ -8,6 +8,8 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/ui/internal/Style.hpp"
+#include "kf/ui/internal/ValuePlacement.hpp"
 #include "kf/ui/render/Render.hpp"
 
 namespace kf::ui::render {
@@ -140,11 +142,12 @@ private:
         writeString(enabled ? on : off);
     }
 
-    template<typename T> void sliderImpl(T value, T min_value, T max_value, bool show_numeric_value) noexcept {
+    template<typename T> void sliderImpl(
+        T value, T min_value, T max_value,
+        internal::ValuePlacement value_placement,
+        internal::Style style) noexcept {
         writeString("SLIDER:");
-        if (show_numeric_value) {
-            value(value);
-        }
+        value(value);
     }
 
     // Value rendering implementations
@@ -193,4 +196,4 @@ private:
     void endWidgetImpl() noexcept { writeChar('\n'); }
 };
 
-}// namespace kf::ui
+}// namespace kf::ui::render

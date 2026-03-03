@@ -7,6 +7,9 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/ui/render/Tag.hpp"
 
+#include "kf/ui/internal/Style.hpp"
+#include "kf/ui/internal/ValuePlacement.hpp"
+
 namespace kf::ui::render {
 
 /// @brief CRTP base class for UI rendering systems
@@ -39,19 +42,20 @@ template<typename Impl> struct Render : Tag {
     // Value rendering
 
     /// @brief Render page title
-    /// @param title Title text string
     void title(StringView title) noexcept { impl().titleImpl(title); }
 
     /// @brief Render checkbox
     void checkbox(bool enabled) noexcept { impl().checkboxImpl(enabled); }
 
     /// @brief Render slider
-    template<typename T> void slider(T value, T min_value, T max_value, bool show_numeric_value) noexcept {
-        impl().spliderImpl(value, min_value, max_value, show_numeric_value);
+    template<typename T> void slider(
+        T value, T min_value, T max_value,
+        internal::ValuePlacement value_placement,
+        internal::Style style) noexcept {
+        impl().spliderImpl(value, min_value, max_value, value_placement, style);
     }
 
     /// @brief Render value
-    /// @param value Value to display
     template<typename T> void value(T value) noexcept { impl().valueImpl(value); }
 
     // Decoration and layout
@@ -88,4 +92,4 @@ private:
     inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
-}// namespace kf::ui
+}// namespace kf::ui::render

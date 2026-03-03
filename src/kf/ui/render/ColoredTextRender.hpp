@@ -1,5 +1,7 @@
 #pragma once
 
+#include "kf/ui/internal/Style.hpp"
+#include "kf/ui/internal/ValuePlacement.hpp"
 #include "kf/ui/render/PlainTextRender.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -39,8 +41,11 @@ private:
         wrapped.writeChar('\x80');
     }
 
-    template<typename T> void sliderImpl(T value, T min_value, T max_value, bool show_numeric_value) noexcept {
-        wrapped.slider(value, min_value, max_value, show_numeric_value);
+    template<typename T> void sliderImlpl(
+        T value, T min_value, T max_value,
+        internal::ValuePlacement value_placement,
+        internal::Style style) noexcept {
+        wrapped.splider(value, min_value, max_value, value_placement, style);
     }
 
     template<typename T> void valueImpl(T v) { wrapped.value(v); }
