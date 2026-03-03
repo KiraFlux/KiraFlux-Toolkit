@@ -7,6 +7,7 @@
 
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
+#include "kf/algorithm.hpp"
 
 namespace kf {
 
@@ -72,7 +73,7 @@ struct PwmPositionServo {
         /// @return Required pulse width in microseconds
         [[nodiscard]] Microseconds pulseWidthFromAngle(Degrees angle) const noexcept {
             return map(
-                constrain(angle, min_pulse.angle, max_pulse.angle),
+                kf::clamp(angle, min_pulse.angle, max_pulse.angle),
                 min_pulse.angle,
                 max_pulse.angle,
                 static_cast<long>(min_pulse.pulse),

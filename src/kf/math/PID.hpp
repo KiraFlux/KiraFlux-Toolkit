@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 
+#include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/math/filters/LowFrequencyFilter.hpp"
 
@@ -25,7 +26,7 @@ public:
     };
 
 private:
-    const Config &_config;         ///< Reference to tuning parameters
+    const Config &_config;            ///< Reference to tuning parameters
     LowFrequencyFilter<f32> dx_filter;///< Low-pass filter for derivative term
     f32 dx{0};                        ///< Current derivative value
     f32 ix{0};                        ///< Current integral value
@@ -52,7 +53,7 @@ public:
 
         if (_config.i != 0.0f) {
             ix += error * dt;
-            ix = constrain(ix, -_config.i_limit, _config.i_limit);
+            ix = kf::clamp(ix, -_config.i_limit, _config.i_limit);
         }
 
         if (_config.d != 0.0f and not isnan(last_error)) {
@@ -62,8 +63,10 @@ public:
         }
         last_error = error;
 
-        const auto output = _config.p * error + _config.i * ix + _config.d * dx;
-        return constrain(output, -_config.output_limit, _config.output_limit);
+        return kf::clamp(
+            _config.p * error + _config.i * ix + _config.d * dx,
+            -_config.output_limit,
+            _config.output_limit);
     }
 
     /// @brief Reset controller internal state (integral and derivative terms)

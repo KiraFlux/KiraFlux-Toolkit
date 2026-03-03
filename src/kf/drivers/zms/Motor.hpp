@@ -8,6 +8,7 @@
 #include "kf/Logger.hpp"
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
+#include "kf/algorithm.hpp"
 
 namespace kf {
 
@@ -137,7 +138,7 @@ public:
     /// @param pwm Signed PWM value (-max to +max)
     /// @note Positive values rotate in positive direction (as configured)
     void write(SignedPwm pwm) const noexcept {
-        pwm = constrain(pwm, -max_pwm, max_pwm);
+        pwm = kf::clamp(pwm, static_cast<SignedPwm>(-max_pwm), max_pwm);
 
         switch (driver_settings.impl) {
             case DriverImpl::IArduino: {
@@ -177,7 +178,7 @@ private:
 
         if (std::isnan(value)) { return 0; }
 
-        const auto abs_value = std::abs(constrain(value, -1.0f, +1.0f));
+        const auto abs_value = std::abs(kf::clamp(value, -1.0f, +1.0f));
         if (abs_value < normalized_dead_zone) { return 0; }
 
         const auto ret = int(abs_value * float(max_pwm - pwm_settings.dead_zone)) + pwm_settings.dead_zone;
