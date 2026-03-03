@@ -8,7 +8,6 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/ui/internal/Style.hpp"
 #include "kf/ui/internal/ValuePlacement.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -73,7 +72,6 @@ public:
     Config &getConfig() { return config; }
 
     /// @brief Helper to write character with cursor tracking
-    /// @param ch Character to write
     void writeChar(char ch) noexcept {
         if (buffer.full() or cursor.row >= config.rows_total) { return; }
 
@@ -143,20 +141,40 @@ private:
     }
 
     template<typename T> void sliderImpl(
-        T value, T min_value, T max_value,
-        internal::ValuePlacement value_placement,
-        internal::Style style) noexcept {
-        writeString("SLIDER:");
-        value(value);
+        T slider_value, T min_value, T max_value,
+        internal::ValuePlacement value_placement) noexcept {
+        
+        // Textual now supports only show/hide placement
+        if (internal::ValuePlacement::Hidden != value_placement) {
+            this->value(slider_value);
+            writeChar(' ');
+        }
+
+        writeChar('[');
+        const usize start_col = cursor.col;
+        const usize inner_width = config.row_max_length - start_col - 1;// -1 for closing char
+        const usize fill = (slider_value - min_value) * inner_width / (max_value - min_value);
+
+        for (usize i = 0; i < fill; i += 1) {
+            writeChar('=');
+        }
+
+        writeChar('@');
+
+        for (usize i = cursor.col - start_col; i < inner_width; i += 1) {
+            writeChar('-');
+        }
+
+        writeChar(']');
     }
 
     // Value rendering implementations
     void valueImpl(StringView str) noexcept { writeString(str); }
 
-    void valueImpl(bool value) noexcept {
+    void valueImpl(bool slider_value) noexcept {
         constexpr StringView _true{"true"};
         constexpr StringView _false{"false"};
-        writeString(value ? _true : _false);
+        writeString(slider_value ? _true : _false);
     }
 
     void valueImpl(i32 integer) noexcept {

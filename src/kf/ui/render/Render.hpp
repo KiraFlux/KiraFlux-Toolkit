@@ -7,7 +7,6 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/ui/render/Tag.hpp"
 
-#include "kf/ui/internal/Style.hpp"
 #include "kf/ui/internal/ValuePlacement.hpp"
 
 namespace kf::ui::render {
@@ -49,14 +48,13 @@ template<typename Impl> struct Render : Tag {
 
     /// @brief Render slider
     template<typename T> void slider(
-        T value, T min_value, T max_value,
-        internal::ValuePlacement value_placement,
-        internal::Style style) noexcept {
-        impl().spliderImpl(value, min_value, max_value, value_placement, style);
+        T v, T min_value, T max_value,
+        internal::ValuePlacement value_placement) noexcept {
+        impl().sliderImpl(v, min_value, max_value, value_placement);
     }
 
     /// @brief Render value
-    template<typename T> void value(T value) noexcept { impl().valueImpl(value); }
+    template<typename T> void value(T v) noexcept { impl().valueImpl(v); }
 
     // Decoration and layout
 

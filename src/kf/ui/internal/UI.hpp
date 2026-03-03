@@ -19,7 +19,6 @@
 #include "kf/ui/internal/ComboBoxItem.hpp"
 #include "kf/ui/internal/StepAdjuster.hpp"
 #include "kf/ui/internal/StepMode.hpp"
-#include "kf/ui/internal/Style.hpp"
 #include "kf/ui/internal/ValueAdjuster.hpp"
 #include "kf/ui/internal/ValueLimits.hpp"
 #include "kf/ui/internal/ValuePlacement.hpp"
@@ -324,11 +323,10 @@ template<typename R, typename V, typename P> struct UI final {
         T _step;
 
     public:
-        T min_value{ValueLimits<T>::min_value};
-        T max_value{ValueLimits<T>::max_value};
+        T min_value{ValueLimits<T>::value_min};
+        T max_value{ValueLimits<T>::value_max};
         bool show_value{false};
         ValuePlacement placement{ValuePlacement::Inside};
-        Style style{Style::Detailed};
 
         explicit Slider(
             T default_value = T{},
@@ -367,7 +365,7 @@ template<typename R, typename V, typename P> struct UI final {
         }
 
         void doRender(R &render) const noexcept override {
-            render.slider(_value, min_value, max_value, show_value ? placement : ValuePlacement::Hidden, style);
+            render.slider(_value, min_value, max_value, show_value ? placement : ValuePlacement::Hidden);
         }
     };
 };

@@ -31,7 +31,7 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
     using EventValue = typename Event::Value;///< UI Event Value type
 
     using StepMode = ui::internal::StepMode;
-    using Style = ui::internal::Style;
+    using ValuePlacement = ui::internal::ValuePlacement;
 
     struct Page;
 
@@ -66,6 +66,10 @@ public:
     /// @tparam T Arithmetic type (int, float, etc.)
     /// @tparam M Step mode (Arithmetic, ArithmeticPositiveOnly, Geometric)
     template<typename T, StepMode M> using SpinBox = typename InternalUI::template SpinBox<T, M>;
+
+    /// @brief Slider for numeric adjustment with constraints
+    /// @tparam T Arithmetic type (int, float, etc.)
+    template<typename T> using Slider = typename InternalUI::template Slider<T>;
 
 private:
     Queue<Event> _events{};     ///< Event queue for pending UI events
