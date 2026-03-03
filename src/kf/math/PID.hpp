@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <Arduino.h>
+#include <cmath>
+#include <limits>
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
@@ -26,11 +27,13 @@ public:
     };
 
 private:
+    static constexpr auto NaN = std::numeric_limits<f32>::quiet_NaN();
+
     const Config &_config;            ///< Reference to tuning parameters
     LowFrequencyFilter<f32> dx_filter;///< Low-pass filter for derivative term
     f32 dx{0};                        ///< Current derivative value
     f32 ix{0};                        ///< Current integral value
-    f32 last_error{NAN};              ///< Previous error value
+    f32 last_error{NaN};              ///< Previous error value
 
 public:
     /// @brief Construct PID controller instance
@@ -56,7 +59,7 @@ public:
             ix = kf::clamp(ix, -_config.i_limit, _config.i_limit);
         }
 
-        if (_config.d != 0.0f and not isnan(last_error)) {
+        if (_config.d != 0.0f and not std::isnan(last_error)) {
             dx = dx_filter.calc((error - last_error) / dt);
         } else {
             dx = 0.0f;
@@ -73,7 +76,7 @@ public:
     void reset() noexcept {
         dx = 0.0f;
         ix = 0.0f;
-        last_error = NAN;
+        last_error = NaN;
     }
 };
 
