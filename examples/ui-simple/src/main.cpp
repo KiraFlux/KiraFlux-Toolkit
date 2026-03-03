@@ -138,7 +138,6 @@ void setup() {
     config.on_render_finish = [](kf::StringView text) {
         Serial.println("---");
         Serial.print(text.data());
-        Serial.println("---");
     };
 
     // misc
