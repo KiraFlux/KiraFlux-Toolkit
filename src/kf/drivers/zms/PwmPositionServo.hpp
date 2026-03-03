@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 
+#include "kf/algorithm.hpp"
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 
@@ -71,12 +72,12 @@ struct PwmPositionServo {
         /// @param angle Target servo angle
         /// @return Required pulse width in microseconds
         [[nodiscard]] Microseconds pulseWidthFromAngle(Degrees angle) const noexcept {
-            return map(
-                constrain(angle, min_pulse.angle, max_pulse.angle),
+            return linearMap<i32>(
+                kf::clamp(angle, min_pulse.angle, max_pulse.angle),
                 min_pulse.angle,
                 max_pulse.angle,
-                static_cast<long>(min_pulse.pulse),
-                static_cast<long>(max_pulse.pulse));
+                min_pulse.pulse,
+                max_pulse.pulse);
         }
 
         /// @brief Validate pulse mapping configuration
