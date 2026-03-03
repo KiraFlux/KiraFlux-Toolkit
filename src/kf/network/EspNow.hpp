@@ -17,14 +17,14 @@
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/Map.hpp"
 #include "kf/memory/Slice.hpp"
-#include "kf/pattern/Singleton.hpp"
+#include "kf/meta/Singleton.hpp"
 
 namespace kf {
 
 /// @brief Encapsulates ESP-NOW protocol in safe C++ abstractions
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks
-struct EspNow : Singleton<EspNow> {
-    friend struct Singleton<EspNow>;
+struct EspNow : meta::Singleton<EspNow> {
+    friend struct meta::Singleton<EspNow>;
 
     using Mac = Array<u8, ESP_NOW_ETH_ALEN>;///< MAC address type (6 bytes)
 
