@@ -14,6 +14,7 @@ using std::max;
 using std::min;
 
 /// @brief Constrain value between lower and upper bounds
+/// @brief Constrain value between lower and upper bounds
 template<typename T> constexpr T clamp(const T &value, const T &low, const T &high) noexcept {
     return (value < low) ? low : ((value > high) ? high : value);
 }
@@ -23,7 +24,7 @@ template<typename T> constexpr T linearMap(
     const T &value,
     const T &in_low, const T &in_high,
     const T &out_low, const T &out_high) noexcept {
-    return (value - in_low) * (out_high - out_low) / (in_max - in_min);
+    return (value - in_low) * (out_high - out_low) / (in_high - in_low) + out_low;
 }
 
 }// namespace kf
