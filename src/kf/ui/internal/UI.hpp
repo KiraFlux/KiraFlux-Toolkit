@@ -3,9 +3,11 @@
 
 #pragma once
 
+// Std
 #include <type_traits>
 #include <utility>
 
+// Lib
 #include "kf/Function.hpp"
 #include "kf/aliases.hpp"
 #include "kf/memory/Array.hpp"
@@ -13,11 +15,13 @@
 #include "kf/meta/type_check.hpp"
 #include "kf/ui/render/Tag.hpp"
 
+// Internal
 #include "kf/ui/internal/ComboBoxItem.hpp"
 #include "kf/ui/internal/StepAdjuster.hpp"
 #include "kf/ui/internal/StepMode.hpp"
 #include "kf/ui/internal/ValueAdjuster.hpp"
 #include "kf/ui/internal/ValueLimits.hpp"
+#include "kf/ui/internal/ValuePlacement.hpp"
 
 namespace kf::ui::internal {
 
@@ -319,9 +323,10 @@ template<typename R, typename V, typename P> struct UI final {
         T _step;
 
     public:
-        T min_value{ValueLimits<T>::min_value};
-        T max_value{ValueLimits<T>::max_value};
-        bool show_numeric{false};
+        T min_value{ValueLimits<T>::value_min};
+        T max_value{ValueLimits<T>::value_max};
+        bool show_value{false};
+        ValuePlacement placement{ValuePlacement::Inside};
 
         explicit Slider(
             T default_value = T{},
@@ -346,7 +351,7 @@ template<typename R, typename V, typename P> struct UI final {
 
         /// @brief Toggle slider numeric value display
         [[nodiscard]] bool onClick() noexcept override {
-            show_numeric = not show_numeric;
+            show_value = not show_value;
             return true;// redraw required after mode change
         }
 
@@ -360,7 +365,7 @@ template<typename R, typename V, typename P> struct UI final {
         }
 
         void doRender(R &render) const noexcept override {
-            render.slider(_value, min_value, max_value, show_numeric);
+            render.slider(_value, min_value, max_value, show_value ? placement : ValuePlacement::Hidden);
         }
     };
 };

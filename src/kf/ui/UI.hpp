@@ -11,8 +11,8 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/pattern/Singleton.hpp"
-#include "kf/ui/render/Tag.hpp"
 #include "kf/ui/internal/UI.hpp"
+#include "kf/ui/render/Tag.hpp"
 
 namespace kf {
 
@@ -30,12 +30,13 @@ template<typename R, typename E> struct UI final : Singleton<UI<R, E>> {
     using Event = E;                         ///< UI Event type
     using EventValue = typename Event::Value;///< UI Event Value type
 
-    using StepMode = kf::ui::internal::StepMode;
+    using StepMode = ui::internal::StepMode;
+    using ValuePlacement = ui::internal::ValuePlacement;
 
     struct Page;
 
 private:
-    using InternalUI = kf::ui::internal::UI<R, EventValue, Page>;
+    using InternalUI = ui::internal::UI<R, EventValue, Page>;
 
 public:
     /// @brief Base widget type (provided for inheritance or generic references)
@@ -65,6 +66,10 @@ public:
     /// @tparam T Arithmetic type (int, float, etc.)
     /// @tparam M Step mode (Arithmetic, ArithmeticPositiveOnly, Geometric)
     template<typename T, StepMode M> using SpinBox = typename InternalUI::template SpinBox<T, M>;
+
+    /// @brief Slider for numeric adjustment with constraints
+    /// @tparam T Arithmetic type (int, float, etc.)
+    template<typename T> using Slider = typename InternalUI::template Slider<T>;
 
 private:
     Queue<Event> _events{};     ///< Event queue for pending UI events

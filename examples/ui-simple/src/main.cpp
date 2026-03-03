@@ -17,18 +17,24 @@ struct MainPage : MyUI::Page {
     int my_value{12345};
 
     MyUI::Button click_button{
-        *this,// add to this page
-        "Test"// button label
+        *this, // add to this page
+        "Test",// button label
     };
 
     MyUI::CheckBox check_box{
         *this,// add to this page
-        true  // default: true
+        true, // default: true
     };
 
     MyUI::Display<int> value_display{
-        *this,  // add to this page
-        my_value// initial value
+        *this,   // add to this page
+        my_value,// initial value
+    };
+
+    MyUI::Slider<int> slider{
+        *this,// add to this page
+        50,   // initial value
+        5,    // step
     };
 
     explicit MainPage() : Page{"Main"} {
@@ -44,6 +50,10 @@ struct MainPage : MyUI::Page {
             my_value *= -1;
             value_display.value(my_value);
         };
+
+        slider.max_value = 100;
+        slider.min_value = 0;
+        slider.placement = MyUI::ValuePlacement::Inside;
     }
 
     // Page virtual methods
@@ -128,7 +138,6 @@ void setup() {
     config.on_render_finish = [](kf::StringView text) {
         Serial.println("---");
         Serial.print(text.data());
-        Serial.println("---");
     };
 
     // misc
