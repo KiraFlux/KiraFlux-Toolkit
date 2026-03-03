@@ -5,7 +5,7 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/core/bit_traits.hpp"
+#include "kf/meta/bit_traits.hpp"
 
 namespace kf {
 namespace ui {
