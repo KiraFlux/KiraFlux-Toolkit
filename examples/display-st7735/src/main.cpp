@@ -15,7 +15,9 @@
 #include <Arduino.h>
 
 #include <kf/drivers/display/ST7735.hpp>
-#include <kf/gfx.hpp>
+#include <kf/gfx/Canvas.hpp>
+#include <kf/gfx/Palette.hpp>
+#include <kf/image/DynamicImage.hpp>
 
 using P = kf::ST7735::PixelImpl;    // Pixel format used by the display
 using Palette = kf::gfx::Palette<P>;// Palette for this pixel format

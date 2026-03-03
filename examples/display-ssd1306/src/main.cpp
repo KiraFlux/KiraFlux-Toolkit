@@ -13,9 +13,11 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include <kf/gfx/Canvas.hpp>
+#include <kf/image/DynamicImage.hpp>
 
+// Actually uses in this demo
 #include <kf/drivers/display/SSD1306.hpp>
-#include <kf/gfx.hpp>
 
 // Pixel format used by the display (monochrome)
 using P = kf::SSD1306::PixelImpl;// = pixel::MonochromePixel

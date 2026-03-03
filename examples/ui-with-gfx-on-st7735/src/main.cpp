@@ -1,11 +1,14 @@
+// Demo: setup UI with colored textual render system into hardware display
+
 #include <Arduino.h>
 
+// uses in this demo:
+#include <kf/drivers/display/ST7735.hpp>
+#include <kf/gfx/Canvas.hpp>
+#include <kf/image/DynamicImage.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/ColoredTextRender.hpp>
-
-#include <kf/drivers/display/ST7735.hpp>
-#include <kf/gfx.hpp>
 
 // Display Driver specialisation
 using MyDisplayDriver = kf::ST7735;
