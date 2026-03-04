@@ -10,7 +10,7 @@
 #include "kf/aliases.hpp"
 #include "kf/math/filters/ExponentialFilter.hpp"
 
-namespace kf {
+namespace kf::input {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
 /// @note Uses ESP32's 12-bit ADC (0-4095 range) with configurable filtering

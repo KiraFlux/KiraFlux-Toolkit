@@ -8,7 +8,7 @@
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
 
-namespace kf {
+namespace kf::input {
 
 /// @brief Minimal button with press detection only
 struct Button {

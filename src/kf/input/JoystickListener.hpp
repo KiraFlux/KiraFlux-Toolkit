@@ -8,7 +8,7 @@
 #include "kf/math/Timer.hpp"
 #include "kf/math/units.hpp"
 
-namespace kf {
+namespace kf::input {
 
 struct JoystickListener {
     enum class Direction : u8 {

@@ -6,7 +6,7 @@
 #include "kf/Tuner.hpp"
 #include "kf/input/AnalogAxis.hpp"
 
-namespace kf {
+namespace kf::input {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
