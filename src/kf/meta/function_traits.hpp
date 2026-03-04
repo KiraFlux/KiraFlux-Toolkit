@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace kf {
+namespace kf::meta {
 
 template<typename T> struct function_traits;
 
