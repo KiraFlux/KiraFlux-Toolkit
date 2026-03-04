@@ -19,14 +19,16 @@
 // Actually uses in this demo
 #include <kf/drivers/display/SSD1306.hpp>
 
+using kf::drivers::display::SSD1306;
+
 // Pixel format used by the display (monochrome)
-using P = kf::SSD1306::PixelImpl;// = pixel::MonochromePixel
-using Color = P::ColorType;      // = bool
+using P = SSD1306::PixelImpl;// = pixel::MonochromePixel
+using Color = P::ColorType;  // = bool
 
 constexpr Color ON = true;
 constexpr Color OFF = false;
 
-void demo(kf::SSD1306 &display, const char *orientation_name) {
+void demo(SSD1306 &display, const char *orientation_name) {
     // Wrap the display's framebuffer into a Canvas.
     // display.image() returns a StaticImage<MonochromePixel, 128, 64>.
     kf::gfx::Canvas<P> canvas{kf::image::DynamicImage<P>{display.image()}};
@@ -76,13 +78,13 @@ void setup() {
     Wire.begin();
 
     // Display configuration
-    static kf::SSD1306::Config config{
+    static SSD1306::Config config{
         400'000,// I2C clock frequency (400 kHz typical)
         0x3C    // I2C address
     };
 
     // Driver instance references config and Wire.
-    static kf::SSD1306 display{config, Wire};
+    static SSD1306 display{config, Wire};
 
     if (not display.init()) {
         Serial.println("Display init failed!");
@@ -94,9 +96,9 @@ void setup() {
 
     // Test only supported orientations.
     for (auto o: {
-             kf::SSD1306::Orientation::Normal,
-             kf::SSD1306::Orientation::MirrorX,
-             kf::SSD1306::Orientation::MirrorY}) {
+             SSD1306::Orientation::Normal,
+             SSD1306::Orientation::MirrorX,
+             SSD1306::Orientation::MirrorY}) {
         if (display.orientation(o)) {
             demo(display, orient_names[static_cast<int>(o)]);
         } else {

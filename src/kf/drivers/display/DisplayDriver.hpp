@@ -8,7 +8,7 @@
 #include "kf/memory/Slice.hpp"
 #include "kf/meta/type_check.hpp"
 
-namespace kf {
+namespace kf::drivers::display {
 
 /// @brief CRTP base class for display driver implementations
 /// @tparam Impl Concrete driver implementation type

@@ -11,7 +11,7 @@
 #include <kf/ui/render/ColoredTextRender.hpp>
 
 // Display Driver specialisation
-using MyDisplayDriver = kf::ST7735;
+using MyDisplayDriver = kf::drivers::display::ST7735;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
