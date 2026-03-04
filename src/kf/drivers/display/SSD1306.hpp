@@ -171,17 +171,6 @@ private:
         return true;
     }
 
-    [[nodiscard]] bool supportOrientation(Orientation orientation) const noexcept {
-        switch (orientation) {
-            case Orientation::Normal:
-            case Orientation::MirrorX:
-            case Orientation::MirrorY:
-                return true;
-            default:
-                return false;
-        }
-    }
-
     [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {
         if (not supportOrientation(orientation)) { return false; }
 
