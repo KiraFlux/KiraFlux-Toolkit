@@ -99,7 +99,7 @@ public:
 
     /// @brief Process active page update, pending events and render if needed
     /// @note Must be called regularly (e.g., in main loop)
-    void poll(Milliseconds now) noexcept {
+    void poll(math::Milliseconds now) noexcept {
         if (nullptr == _active_page) { return; }
 
         _active_page->onUpdate(now);
@@ -167,7 +167,7 @@ public:
         virtual void onExit() noexcept {}
 
         /// @brief Page behavior on UI polling
-        virtual void onUpdate(Milliseconds now) noexcept {}
+        virtual void onUpdate(math::Milliseconds now) noexcept {}
 
         /// @brief Add widget to this page
         /// @param widget Widget to add (must remain valid for page lifetime)

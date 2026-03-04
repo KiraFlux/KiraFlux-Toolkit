@@ -21,7 +21,7 @@ template<typename P, usize W, usize H> struct ViewportImage final : Image<Viewpo
 
 private:
     StaticImage<PixelImpl, W, H> _image{};///< Raw image buffer data
-    Pixels _logical_width{W}, _logical_height{H};
+    math::Pixels _logical_width{W}, _logical_height{H};
 
 public:
     /// @brief Set transpose status for image
@@ -38,11 +38,11 @@ public:
 private:
     friend Image<ViewportImage<PixelImpl, W, H>, PixelImpl>;
 
-    [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return _logical_width; }
+    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return _logical_width; }
 
-    [[nodiscard]] constexpr Pixels getHeightImpl() const noexcept { return _logical_height; }
+    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept { return _logical_height; }
 
-    [[nodiscard]] constexpr Pixels getStrideImpl() const noexcept { return _logical_width; }
+    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return _logical_width; }
 
     [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
         return _image.buffer().first(_logical_width * _logical_height);

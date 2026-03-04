@@ -31,7 +31,7 @@ struct PwmPositionServo {
         /// @brief Convert pulse width to duty cycle value
         /// @param pulse_width Pulse width in microseconds
         /// @return Duty cycle value for LEDC hardware
-        [[nodiscard]] u16 dutyFromPulseWidth(Microseconds pulse_width) const noexcept {
+        [[nodiscard]] u16 dutyFromPulseWidth(math::Microseconds pulse_width) const noexcept {
             const auto t = u64{pulse_width} * ledc_frequency_hz * maxDuty();
             return static_cast<u16>(t / 1'000'000u);
         }
@@ -46,10 +46,10 @@ struct PwmPositionServo {
 
     /// @brief Servo driver hardware configuration
     struct DriverConfig : Validatable<DriverConfig> {
-        u8 signal_pin;    ///< GPIO pin for PWM signal output
-        u8 ledc_channel;  ///< LEDC channel (0-15) for ESP32 PWM
-        Degrees min_angle;///< Minimum servo rotation angle
-        Degrees max_angle;///< Maximum servo rotation angle
+        u8 signal_pin;          ///< GPIO pin for PWM signal output
+        u8 ledc_channel;        ///< LEDC channel (0-15) for ESP32 PWM
+        math::Degrees min_angle;///< Minimum servo rotation angle
+        math::Degrees max_angle;///< Maximum servo rotation angle
 
         /// @brief Validate driver configuration parameters
         void checkImpl(Validator &validator) const noexcept {
@@ -62,8 +62,8 @@ struct PwmPositionServo {
     struct PulseConfig : Validatable<PulseConfig> {
         /// @brief Angle-to-pulse width mapping point
         struct Pulse {
-            Microseconds pulse;///< Pulse width in microseconds
-            Degrees angle;     ///< Corresponding servo angle
+            math::Microseconds pulse;///< Pulse width in microseconds
+            math::Degrees angle;     ///< Corresponding servo angle
         };
 
         Pulse min_pulse, max_pulse;///< Position mapping (angle <-> pulse width)
@@ -71,7 +71,7 @@ struct PwmPositionServo {
         /// @brief Convert angle to pulse width using linear interpolation
         /// @param angle Target servo angle
         /// @return Required pulse width in microseconds
-        [[nodiscard]] Microseconds pulseWidthFromAngle(Degrees angle) const noexcept {
+        [[nodiscard]] math::Microseconds pulseWidthFromAngle(math::Degrees angle) const noexcept {
             return linearMap<i32>(
                 kf::clamp(angle, min_pulse.angle, max_pulse.angle),
                 min_pulse.angle,
@@ -125,7 +125,7 @@ public:
     /// @brief Set servo to target angle
     /// @param angle Target angle in degrees
     /// @note Automatically converts angle to PWM duty cycle
-    void set(Degrees angle) noexcept {
+    void set(math::Degrees angle) noexcept {
         write(pwm_settings.dutyFromPulseWidth(pulse_settings.pulseWidthFromAngle(angle)));
     }
 
@@ -142,4 +142,4 @@ private:
     }
 };
 
-}// namespace kf
+}// namespace kf::drivers::zms

@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include <kf/math/Timer.hpp>
 
-kf::math::Timer one_shot{kf::Milliseconds(2000)};// will fire once after 2s and then be stopped
-kf::math::Timer periodic{kf::Hertz(10)};         // fires at 10 Hz, restart ensures continuous rhythm
-kf::math::Timer stopwatch{};                     // just measures elapsed time, period is irrelevant
+kf::math::Timer one_shot{kf::math::Milliseconds(2000)};// will fire once after 2s and then be stopped
+kf::math::Timer periodic{kf::math::Hertz(10)};         // fires at 10 Hz, restart ensures continuous rhythm
+kf::math::Timer stopwatch{};                           // just measures elapsed time, period is irrelevant
 
 void setup() {
     Serial.begin(115200);

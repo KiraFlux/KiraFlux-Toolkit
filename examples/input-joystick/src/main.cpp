@@ -78,7 +78,7 @@ void setup() {
 }
 
 void loop() {
-    static kf::math::Timer log_timer{kf::Milliseconds(500)};// print every 500 ms
+    static kf::math::Timer log_timer{kf::math::Milliseconds(500)};// print every 500 ms
 
     const auto now = millis();
 

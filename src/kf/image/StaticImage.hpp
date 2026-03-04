@@ -19,7 +19,7 @@ namespace kf::image {
 /// @details Represents a static image with fixed dimensions stored in memory.
 /// The image buffer is embedded directly in the object and cannot be resized.
 /// Useful for storing icons, logos, and other predefined graphics.
-template<typename P, Pixels W, Pixels H> struct StaticImage final : Image<StaticImage<P, W, H>, P> {
+template<typename P, math::Pixels W, math::Pixels H> struct StaticImage final : Image<StaticImage<P, W, H>, P> {
     kf_crtp_check(P, pixel::Tag);
     
     using PixelImpl = P;
@@ -44,11 +44,11 @@ public:
 private:
     friend Image<StaticImage<PixelImpl, W, H>, PixelImpl>;
 
-    [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return W; }
+    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return W; }
 
-    [[nodiscard]] constexpr Pixels getHeightImpl() const noexcept { return H; }
+    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept { return H; }
 
-    [[nodiscard]] constexpr Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
+    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
 
     [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
         return {_buffer.data(), _buffer.size()};

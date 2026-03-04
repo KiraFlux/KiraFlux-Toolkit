@@ -24,13 +24,13 @@ template<typename Impl, typename P> struct Image : image::Tag {
     // Abstract properties
 
     /// @brief Get current width in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] Pixels width() const noexcept { return c_impl().getWidthImpl(); }
+    [[nodiscard]] math::Pixels width() const noexcept { return c_impl().getWidthImpl(); }
 
     /// @brief Get current height in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] Pixels height() const noexcept { return c_impl().getHeightImpl(); }
+    [[nodiscard]] math::Pixels height() const noexcept { return c_impl().getHeightImpl(); }
 
     /// @brief Get current full width in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] Pixels stride() const noexcept { return c_impl().getStrideImpl(); }
+    [[nodiscard]] math::Pixels stride() const noexcept { return c_impl().getStrideImpl(); }
 
     /// @brief Get writable frame buffer
     [[nodiscard]] Slice<BufferType> buffer() noexcept { return impl().getBufferImpl(); }

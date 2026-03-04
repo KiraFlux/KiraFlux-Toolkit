@@ -17,10 +17,10 @@ struct Manipulator2DOF {
 
     /// @brief Configuration for 2DOF manipulator
     struct Config : Validatable<Config> {
-        PwmPositionServo::PwmConfig servo_pwm;                     ///< PWM signal
-        PwmPositionServo::PulseConfig servo_generic_pulse_settings;///< Pulse timing
-        PwmPositionServo::DriverConfig claw_axis;                  ///< Claw axis servo
-        PwmPositionServo::DriverConfig arm_axis;                   ///< Arm axis servo
+        drivers::zms::PwmPositionServo::PwmConfig servo_pwm;                     ///< PWM signal
+        drivers::zms::PwmPositionServo::PulseConfig servo_generic_pulse_settings;///< Pulse timing
+        drivers::zms::PwmPositionServo::DriverConfig claw_axis;                  ///< Claw axis servo
+        drivers::zms::PwmPositionServo::DriverConfig arm_axis;                   ///< Arm axis servo
 
         /// @brief Validate all configuration parameters
         void checkImpl(Validator &validator) const noexcept {
@@ -32,9 +32,9 @@ struct Manipulator2DOF {
     };
 
 private:
-    const Config &_config; ///< Reference to configuration
-    PwmPositionServo _arm; ///< Arm axis servo driver
-    PwmPositionServo _claw;///< Claw axis servo driver
+    const Config &_config;               ///< Reference to configuration
+    drivers::zms::PwmPositionServo _arm; ///< Arm axis servo driver
+    drivers::zms::PwmPositionServo _claw;///< Claw axis servo driver
 
 public:
     /// @brief Construct manipulator instance
@@ -61,10 +61,10 @@ public:
     }
 
     /// @brief Set arm axis angle
-    void arm(Degrees angle) noexcept { _arm.set(angle); }
+    void arm(math::Degrees angle) noexcept { _arm.set(angle); }
 
     /// @brief Set claw axis angle
-    void claw(Degrees angle) noexcept { _claw.set(angle); }
+    void claw(math::Degrees angle) noexcept { _claw.set(angle); }
 
     /// @brief Disable arm axis servo (stop PWM)
     void disableArm() noexcept { _arm.disable(); }
@@ -73,4 +73,4 @@ public:
     void disableClaw() noexcept { _claw.disable(); }
 };
 
-}// namespace kf
+}// namespace kf::controllers

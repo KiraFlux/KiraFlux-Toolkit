@@ -68,7 +68,7 @@ public:
     /// @brief Read distance in millimeters
     /// @return Distance in millimeters (inverse of voltage)
     /// @note Takes multiple samples for noise reduction
-    [[nodiscard]] Millimeters read() const noexcept {
+    [[nodiscard]] math::Millimeters read() const noexcept {
         // 65535 / analogRead(a)
         long sum = 0;
 
@@ -79,7 +79,7 @@ public:
             delay(1);
         }
 
-        return (65535.0F * n) / Millimeters(sum);
+        return (65535.0F * n) / math::Millimeters(sum);
     }
 };
 

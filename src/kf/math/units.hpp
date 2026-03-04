@@ -5,7 +5,7 @@
 
 #include "kf/aliases.hpp"
 
-namespace kf {
+namespace kf::math {
 
 /// @brief Angle in degrees
 using Degrees = u16;
