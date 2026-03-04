@@ -12,7 +12,7 @@
 #include "kf/memory/io/InputStream.hpp"
 #include "kf/memory/io/OutputStream.hpp"
 
-namespace kf {
+namespace kf::network {
 
 /// @brief Structural Serial P2P byte-packet protocol
 /// @tparam N Exact count of local instructions

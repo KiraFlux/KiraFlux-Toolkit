@@ -19,7 +19,7 @@
 #include "kf/memory/Slice.hpp"
 #include "kf/meta/Singleton.hpp"
 
-namespace kf {
+namespace kf::network {
 
 /// @brief Encapsulates ESP-NOW protocol in safe C++ abstractions
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks
@@ -297,19 +297,19 @@ public:
     /// @brief Convert Error enum to string representation
     /// @param error Error code to convert
     /// @return String representation of error
-    [[nodiscard]] static const char *stringFromError(kf::EspNow::Error error) noexcept {
+    [[nodiscard]] static const char *stringFromError(kf::network::EspNow::Error error) noexcept {
         switch (error) {
-            return_case(kf::EspNow::Error::NotInitialized);
-            return_case(kf::EspNow::Error::InternalError);
-            return_case(kf::EspNow::Error::TooBigMessage);
-            return_case(kf::EspNow::Error::InvalidArg);
-            return_case(kf::EspNow::Error::NoMemory);
-            return_case(kf::EspNow::Error::PeerNotFound);
-            return_case(kf::EspNow::Error::IncorrectWiFiMode);
-            return_case(kf::EspNow::Error::PeerListIsFull);
-            return_case(kf::EspNow::Error::PeerAlreadyExists);
+            return_case(kf::network::EspNow::Error::NotInitialized);
+            return_case(kf::network::EspNow::Error::InternalError);
+            return_case(kf::network::EspNow::Error::TooBigMessage);
+            return_case(kf::network::EspNow::Error::InvalidArg);
+            return_case(kf::network::EspNow::Error::NoMemory);
+            return_case(kf::network::EspNow::Error::PeerNotFound);
+            return_case(kf::network::EspNow::Error::IncorrectWiFiMode);
+            return_case(kf::network::EspNow::Error::PeerListIsFull);
+            return_case(kf::network::EspNow::Error::PeerAlreadyExists);
             default:
-                return_case(kf::EspNow::Error::UnknownError);
+                return_case(kf::network::EspNow::Error::UnknownError);
         }
     }
 

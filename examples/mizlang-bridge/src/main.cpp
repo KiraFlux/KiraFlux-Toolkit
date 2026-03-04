@@ -4,7 +4,7 @@
 using kf::memory::io::InputStream;
 using kf::memory::io::OutputStream;
 
-using Bridge = kf::MizLangBridge<1, kf::u8, kf::u8>;// < handlers_total, local_code, [remote_code = local_code] >
+using Bridge = kf::network::MizLangBridge<1, kf::u8, kf::u8>;// < handlers_total, local_code, [remote_code = local_code] >
 Bridge bridge{
     InputStream{Serial},
     OutputStream{Serial},
