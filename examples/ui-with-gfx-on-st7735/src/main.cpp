@@ -15,7 +15,7 @@ using MyDisplayDriver = kf::drivers::display::ST7735;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
-using MyUI = kf::UI<
+using MyUI = kf::ui::UI<
     kf::ui::render::ColoredTextRender<256>,// Render implementation: colored text, buffered (256 Bytes)
     kf::ui::Event<4>                       // Event type: 4-bit value
     >;

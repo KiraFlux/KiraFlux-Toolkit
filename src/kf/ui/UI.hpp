@@ -14,7 +14,7 @@
 #include "kf/ui/internal/UI.hpp"
 #include "kf/ui/render/Tag.hpp"
 
-namespace kf {
+namespace kf::ui {
 
 /// @brief User interface framework with widget-based rendering
 /// @tparam R Renderer implementation type (must inherit from kf::ui::Render)
@@ -30,13 +30,13 @@ template<typename R, typename E> struct UI final : meta::Singleton<UI<R, E>> {
     using Event = E;                         ///< UI Event type
     using EventValue = typename Event::Value;///< UI Event Value type
 
-    using StepMode = ui::internal::StepMode;
-    using ValuePlacement = ui::internal::ValuePlacement;
+    using StepMode = internal::StepMode;
+    using ValuePlacement = internal::ValuePlacement;
 
     struct Page;
 
 private:
-    using InternalUI = ui::internal::UI<R, EventValue, Page>;
+    using InternalUI = internal::UI<R, EventValue, Page>;
 
 public:
     /// @brief Base widget type (provided for inheritance or generic references)
