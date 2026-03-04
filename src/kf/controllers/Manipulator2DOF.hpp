@@ -7,7 +7,7 @@
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 
-namespace kf {
+namespace kf::controllers {
 
 /// @brief Two-degree-of-freedom robotic manipulator with servo control
 /// @note Controls arm and claw axes using PWM-position servo drivers
