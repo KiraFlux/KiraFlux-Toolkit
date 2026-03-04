@@ -81,7 +81,7 @@ struct AnalogAxis final {
 
 private:
     const Config &config;
-    ExponentialFilter<f32> filter;
+    math::filters::ExponentialFilter<f32> filter;
 
 public:
     /// @param k Filter coefficient (0.0 to 1.0, higher = more smoothing)

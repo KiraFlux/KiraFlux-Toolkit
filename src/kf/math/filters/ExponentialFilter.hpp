@@ -5,7 +5,7 @@
 
 #include "kf/aliases.hpp"
 
-namespace kf {
+namespace kf::math::filters {
 
 /// @brief Exponential moving average filter (EMA)
 /// @tparam T Data type (typically float or integer)

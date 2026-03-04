@@ -10,7 +10,7 @@
 #include "kf/aliases.hpp"
 #include "kf/math/filters/LowFrequencyFilter.hpp"
 
-namespace kf {
+namespace kf::math {
 
 /// @brief PID controller implementation
 /// @note Includes derivative filtering and integral anti-windup
@@ -29,11 +29,11 @@ public:
 private:
     static constexpr auto NaN = std::numeric_limits<f32>::quiet_NaN();
 
-    const Config &_config;            ///< Reference to tuning parameters
-    LowFrequencyFilter<f32> dx_filter;///< Low-pass filter for derivative term
-    f32 dx{0};                        ///< Current derivative value
-    f32 ix{0};                        ///< Current integral value
-    f32 last_error{NaN};              ///< Previous error value
+    const Config &_config;                     ///< Reference to tuning parameters
+    filters::LowFrequencyFilter<f32> dx_filter;///< Low-pass filter for derivative term
+    f32 dx{0};                                 ///< Current derivative value
+    f32 ix{0};                                 ///< Current integral value
+    f32 last_error{NaN};                       ///< Previous error value
 
 public:
     /// @brief Construct PID controller instance
@@ -80,4 +80,4 @@ public:
     }
 };
 
-}// namespace kf
+}// namespace kf::math

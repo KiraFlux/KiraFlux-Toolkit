@@ -8,7 +8,7 @@
 #include "kf/Option.hpp"
 #include "kf/aliases.hpp"
 
-namespace kf {
+namespace kf::math {
 
 /// @brief 2D vector template for graphics and calculations
 /// @tparam T Component type (float, integer, etc.)
