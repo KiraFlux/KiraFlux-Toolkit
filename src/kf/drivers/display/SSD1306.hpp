@@ -11,7 +11,7 @@
 #include "kf/image/StaticImage.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
 
-namespace kf {
+namespace kf::drivers::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
 struct SSD1306 final : DisplayDriver<SSD1306, image::StaticImage<pixel::MonochromePixel, 128, 64>> {
@@ -169,17 +169,6 @@ private:
         }
 
         return true;
-    }
-
-    [[nodiscard]] bool supportOrientation(Orientation orientation) const noexcept {
-        switch (orientation) {
-            case Orientation::Normal:
-            case Orientation::MirrorX:
-            case Orientation::MirrorY:
-                return true;
-            default:
-                return false;
-        }
     }
 
     [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {

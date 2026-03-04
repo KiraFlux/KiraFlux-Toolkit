@@ -11,7 +11,7 @@
 #include "kf/image/ViewportImage.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
 
-namespace kf {
+namespace kf::drivers::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
 struct ST7735 final : DisplayDriver<ST7735, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {

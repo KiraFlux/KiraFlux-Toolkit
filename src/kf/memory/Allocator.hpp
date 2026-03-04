@@ -6,7 +6,7 @@
 #include <memory>
 
 
-namespace kf {
+namespace kf::memory {
 
 template<typename T> using Allocator = std::allocator<T>;
 

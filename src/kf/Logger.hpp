@@ -10,24 +10,24 @@ namespace kf {
 
 /// @brief Logging system for embedded applications
 struct Logger final {
-    using WriteHandler = void (*)(StringView);
+    using WriteHandler = void (*)(memory::StringView);
 
     static WriteHandler writer;///< Current output handler (nullptr disables logging)
 
 private:
-    const StringView key;
+    const memory::StringView key;
 
-    constexpr explicit Logger(StringView key) noexcept :
+    constexpr explicit Logger(memory::StringView key) noexcept :
         key{key} {}
 
 public:
     template<usize N> [[nodiscard]] static constexpr Logger create(const char (&key)[N]) noexcept {
-        return Logger{StringView{key, N - 1}};
+        return Logger{memory::StringView{key, N - 1}};
     }
 
 #define MAKE(__entry_name__)                                       \
-    void __entry_name__(const StringView message) const noexcept { \
-        write(StringView{#__entry_name__}, message);               \
+    void __entry_name__(const memory::StringView message) const noexcept { \
+        write(memory::StringView{#__entry_name__}, message);               \
     }
 
     MAKE(info)
@@ -41,10 +41,10 @@ public:
 #undef MAKE
 
 private:
-    void write(const StringView level, const StringView message) const noexcept {
+    void write(const memory::StringView level, const memory::StringView message) const noexcept {
         if (writer == nullptr) { return; }
 
-        ArrayString<32> buffer{};
+        memory::ArrayString<32> buffer{};
 
         (void) buffer.append(" [");
         (void) buffer.append(key);

@@ -5,7 +5,7 @@
 #include <kf/ui/render/PlainTextRender.hpp>
 
 // UI specialisation
-using MyUI = kf::UI<
+using MyUI = kf::ui::UI<
     kf::ui::render::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes)
     kf::ui::Event<4>                     // Event type: 4-bit value
     >;
@@ -69,7 +69,7 @@ struct MainPage : MyUI::Page {
     }
 
     // behavior on UI polling
-    void onUpdate(kf::Milliseconds now) noexcept override {}
+    void onUpdate(kf::math::Milliseconds now) noexcept override {}
 
 } main_page{};
 
@@ -85,7 +85,7 @@ struct SettingsPage : MyUI::Page {
         }// spinbox
     };
 
-    MyUI::ComboBox<kf::StringView, 3> strings_combo_box{
+    MyUI::ComboBox<kf::memory::StringView, 3> strings_combo_box{
         *this,                    // attach to this page
         {"Alpha", "Beta", "Gamma"}// items (3)
     };
@@ -102,7 +102,7 @@ struct SettingsPage : MyUI::Page {
             Serial.println(value);
         };
 
-        strings_combo_box.change_handler = [](kf::StringView value) {
+        strings_combo_box.change_handler = [](kf::memory::StringView value) {
             Serial.print("String Combo selected: ");
             Serial.println(value.data());
         };
@@ -135,7 +135,7 @@ void setup() {
     MyUI::RenderConfig &config = ui.renderConfig();
 
     // post-render procedure
-    config.on_render_finish = [](kf::StringView text) {
+    config.on_render_finish = [](kf::memory::StringView text) {
         Serial.println("---");
         Serial.print(text.data());
     };

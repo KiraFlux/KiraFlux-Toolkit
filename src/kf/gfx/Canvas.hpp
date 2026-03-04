@@ -58,8 +58,8 @@ public:
 
     /// @brief Creates validated sub-canvas within current bounds
     Result<Canvas, typename image::DynamicImage<PixelImpl>::Error> sub(
-        Pixels sub_width, Pixels sub_height,
-        Pixels sub_offset_x, Pixels sub_offset_y) noexcept {
+        math::Pixels sub_width, math::Pixels sub_height,
+        math::Pixels sub_offset_x, math::Pixels sub_offset_y) noexcept {
         const auto frame_result = _frame.sub(sub_width, sub_height, sub_offset_x, sub_offset_y);
         if (frame_result.isOk()) {
             return {Canvas{frame_result.ok().value(), *_active_font, _foreground, _background}};
@@ -71,8 +71,8 @@ public:
     /// @brief Creates sub-canvas without validation
     /// @warning No bounds checking - caller must ensure parameters are valid
     Canvas subUnchecked(
-        Pixels width, Pixels height,
-        Pixels offset_x, Pixels offset_y) noexcept {
+        math::Pixels width, math::Pixels height,
+        math::Pixels offset_x, math::Pixels offset_y) noexcept {
         return Canvas{
             _frame.subUnchecked(width, height, offset_x, offset_y),
             *_active_font,
@@ -83,31 +83,31 @@ public:
     // Properties
 
     /// @brief Get canvas width in pixels
-    [[nodiscard]] Pixels width() const noexcept { return _frame.width(); }
+    [[nodiscard]] math::Pixels width() const noexcept { return _frame.width(); }
 
     /// @brief Get canvas height in pixels
-    [[nodiscard]] Pixels height() const noexcept { return _frame.height(); }
+    [[nodiscard]] math::Pixels height() const noexcept { return _frame.height(); }
 
     /// @brief Get maximum valid X coordinate (rightmost pixel)
-    [[nodiscard]] Pixels maxX() const noexcept { return _frame.maxX(); }
+    [[nodiscard]] math::Pixels maxX() const noexcept { return _frame.maxX(); }
 
     /// @brief Get maximum valid Y coordinate (bottommost pixel)
-    [[nodiscard]] Pixels maxY() const noexcept { return _frame.maxY(); }
+    [[nodiscard]] math::Pixels maxY() const noexcept { return _frame.maxY(); }
 
     /// @brief Get horizontal center coordinate
-    [[nodiscard]] Pixels centerX() const noexcept { return static_cast<Pixels>(maxX() / 2); }
+    [[nodiscard]] math::Pixels centerX() const noexcept { return static_cast<math::Pixels>(maxX() / 2); }
 
     /// @brief Get vertical center coordinate
-    [[nodiscard]] Pixels centerY() const noexcept { return static_cast<Pixels>(maxY() / 2); }
+    [[nodiscard]] math::Pixels centerY() const noexcept { return static_cast<math::Pixels>(maxY() / 2); }
 
     /// @brief Get tab width based on current font (4 character widths)
-    [[nodiscard]] Pixels tabWidth() const noexcept { return static_cast<Pixels>(_active_font->widthTotal() * 4); }
+    [[nodiscard]] math::Pixels tabWidth() const noexcept { return static_cast<math::Pixels>(_active_font->widthTotal() * 4); }
 
     /// @brief Get current font glyph width
-    [[nodiscard]] Pixels glyphWidth() const noexcept { return _active_font->widthTotal(); }
+    [[nodiscard]] math::Pixels glyphWidth() const noexcept { return _active_font->widthTotal(); }
 
     /// @brief Get current font glyph height
-    [[nodiscard]] Pixels glyphHeight() const noexcept { return _active_font->heightTotal(); }
+    [[nodiscard]] math::Pixels glyphHeight() const noexcept { return _active_font->heightTotal(); }
 
     /// @brief Get canvas width in glyphs
     [[nodiscard]] u8 widthInGlyphs() const noexcept { return width() / glyphWidth(); }
@@ -139,7 +139,7 @@ public:
     void swapColors() noexcept { std::swap(_foreground, _background); }
 
     /// @brief Split canvas into weighted sub-canvases
-    template<usize N> Array<Canvas, N> split(Array<usize, N> weights, bool horizontal = true) noexcept {
+    template<usize N> memory::Array<Canvas, N> split(memory::Array<usize, N> weights, bool horizontal = true) noexcept {
         static_assert(N > 0, "Cannot split with zero items");
         for (auto &w: weights) {
             if (w == 0) { w = 1; }
@@ -153,9 +153,9 @@ public:
         auto remaining = horizontal ? width() : height();
         auto offset = 0u;
 
-        Array<Canvas, N> result;
+        memory::Array<Canvas, N> result;
         for (usize i = 0; i < N; i += 1) {
-            Pixels size = (remaining * weights[i]) / total_weight;
+            math::Pixels size = (remaining * weights[i]) / total_weight;
             if (i == N - 1) { size = remaining; }
 
             if (size > 0) {
@@ -179,14 +179,14 @@ public:
     }
 
     /// @brief Draw single pixel at specified coordinates
-    void dot(Pixels x, Pixels y) const noexcept {
+    void dot(math::Pixels x, math::Pixels y) const noexcept {
         _frame.setPixel(x, y, _foreground);
     }
 
     /// @brief Draw static image at specified position
     /// @param x Left position
     /// @param y Top position
-    template<Pixels W, Pixels H> void image(Pixels x, Pixels y, const image::StaticImage<P, W, H> &image) noexcept {
+    template<math::Pixels W, math::Pixels H> void image(math::Pixels x, math::Pixels y, const image::StaticImage<P, W, H> &image) noexcept {
         PixelImpl::copy(
             image.buffer(), image.width(), image.height(),
             _frame.buffer(), _frame.stride(),
@@ -194,7 +194,7 @@ public:
     }
 
     /// @brief Draw line (x0, y0), (x1, y1) between two points
-    void line(Pixels x0, Pixels y0, Pixels x1, Pixels y1) const noexcept {
+    void line(math::Pixels x0, math::Pixels y0, math::Pixels x1, math::Pixels y1) const noexcept {
         if (x0 == x1) {
             if (y0 == y1) {
                 _frame.setPixel(x0, y0, _foreground);
@@ -209,8 +209,8 @@ public:
             return;
         }
 
-        const auto dx = static_cast<Pixels>(std::abs(x1 - x0));
-        const auto dy = static_cast<Pixels>(-std::abs(y1 - y0));
+        const auto dx = static_cast<math::Pixels>(std::abs(x1 - x0));
+        const auto dy = static_cast<math::Pixels>(-std::abs(y1 - y0));
         const auto sx = (x0 < x1) ? 1 : -1;
         const auto sy = (y0 < y1) ? 1 : -1;
         auto error = dx + dy;
@@ -223,18 +223,18 @@ public:
             if (double_error >= dy) {
                 if (x0 == x1) { break; }
                 error += dy;
-                x0 = static_cast<Pixels>(x0 + sx);
+                x0 = static_cast<math::Pixels>(x0 + sx);
             }
             if (double_error <= dx) {
                 if (y0 == y1) { break; }
                 error += dx;
-                y0 = static_cast<Pixels>(y0 + sy);
+                y0 = static_cast<math::Pixels>(y0 + sy);
             }
         }
     }
 
     /// @brief Draw rectangle (filled or outline)
-    void rect(Pixels x0, Pixels y0, Pixels x1, Pixels y1, bool fill) noexcept {
+    void rect(math::Pixels x0, math::Pixels y0, math::Pixels x1, math::Pixels y1, bool fill) noexcept {
         if (x0 > x1) { std::swap(x0, x1); }
         if (y0 > y1) { std::swap(y0, y1); }
 
@@ -251,7 +251,7 @@ public:
     }
 
     /// @brief Draw circle (filled or outline)
-    void circle(Pixels cx, Pixels cy, Pixels r, bool fill) noexcept {
+    void circle(math::Pixels cx, math::Pixels cy, math::Pixels r, bool fill) noexcept {
         if (r < 0) { return; }
 
         if (fill) {
@@ -263,13 +263,13 @@ public:
 
                 // todo lineH
                 for (auto x = -width; x <= width; x += 1) {
-                    _frame.setPixel(static_cast<Pixels>(cx + x), static_cast<Pixels>(cy + y), _foreground);
+                    _frame.setPixel(static_cast<math::Pixels>(cx + x), static_cast<math::Pixels>(cy + y), _foreground);
                 }
             }
         } else {
             // Outline circle - modified Bresenham algorithm
-            Pixels x = r;
-            Pixels y = 0;
+            math::Pixels x = r;
+            math::Pixels y = 0;
             int err = 0;
 
             while (x >= y) {
@@ -302,9 +302,9 @@ public:
     ///   \xB* - Set custom background color (ANSI color index)
     ///   \n - New line
     ///   \t - Tab (4 character widths)
-    void text(Pixels start_x, Pixels start_y, const char *text) noexcept {
-        Pixels cursor_x = start_x;
-        Pixels cursor_y = start_y;
+    void text(math::Pixels start_x, math::Pixels start_y, const char *text) noexcept {
+        math::Pixels cursor_x = start_x;
+        math::Pixels cursor_y = start_y;
         const u8 font_width = _active_font->glyph_width;
         const u8 font_height = _active_font->glyph_height;
         const u8 font_total_height = _active_font->heightTotal();
@@ -373,42 +373,42 @@ public:
                 case '\n': {
                     clearLineSegment(cursor_x, cursor_y, maxX(), current_background_color);
                     cursor_x = start_x;
-                    cursor_y = static_cast<Pixels>(cursor_y + font_total_height);
+                    cursor_y = static_cast<math::Pixels>(cursor_y + font_total_height);
                     continue;
                 }
 
                 case '\t': {
                     const auto tab_width = tabWidth();
-                    const auto new_x = static_cast<Pixels>(((cursor_x / tab_width) + 1) * tab_width);
+                    const auto new_x = static_cast<math::Pixels>(((cursor_x / tab_width) + 1) * tab_width);
                     clearLineSegment(cursor_x, cursor_y, new_x, current_background_color);
                     cursor_x = new_x;
                     continue;
                 }
             }
 
-            if (cursor_x > static_cast<Pixels>(width() - font_width)) {
+            if (cursor_x > static_cast<math::Pixels>(width() - font_width)) {
                 clearLineSegment(cursor_x, cursor_y, maxX(), current_background_color);
                 if (_auto_next_line) {
                     cursor_x = start_x;
-                    cursor_y = static_cast<Pixels>(cursor_y + font_total_height);
+                    cursor_y = static_cast<math::Pixels>(cursor_y + font_total_height);
                 } else {
                     return;
                 }
             }
 
-            if (cursor_y > static_cast<Pixels>(height() - font_height)) { return; }
+            if (cursor_y > static_cast<math::Pixels>(height() - font_height)) { return; }
 
             drawGlyph(cursor_x, cursor_y, _active_font->getGlyph(*text), current_foreground_color, current_background_color);
 
-            cursor_x = static_cast<Pixels>(cursor_x + font_width);
+            cursor_x = static_cast<math::Pixels>(cursor_x + font_width);
             if (cursor_x < width()) {
                 drawLineVertical(
                     cursor_x,
                     cursor_y,
-                    static_cast<Pixels>(cursor_y + font_height),
+                    static_cast<math::Pixels>(cursor_y + font_height),
                     current_background_color);
             }
-            cursor_x = static_cast<Pixels>(cursor_x + 1);
+            cursor_x = static_cast<math::Pixels>(cursor_x + 1);
         }
     }
 
@@ -416,7 +416,7 @@ private:
     // Drawing API backend
 
     /// @brief Clear rectangular line segment with background color
-    void clearLineSegment(Pixels cursor_x, Pixels cursor_y, Pixels end_x, ColorType color) noexcept {
+    void clearLineSegment(math::Pixels cursor_x, math::Pixels cursor_y, math::Pixels end_x, ColorType color) noexcept {
         if (cursor_x < end_x) {
             _frame.fill(
                 cursor_x, cursor_y,
@@ -426,7 +426,7 @@ private:
     }
 
     /// @brief Draw horizontal line (optimized)
-    void drawLineHorizontal(Pixels x0, Pixels y, Pixels x1, ColorType color) const noexcept {
+    void drawLineHorizontal(math::Pixels x0, math::Pixels y, math::Pixels x1, ColorType color) const noexcept {
         if (x0 > x1) {
             std::swap(x0, x1);
         }
@@ -434,32 +434,32 @@ private:
     }
 
     /// @brief Draw vertical line (optimized)
-    void drawLineVertical(Pixels x, Pixels y0, Pixels y1, ColorType color) const noexcept {
+    void drawLineVertical(math::Pixels x, math::Pixels y0, math::Pixels y1, ColorType color) const noexcept {
         if (y0 > y1) { std::swap(y0, y1); }
         _frame.fill(x, y0, x, y1, color);
     }
 
     /// @brief Draw 8 symmetric points for circle outline
-    void drawCirclePoints(Pixels cx, Pixels cy, Pixels dx, Pixels dy, ColorType color) const noexcept {
-        _frame.setPixel(static_cast<Pixels>(cx + dx), static_cast<Pixels>(cy + dy), color);
-        _frame.setPixel(static_cast<Pixels>(cx + dy), static_cast<Pixels>(cy + dx), color);
-        _frame.setPixel(static_cast<Pixels>(cx - dy), static_cast<Pixels>(cy + dx), color);
-        _frame.setPixel(static_cast<Pixels>(cx - dx), static_cast<Pixels>(cy + dy), color);
-        _frame.setPixel(static_cast<Pixels>(cx - dx), static_cast<Pixels>(cy - dy), color);
-        _frame.setPixel(static_cast<Pixels>(cx - dy), static_cast<Pixels>(cy - dx), color);
-        _frame.setPixel(static_cast<Pixels>(cx + dy), static_cast<Pixels>(cy - dx), color);
-        _frame.setPixel(static_cast<Pixels>(cx + dx), static_cast<Pixels>(cy - dy), color);
+    void drawCirclePoints(math::Pixels cx, math::Pixels cy, math::Pixels dx, math::Pixels dy, ColorType color) const noexcept {
+        _frame.setPixel(static_cast<math::Pixels>(cx + dx), static_cast<math::Pixels>(cy + dy), color);
+        _frame.setPixel(static_cast<math::Pixels>(cx + dy), static_cast<math::Pixels>(cy + dx), color);
+        _frame.setPixel(static_cast<math::Pixels>(cx - dy), static_cast<math::Pixels>(cy + dx), color);
+        _frame.setPixel(static_cast<math::Pixels>(cx - dx), static_cast<math::Pixels>(cy + dy), color);
+        _frame.setPixel(static_cast<math::Pixels>(cx - dx), static_cast<math::Pixels>(cy - dy), color);
+        _frame.setPixel(static_cast<math::Pixels>(cx - dy), static_cast<math::Pixels>(cy - dx), color);
+        _frame.setPixel(static_cast<math::Pixels>(cx + dy), static_cast<math::Pixels>(cy - dx), color);
+        _frame.setPixel(static_cast<math::Pixels>(cx + dx), static_cast<math::Pixels>(cy - dy), color);
     }
 
     /// @brief Draw font glyph at specified position
     /// @param x Left position
     /// @param y Top position
     /// @param glyph Pointer to glyph bitmap data
-    void drawGlyph(Pixels x, Pixels y, const u8 *glyph, ColorType color_on, ColorType color_off) noexcept {
+    void drawGlyph(math::Pixels x, math::Pixels y, const u8 *glyph, ColorType color_on, ColorType color_off) noexcept {
         if (nullptr == glyph) {
             // Draw box for unknown character
-            const auto x1 = static_cast<Pixels>(x + _active_font->glyph_width - 1);
-            const auto y1 = static_cast<Pixels>(y + _active_font->glyph_height - 1);
+            const auto x1 = static_cast<math::Pixels>(x + _active_font->glyph_width - 1);
+            const auto y1 = static_cast<math::Pixels>(y + _active_font->glyph_height - 1);
 
             drawLineHorizontal(x, y, x1, color_on);
             drawLineHorizontal(x, y1, x1, color_on);
@@ -472,15 +472,15 @@ private:
         const u8 font_height = _active_font->glyph_height;
 
         for (u8 col = 0; col < font_width; ++col) {
-            const auto pixel_x = static_cast<Pixels>(x + col);
+            const auto pixel_x = static_cast<math::Pixels>(x + col);
             const u8 glyph_byte = glyph[col];
 
             for (u8 row = 0; row < font_height; row += 1) {
                 const auto color = (glyph_byte >> row) & 1 ? color_on : color_off;
-                _frame.setPixel(pixel_x, static_cast<Pixels>(y + row), color);
+                _frame.setPixel(pixel_x, static_cast<math::Pixels>(y + row), color);
             }
 
-            _frame.setPixel(pixel_x, static_cast<Pixels>(y + font_height), color_off);
+            _frame.setPixel(pixel_x, static_cast<math::Pixels>(y + font_height), color_off);
         }
     }
 };

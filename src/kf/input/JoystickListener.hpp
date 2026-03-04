@@ -8,7 +8,7 @@
 #include "kf/math/Timer.hpp"
 #include "kf/math/units.hpp"
 
-namespace kf {
+namespace kf::input {
 
 struct JoystickListener {
     enum class Direction : u8 {
@@ -23,8 +23,8 @@ private:
     Joystick &joystick;
     const float threshold;
 
-    math::Timer repeat_timer{static_cast<kf::Milliseconds>(100)};
-    math::Timer initial_delay{static_cast<kf::Milliseconds>(400)};
+    math::Timer repeat_timer{static_cast<kf::math::Milliseconds>(100)};
+    math::Timer initial_delay{static_cast<kf::math::Milliseconds>(400)};
 
     bool in_repeat_mode{false};
     bool has_changed{false};
@@ -34,7 +34,7 @@ public:
     explicit JoystickListener(Joystick &joy, float threshold = 0.6f) noexcept
         : joystick{joy}, threshold{threshold} {}
 
-    void poll(Milliseconds now) noexcept {
+    void poll(math::Milliseconds now) noexcept {
         const auto new_direction = calculateDirection();
 
         if (new_direction != current_direction) {

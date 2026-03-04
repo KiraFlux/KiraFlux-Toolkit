@@ -10,7 +10,7 @@
 #include "kf/Option.hpp"
 #include "kf/aliases.hpp"
 
-namespace kf::io {
+namespace kf::memory::io {
 
 /// @brief Output stream for writing data to Stream interface
 /// @note Wraps Arduino Stream class for type-safe writing with error handling

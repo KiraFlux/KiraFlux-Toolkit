@@ -1,9 +1,9 @@
 #include <Arduino.h>
-
 #include <kf/Logger.hpp>
+
 #include <kf/drivers/zms/PwmPositionServo.hpp>
 
-using kf::PwmPositionServo;
+using kf::drivers::zms::PwmPositionServo;
 
 // 50 Hz, 16-bit resolution works for most RC servos
 static const PwmPositionServo::PwmConfig pwm_config{
@@ -29,7 +29,7 @@ static PwmPositionServo servo{pwm_config, driver_config, pulse_config};
 
 void setup() {
     Serial.begin(115200);
-    kf::Logger::writer = [](kf::StringView s) { Serial.write(s.data(), s.size()); };
+    kf::Logger::writer = [](kf::memory::StringView s) { Serial.write(s.data(), s.size()); };
 
     // check configs
     bool failed = not pwm_config.check();

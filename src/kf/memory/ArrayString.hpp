@@ -13,7 +13,7 @@
 #include "kf/memory/Slice.hpp"
 #include "kf/memory/StringView.hpp"
 
-namespace kf {
+namespace kf::memory {
 
 /// @brief Fixed-size string buffer with compile-time capacity
 /// @tparam N Maximum string capacity (excluding null terminator)

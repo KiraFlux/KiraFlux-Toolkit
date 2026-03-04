@@ -8,7 +8,7 @@
 #include "kf/Option.hpp"
 #include "kf/aliases.hpp"
 
-namespace kf {
+namespace kf::math {
 
 /// @brief 3D vector template for graphics and calculations
 template<typename T> struct vec3 final {

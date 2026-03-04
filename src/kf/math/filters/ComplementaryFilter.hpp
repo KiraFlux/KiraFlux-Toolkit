@@ -5,7 +5,7 @@
 
 #include "kf/math/units.hpp"
 
-namespace kf {
+namespace kf::math::filters {
 
 /// @brief Complementary filter for sensor fusion
 /// @tparam T Data type (typically float or vector type)

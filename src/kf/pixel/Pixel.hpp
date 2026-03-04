@@ -34,7 +34,7 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : Tag {
 
     /// @brief set pixel color
     static void setPixel(
-        Slice<BufferType> buffer,
+        memory::Slice<BufferType> buffer,
         PositionType stride,
         PositionType abs_x,
         PositionType abs_y,
@@ -47,7 +47,7 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : Tag {
 
     /// @brief Effective fill rectangular region with specified color
     static void fill(
-        Slice<BufferType> buffer,
+        memory::Slice<BufferType> buffer,
         PositionType stride,
         PositionType offset_x,
         PositionType offset_y,
@@ -63,10 +63,10 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : Tag {
 
     /// @brief Copy rectangular region from source to destination buffer
     static void copy(
-        Slice<const BufferType> src,
+        memory::Slice<const BufferType> src,
         PositionType src_w,
         PositionType src_h,
-        Slice<BufferType> dst,
+        memory::Slice<BufferType> dst,
         PositionType dst_stride,
         PositionType dst_x,
         PositionType dst_y) noexcept {

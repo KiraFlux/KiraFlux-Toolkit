@@ -11,11 +11,11 @@
 #include <kf/ui/render/ColoredTextRender.hpp>
 
 // Display Driver specialisation
-using MyDisplayDriver = kf::ST7735;
+using MyDisplayDriver = kf::drivers::display::ST7735;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
-using MyUI = kf::UI<
+using MyUI = kf::ui::UI<
     kf::ui::render::ColoredTextRender<256>,// Render implementation: colored text, buffered (256 Bytes)
     kf::ui::Event<4>                       // Event type: 4-bit value
     >;
@@ -69,7 +69,7 @@ struct MainPage : MyUI::Page {
     }
 
     // behavior on UI polling
-    void onUpdate(kf::Milliseconds now) noexcept override {}
+    void onUpdate(kf::math::Milliseconds now) noexcept override {}
 
 } main_page{};
 
@@ -85,7 +85,7 @@ struct SettingsPage : MyUI::Page {
         }// spinbox
     };
 
-    MyUI::ComboBox<kf::StringView, 3> strings_combo_box{
+    MyUI::ComboBox<kf::memory::StringView, 3> strings_combo_box{
         *this,                    // attach to this page
         {"Alpha", "Beta", "Gamma"}// items (3)
     };
@@ -102,7 +102,7 @@ struct SettingsPage : MyUI::Page {
             Serial.println(value);
         };
 
-        strings_combo_box.change_handler = [](kf::StringView value) {
+        strings_combo_box.change_handler = [](kf::memory::StringView value) {
             Serial.print("String Combo selected: ");
             Serial.println(value.data());
         };
@@ -159,7 +159,7 @@ void setup() {
     static kf::gfx::Canvas<P> root_canvas{kf::image::DynamicImage<P>{display.image()}};
 
     // post-render procedure
-    config.on_render_finish = [](kf::StringView text) {
+    config.on_render_finish = [](kf::memory::StringView text) {
         root_canvas.fill();
         root_canvas.text(0, 0, text.data());
 

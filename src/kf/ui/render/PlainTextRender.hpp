@@ -23,7 +23,7 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
 
     /// @brief Text renderer configuration
     struct Config {
-        Function<void(StringView)> on_render_finish{nullptr};///< Callback invoked when rendering completes
+        Function<void(memory::StringView)> on_render_finish{nullptr};///< Callback invoked when rendering completes
 
         Glyph row_max_length{16}; ///< Maximum characters per row
         Glyph rows_total{4};      ///< Total available rows in display
@@ -35,7 +35,7 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
     };
 
 private:
-    ArrayString<N> buffer{};///< Output buffer for rendered text
+    memory::ArrayString<N> buffer{};///< Output buffer for rendered text
     Config config{};        ///< Current renderer configuration
 
     /// @brief Cursor state for tracking rendering position
@@ -88,14 +88,14 @@ public:
     }
 
     /// @brief Write string with cursor tracking
-    void writeString(StringView str) noexcept {
+    void writeString(memory::StringView str) noexcept {
         for (char ch: str) {
             writeChar(ch);
         }
     }
 
     void writeReal(f64 real, u8 rounding) noexcept {
-        ArrayString<24> temp;// Enough for double with precision
+        memory::ArrayString<24> temp;// Enough for double with precision
         (void) temp.append(real, rounding);
         writeString(temp.view());
     }
@@ -123,7 +123,7 @@ private:
         }
     }
 
-    void titleImpl(StringView title) noexcept {
+    void titleImpl(memory::StringView title) noexcept {
         if (config.title_centered) {
             const auto spaces = kf::max(0, (int(config.row_max_length) - int(title.size())) / 2);
             for (int i = 0; i < spaces; i += 1) {
@@ -135,8 +135,8 @@ private:
     }
 
     void checkboxImpl(bool enabled) noexcept {
-        constexpr StringView on{"==( 1 )"};
-        constexpr StringView off{"( 0 )--"};
+        constexpr memory::StringView on{"==( 1 )"};
+        constexpr memory::StringView off{"( 0 )--"};
         writeString(enabled ? on : off);
     }
 
@@ -169,16 +169,16 @@ private:
     }
 
     // Value rendering implementations
-    void valueImpl(StringView str) noexcept { writeString(str); }
+    void valueImpl(memory::StringView str) noexcept { writeString(str); }
 
     void valueImpl(bool slider_value) noexcept {
-        constexpr StringView _true{"true"};
-        constexpr StringView _false{"false"};
+        constexpr memory::StringView _true{"true"};
+        constexpr memory::StringView _false{"false"};
         writeString(slider_value ? _true : _false);
     }
 
     void valueImpl(i32 integer) noexcept {
-        ArrayString<12> temp;// Enough for 32-bit int
+        memory::ArrayString<12> temp;// Enough for 32-bit int
         (void) temp.append(integer);
         writeString(temp.view());
     }

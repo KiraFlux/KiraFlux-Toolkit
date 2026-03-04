@@ -6,7 +6,7 @@
 #include <Preferences.h>
 #include <type_traits>
 
-namespace kf {
+namespace kf::memory {
 
 /// @brief Persistent storage wrapper for ESP32 Preferences
 /// @tparam T Data type to store

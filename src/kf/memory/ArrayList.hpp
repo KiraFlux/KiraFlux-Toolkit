@@ -8,8 +8,8 @@
 #include "kf/memory/Allocator.hpp"
 
 
-namespace kf {
+namespace kf::memory {
 
-template<typename T, typename Alloc = kf::Allocator<T>> using ArrayList = std::vector<T, Alloc>;
+template<typename T, typename Alloc = kf::memory::Allocator<T>> using ArrayList = std::vector<T, Alloc>;
 
 }

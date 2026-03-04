@@ -2,9 +2,10 @@
 #include <kf/memory/ArrayString.hpp>
 #include <unity.h>
 
-using namespace kf;
+using kf::memory::ArrayString;
+using kf::memory::StringView;
 
-template<usize N> static void assertStr(const ArrayString<N> &s, const char *exp, size_t len) {
+template<kf::usize N> static void assertStr(const ArrayString<N> &s, const char *exp, size_t len) {
     TEST_ASSERT_EQUAL_UINT32(len, s.size());
     if (len) {
         TEST_ASSERT_EQUAL_MEMORY(exp, s.data(), len);

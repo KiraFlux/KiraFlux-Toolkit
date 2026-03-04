@@ -7,8 +7,8 @@
 
 #include "kf/memory/Allocator.hpp"
 
-namespace kf {
+namespace kf::memory {
 
-template<typename T, typename Alloc = kf::Allocator<T>> using Deque = std::deque<T, Alloc>;
+template<typename T, typename Alloc = kf::memory::Allocator<T>> using Deque = std::deque<T, Alloc>;
 
 }

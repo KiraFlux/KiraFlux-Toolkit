@@ -16,7 +16,7 @@ private:
 
 public:
     /// @brief Check a validation condition and log result
-    void check(const Logger &logger, bool condition_ok, StringView condition_string) noexcept {
+    void check(const Logger &logger, bool condition_ok, memory::StringView condition_string) noexcept {
         if (condition_ok) {
             logger.info(condition_string);
         } else {

@@ -5,7 +5,7 @@
 
 #include "kf/aliases.hpp"
 
-namespace kf {
+namespace kf::meta {
 
 template<u8 bytes> struct byte_traits;
 

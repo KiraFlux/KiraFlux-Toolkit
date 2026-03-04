@@ -5,7 +5,7 @@
 
 #include "kf/aliases.hpp"
 
-namespace kf {
+namespace kf::memory {
 
 /// @brief Non-owning view of a contiguous memory region
 /// @tparam T Element type

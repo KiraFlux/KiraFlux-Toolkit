@@ -8,30 +8,34 @@
 #include <kf/input/Joystick.hpp>
 #include <kf/input/JoystickListener.hpp>
 
+using kf::input::AnalogAxis;
+using kf::input::Joystick;
+using kf::input::JoystickListener;
+
 // Configuration – must outlive joystick instance (referenced)
-kf::Joystick::Config my_joystick_config{
+Joystick::Config my_joystick_config{
     .x = {
         GPIO_NUM_34,
-        kf::AnalogAxis::Config::Mode::Normal,
+        AnalogAxis::Config::Mode::Normal,
     },
     .y = {
         GPIO_NUM_35,
-        kf::AnalogAxis::Config::Mode::Inverted,
+        AnalogAxis::Config::Mode::Inverted,
     },
 };
 
 // Joystick – must outlive listener instance (referenced)
-kf::Joystick my_joystick{
+Joystick my_joystick{
     my_joystick_config,// referenced, must stay alive
     0.1f,              // filter coefficient for both axes
 };
 
-kf::JoystickListener my_listener{
+JoystickListener my_listener{
     my_joystick,// referenced, must stay alive
     0.5f,       // neutral zone threshold (normalized value)
 };
 
-using Direction = kf::JoystickListener::Direction;
+using Direction = JoystickListener::Direction;
 
 const char *stringFromDirection(Direction dir) {
     switch (dir) {
@@ -46,12 +50,12 @@ const char *stringFromDirection(Direction dir) {
 
 // Calibration: AxisTuner measures min, max and computes dead‑zone & ranges.
 // Tuners are independent state machines; they can have different sample counts.
-void tune(kf::Joystick::Config &config) {
+void tune(Joystick::Config &config) {
     const unsigned samples_x = 100;
     const unsigned samples_y = 200;// may be different – each tuner stops after its own count
 
-    kf::AnalogAxis::AxisTuner tunerX{config.x, samples_x};
-    kf::AnalogAxis::AxisTuner tunerY{config.y, samples_y};
+    AnalogAxis::AxisTuner tunerX{config.x, samples_x};
+    AnalogAxis::AxisTuner tunerY{config.y, samples_y};
 
     tunerX.start();
     tunerY.start();
@@ -74,7 +78,7 @@ void setup() {
 }
 
 void loop() {
-    static kf::math::Timer log_timer{kf::Milliseconds(500)};// print every 500 ms
+    static kf::math::Timer log_timer{kf::math::Milliseconds(500)};// print every 500 ms
 
     const auto now = millis();
 

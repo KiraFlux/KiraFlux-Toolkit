@@ -30,7 +30,7 @@ void setup() {
     Serial.begin(115200);
 
     // Redirect all logger output to Serial.
-    kf::Logger::writer = [](kf::StringView s) {
+    kf::Logger::writer = [](kf::memory::StringView s) {
         Serial.write(s.data(), s.size());
     };
 

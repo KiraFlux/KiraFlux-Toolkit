@@ -9,12 +9,12 @@
 #include "kf/memory/ArrayList.hpp"
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/meta/Singleton.hpp"
+#include "kf/meta/type_check.hpp"
 #include "kf/ui/internal/UI.hpp"
 #include "kf/ui/render/Tag.hpp"
 
-namespace kf {
+namespace kf::ui {
 
 /// @brief User interface framework with widget-based rendering
 /// @tparam R Renderer implementation type (must inherit from kf::ui::Render)
@@ -30,13 +30,13 @@ template<typename R, typename E> struct UI final : meta::Singleton<UI<R, E>> {
     using Event = E;                         ///< UI Event type
     using EventValue = typename Event::Value;///< UI Event Value type
 
-    using StepMode = ui::internal::StepMode;
-    using ValuePlacement = ui::internal::ValuePlacement;
+    using StepMode = internal::StepMode;
+    using ValuePlacement = internal::ValuePlacement;
 
     struct Page;
 
 private:
-    using InternalUI = ui::internal::UI<R, EventValue, Page>;
+    using InternalUI = internal::UI<R, EventValue, Page>;
 
 public:
     /// @brief Base widget type (provided for inheritance or generic references)
@@ -72,9 +72,9 @@ public:
     template<typename T> using Slider = typename InternalUI::template Slider<T>;
 
 private:
-    Queue<Event> _events{};     ///< Event queue for pending UI events
-    Page *_active_page{nullptr};///< Currently active page for rendering
-    RenderImpl _render_system{};///< Renderer implementation instance
+    memory::Queue<Event> _events{};///< Event queue for pending UI events
+    Page *_active_page{nullptr};   ///< Currently active page for rendering
+    RenderImpl _render_system{};   ///< Renderer implementation instance
 
 public:
     /// @brief Access renderer configuration
@@ -99,7 +99,7 @@ public:
 
     /// @brief Process active page update, pending events and render if needed
     /// @note Must be called regularly (e.g., in main loop)
-    void poll(Milliseconds now) noexcept {
+    void poll(math::Milliseconds now) noexcept {
         if (nullptr == _active_page) { return; }
 
         _active_page->onUpdate(now);
@@ -151,13 +151,13 @@ public:
     /// @brief UI page containing widgets and title
     struct Page {
     private:
-        ArrayList<Widget *> _widgets{};///< List of widgets on this page
-        PageSetter _to_this{*this};    ///< Navigation widget to this page
-        isize _cursor{0};              ///< Current widget cursor position (focused widget index)
-        StringView _title;             ///< Page title displayed in header
+        memory::ArrayList<Widget *> _widgets{};///< List of widgets on this page
+        PageSetter _to_this{*this};            ///< Navigation widget to this page
+        memory::StringView _title;             ///< Page title displayed in header
+        isize _cursor{0};                      ///< Current widget cursor position (focused widget index)
 
     public:
-        explicit Page(StringView title) :
+        explicit Page(memory::StringView title) :
             _title{title} {}
 
         /// @brief Page behavior on entry
@@ -167,7 +167,7 @@ public:
         virtual void onExit() noexcept {}
 
         /// @brief Page behavior on UI polling
-        virtual void onUpdate(Milliseconds now) noexcept {}
+        virtual void onUpdate(math::Milliseconds now) noexcept {}
 
         /// @brief Add widget to this page
         /// @param widget Widget to add (must remain valid for page lifetime)
@@ -226,7 +226,7 @@ public:
         [[nodiscard]] usize widgetsTotal() const noexcept { return _widgets.size(); }
 
         /// @brief Get page title
-        [[nodiscard]] StringView title() const noexcept { return _title; }
+        [[nodiscard]] memory::StringView title() const noexcept { return _title; }
 
     private:
         /// @brief Move cursor within page bounds

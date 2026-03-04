@@ -17,9 +17,9 @@ template<u8 V> struct Event {
     static constexpr u8 value_bits = V;
     static constexpr u8 total_bits = type_bits + value_bits;
 
-    using Value = typename bit_traits<value_bits>::min_signed;
-    using Storage = typename bit_traits<total_bits>::min_unsigned;
-    using UnsignedValue = typename bit_traits<value_bits>::min_unsigned;
+    using Value = typename meta::bit_traits<value_bits>::min_signed;
+    using Storage = typename meta::bit_traits<total_bits>::min_unsigned;
+    using UnsignedValue = typename meta::bit_traits<value_bits>::min_unsigned;
 
     static constexpr u8 storage_bits = sizeof(Storage) * 8;
 

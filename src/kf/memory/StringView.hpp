@@ -9,7 +9,7 @@
 #include "kf/algorithm.hpp"
 #include "kf/memory/Slice.hpp"
 
-namespace kf {
+namespace kf::memory {
 
 /// @brief Lightweight non-owning string view (similar to std::string_view)
 /// @note UTF-8 compatible, supports both null-terminated and sized strings

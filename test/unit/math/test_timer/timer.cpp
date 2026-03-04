@@ -4,7 +4,7 @@
 
 using kf::math::Timer;
 
-constexpr kf::Milliseconds
+constexpr kf::math::Milliseconds
     t_0 = 0,
     t_50 = 50,
     t_100 = 100,
@@ -33,7 +33,7 @@ void test_period_ctor() {
 }
 
 void test_frequency_ctor() {
-    Timer t{kf::Hertz(10)};
+    Timer t{kf::math::Hertz(10)};
     TEST_ASSERT_EQUAL(period_100, t.period());
 }
 

@@ -8,13 +8,13 @@
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
 
-namespace kf {
+namespace kf::input {
 
 /// @brief Minimal button with press detection only
 struct Button {
 
     struct Config {
-        Milliseconds debounce;
+        math::Milliseconds debounce;
         u8 pin;
 
         enum class Mode : u8 {
@@ -31,7 +31,7 @@ struct Button {
             gpio_num_t pin,
             Mode mode,
             PullType pull_type,
-            Milliseconds debounce = 30) noexcept :
+            math::Milliseconds debounce = 30) noexcept :
             pin{static_cast<u8>(pin)}, mode{mode}, pull_type{pull_type}, debounce{debounce} {}
 
         [[nodiscard]] bool normalize(bool state) const noexcept {
@@ -48,7 +48,7 @@ struct Button {
 
 private:
     const Config &config;
-    Milliseconds next{0};
+    math::Milliseconds next{0};
     bool last_stable{false};
     bool last_raw{false};
     bool click_ready{false};
@@ -62,7 +62,7 @@ public:
     }
 
     /// @brief Poll button state - must be called regularly
-    void poll(Milliseconds now) noexcept {
+    void poll(math::Milliseconds now) noexcept {
         const bool state = config.normalize(digitalRead(config.pin));
 
         if (state != last_raw) {

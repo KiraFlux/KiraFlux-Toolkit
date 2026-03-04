@@ -5,7 +5,7 @@
 
 #include "kf/aliases.hpp"
 
-namespace kf {
+namespace kf::math::filters {
 
 /// @brief Low-frequency filter (first-order low-pass)
 /// @tparam T Scalar type (typically float or integer)

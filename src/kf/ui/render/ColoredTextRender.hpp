@@ -27,7 +27,7 @@ private:
 
     void finishImpl() noexcept { wrapped.finish(); }
 
-    void titleImpl(StringView title) noexcept {
+    void titleImpl(memory::StringView title) noexcept {
         wrapped.writeChar('\xF0');
         wrapped.writeChar('\xBC');
         wrapped.title(title);
