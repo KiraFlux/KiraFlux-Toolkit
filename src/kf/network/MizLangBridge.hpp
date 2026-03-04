@@ -31,20 +31,20 @@ template<usize N, typename Tlc, typename Trc = Tlc> struct MizLangBridge {
 
     using LocalCodeType = Tlc;
     using RemoteCodeType = Trc;
-    using SendFunctionType = Function<Result<void, Error>(io::OutputStream &, void *)>;
-    using ReceiveFunctionType = Function<Result<void, Error>(io::InputStream &)>;
+    using SendFunctionType = Function<Result<void, Error>(memory::io::OutputStream &, void *)>;
+    using ReceiveFunctionType = Function<Result<void, Error>(memory::io::InputStream &)>;
     using InstructionTableType = Array<ReceiveFunctionType, N>;
 
 private:
     InstructionTableType _instructions;
-    io::InputStream _input_stream;
-    io::OutputStream _output_stream;
+    memory::io::InputStream _input_stream;
+    memory::io::OutputStream _output_stream;
     RemoteCodeType _next_code{0};
 
 public:
     explicit MizLangBridge(
-        io::InputStream input_stream,
-        io::OutputStream output_stream,
+        memory::io::InputStream input_stream,
+        memory::io::OutputStream output_stream,
         InstructionTableType instructions) noexcept :
         _input_stream{std::move(input_stream)},
         _output_stream{std::move(output_stream)},
@@ -53,11 +53,11 @@ public:
     struct Instruction {
     private:
         const SendFunctionType _sender;
-        io::OutputStream &_output_stream;
+        memory::io::OutputStream &_output_stream;
         const RemoteCodeType _code;
 
     public:
-        explicit Instruction(io::OutputStream &output_stream, RemoteCodeType code, SendFunctionType sender) noexcept :
+        explicit Instruction(memory::io::OutputStream &output_stream, RemoteCodeType code, SendFunctionType sender) noexcept :
             _output_stream{output_stream}, _sender{std::move(sender)}, _code{code} {}
 
         Instruction(Instruction &&other) noexcept :
