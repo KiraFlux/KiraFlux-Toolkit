@@ -5,7 +5,6 @@
 
 #include "kf/drivers/display/Tag.hpp"
 #include "kf/image/Tag.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/meta/type_check.hpp"
 
 namespace kf::drivers::display {
@@ -65,4 +64,4 @@ private:
     [[nodiscard]] inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
-}// namespace kf
+}// namespace kf::drivers::display

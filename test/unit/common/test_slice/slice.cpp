@@ -1,7 +1,7 @@
 #include <kf/memory/Slice.hpp>
 #include <unity.h>
 
-using kf::Slice;
+using kf::memory::Slice;
 
 namespace constructors {
 void default_ctor() {

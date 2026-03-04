@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <kf/ui/Event.hpp>
 #include <unity.h>
 

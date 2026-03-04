@@ -26,7 +26,7 @@ template<typename P, math::Pixels W, math::Pixels H> struct StaticImage final : 
     using BufferType = typename PixelImpl::BufferType;
     using ColorType = typename PixelImpl::ColorType;
 
-    using BufferStorage = Array<BufferType, PixelImpl::template buffer_size<W, H>>;
+    using BufferStorage = memory::Array<BufferType, PixelImpl::template buffer_size<W, H>>;
 
 private:
     /// @brief Raw image buffer data
@@ -50,11 +50,11 @@ private:
 
     [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
 
-    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
+    [[nodiscard]] constexpr memory::Slice<BufferType> getBufferImpl() noexcept {
         return {_buffer.data(), _buffer.size()};
     }
 
-    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept {
+    [[nodiscard]] constexpr memory::Slice<const BufferType> getBufferImpl() const noexcept {
         return {_buffer.data(), _buffer.size()};
     }
 };

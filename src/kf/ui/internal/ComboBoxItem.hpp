@@ -10,27 +10,27 @@ namespace kf::ui::internal {
 template<typename T> struct ComboBoxItem {
 
 private:
-    const StringView key_;
+    const memory::StringView key_;
     const T value_;
 
 public:
-    [[nodiscard]] StringView key() const noexcept { return key_; }
+    [[nodiscard]] memory::StringView key() const noexcept { return key_; }
 
     [[nodiscard]] T value() const noexcept { return value_; }
 
-    constexpr ComboBoxItem(const StringView key, const T value) noexcept :
+    constexpr ComboBoxItem(const memory::StringView key, const T value) noexcept :
         key_{key}, value_{value} {}
 };
 
-template<> struct ComboBoxItem<StringView> {
+template<> struct ComboBoxItem<memory::StringView> {
 
 private:
-    const StringView key_;
+    const memory::StringView key_;
 
 public:
-    [[nodiscard]] StringView key() const noexcept { return key_; }
+    [[nodiscard]] memory::StringView key() const noexcept { return key_; }
 
-    [[nodiscard]] StringView value() const noexcept { return key_; }
+    [[nodiscard]] memory::StringView value() const noexcept { return key_; }
 
     template<usize N> constexpr ComboBoxItem(const char (&str)[N]) noexcept :// NOLINT(*-explicit-constructor)
         key_{str} {}

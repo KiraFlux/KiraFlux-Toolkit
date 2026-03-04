@@ -44,11 +44,11 @@ private:
 
     [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return _logical_width; }
 
-    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
+    [[nodiscard]] constexpr memory::Slice<BufferType> getBufferImpl() noexcept {
         return _image.buffer().first(_logical_width * _logical_height);
     }
 
-    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept {
+    [[nodiscard]] constexpr memory::Slice<const BufferType> getBufferImpl() const noexcept {
         return _image.buffer().first(_logical_width * _logical_height);
     }
 };

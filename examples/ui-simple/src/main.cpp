@@ -85,7 +85,7 @@ struct SettingsPage : MyUI::Page {
         }// spinbox
     };
 
-    MyUI::ComboBox<kf::StringView, 3> strings_combo_box{
+    MyUI::ComboBox<kf::memory::StringView, 3> strings_combo_box{
         *this,                    // attach to this page
         {"Alpha", "Beta", "Gamma"}// items (3)
     };
@@ -102,7 +102,7 @@ struct SettingsPage : MyUI::Page {
             Serial.println(value);
         };
 
-        strings_combo_box.change_handler = [](kf::StringView value) {
+        strings_combo_box.change_handler = [](kf::memory::StringView value) {
             Serial.print("String Combo selected: ");
             Serial.println(value.data());
         };
@@ -135,7 +135,7 @@ void setup() {
     MyUI::RenderConfig &config = ui.renderConfig();
 
     // post-render procedure
-    config.on_render_finish = [](kf::StringView text) {
+    config.on_render_finish = [](kf::memory::StringView text) {
         Serial.println("---");
         Serial.print(text.data());
     };

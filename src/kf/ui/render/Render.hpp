@@ -41,7 +41,7 @@ template<typename Impl> struct Render : Tag {
     // Value rendering
 
     /// @brief Render page title
-    void title(StringView title) noexcept { impl().titleImpl(title); }
+    void title(memory::StringView title) noexcept { impl().titleImpl(title); }
 
     /// @brief Render checkbox
     void checkbox(bool enabled) noexcept { impl().checkboxImpl(enabled); }

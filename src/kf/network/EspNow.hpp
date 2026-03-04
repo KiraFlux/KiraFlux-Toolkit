@@ -26,10 +26,10 @@ namespace kf {
 struct EspNow : meta::Singleton<EspNow> {
     friend struct meta::Singleton<EspNow>;
 
-    using Mac = Array<u8, ESP_NOW_ETH_ALEN>;///< MAC address type (6 bytes)
+    using Mac = memory::Array<u8, ESP_NOW_ETH_ALEN>;///< MAC address type (6 bytes)
 
     /// @brief Handler type for receiving data from unknown peers
-    using ReceiveFromUnknownHandler = Function<void(const Mac &, const Slice<const u8>)>;
+    using ReceiveFromUnknownHandler = Function<void(const Mac &, const memory::Slice<const u8>)>;
 
     /// @brief ESP-NOW operation error codes
     enum class Error : u8 {
@@ -48,7 +48,7 @@ struct EspNow : meta::Singleton<EspNow> {
     /// @brief ESP-NOW peer representation with communication capabilities
     struct Peer {
         /// @brief Handler type for receiving data from this specific peer
-        using ReceiveHandler = Function<void(Slice<const u8>)>;
+        using ReceiveHandler = Function<void(memory::Slice<const u8>)>;
 
         /// @brief Peer context storing handler and state
         struct Context {
@@ -98,7 +98,7 @@ struct EspNow : meta::Singleton<EspNow> {
         /// @param buffer Data slice to send
         /// @return Success or Error
         /// @note Checks size constraint at runtime
-        [[nodiscard]] Result<void, Error> sendBuffer(Slice<const u8> buffer) noexcept {
+        [[nodiscard]] Result<void, Error> sendBuffer(memory::Slice<const u8> buffer) noexcept {
             if (buffer.size() > ESP_NOW_MAX_DATA_LEN) {
                 return {Error::TooBigMessage};
             }
@@ -175,7 +175,7 @@ struct EspNow : meta::Singleton<EspNow> {
     };
 
 private:
-    Map<Mac, Peer::Context> peer_contexts{};                    ///< Map of known peers and their contexts
+    memory::Map<Mac, Peer::Context> peer_contexts{};            ///< Map of known peers and their contexts
     ReceiveFromUnknownHandler _on_receive_from_unknown{nullptr};///< Handler for unknown peers
 
     /// @brief Local device MAC address (cached)
@@ -237,7 +237,7 @@ private:
         Mac source_mac;
         std::copy(raw_mac_address, raw_mac_address + ESP_NOW_ETH_ALEN, source_mac.begin());
 
-        const Slice<const u8> buffer{data, static_cast<usize>(size)};
+        const memory::Slice<const u8> buffer{data, static_cast<usize>(size)};
 
         const auto peer_context = self.getPeerContext(source_mac);
 
@@ -287,8 +287,8 @@ public:
     /// @brief Convert MAC address to human-readable string
     /// @param mac MAC address to convert
     /// @return ArrayString with formatted MAC address (XX:XX:XX:XX:XX:XX format)
-    [[nodiscard]] static ArrayString<mac_string_size> stringFromMac(const Mac &mac) noexcept {
-        return ArrayString<mac_string_size>::formatted("%02x%02x-%02x%02x-%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    [[nodiscard]] static memory::ArrayString<mac_string_size> stringFromMac(const Mac &mac) noexcept {
+        return memory::ArrayString<mac_string_size>::formatted("%02x%02x-%02x%02x-%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     }
 
 #define return_case(__v) \

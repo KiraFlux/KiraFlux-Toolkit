@@ -32,7 +32,7 @@ template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
     };
 
 private:
-    Slice<BufferType> _buffer;///< display buffer memory view
+    memory::Slice<BufferType> _buffer;///< display buffer memory view
     math::Pixels _width, _height;   ///< Region size in pixels
     math::Pixels _stride;           ///< Row stride (full display width)
     math::Pixels offset_x, offset_y;///< Absolute offset from buffer origin
@@ -40,7 +40,7 @@ private:
 public:
     /// @brief Creates FrameView with validation
     [[nodiscard]] static Result<DynamicImage, Error> create(
-        Slice<BufferType> buffer, math::Pixels stride,
+        memory::Slice<BufferType> buffer, math::Pixels stride,
         math::Pixels width, math::Pixels height,
         math::Pixels offset_x, math::Pixels offset_y) noexcept {
         if (nullptr == buffer.data()) {
@@ -61,7 +61,7 @@ public:
     /// @brief Creates FrameView without validation
     /// @warning Caller must ensure parameters are valid
     explicit DynamicImage(
-        Slice<BufferType> buffer, math::Pixels stride,
+        memory::Slice<BufferType> buffer, math::Pixels stride,
         math::Pixels width, math::Pixels height,
         math::Pixels offset_x, math::Pixels offset_y) noexcept :
         _buffer{buffer}, _stride{stride}, _width{width}, _height{height}, offset_x{offset_x}, offset_y{offset_y} {}
@@ -153,9 +153,9 @@ private:
 
     [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return _stride; }
 
-    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
+    [[nodiscard]] constexpr memory::Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
 
-    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept { return _buffer; }
+    [[nodiscard]] constexpr memory::Slice<const BufferType> getBufferImpl() const noexcept { return _buffer; }
 };
 
 }// namespace kf::image

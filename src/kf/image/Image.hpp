@@ -33,10 +33,10 @@ template<typename Impl, typename P> struct Image : image::Tag {
     [[nodiscard]] math::Pixels stride() const noexcept { return c_impl().getStrideImpl(); }
 
     /// @brief Get writable frame buffer
-    [[nodiscard]] Slice<BufferType> buffer() noexcept { return impl().getBufferImpl(); }
+    [[nodiscard]] memory::Slice<BufferType> buffer() noexcept { return impl().getBufferImpl(); }
 
     /// @brief Get readonly frame buffer
-    [[nodiscard]] Slice<const BufferType> buffer() const noexcept { return c_impl().getBufferImpl(); }
+    [[nodiscard]] memory::Slice<const BufferType> buffer() const noexcept { return c_impl().getBufferImpl(); }
 
     // properties
 

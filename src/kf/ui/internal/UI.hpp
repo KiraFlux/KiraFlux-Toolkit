@@ -87,12 +87,12 @@ template<typename R, typename V, typename P> struct UI final {
         using ClickHandler = Function<void()>;///< Button click handler type
 
     private:
-        StringView _label;///< Button label text
+        memory::StringView _label;///< Button label text
 
     public:
         ClickHandler on_click{nullptr};///< Click event handler
 
-        explicit Button(P &root, StringView label) :
+        explicit Button(P &root, memory::StringView label) :
             Widget{root}, _label{label} {}
 
         /// @brief Handle button click event
@@ -159,7 +159,7 @@ template<typename R, typename V, typename P> struct UI final {
 
         using Value = T;                     ///< ComboBox value type
         using Item = ComboBoxItem<T>;        ///< Item type (in option)
-        using ItemContainer = Array<Item, N>;///< Container type for options
+        using ItemContainer = memory::Array<Item, N>;///< Container type for options
 
     private:
         const ItemContainer _items;///< Available options
@@ -223,12 +223,12 @@ template<typename R, typename V, typename P> struct UI final {
         using WrappedType = W;///< Type of wrapped widget implementation
 
     private:
-        StringView label;///< Label text
+        memory::StringView label;///< Label text
 
     public:
         W wrapped;///< Wrapped widget instance
 
-        explicit Labeled(P &root, StringView label, W impl) :
+        explicit Labeled(P &root, memory::StringView label, W impl) :
             Widget{root}, label{label}, wrapped{std::move(impl)} {}
 
         /// @brief Forward click event to wrapped widget

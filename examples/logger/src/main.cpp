@@ -8,7 +8,7 @@ void setup() {
     Serial.begin(115200);
 
     // Setup global write handler
-    kf::Logger::writer = [](kf::StringView str) {
+    kf::Logger::writer = [](kf::memory::StringView str) {
         Serial.write(str.data(), str.size());
     };
 

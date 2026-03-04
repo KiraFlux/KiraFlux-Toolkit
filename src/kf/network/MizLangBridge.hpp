@@ -33,7 +33,7 @@ template<usize N, typename Tlc, typename Trc = Tlc> struct MizLangBridge {
     using RemoteCodeType = Trc;
     using SendFunctionType = Function<Result<void, Error>(memory::io::OutputStream &, void *)>;
     using ReceiveFunctionType = Function<Result<void, Error>(memory::io::InputStream &)>;
-    using InstructionTableType = Array<ReceiveFunctionType, N>;
+    using InstructionTableType = memory::Array<ReceiveFunctionType, N>;
 
 private:
     InstructionTableType _instructions;
