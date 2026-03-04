@@ -8,7 +8,7 @@
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 
-namespace kf {
+namespace kf::drivers::sensors {
 
 /// @brief Sharp infrared distance sensor driver
 /// @note Provides distance measurements in millimeters using analog voltage output

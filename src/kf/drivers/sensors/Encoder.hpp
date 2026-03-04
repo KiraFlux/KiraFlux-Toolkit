@@ -8,7 +8,7 @@
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 
-namespace kf {
+namespace kf::drivers::sensors {
 
 /// @brief Two-phase incremental rotary encoder with position tracking
 /// @note Uses interrupt on phase A for accurate position counting
@@ -69,7 +69,7 @@ public:
     void init() noexcept {
         pinMode(pins.phase_a, INPUT);
         pinMode(pins.phase_b, INPUT);
-        enable();
+        enable(); // <-- why here?
     }
 
     /// @brief Enable interrupt handling for encoder
