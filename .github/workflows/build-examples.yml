@@ -2,9 +2,10 @@ name: Build Examples
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,10 +15,4 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
       - name: Build all examples
-        run: |
-          for example in examples/*; do
-            if [ -d "$example" ]; then
-              echo "Building $example"
-              pio run -d "$example"
-            fi
-          done
+        run: ./build-examples.sh
