@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/drivers/bus/Bus.hpp"
-
 #include "kf/drivers/bus/iic/Tag.hpp"
 
 namespace kf::drivers::bus::iic {
