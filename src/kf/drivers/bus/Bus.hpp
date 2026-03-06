@@ -17,7 +17,6 @@ namespace kf::drivers::bus {
 ///       - an `Error` type,
 ///       - a nested `Node` type that inherits from `memory::io::Readable` and `memory::io::Writable` (checked via `kf_crtp_check`),
 ///       - a nested `Node::Config` type,
-///       - `beginImpl()` and `endImpl()` methods returning `Result<void, Error>`,
 ///       - a constructor `Node(BusImpl&, const Node::Config&)` for creating device nodes.
 ///       The bus does not manage node lifetimes; it only offers a factory.
 template<typename BusImpl> struct Bus : bus::Tag {
@@ -26,9 +25,9 @@ template<typename BusImpl> struct Bus : bus::Tag {
     kf_crtp_check(NodeImpl, kf::memory::io::ReaderTag);
     kf_crtp_check(NodeImpl, kf::memory::io::WriterTag);
 
-    [[nodiscard]] Result<void, typename BusImpl::Error> begin() noexcept { return impl().beginImpl(); }
+    [[nodiscard]] Result<void, typename BusImpl::Error> init() noexcept { return impl().initImpl(); }
 
-    void end() noexcept { impl().endImpl(); }
+    void quit() noexcept { impl().quitImpl(); }
 
     [[nodiscard]] Result<NodeImpl, typename BusImpl::Error> createNode(const NodeImpl::Config &config) noexcept { return NodeImpl{impl(), config}; }
 
@@ -38,8 +37,8 @@ private:
 
     // methods:
     // ctor: BusImpl::Node(BusImpl &, Node::Config &)
-    // [[nodiscard]] Result<void, Error> beginImpl() noexcept
-    // [[nodiscard]] Result<void, Error> endImpl() noexcept
+    // [[nodiscard]] Result<void, Error> initImpl() noexcept
+    // void quitImpl() noexcept
 };
 
 }// namespace kf::drivers::bus
