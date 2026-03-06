@@ -19,7 +19,7 @@ template<typename T, typename E> struct Result {
     static_assert(std::is_trivially_destructible_v<E>, "E must be trivially destructible");
 
 private:
-    bool is_ok;///< Flag indicating success (true) or error (false)
+    bool _is_ok;///< Flag indicating success (true) or error (false)
 
     union {
         T _value;///< Storage for successful result (active when is_ok == true)
@@ -29,22 +29,22 @@ private:
 public:
     /// @brief Construct successful result with value
     constexpr Result(T value) noexcept :
-        is_ok{true}, _value{value} {}
+        _is_ok{true}, _value{value} {}
 
     /// @brief Construct error result with error
     constexpr Result(E error) noexcept :
-        is_ok{false}, _error{error} {}
+        _is_ok{false}, _error{error} {}
 
     /// @brief Check if result contains a value (success)
-    [[nodiscard]] constexpr bool isOk() const noexcept { return is_ok; }
+    [[nodiscard]] constexpr bool isOk() const noexcept { return _is_ok; }
 
     /// @brief Check if result contains an error
-    [[nodiscard]] constexpr bool isError() const noexcept { return not is_ok; }
+    [[nodiscard]] constexpr bool isError() const noexcept { return not _is_ok; }
 
     /// @brief Get successful value as Option
     /// @return Option containing value if successful, empty Option otherwise
     [[nodiscard]] constexpr Option<T> ok() const noexcept {
-        if (is_ok) {
+        if (_is_ok) {
             return {_value};
         } else {
             return {};
@@ -54,7 +54,7 @@ public:
     /// @brief Get error value as Option
     /// @return Option containing error if failed, empty Option otherwise
     [[nodiscard]] constexpr Option<E> error() const noexcept {
-        if (is_ok) {
+        if (_is_ok) {
             return {};
         } else {
             return {_error};
@@ -69,28 +69,28 @@ template<typename E> struct Result<void, E> {
     static_assert(std::is_trivially_destructible_v<E>, "E must be trivially destructible");
 
 private:
-    bool is_ok;///< Flag indicating success (true) or error (false)
+    bool _is_ok;///< Flag indicating success (true) or error (false)
     E _error;  ///< Storage for error result (active when is_ok == false)
 
 public:
     /// @brief Construct successful void result
     constexpr Result() noexcept :
-        is_ok{true} {}
+        _is_ok{true} {}
 
     /// @brief Construct error result with error
     constexpr Result(E error) noexcept :
-        is_ok{false}, _error{error} {}
+        _is_ok{false}, _error{error} {}
 
     /// @brief Check if result is successful
-    [[nodiscard]] constexpr bool isOk() const noexcept { return is_ok; }
+    [[nodiscard]] constexpr bool isOk() const noexcept { return _is_ok; }
 
     /// @brief Check if result contains an error
-    [[nodiscard]] constexpr bool isError() const noexcept { return not is_ok; }
+    [[nodiscard]] constexpr bool isError() const noexcept { return not _is_ok; }
 
     /// @brief Get error value as Option
     /// @return Option containing error if failed, empty Option otherwise
     [[nodiscard]] constexpr Option<E> error() const noexcept {
-        if (is_ok) {
+        if (_is_ok) {
             return {};
         } else {
             return {_error};

@@ -82,7 +82,7 @@ public:
     }
 
     /// @brief Get mutable Slice (use with caution)
-    [[nodiscard]] constexpr Slice<char> slice_mut() noexcept {
+    [[nodiscard]] constexpr Slice<char> slice() noexcept {
         return Slice<char>{_buffer.data(), _size};
     }
 

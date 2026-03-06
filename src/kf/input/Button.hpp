@@ -47,35 +47,35 @@ struct Button {
     };
 
 private:
-    const Config &config;
-    math::Milliseconds next{0};
-    bool last_stable{false};
-    bool last_raw{false};
-    bool click_ready{false};
+    const Config &_config;
+    math::Milliseconds _next{0};
+    bool _last_stable{false};
+    bool _last_raw{false};
+    bool _click_ready{false};
 
 public:
     explicit Button(const Config &config) noexcept :
-        config{config} {}
+        _config{config} {}
 
     void init() const noexcept {
-        pinMode(config.pin, config.matchMode());
+        pinMode(_config.pin, _config.matchMode());
     }
 
     /// @brief Poll button state - must be called regularly
     void poll(math::Milliseconds now) noexcept {
-        const bool state = config.normalize(digitalRead(config.pin));
+        const bool state = _config.normalize(digitalRead(_config.pin));
 
-        if (state != last_raw) {
-            last_raw = state;
-            next = now + config.debounce;
+        if (state != _last_raw) {
+            _last_raw = state;
+            _next = now + _config.debounce;
         }
 
-        if (now >= next) {
-            if (last_stable != state) {
-                last_stable = state;
+        if (now >= _next) {
+            if (_last_stable != state) {
+                _last_stable = state;
 
-                if (last_stable) {
-                    click_ready = true;
+                if (_last_stable) {
+                    _click_ready = true;
                 }
             }
         }
@@ -84,8 +84,8 @@ public:
     /// @brief Check if button was clicked (consumes the click)
     /// @return true if button was pressed since last call
     [[nodiscard]] bool clicked() noexcept {
-        if (click_ready) {
-            click_ready = false;
+        if (_click_ready) {
+            _click_ready = false;
             return true;
         }
         return false;
@@ -94,7 +94,7 @@ public:
     /// @brief Check current button state
     /// @return true if button is currently pressed (after debounce)
     [[nodiscard]] bool pressed() const noexcept {
-        return last_stable;
+        return _last_stable;
     }
 };
 

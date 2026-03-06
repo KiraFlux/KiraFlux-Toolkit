@@ -118,7 +118,7 @@ struct EspNow : meta::Singleton<EspNow> {
             auto context = espnow.getPeerContext(_mac);
 
             if (nullptr == context) {
-                espnow.peer_contexts.insert({_mac, Context{std::move(handler)}});
+                espnow._peer_contexts.insert({_mac, Context{std::move(handler)}});
             } else {
                 context->on_receive = std::move(handler);
             }
@@ -133,7 +133,7 @@ struct EspNow : meta::Singleton<EspNow> {
             auto &espnow = EspNow::instance();
 
             if (nullptr != espnow.getPeerContext(_mac)) {
-                espnow.peer_contexts.erase(_mac);
+                espnow._peer_contexts.erase(_mac);
             }
 
             const auto result = esp_now_del_peer(_mac.data());
@@ -175,7 +175,7 @@ struct EspNow : meta::Singleton<EspNow> {
     };
 
 private:
-    memory::Map<Mac, Peer::Context> peer_contexts{};            ///< Map of known peers and their contexts
+    memory::Map<Mac, Peer::Context> _peer_contexts{};           ///< Map of known peers and their contexts
     ReceiveFromUnknownHandler _on_receive_from_unknown{nullptr};///< Handler for unknown peers
 
     /// @brief Local device MAC address (cached)
@@ -256,8 +256,8 @@ private:
     /// @param peer_mac MAC address to look up
     /// @return Pointer to peer context or nullptr if not found
     [[nodiscard]] Peer::Context *getPeerContext(const Mac &peer_mac) noexcept {
-        auto it = peer_contexts.find(peer_mac);
-        if (it == peer_contexts.end()) {
+        auto it = _peer_contexts.find(peer_mac);
+        if (it == _peer_contexts.end()) {
             return nullptr;
         } else {
             return &it->second;
@@ -316,4 +316,4 @@ public:
 #undef return_case
 };
 
-}// namespace kf
+}// namespace kf::network

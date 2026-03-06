@@ -11,67 +11,67 @@ template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
 
 private:
     using Wrapped = PlainTextRender<N>;
-    Wrapped wrapped{};
+    Wrapped _wrapped{};
 
 public:
     using Config = typename Wrapped::Config;
 
-    Config &getConfig() { return wrapped.getConfig(); }
+    Config &getConfig() { return _wrapped.getConfig(); }
 
 private:
     // Render CRTP Implementation
 
-    [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return wrapped.widgetsAvailable(); }
+    [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return _wrapped.widgetsAvailable(); }
 
-    void prepareImpl() noexcept { wrapped.prepare(); }
+    void prepareImpl() noexcept { _wrapped.prepare(); }
 
-    void finishImpl() noexcept { wrapped.finish(); }
+    void finishImpl() noexcept { _wrapped.finish(); }
 
     void titleImpl(memory::StringView title) noexcept {
-        wrapped.writeChar('\xF0');
-        wrapped.writeChar('\xBC');
-        wrapped.title(title);
-        wrapped.writeChar('\x80');
+        _wrapped.writeChar('\xF0');
+        _wrapped.writeChar('\xBC');
+        _wrapped.title(title);
+        _wrapped.writeChar('\x80');
     }
 
     void checkboxImpl(bool enabled) noexcept {
-        wrapped.writeChar(enabled ? '\xB2' : '\xB1');
-        wrapped.checkbox(enabled);
-        wrapped.writeChar('\x80');
+        _wrapped.writeChar(enabled ? '\xB2' : '\xB1');
+        _wrapped.checkbox(enabled);
+        _wrapped.writeChar('\x80');
     }
 
     template<typename T> void sliderImlpl(
         T value, T min_value, T max_value,
         internal::ValuePlacement value_placement) noexcept {
-        wrapped.splider(value, min_value, max_value, value_placement);
+        _wrapped.splider(value, min_value, max_value, value_placement);
     }
 
-    template<typename T> void valueImpl(T v) { wrapped.value(v); }
+    template<typename T> void valueImpl(T v) { _wrapped.value(v); }
 
-    void arrowImpl() noexcept { wrapped.arrow(); }
+    void arrowImpl() noexcept { _wrapped.arrow(); }
 
-    void colonImpl() noexcept { wrapped.colon(); }
+    void colonImpl() noexcept { _wrapped.colon(); }
 
     void beginFocusedImpl() noexcept {
-        wrapped.writeChar('\x81');
+        _wrapped.writeChar('\x81');
     }
 
     void endFocusedImpl() noexcept {
-        wrapped.endFocused();
-        wrapped.writeChar('\x80');
+        _wrapped.endFocused();
+        _wrapped.writeChar('\x80');
     }
 
-    void beginBlockImpl() noexcept { wrapped.beginBlock(); }
+    void beginBlockImpl() noexcept { _wrapped.beginBlock(); }
 
-    void endBlockImpl() noexcept { wrapped.endBlock(); }
+    void endBlockImpl() noexcept { _wrapped.endBlock(); }
 
-    void beginAltBlockImpl() noexcept { wrapped.beginAltBlock(); }
+    void beginAltBlockImpl() noexcept { _wrapped.beginAltBlock(); }
 
-    void endAltBlockImpl() noexcept { wrapped.endAltBlock(); }
+    void endAltBlockImpl() noexcept { _wrapped.endAltBlock(); }
 
-    void beginWidgetImpl(usize index) noexcept { wrapped.beginWidget(index); }
+    void beginWidgetImpl(usize index) noexcept { _wrapped.beginWidget(index); }
 
-    void endWidgetImpl() noexcept { wrapped.endWidget(); }
+    void endWidgetImpl() noexcept { _wrapped.endWidget(); }
 };
 
 }// namespace kf::ui::render

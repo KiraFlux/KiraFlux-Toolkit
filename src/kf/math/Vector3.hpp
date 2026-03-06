@@ -11,69 +11,64 @@
 namespace kf::math {
 
 /// @brief 3D vector template for graphics and calculations
-template<typename T> struct vec3 final {
+template<typename T> struct Vector3 final {
 
     using Scalar = T;///< Vector component type
 
-    T x;///< X component
-    T y;///< Y component
-    T z;///< Z component
+    T x, y, z;
 
     /// @brief Default constructor (initializes to zero)
-    vec3() noexcept :
+    Vector3() noexcept :
         x{0}, y{0}, z{0} {}
 
     /// @brief Construct from x, y, z components
-    /// @param x X component value
-    /// @param y Y component value
-    /// @param z Z component value
-    vec3(T x, T y, T z) noexcept :
+    Vector3(T x, T y, T z) noexcept :
         x{x}, y{y}, z{z} {}
 
     /// @brief Vector addition
     /// @param other Vector to add
     /// @return Sum vector
-    [[nodiscard]] vec3 operator+(const vec3 &other) const noexcept {
+    [[nodiscard]] Vector3 operator+(const Vector3 &other) const noexcept {
         return {x + other.x, y + other.y, z + other.z};
     }
 
     /// @brief Vector subtraction
     /// @param other Vector to subtract
     /// @return Difference vector
-    [[nodiscard]] vec3 operator-(const vec3 &other) const noexcept {
+    [[nodiscard]] Vector3 operator-(const Vector3 &other) const noexcept {
         return {x - other.x, y - other.y, z - other.z};
     }
 
     /// @brief Scalar multiplication
     /// @param scalar Multiplication factor
     /// @return Scaled vector
-    [[nodiscard]] vec3 operator*(T scalar) const noexcept {
+    [[nodiscard]] Vector3 operator*(T scalar) const noexcept {
         return {x * scalar, y * scalar, z * scalar};
     }
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] Option<vec3> divChecked(T scalar) const noexcept {
+    [[nodiscard]] Option<Vector3> divChecked(T scalar) const noexcept {
         if (scalar == 0) {
             return {};
         }
 
-        return {vec3{x / scalar, y / scalar, z / scalar}};
+        return {Vector3{x / scalar, y / scalar, z / scalar}};
     }
 
     /// @brief Scalar division
     /// @param scalar Division factor
     /// @return Divided vector
     /// @warning No zero-check (use divChecked for safe division)
-    [[nodiscard]] vec3 operator/(T scalar) const noexcept {
-        return vec3{x / scalar, y / scalar, z / scalar};
+    [[nodiscard]] Vector3 operator/(T scalar) const noexcept {
+        return Vector3{x / scalar, y / scalar, z / scalar};
     }
 
     /// @brief Vector addition assignment
     /// @param other Vector to add
     /// @return Reference to modified vector
-    vec3 &operator+=(const vec3 &other) noexcept {
+    Vector3 &operator+=(const Vector3 &other) noexcept {
         x += other.x;
         y += other.y;
         z += other.z;
@@ -83,7 +78,7 @@ template<typename T> struct vec3 final {
     /// @brief Vector subtraction assignment
     /// @param other Vector to subtract
     /// @return Reference to modified vector
-    vec3 &operator-=(const vec3 &other) noexcept {
+    Vector3 &operator-=(const Vector3 &other) noexcept {
         x -= other.x;
         y -= other.y;
         z -= other.z;
@@ -98,27 +93,27 @@ template<typename T> struct vec3 final {
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] Option<vec3> normalized() const noexcept {
+    [[nodiscard]] Option<Vector3> normalized() const noexcept {
         const T len = length();
 
         if (len == 0) {
             return {};
         }
 
-        return {vec3{x / len, y / len, z / len}};
+        return {Vector3{x / len, y / len, z / len}};
     }
 
     /// @brief Calculate dot product with another vector
     /// @param other Second vector
     /// @return Dot product value
-    [[nodiscard]] T dot(const vec3 &other) const noexcept {
+    [[nodiscard]] T dot(const Vector3 &other) const noexcept {
         return x * other.x + y * other.y + z * other.z;
     }
 
     /// @brief Calculate cross product with another vector
     /// @param other Second vector
     /// @return Cross product vector (perpendicular to both inputs)
-    [[nodiscard]] vec3 cross(const vec3 &other) const noexcept {
+    [[nodiscard]] Vector3 cross(const Vector3 &other) const noexcept {
         return {
             y * other.z - z * other.y,
             z * other.x - x * other.z,
@@ -132,7 +127,7 @@ template<typename T> struct vec3 final {
     }
 };
 
-using vec3f = vec3<f32>;///< Float precision 3D vector
-using vec3i = vec3<i32>;///< Integer precision 3D vector
+using Vector3f = Vector3<f32>;///< Float precision 3D vector
+using Vector = Vector3<i32>;  ///< Integer precision 3D vector
 
-}// namespace kf
+}// namespace kf::math

@@ -15,40 +15,40 @@ template<typename T> struct Option {
 
 private:
     union {
-        T val;     ///< Storage for value when engaged
-        char dummy;///< Dummy member for empty state
+        T _value;   ///< Storage for value when engaged
+        char _dummy;///< Dummy member for empty state
     };
-    bool engaged;///< Flag indicating whether value is present
+    bool _engaged;///< Flag indicating whether value is present
 
 public:
     /// @brief Construct Option with value (copy)
     /// @param value Value to store in Option
     constexpr Option(const T &value) noexcept :// NOLINT(*-explicit-constructor)
-        engaged{true}, val{value} {}
+        _engaged{true}, _value{value} {}
 
     /// @brief Construct empty Option (no value)
     constexpr Option() noexcept :
-        engaged{false}, dummy{0} {}
+        _engaged{false}, _dummy{0} {}
 
     /// @brief Check if Option contains a value
     /// @return true if value is present, false otherwise
-    [[nodiscard]] constexpr bool hasValue() const noexcept { return engaged; }
+    [[nodiscard]] constexpr bool hasValue() const noexcept { return _engaged; }
 
     /// @brief Get stored value (unsafe)
     /// @return Reference to stored value
     /// @warning Causes abort() if Option is empty
     /// @note Use hasValue() to check before calling
     [[nodiscard]] T &value() noexcept {
-        if (engaged) {
-            return val;
+        if (_engaged) {
+            return _value;
         } else {
             abort();
         }
     }
 
     [[nodiscard]] const T &value() const noexcept {
-        if (engaged) {
-            return val;
+        if (_engaged) {
+            return _value;
         } else {
             abort();
         }
@@ -59,7 +59,7 @@ public:
     /// @return Stored value if present, default_value otherwise
     /// @note Safe alternative to value() that doesn't terminate
     [[nodiscard]] constexpr T valueOr(const T &default_value) const noexcept {
-        return engaged ? val : default_value;
+        return _engaged ? _value : default_value;
     }
 };
 
