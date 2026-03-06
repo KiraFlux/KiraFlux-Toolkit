@@ -1,4 +1,4 @@
-.PHONY: all test monitor
+.PHONY: all test monitor examples shapshot ss
 
 all: test
 
@@ -7,3 +7,11 @@ monitor:
 
 test:
 	pio test -e native
+
+examples:
+	./build-examples.sh
+
+shapshot:
+	python shapshot.py
+
+ss: shapshot
