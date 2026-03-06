@@ -1,0 +1,36 @@
+name: Lint with comments
+
+on:
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+  cpp-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Generate compile_commands.json
+        run: pio run --target compiledb
+
+      - name: Run cpp-linter
+        uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: 'file'                  # use .clang-format
+          tidy-checks: ''                # use from .clang-tidy
+          files-changed-only: true
+          thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+          step-summary: true
+          database: 'compile_commands.json'
+
+      - name: Fail if issues found
+        if: steps.linter.outputs.checks-failed > 0
+        run: exit 1

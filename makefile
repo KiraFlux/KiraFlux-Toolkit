@@ -1,4 +1,4 @@
-.PHONY: all test monitor examples shapshot ss
+.PHONY: all test monitor examples shapshot ss lint
 
 all: test
 
@@ -15,3 +15,6 @@ shapshot:
 	python shapshot.py
 
 ss: shapshot
+
+lint:
+	./lint.sh

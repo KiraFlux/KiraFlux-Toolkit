@@ -5,3 +5,6 @@
 .vscode/ipch
 
 shapshot.txt
+lint.txt
+
+compile_commands.json
