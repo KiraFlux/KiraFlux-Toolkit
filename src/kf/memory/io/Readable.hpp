@@ -26,7 +26,7 @@ template<typename Impl> struct Readable : ReadableTag {
     /// @param buffer Destination buffer
     /// @return Slice containing actually read data, or error
     [[nodiscard]] Result<memory::Slice<u8>, ErrorImpl> readBuffer(memory::Slice<u8> buffer) noexcept {
-        return impl().readBufferImpl(static_cast<const void *>(buffer.data()), buffer.size());
+        return readBuffer(static_cast<void *>(buffer.data()), buffer.size());
     }
 
     /// @brief Read fixed‑size buffer
@@ -36,17 +36,27 @@ template<typename Impl> struct Readable : ReadableTag {
         static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
 
         T packet;
-        return impl().readBufferImpl(static_cast<void *>(&packet), static_cast<usize>(sizeof(T)));
+        const Result<memory::Slice<u8>, ErrorImpl> result = readBuffer(static_cast<void *>(&packet), static_cast<usize>(sizeof(T)));
+
+        if (result.isError()) {
+            return {result.error().value()};
+        } else {
+            return {packet};
+        }
     }
 
 private:
+    [[nodiscard]] Result<memory::Slice<u8>, ErrorImpl> readBuffer(void *source, usize size) {
+        return impl().readBufferImpl(source, size);
+    }
+
     Impl &impl() noexcept { return *static_cast<Impl *>(this); }
     const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
 
     // Impl must provide:
 
     // [[nodiscard]] Result<u8, ErrorImpl> readByteimpl() noexcept
-    // [[nodiscard]] Result<T, ErrorImpl> readBufferImpl(const void *dest, usize size) noexcept
+    // [[nodiscard]] Result<T, ErrorImpl> readBufferImpl(const void *source, usize size) noexcept
 };
 
 }// namespace kf::memory::io
