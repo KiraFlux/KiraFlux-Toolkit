@@ -9,19 +9,19 @@ COMPILE_COMMANDS="compile_commands.json"
 # Sed expressions to remove GCC-specific flags that confuse clang-tidy
 SED_CLEANUP_ARGS=(
     -e 's/-mlongcalls/-mlong-calls/g'          # clang expects -mlong-calls
-    -e 's/-fno-tree-switch-conversion//g'      # GCC optimization flag, not needed for static analysis
-    -e 's/-fstrict-volatile-bitfields//g'      # GCC-specific, irrelevant for linting
-    -e 's/-Wno-unknown-warning-option//g'      # already handled by extra-arg
+    -e 's/-fno-tree-switch-conversion//g'      # GCC-specific, not needed
+    -e 's/-fstrict-volatile-bitfields//g'      # GCC-specific, ignore
+    -e 's/-Wno-unknown-warning-option//g'      # already handled
 )
 
 CLANG_TIDY_ARGS=(
     --config-file=.clang-tidy
-    --header-filter="$SRC_DIR/.*"               # only report diagnostics from our headers
-    --extra-arg=-Wno-unknown-argument           # suppress "unknown argument" warnings
-    --extra-arg=-Wno-unknown-warning-option    # suppress warnings about unknown warning flags
-    --checks='-*,readability-identifier-naming' # enable only the naming check
-    --warnings-as-errors='readability-identifier-naming' # treat naming violations as errors
-    -p .                                        # use compile_commands.json in current dir
+    --header-filter="$SRC_DIR/.*"
+    --extra-arg=-Wno-unknown-argument
+    --extra-arg=-Wno-unknown-warning-option
+    --checks='-*,readability-identifier-naming'
+    --warnings-as-errors='readability-identifier-naming'
+    -p .
 )
 
 echo "Generating compile_commands.json..."
@@ -33,9 +33,14 @@ sed -i "${SED_CLEANUP_ARGS[@]}" "$COMPILE_COMMANDS"
 # Determine which files to check
 if [ "$MODE" = "diff" ]; then
     echo "Mode: diff (only changed files)"
-    # Use origin/main as base for comparison (adjust if needed)
-    BASE="${GITHUB_BASE_REF:-origin/main}"
-    # Get list of changed files in the PR/branch
+    # Determine base branch: in CI it's origin/$GITHUB_BASE_REF, locally origin/main
+    if [ -n "$GITHUB_BASE_REF" ]; then
+        BASE="origin/$GITHUB_BASE_REF"
+        # Ensure the base branch is fetched
+        git fetch origin "$GITHUB_BASE_REF" --depth=1 2>/dev/null || true
+    else
+        BASE="origin/main"
+    fi
     FILES=$(git diff --name-only "$BASE" | grep -E "^${SRC_DIR}/.*\.(cpp|hpp)$" || true)
     if [ -z "$FILES" ]; then
         echo "No changed files in $SRC_DIR to check."
