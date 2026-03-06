@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-sys.stdout = open("shaphot.txt", "wt", encoding='utf-8')
+sys.stdout = open("shapshot.txt", "wt", encoding='utf-8')
 
 repo_dir = Path(".")
 
