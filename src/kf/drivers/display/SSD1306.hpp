@@ -26,22 +26,22 @@ struct SSD1306 final : DisplayDriver<SSD1306, image::StaticImage<pixel::Monochro
     };
 
 private:
-    const Config &config;
-    TwoWire &wire;
+    const Config &_config;
+    TwoWire &_wire;
 
 public:
     /// @brief Construct SSD1306 driver instance
     explicit SSD1306(const Config &config, TwoWire &wire) noexcept :
-        config{config}, wire{wire} {}
+        _config{config}, _wire{wire} {}
 
     /// @brief Set display contrast level (0..255)
     /// @returns true - operation success
     [[nodiscard]] bool setContrast(u8 value) const {
-        wire.beginTransmission(config.address);
-        if (wire.write(CommandMode) != 1) { goto fail; }
-        if (wire.write(Contrast) != 1) { goto fail; }
-        if (wire.write(value) != 1) { goto fail; }
-        if (wire.endTransmission() != 0) { goto fail; }
+        _wire.beginTransmission(_config.address);
+        if (_wire.write(CommandMode) != 1) { goto fail; }
+        if (_wire.write(Contrast) != 1) { goto fail; }
+        if (_wire.write(value) != 1) { goto fail; }
+        if (_wire.endTransmission() != 0) { goto fail; }
 
         return true;
     fail:
@@ -107,12 +107,12 @@ private:
             0x3F,
         };
 
-        if (not wire.begin()) { goto fail; }
-        if (not wire.setClock(config.i2c_clock_frequency)) { goto fail; }
+        if (not _wire.begin()) { goto fail; }
+        if (not _wire.setClock(_config.i2c_clock_frequency)) { goto fail; }
 
-        wire.beginTransmission(config.address);
-        if (wire.write(init_commands, sizeof(init_commands)) != sizeof(init_commands)) { goto fail; }
-        if (wire.endTransmission() != 0) { goto fail; }
+        _wire.beginTransmission(_config.address);
+        if (_wire.write(init_commands, sizeof(init_commands)) != sizeof(init_commands)) { goto fail; }
+        if (_wire.endTransmission() != 0) { goto fail; }
 
         return true;
     fail:
@@ -134,20 +134,20 @@ private:
             PixelImpl::template pages<64> - 1,
         };
 
-        auto p = screen_image.buffer().data();
-        auto remaining = screen_image.buffer().size();
+        auto p = _screen_image.buffer().data();
+        auto remaining = _screen_image.buffer().size();
 
-        wire.beginTransmission(config.address);
-        if (wire.write(set_area_commands, sizeof(set_area_commands)) != sizeof(set_area_commands)) { goto fail; }
-        if (wire.endTransmission() != 0) { goto fail; }
+        _wire.beginTransmission(_config.address);
+        if (_wire.write(set_area_commands, sizeof(set_area_commands)) != sizeof(set_area_commands)) { goto fail; }
+        if (_wire.endTransmission() != 0) { goto fail; }
 
         while (remaining > 0) {
             const auto chunk = min(packet_size, remaining);
 
-            wire.beginTransmission(config.address);
-            if (wire.write(Command::DataMode) != 1) { goto fail; }
-            if (wire.write(p, chunk) != chunk) { goto fail; }
-            if (wire.endTransmission() != 0) { goto fail; }
+            _wire.beginTransmission(_config.address);
+            if (_wire.write(Command::DataMode) != 1) { goto fail; }
+            if (_wire.write(p, chunk) != chunk) { goto fail; }
+            if (_wire.endTransmission() != 0) { goto fail; }
 
             p += chunk;
             remaining -= chunk;
@@ -219,10 +219,10 @@ private:
 
     /// @brief Send single command to display
     [[nodiscard]] bool sendCommand(Command c) const noexcept {
-        wire.beginTransmission(config.address);
-        if (wire.write(OneCommandMode) != 1) { goto fail; }
-        if (wire.write(static_cast<u8>(c)) != 1) { goto fail; }
-        if (wire.endTransmission() != 0) { goto fail; }
+        _wire.beginTransmission(_config.address);
+        if (_wire.write(OneCommandMode) != 1) { goto fail; }
+        if (_wire.write(static_cast<u8>(c)) != 1) { goto fail; }
+        if (_wire.endTransmission() != 0) { goto fail; }
 
         return true;
     fail:

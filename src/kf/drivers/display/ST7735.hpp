@@ -49,28 +49,28 @@ private:
         MirrorY = 0x80,        ///< Vertical mirror
     };
 
-    const Config &config;///< Hardware configuration
-    SPIClass &spi;       ///< SPI bus instance
+    const Config &_config;///< Hardware configuration
+    SPIClass &_spi;       ///< SPI bus instance
 
-    u8 madctl_base_mode{MadCtl::RgbMode};///< Base MADCTL value
+    u8 _madctl_base_mode{MadCtl::RgbMode};///< Base MADCTL value
 
 public:
     explicit ST7735(const Config &config, SPIClass &spi_instance) noexcept :
-        config{config}, spi{spi_instance} {}
+        _config{config}, _spi{spi_instance} {}
 
     /// @brief Initialize display hardware via SPI
     /// @return Always returns true (hardware errors not checked)
     [[nodiscard]] bool initImpl() noexcept {
-        pinMode(config.pin_spi_slave_select, OUTPUT);
-        pinMode(config.pin_data_command, OUTPUT);
-        pinMode(config.pin_reset, OUTPUT);
+        pinMode(_config.pin_spi_slave_select, OUTPUT);
+        pinMode(_config.pin_data_command, OUTPUT);
+        pinMode(_config.pin_reset, OUTPUT);
 
-        spi.begin();
-        spi.setFrequency(config.spi_frequency);
+        _spi.begin();
+        _spi.setFrequency(_config.spi_frequency);
 
-        digitalWrite(config.pin_reset, LOW);
+        digitalWrite(_config.pin_reset, LOW);
         delay(10);
-        digitalWrite(config.pin_reset, HIGH);
+        digitalWrite(_config.pin_reset, HIGH);
         delay(120);
 
         sendCommand(Command::SWRESET);
@@ -83,7 +83,7 @@ public:
         const u8 color_mode{0x05};// 16-bit color (RGB565)
         sendData(&color_mode, sizeof(color_mode));
 
-        (void) orientation(config.orientation);// Ignored becauce always true
+        (void) orientation(_config.orientation);// Ignored becauce always true
 
         sendCommand(Command::DISPON);
         delay(100);
@@ -93,7 +93,7 @@ public:
 
     [[nodiscard]] bool sendImpl() const noexcept {
         sendCommand(Command::RAMWR);
-        sendData(reinterpret_cast<const u8 *>(screen_image.buffer().data()), imageBufferSizeBytes());
+        sendData(reinterpret_cast<const u8 *>(_screen_image.buffer().data()), imageBufferSizeBytes());
         return true;// Arduino SPI cannot tell anything about errors
     }
 
@@ -108,18 +108,18 @@ public:
             MadCtl::MirrorY | MadCtl::MirrorTranspose,// Orientation::CounterClockWise
         };
 
-        const u8 madctl = madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
+        const u8 madctl = _madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
 
-        screen_image.transposed((madctl & MadCtl::MirrorTranspose) != 0);
+        _screen_image.transposed((madctl & MadCtl::MirrorTranspose) != 0);
 
         sendCommand(Command::MADCTL);
         sendData(&madctl, sizeof(madctl));
 
-        u8 data[4] = {0x00, 0x00, 0x00, static_cast<u8>(screen_image.maxX())};
+        u8 data[4] = {0x00, 0x00, 0x00, static_cast<u8>(_screen_image.maxX())};
         sendCommand(Command::CASET);
         sendData(data, sizeof(data));
 
-        data[3] = screen_image.maxY();
+        data[3] = _screen_image.maxY();
         sendCommand(Command::RASET);
         sendData(data, sizeof(data));
 
@@ -130,10 +130,10 @@ public:
 
     /// @brief Send data bytes to display
     void sendData(const u8 *data, usize size) const noexcept {
-        digitalWrite(config.pin_data_command, HIGH);
-        digitalWrite(config.pin_spi_slave_select, LOW);
-        spi.writeBytes(data, size);
-        digitalWrite(config.pin_spi_slave_select, HIGH);
+        digitalWrite(_config.pin_data_command, HIGH);
+        digitalWrite(_config.pin_spi_slave_select, LOW);
+        _spi.writeBytes(data, size);
+        digitalWrite(_config.pin_spi_slave_select, HIGH);
     }
 
     /// @brief ST7735 command set (partial)
@@ -157,10 +157,10 @@ public:
 
     /// @brief Send single command to display
     void sendCommand(Command command) const noexcept {
-        digitalWrite(config.pin_data_command, LOW);
-        digitalWrite(config.pin_spi_slave_select, LOW);
-        spi.write(static_cast<u8>(command));
-        digitalWrite(config.pin_spi_slave_select, HIGH);
+        digitalWrite(_config.pin_data_command, LOW);
+        digitalWrite(_config.pin_spi_slave_select, LOW);
+        _spi.write(static_cast<u8>(command));
+        digitalWrite(_config.pin_spi_slave_select, HIGH);
     }
 
     friend Base;// CRTP

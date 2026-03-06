@@ -88,9 +88,9 @@ struct PwmPositionServo {
     };
 
 private:
-    const PwmConfig &pwm_settings;      ///< PWM signal configuration
-    const DriverConfig &driver_settings;///< Servo hardware configuration
-    const PulseConfig &pulse_settings;  ///< Angle-pulse mapping configuration
+    const PwmConfig &_pwm_settings;      ///< PWM signal configuration
+    const DriverConfig &_driver_settings;///< Servo hardware configuration
+    const PulseConfig &_pulse_settings;  ///< Angle-pulse mapping configuration
 
 public:
     /// @brief Construct servo driver instance
@@ -101,23 +101,23 @@ public:
         const PwmConfig &pwm_settings,
         const DriverConfig &driver_settings,
         const PulseConfig &pulse_settings) noexcept :
-        driver_settings{driver_settings}, pwm_settings(pwm_settings), pulse_settings(pulse_settings) {}
+        _driver_settings{driver_settings}, _pwm_settings(pwm_settings), _pulse_settings(pulse_settings) {}
 
     /// @brief Initialize servo driver hardware
     /// @return true if PWM channel setup successful
     /// @note Configures ESP32 LEDC hardware for PWM generation
     [[nodiscard]] bool init() const noexcept {
         const auto freq = ledcSetup(
-            driver_settings.ledc_channel,
-            pwm_settings.ledc_frequency_hz,
-            pwm_settings.ledc_resolution_bits);
+            _driver_settings.ledc_channel,
+            _pwm_settings.ledc_frequency_hz,
+            _pwm_settings.ledc_resolution_bits);
 
         if (0 == freq) {
             logger.error("LEDC setup failed");
             return false;
         }
 
-        ledcAttachPin(driver_settings.signal_pin, driver_settings.ledc_channel);
+        ledcAttachPin(_driver_settings.signal_pin, _driver_settings.ledc_channel);
 
         return true;
     }
@@ -126,7 +126,7 @@ public:
     /// @param angle Target angle in degrees
     /// @note Automatically converts angle to PWM duty cycle
     void set(math::Degrees angle) noexcept {
-        write(pwm_settings.dutyFromPulseWidth(pulse_settings.pulseWidthFromAngle(angle)));
+        write(_pwm_settings.dutyFromPulseWidth(_pulse_settings.pulseWidthFromAngle(angle)));
     }
 
     /// @brief Disable servo (stop PWM signal)
@@ -138,7 +138,7 @@ private:
     /// @brief Write duty cycle value to LEDC hardware
     /// @param duty Duty cycle value (0 to maxDuty)
     void write(u16 duty) const noexcept {
-        ledcWrite(driver_settings.ledc_channel, duty);
+        ledcWrite(_driver_settings.ledc_channel, duty);
     }
 };
 

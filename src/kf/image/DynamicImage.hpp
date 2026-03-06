@@ -33,9 +33,9 @@ template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
 
 private:
     memory::Slice<BufferType> _buffer;///< display buffer memory view
-    math::Pixels _width, _height;   ///< Region size in pixels
-    math::Pixels _stride;           ///< Row stride (full display width)
-    math::Pixels offset_x, offset_y;///< Absolute offset from buffer origin
+    math::Pixels _width, _height;     ///< Region size in pixels
+    math::Pixels _stride;             ///< Row stride (full display width)
+    math::Pixels _offset_x, _offset_y;///< Absolute offset from buffer origin
 
 public:
     /// @brief Creates FrameView with validation
@@ -56,7 +56,7 @@ public:
 
     /// @brief Default constructor - invalid view
     DynamicImage() noexcept :
-        _buffer{}, _stride{0}, offset_x{0}, offset_y{0}, _width{0}, _height{0} {};
+        _buffer{}, _stride{0}, _offset_x{0}, _offset_y{0}, _width{0}, _height{0} {};
 
     /// @brief Creates FrameView without validation
     /// @warning Caller must ensure parameters are valid
@@ -64,10 +64,10 @@ public:
         memory::Slice<BufferType> buffer, math::Pixels stride,
         math::Pixels width, math::Pixels height,
         math::Pixels offset_x, math::Pixels offset_y) noexcept :
-        _buffer{buffer}, _stride{stride}, _width{width}, _height{height}, offset_x{offset_x}, offset_y{offset_y} {}
+        _buffer{buffer}, _stride{stride}, _width{width}, _height{height}, _offset_x{offset_x}, _offset_y{offset_y} {}
 
     template<typename I> explicit DynamicImage(I &image) noexcept :
-        _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, offset_x{0}, offset_y{0} {
+        _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, _offset_x{0}, _offset_y{0} {
         kf_crtp_check(I, image::Tag);
     }
 
@@ -86,7 +86,7 @@ public:
         return create(
             _buffer, _stride,
             sub_width, sub_height,
-            static_cast<math::Pixels>(offset_x + sub_offset_x), static_cast<math::Pixels>(offset_y + sub_offset_y));
+            static_cast<math::Pixels>(_offset_x + sub_offset_x), static_cast<math::Pixels>(_offset_y + sub_offset_y));
     }
 
     /// @brief Creates sub-region without validation
@@ -96,8 +96,8 @@ public:
         math::Pixels sub_offset_x, math::Pixels sub_offset_y) noexcept {
         return DynamicImage{
             _buffer, _stride, sub_width, sub_height,
-            static_cast<math::Pixels>(offset_x + sub_offset_x),
-            static_cast<math::Pixels>(offset_y + sub_offset_y)};
+            static_cast<math::Pixels>(_offset_x + sub_offset_x),
+            static_cast<math::Pixels>(_offset_y + sub_offset_y)};
     }
 
     /// @brief Checks if view references valid buffer
@@ -110,10 +110,10 @@ public:
     [[nodiscard]] bool isInsideY(math::Pixels y_relative) const noexcept { return y_relative >= 0 and y_relative < _height; }
 
     /// @brief Converts relative X to absolute buffer coordinate
-    [[nodiscard]] math::Pixels toAbsoluteX(math::Pixels x) const noexcept { return static_cast<math::Pixels>(offset_x + x); }
+    [[nodiscard]] math::Pixels toAbsoluteX(math::Pixels x) const noexcept { return static_cast<math::Pixels>(_offset_x + x); }
 
     /// @brief Converts relative Y to absolute buffer coordinate
-    [[nodiscard]] math::Pixels toAbsoluteY(math::Pixels y) const noexcept { return static_cast<math::Pixels>(offset_y + y); }
+    [[nodiscard]] math::Pixels toAbsoluteY(math::Pixels y) const noexcept { return static_cast<math::Pixels>(_offset_y + y); }
 
     /// @brief Sets single pixel color
     void setPixel(math::Pixels x_relative, math::Pixels y_relative, ColorType color) const noexcept {
@@ -122,7 +122,7 @@ public:
 
     /// @brief Fills entire region with solid color
     void fill(ColorType color) const noexcept {
-        PixelImpl::fill(_buffer, _stride, offset_x, offset_y, _width, _height, color);
+        PixelImpl::fill(_buffer, _stride, _offset_x, _offset_y, _width, _height, color);
     }
 
     /// @brief Fills rect region with solid color
@@ -136,8 +136,8 @@ public:
         PixelImpl::fill(
             _buffer,
             _stride,
-            static_cast<math::Pixels>(offset_x + x0),
-            static_cast<math::Pixels>(offset_y + y0),
+            static_cast<math::Pixels>(_offset_x + x0),
+            static_cast<math::Pixels>(_offset_y + y0),
             static_cast<math::Pixels>(x1 - x0 + 1),
             static_cast<math::Pixels>(y1 - y0 + 1),
             color);

@@ -5,10 +5,9 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/meta/bit_traits.hpp"
+#include "kf/meta/BitTraits.hpp"
 
-namespace kf {
-namespace ui {
+namespace kf::ui {
 
 /// @brief Incoming UI event with type and value packed into single byte
 /// @tparam V Number of bits for event value
@@ -17,9 +16,9 @@ template<u8 V> struct Event {
     static constexpr u8 value_bits = V;
     static constexpr u8 total_bits = type_bits + value_bits;
 
-    using Value = typename meta::bit_traits<value_bits>::min_signed;
-    using Storage = typename meta::bit_traits<total_bits>::min_unsigned;
-    using UnsignedValue = typename meta::bit_traits<value_bits>::min_unsigned;
+    using Value = typename meta::BitTraits<value_bits>::min_signed;
+    using Storage = typename meta::BitTraits<total_bits>::min_unsigned;
+    using UnsignedValue = typename meta::BitTraits<value_bits>::min_unsigned;
 
     static constexpr u8 storage_bits = sizeof(Storage) * 8;
 
@@ -32,7 +31,7 @@ private:
     static constexpr Storage type_mask = event_value_full & ~value_mask;
     static constexpr Storage sign_bit_mask = Storage(1) << (value_bits - 1);
 
-    Storage storage;
+    Storage _storage;
 
 public:
     enum class Type : Storage {
@@ -43,17 +42,17 @@ public:
     };
 
     constexpr explicit Event(Type type, Value value = 0) noexcept
-        : storage{
+        : _storage{
               static_cast<Storage>(
                   (static_cast<Storage>(type) & type_mask) |
                   (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))} {}
 
     [[nodiscard]] constexpr Type type() const noexcept {
-        return static_cast<Type>(storage & type_mask);
+        return static_cast<Type>(_storage & type_mask);
     }
 
     [[nodiscard]] Value value() const noexcept {
-        auto raw = static_cast<Value>(storage & value_mask);
+        auto raw = static_cast<Value>(_storage & value_mask);
         return (raw & sign_bit_mask) ? static_cast<Value>(raw | ~value_mask) : raw;
     }
 
@@ -67,5 +66,4 @@ public:
     }
 };
 
-}// namespace ui
-}// namespace kf
+}// namespace kf::ui

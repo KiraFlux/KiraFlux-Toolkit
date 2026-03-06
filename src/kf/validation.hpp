@@ -12,7 +12,7 @@ namespace kf {
 struct Validator {
 
 private:
-    usize errors{0};///< Count of failed validation checks
+    usize _errors_total{0};///< Count of failed validation checks
 
 public:
     /// @brief Check a validation condition and log result
@@ -21,14 +21,14 @@ public:
             logger.info(condition_string);
         } else {
             logger.error(condition_string);
-            errors += 1;
+            _errors_total += 1;
         }
     }
 
     /// @brief Check if all validation conditions passed
     /// @return true if no errors were recorded, false otherwise
     [[nodiscard]] bool passed() const noexcept {
-        return errors == 0;
+        return _errors_total == 0;
     }
 };
 

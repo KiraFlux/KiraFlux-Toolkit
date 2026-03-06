@@ -21,7 +21,7 @@ template<typename Impl, typename I> struct DisplayDriver : drivers::display::Tag
 
 protected:
     /// @brief Software frame buffer for display operations
-    ImageImpl screen_image{};
+    ImageImpl _screen_image{};
 
 public:
     /// @brief Display orientation modes
@@ -35,7 +35,7 @@ public:
     };
 
     /// @brief image buffer
-    [[nodiscard]] ImageImpl &image() noexcept { return screen_image; }
+    [[nodiscard]] ImageImpl &image() noexcept { return _screen_image; }
 
     /// @brief Initialize the display hardware
     /// @return true if success
@@ -43,7 +43,7 @@ public:
 
     /// @brief Transfer software buffer to display hardware
     /// @return true if success
-    [[nodiscard]] bool send() const noexcept { return c_impl().sendImpl(); }
+    [[nodiscard]] bool send() const noexcept { return implConst().sendImpl(); }
 
     /// @brief Set display orientation
     /// @return true if success
@@ -51,7 +51,7 @@ public:
 
 protected:
     [[nodiscard]] constexpr usize imageBufferSizeBytes() const noexcept {
-        return sizeof(BufferType) * screen_image.buffer().size();
+        return sizeof(BufferType) * _screen_image.buffer().size();
     }
 
     // CRTP
@@ -61,7 +61,7 @@ protected:
 
 private:
     [[nodiscard]] inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
-    [[nodiscard]] inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
+    [[nodiscard]] inline const Impl &implConst() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
 }// namespace kf::drivers::display

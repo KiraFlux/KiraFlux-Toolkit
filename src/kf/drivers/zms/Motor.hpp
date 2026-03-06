@@ -6,9 +6,9 @@
 #include <Arduino.h>
 
 #include "kf/Logger.hpp"
+#include "kf/algorithm.hpp"
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
-#include "kf/algorithm.hpp"
 
 namespace kf::drivers::zms {
 
@@ -71,48 +71,47 @@ struct Motor {
         }
     };
 
-    const DriverConfig &driver_settings;///< Driver hardware configuration
-    const PwmConfig &pwm_settings;      ///< PWM signal configuration
-
 private:
-    SignedPwm max_pwm{0};///< Cached maximum PWM value
+    const DriverConfig &_driver_settings;///< Driver hardware configuration
+    const PwmConfig &_pwm_settings;      ///< PWM signal configuration
+    SignedPwm _max_pwm{0};               ///< Cached maximum PWM value
 
 public:
     explicit constexpr Motor(const DriverConfig &driver_settings,
                              const PwmConfig &pwm_settings) noexcept :
-        driver_settings{driver_settings}, pwm_settings{pwm_settings} {}
+        _driver_settings{driver_settings}, _pwm_settings{pwm_settings} {}
 
     /// @brief Initialize motor driver hardware
     /// @return true if initialization successful
     /// @note Configures GPIO pins and PWM channels based on driver type
     [[nodiscard]] bool init() noexcept {
-        max_pwm = pwm_settings.maxPwm();
+        _max_pwm = _pwm_settings.maxPwm();
 
-        pinMode(driver_settings.pin_a, OUTPUT);
-        pinMode(driver_settings.pin_b, OUTPUT);
+        pinMode(_driver_settings.pin_a, OUTPUT);
+        pinMode(_driver_settings.pin_b, OUTPUT);
 
-        switch (driver_settings.impl) {
+        switch (_driver_settings.impl) {
             case DriverImpl::IArduino: {
                 logger.debug("IArduino mode");
 
                 const auto current_frequency = ledcSetup(
-                    driver_settings.ledc_channel,
-                    pwm_settings.ledc_frequency_hz,
-                    pwm_settings.ledc_resolution_bits);
+                    _driver_settings.ledc_channel,
+                    _pwm_settings.ledc_frequency_hz,
+                    _pwm_settings.ledc_resolution_bits);
 
                 if (current_frequency == 0) {
                     logger.error("LEDC setup failed!");
                     return false;
                 }
 
-                ledcAttachPin(driver_settings.pin_b, driver_settings.ledc_channel);
+                ledcAttachPin(_driver_settings.pin_b, _driver_settings.ledc_channel);
             } break;
 
             case DriverImpl::L298nModule: {
                 logger.debug("L293n mode");
 
-                analogWriteFrequency(pwm_settings.ledc_frequency_hz);
-                analogWriteResolution(pwm_settings.ledc_resolution_bits);
+                analogWriteFrequency(_pwm_settings.ledc_frequency_hz);
+                analogWriteResolution(_pwm_settings.ledc_resolution_bits);
             } break;
         }
 
@@ -138,23 +137,23 @@ public:
     /// @param pwm Signed PWM value (-max to +max)
     /// @note Positive values rotate in positive direction (as configured)
     void write(SignedPwm pwm) const noexcept {
-        pwm = kf::clamp(pwm, static_cast<SignedPwm>(-max_pwm), max_pwm);
+        pwm = kf::clamp(pwm, static_cast<SignedPwm>(-_max_pwm), _max_pwm);
 
-        switch (driver_settings.impl) {
+        switch (_driver_settings.impl) {
             case DriverImpl::IArduino: {
-                digitalWrite(driver_settings.pin_a, matchDirection(pwm));
-                ledcWrite(driver_settings.ledc_channel, std::abs(pwm));
+                digitalWrite(_driver_settings.pin_a, matchDirection(pwm));
+                ledcWrite(_driver_settings.ledc_channel, std::abs(pwm));
             }
                 return;
 
             case DriverImpl::L298nModule: {
                 const bool positive_direction = matchDirection(pwm);
                 if (positive_direction) {
-                    analogWrite(driver_settings.pin_a, std::abs(pwm));
-                    analogWrite(driver_settings.pin_b, 0);
+                    analogWrite(_driver_settings.pin_a, std::abs(pwm));
+                    analogWrite(_driver_settings.pin_b, 0);
                 } else {
-                    analogWrite(driver_settings.pin_a, 0);
-                    analogWrite(driver_settings.pin_b, std::abs(pwm));
+                    analogWrite(_driver_settings.pin_a, 0);
+                    analogWrite(_driver_settings.pin_b, std::abs(pwm));
                 }
             }
                 return;
@@ -167,7 +166,7 @@ private:
     /// @return true for positive direction, false for negative
     [[nodiscard]] inline bool matchDirection(SignedPwm pwm) const noexcept {
         const bool positive = pwm > 0;
-        return driver_settings.direction == Direction::CW == positive;
+        return _driver_settings.direction == Direction::CW == positive;
     }
 
     /// @brief Convert normalized value to signed PWM
@@ -181,9 +180,9 @@ private:
         const auto abs_value = std::abs(kf::clamp(value, -1.0f, +1.0f));
         if (abs_value < normalized_dead_zone) { return 0; }
 
-        const auto ret = int(abs_value * float(max_pwm - pwm_settings.dead_zone)) + pwm_settings.dead_zone;
+        const auto ret = int(abs_value * float(_max_pwm - _pwm_settings.dead_zone)) + _pwm_settings.dead_zone;
         return static_cast<SignedPwm>((value > 0.0f) ? ret : -ret);
     }
 };
 
-}// namespace kf
+}// namespace kf::drivers::zms

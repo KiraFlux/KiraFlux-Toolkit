@@ -41,7 +41,7 @@ struct Sharp {
     const Config &_config;
 
 private:
-    AnalogValue max_value{0};///< Cached maximum ADC value
+    AnalogValue _max_value{0};///< Cached maximum ADC value
 
 public:
     explicit Sharp(const Config &config) noexcept :
@@ -51,7 +51,7 @@ public:
     /// @return Always returns true (initialization cannot fail)
     /// @note Sets pin mode and configures ADC resolution
     [[nodiscard]] bool init() noexcept {
-        max_value = _config.maxValue();
+        _max_value = _config.maxValue();
 
         pinMode(_config.pin, INPUT);
         analogReadResolution(_config.resolution);

@@ -35,8 +35,8 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
     };
 
 private:
-    memory::ArrayString<N> buffer{};///< Output buffer for rendered text
-    Config config{};        ///< Current renderer configuration
+    memory::ArrayString<N> _buffer{};///< Output buffer for rendered text
+    Config _config{};        ///< Current renderer configuration
 
     /// @brief Cursor state for tracking rendering position
     struct Cursor {
@@ -66,25 +66,25 @@ private:
                 newline();
             }
         }
-    } cursor;
+    } _cursor{};
 
 public:
-    Config &getConfig() { return config; }
+    Config &getConfig() { return _config; }
 
     /// @brief Helper to write character with cursor tracking
     void writeChar(char ch) noexcept {
-        if (buffer.full() or cursor.row >= config.rows_total) { return; }
+        if (_buffer.full() or _cursor.row >= _config.rows_total) { return; }
 
         if (ch == '\n') {
-            cursor.newline();
-            (void) buffer.push(ch);
+            _cursor.newline();
+            (void) _buffer.push(ch);
             return;
         }
 
-        if (not cursor.canWrite(config.row_max_length)) { return; }
+        if (not _cursor.canWrite(_config.row_max_length)) { return; }
 
-        cursor.advance(1, config.row_max_length);
-        (void) buffer.push(ch);
+        _cursor.advance(1, _config.row_max_length);
+        (void) _buffer.push(ch);
     }
 
     /// @brief Write string with cursor tracking
@@ -105,27 +105,27 @@ private:
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
         // Subtract 1 for title row
-        if (config.rows_total > cursor.row + 1) {
-            return config.rows_total - cursor.row - 1;
+        if (_config.rows_total > _cursor.row + 1) {
+            return _config.rows_total - _cursor.row - 1;
         } else {
             return 0;
         }
     }
 
     void prepareImpl() noexcept {
-        buffer.clear();
-        cursor.reset();
+        _buffer.clear();
+        _cursor.reset();
     }
 
     void finishImpl() noexcept {
-        if (config.on_render_finish) {
-            config.on_render_finish(buffer.view());
+        if (_config.on_render_finish) {
+            _config.on_render_finish(_buffer.view());
         }
     }
 
     void titleImpl(memory::StringView title) noexcept {
-        if (config.title_centered) {
-            const auto spaces = kf::max(0, (int(config.row_max_length) - int(title.size())) / 2);
+        if (_config.title_centered) {
+            const auto spaces = kf::max(0, (int(_config.row_max_length) - int(title.size())) / 2);
             for (int i = 0; i < spaces; i += 1) {
                 writeChar(' ');
             }
@@ -151,8 +151,8 @@ private:
         }
 
         writeChar('[');
-        const usize start_col = cursor.col;
-        const usize inner_width = config.row_max_length - start_col - 1;// -1 for closing char
+        const usize start_col = _cursor.col;
+        const usize inner_width = _config.row_max_length - start_col - 1;// -1 for closing char
         const usize fill = (slider_value - min_value) * inner_width / (max_value - min_value);
 
         for (usize i = 0; i < fill; i += 1) {
@@ -161,7 +161,7 @@ private:
 
         writeChar('@');
 
-        for (usize i = cursor.col - start_col; i < inner_width; i += 1) {
+        for (usize i = _cursor.col - start_col; i < inner_width; i += 1) {
             writeChar('-');
         }
 
@@ -172,9 +172,9 @@ private:
     void valueImpl(memory::StringView str) noexcept { writeString(str); }
 
     void valueImpl(bool slider_value) noexcept {
-        constexpr memory::StringView _true{"true"};
-        constexpr memory::StringView _false{"false"};
-        writeString(slider_value ? _true : _false);
+        constexpr memory::StringView label_true{"true"};
+        constexpr memory::StringView label_false{"false"};
+        writeString(slider_value ? label_true : label_false);
     }
 
     void valueImpl(i32 integer) noexcept {
@@ -184,11 +184,11 @@ private:
     }
 
     void valueImpl(f32 real) noexcept {
-        writeReal(static_cast<f64>(real), config.float_places);
+        writeReal(static_cast<f64>(real), _config.float_places);
     }
 
     void valueImpl(f64 real) noexcept {
-        writeReal(real, config.double_places);
+        writeReal(real, _config.double_places);
     }
 
     // Decoration rendering

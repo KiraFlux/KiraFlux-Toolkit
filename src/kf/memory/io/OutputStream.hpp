@@ -17,19 +17,19 @@ namespace kf::memory::io {
 struct OutputStream {
 
 private:
-    Stream &stream;///< Reference to underlying Stream object
+    Stream &_stream;///< Reference to underlying Stream object
 
 public:
     /// @brief Construct output stream from Stream reference
     /// @param s Stream object to write to
     explicit OutputStream(Stream &s) noexcept :
-        stream{s} {}
+        _stream{s} {}
 
     /// @brief Write single byte to stream
     /// @param byte Byte value to write
     /// @return true if byte successfully written
     [[nodiscard]] bool writeByte(u8 byte) noexcept {
-        return stream.write(byte) == 1;
+        return _stream.write(byte) == 1;
     }
 
     /// @brief Write buffer of data to stream
@@ -37,7 +37,7 @@ public:
     /// @param length Number of bytes to write
     /// @return true if all bytes successfully written
     [[nodiscard]] bool write(const void *data, usize length) noexcept {
-        return stream.write(static_cast<const u8 *>(data), length) == length;
+        return _stream.write(static_cast<const u8 *>(data), length) == length;
     }
 
     /// @brief Write object of type T to stream
@@ -50,4 +50,4 @@ public:
     }
 };
 
-}// namespace kf::io
+}// namespace kf::memory::io

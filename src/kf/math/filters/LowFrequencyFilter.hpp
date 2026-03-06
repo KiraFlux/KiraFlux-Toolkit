@@ -13,41 +13,41 @@ namespace kf::math::filters {
 template<typename T> struct LowFrequencyFilter {
 
 private:
-    const f32 alpha;          ///< Smoothing factor (0.0 to 1.0)
-    const f32 one_minus_alpha;///< Complementary coefficient (1.0 - alpha)
-    T filtered{};             ///< Current filtered value
-    bool first_step{false};   ///< First sample flag for initialization
+    const f32 _alpha;          ///< Smoothing factor (0.0 to 1.0)
+    const f32 _one_minus_alpha;///< Complementary coefficient (1.0 - alpha)
+    T _filtered{};             ///< Current filtered value
+    bool _first_step{false};   ///< First sample flag for initialization
 
 public:
     /// @brief Construct low-frequency filter instance
     /// @param alpha Smoothing factor (higher = more smoothing, slower response)
     /// @note alpha=0.0: output never changes, alpha=1.0: no filtering (direct pass-through)
     explicit LowFrequencyFilter(f32 alpha) noexcept :
-        alpha{alpha}, one_minus_alpha{1.0f - alpha} {}
+        _alpha{alpha}, _one_minus_alpha{1.0f - alpha} {}
 
     /// @brief Update filter with new sample
     /// @param x New input value
     /// @return Current filtered value
     [[nodiscard]] const T &calc(const T &x) noexcept {
-        if (first_step) {
-            first_step = false;
+        if (_first_step) {
+            _first_step = false;
             goto set;
         }
 
-        if (alpha == 1.0) { goto set; }
+        if (_alpha == 1.0) { goto set; }
 
-        filtered = filtered * one_minus_alpha + x * alpha;
+        _filtered = _filtered * _one_minus_alpha + x * _alpha;
         goto ret;
 
     set:
-        filtered = x;
+        _filtered = x;
     ret:
-        return filtered;
+        return _filtered;
     }
 
     /// @brief Reset filter state (next sample will initialize filter)
     void reset() noexcept {
-        first_step = true;
+        _first_step = true;
     }
 };
 

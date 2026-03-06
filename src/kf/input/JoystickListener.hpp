@@ -20,68 +20,67 @@ struct JoystickListener {
     };
 
 private:
-    Joystick &joystick;
-    const float threshold;
+    Joystick &_joystick;
+    const float _threshold;
 
-    math::Timer repeat_timer{static_cast<kf::math::Milliseconds>(100)};
-    math::Timer initial_delay{static_cast<kf::math::Milliseconds>(400)};
-
-    bool in_repeat_mode{false};
-    bool has_changed{false};
-    Direction current_direction{Direction::Home};
+    math::Timer _repeat_timer{static_cast<kf::math::Milliseconds>(100)};
+    math::Timer _initial_delay{static_cast<kf::math::Milliseconds>(400)};
+    Direction _current_direction{Direction::Home};
+    bool _in_repeat_mode{false};
+    bool _has_changed{false};
 
 public:
     explicit JoystickListener(Joystick &joy, float threshold = 0.6f) noexcept
-        : joystick{joy}, threshold{threshold} {}
+        : _joystick{joy}, _threshold{threshold} {}
 
     void poll(math::Milliseconds now) noexcept {
         const auto new_direction = calculateDirection();
 
-        if (new_direction != current_direction) {
-            current_direction = new_direction;
-            has_changed = true;
-            in_repeat_mode = false;
+        if (new_direction != _current_direction) {
+            _current_direction = new_direction;
+            _has_changed = true;
+            _in_repeat_mode = false;
 
-            if (current_direction != Direction::Home) {
-                initial_delay.start(now);
-                repeat_timer.start(now);
+            if (_current_direction != Direction::Home) {
+                _initial_delay.start(now);
+                _repeat_timer.start(now);
             }
-        } else if (current_direction != Direction::Home) {
-            if (in_repeat_mode) {
-                if (repeat_timer.expired(now)) {
-                    has_changed = true;
-                    repeat_timer.start(now);
+        } else if (_current_direction != Direction::Home) {
+            if (_in_repeat_mode) {
+                if (_repeat_timer.expired(now)) {
+                    _has_changed = true;
+                    _repeat_timer.start(now);
                 }
             } else {
-                if (initial_delay.expired(now)) {
-                    in_repeat_mode = true;
-                    has_changed = true;
-                    repeat_timer.start(now);// restart repeat timer for subsequent repeats
+                if (_initial_delay.expired(now)) {
+                    _in_repeat_mode = true;
+                    _has_changed = true;
+                    _repeat_timer.start(now);// restart repeat timer for subsequent repeats
                 }
             }
         } else {
-            in_repeat_mode = false;
+            _in_repeat_mode = false;
         }
     }
 
-    [[nodiscard]] Direction direction() const noexcept { return current_direction; }
+    [[nodiscard]] Direction direction() const noexcept { return _current_direction; }
 
-    [[nodiscard]] bool repeating() const noexcept { return in_repeat_mode; }
+    [[nodiscard]] bool repeating() const noexcept { return _in_repeat_mode; }
 
     /// @note Resets has_changed
     [[nodiscard]] bool changed() noexcept {
-        bool ch = has_changed;
-        has_changed = false;
+        bool ch = _has_changed;
+        _has_changed = false;
         return ch;
     }
 
     [[nodiscard]] Direction calculateDirection() const noexcept {
-        const auto x = joystick.axis_x.read();
-        const auto y = joystick.axis_y.read();
+        const auto x = _joystick.axis_x.read();
+        const auto y = _joystick.axis_y.read();
         const auto ax = std::abs(x);
         const auto ay = std::abs(y);
 
-        if (ax < threshold and ay < threshold) {
+        if (ax < _threshold and ay < _threshold) {
             return Direction::Home;
         }
         if (ax > ay) {
@@ -92,10 +91,10 @@ public:
     }
 
     void reset() noexcept {
-        current_direction = Direction::Home;
-        has_changed = false;
-        in_repeat_mode = false;
+        _current_direction = Direction::Home;
+        _has_changed = false;
+        _in_repeat_mode = false;
     }
 };
 
-}// namespace kf
+}// namespace kf::input

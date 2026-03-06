@@ -15,10 +15,10 @@ struct Logger final {
     static WriteHandler writer;///< Current output handler (nullptr disables logging)
 
 private:
-    const memory::StringView key;
+    const memory::StringView _key;
 
     constexpr explicit Logger(memory::StringView key) noexcept :
-        key{key} {}
+        _key{key} {}
 
 public:
     template<usize N> [[nodiscard]] static constexpr Logger create(const char (&key)[N]) noexcept {
@@ -47,7 +47,7 @@ private:
         memory::ArrayString<32> buffer{};
 
         (void) buffer.append(" [");
-        (void) buffer.append(key);
+        (void) buffer.append(_key);
         (void) buffer.push(':');
         (void) buffer.append(level);
         (void) buffer.append("] ");

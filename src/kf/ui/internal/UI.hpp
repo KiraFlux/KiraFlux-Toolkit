@@ -223,13 +223,13 @@ template<typename R, typename V, typename P> struct UI final {
         using WrappedType = W;///< Type of wrapped widget implementation
 
     private:
-        memory::StringView label;///< Label text
+        memory::StringView _label;///< Label text
 
     public:
         W wrapped;///< Wrapped widget instance
 
         explicit Labeled(P &root, memory::StringView label, W impl) :
-            Widget{root}, label{label}, wrapped{std::move(impl)} {}
+            Widget{root}, _label{label}, wrapped{std::move(impl)} {}
 
         /// @brief Forward click event to wrapped widget
         /// @return Result from wrapped widget's onClick()
@@ -241,7 +241,7 @@ template<typename R, typename V, typename P> struct UI final {
 
         /// @brief Render label followed by wrapped widget
         void doRender(R &render) const noexcept override {
-            render.value(label);
+            render.value(_label);
             render.colon();
             wrapped.doRender(render);
         }
@@ -260,7 +260,7 @@ template<typename R, typename V, typename P> struct UI final {
         T _value;///< Reference to value being controlled
         T _step; ///< Current step size
 
-        bool is_step_setting_mode{false};///< true when adjusting step size, false when adjusting value
+        bool _is_step_setting_mode{false};///< true when adjusting step size, false when adjusting value
 
     public:
         explicit SpinBox(
@@ -284,14 +284,14 @@ template<typename R, typename V, typename P> struct UI final {
         /// @brief Toggle between value adjustment and step adjustment modes
         /// @return true (redraw required after mode change)
         [[nodiscard]] bool onClick() noexcept override {
-            is_step_setting_mode = not is_step_setting_mode;
+            _is_step_setting_mode = not _is_step_setting_mode;
             return true;
         }
 
         /// @brief Adjust value or step based on current mode
         /// @param event_value Adjustment scale
         [[nodiscard]] bool onEventValue(V event_value) noexcept override {
-            if (is_step_setting_mode) {
+            if (_is_step_setting_mode) {
                 StepAdjusterType::adjust(_step, event_value);
             } else {
                 ValueAdjusterType::adjust(_value, _step, event_value);
@@ -304,7 +304,7 @@ template<typename R, typename V, typename P> struct UI final {
         void doRender(R &render) const noexcept override {
             render.beginAltBlock();
 
-            if (is_step_setting_mode) {
+            if (_is_step_setting_mode) {
                 render.arrow();
                 render.value(_step);
             } else {
