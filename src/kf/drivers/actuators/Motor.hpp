@@ -10,7 +10,7 @@
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 
-namespace kf::drivers::zms {
+namespace kf::drivers::actuators {
 
 /// @brief Motor driver supporting IArduino Motor Shield and L298N/L293D H-bridge
 /// @note Provides bidirectional PWM control with configurable dead zone and direction
@@ -185,4 +185,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::zms
+}// namespace kf::drivers::actuators
