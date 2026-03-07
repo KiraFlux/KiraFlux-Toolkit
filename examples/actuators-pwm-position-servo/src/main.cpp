@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include <kf/Logger.hpp>
 
-#include <kf/drivers/zms/PwmPositionServo.hpp>
+#include <kf/drivers/actuators/PwmPositionServo.hpp>
 
-using kf::drivers::zms::PwmPositionServo;
+using kf::drivers::actuators::PwmPositionServo;
 
 // 50 Hz, 16-bit resolution works for most RC servos
 static const PwmPositionServo::PwmConfig pwm_config{

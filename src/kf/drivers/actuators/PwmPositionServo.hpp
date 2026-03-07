@@ -9,7 +9,7 @@
 #include "kf/math/units.hpp"
 #include "kf/validation.hpp"
 
-namespace kf::drivers::zms {
+namespace kf::drivers::actuators {
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
@@ -142,4 +142,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::zms
+}// namespace kf::drivers::actuators
