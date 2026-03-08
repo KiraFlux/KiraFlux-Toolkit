@@ -19,17 +19,15 @@ namespace kf::drivers::bus {
 ///       - a nested `Node::Config` type,
 ///       - a constructor `Node(BusImpl&, const Node::Config&)` for creating device nodes.
 ///       The bus does not manage node lifetimes; it only offers a factory.
-template<typename BusImpl> struct Bus : bus::Tag {
-    using NodeImpl = typename BusImpl::Node;
+template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus : bus::Tag {
+    kf_crtp_check(NodeImpl, kf::memory::io::ReadableTag);
+    kf_crtp_check(NodeImpl, kf::memory::io::WritableTag);
 
-    kf_crtp_check(NodeImpl, kf::memory::io::ReaderTag);
-    kf_crtp_check(NodeImpl, kf::memory::io::WriterTag);
-
-    [[nodiscard]] Result<void, typename BusImpl::Error> init() noexcept { return impl().initImpl(); }
+    [[nodiscard]] Result<void, ErrorImpl> init() noexcept { return impl().initImpl(); }
 
     void quit() noexcept { impl().quitImpl(); }
 
-    [[nodiscard]] Result<NodeImpl, typename BusImpl::Error> createNode(const NodeImpl::Config &config) noexcept { return NodeImpl{impl(), config}; }
+    [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept { return NodeImpl{impl(), config}; }
 
 private:
     BusImpl &impl() noexcept { return *static_cast<BusImpl *>(this); }

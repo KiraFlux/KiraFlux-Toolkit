@@ -5,7 +5,7 @@
 
 namespace kf::memory::io {
 
-struct ReaderTag {};
-struct WriterTag {};
+struct ReadableTag {};
+struct WritableTag {};
 
 }// namespace kf::memory::io

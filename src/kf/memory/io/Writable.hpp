@@ -16,8 +16,7 @@ namespace kf::memory::io {
 
 /// @brief Writable Stream
 /// @tparam Impl stream implementation
-template<typename Impl> struct Writable : WritableTag {
-    using ErrorImpl = typename Impl::Error;
+template<typename Impl, typename ErrorImpl> struct Writable : WritableTag {
 
     /// @brief Write single byte
     /// @return Result indicating success or error

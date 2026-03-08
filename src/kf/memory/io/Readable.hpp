@@ -13,8 +13,7 @@
 
 namespace kf::memory::io {
 
-template<typename Impl> struct Readable : ReadableTag {
-    using ErrorImpl = typename Impl::Error;
+template<typename Impl, typename ErrorImpl> struct Readable : ReadableTag {
 
     /// @brief Read single byte
     /// @return Byte value or error

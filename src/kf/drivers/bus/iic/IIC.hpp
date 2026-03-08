@@ -13,8 +13,6 @@ namespace kf::drivers::bus::iic {
 /// @note Inherits from iic::Tag and bus::Bus<Impl>, providing type identification
 ///       and the standard bus interface. Concrete implementations must define
 ///       a nested Node type and implement all required bus methods.
-template<typename Impl> struct IIC : iic::Tag, Bus<Impl> {
-    using Node = typename Impl::Node;
-};
+template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct IIC : iic::Tag, Bus<BusImpl, NodeImpl, ErrorImpl> {};
 
 }// namespace kf::drivers::bus::iic
