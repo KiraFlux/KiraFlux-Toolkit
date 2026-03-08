@@ -33,7 +33,9 @@ enum class Error : u8 {
     Unknown,///< Arduino Wire "Other" error
 };
 
-template<typename BusImpl> struct Node : memory::io::Readable<Node<BusImpl>, Error>, memory::io::Writable<Node<BusImpl>, Error> {
+template<typename I> struct Node : memory::io::Readable<Node<I>, Error>, memory::io::Writable<Node<I>, Error> {
+    using BusImpl = I;
+
     struct Config {
         u8 address;
     };
@@ -135,6 +137,13 @@ private:
         const usize written = writePacketUnchecked(std::forward<T>(packet));
         return endTransmission(written, sizeof(T));
     }
+
+    template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept {
+        beginTransmission();
+        const usize header_written = writePacketUnchecked(std::forward<T>(header));
+        const usize buffer_written = writeBytes(buffer.data(), buffer.size());
+        return endTransmission(header_written + buffer_written, sizeof(T) + buffer.size());
+    }
 };
 
 };// namespace arduino::internal
@@ -181,6 +190,8 @@ private:
     friend struct kf::drivers::bus::iic::IIC<ArduinoIIC, Node, Error>;
 
     [[nodiscard]] Result<void, Error> initImpl() noexcept {
+        if (not _wire.begin()) { return Error::BeginFailed; }
+
         if (not _config.hasDefaultClock()) {
             if (not _wire.setClock(_config.clock_hz)) { return Error::ClockConfigFailed; }
         }
@@ -196,8 +207,6 @@ private:
         if (not _config.hasDefaultPins()) {
             if (not _wire.setPins(static_cast<int>(_config.pin_sda), static_cast<int>(_config.pin_scl))) { return Error::PinConfigFailed; }
         }
-
-        if (not _wire.begin()) { return Error::BeginFailed; }
 
         return {};
     }
