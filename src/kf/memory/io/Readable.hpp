@@ -19,14 +19,14 @@ template<typename Impl> struct Readable : ReadableTag {
     /// @brief Read single byte
     /// @return Byte value or error
     [[nodiscard]] Result<u8, ErrorImpl> readByte() noexcept {
-        return impl().readByteImpl();
+        return this->readPacket<u8>();
     }
 
     /// @brief Read arbitrary number of bytes into buffer
     /// @param buffer Destination buffer
     /// @return Slice containing actually read data, or error
-    [[nodiscard]] Result<memory::Slice<u8>, ErrorImpl> readBuffer(memory::Slice<u8> buffer) noexcept {
-        return readBuffer(static_cast<void *>(buffer.data()), buffer.size());
+    [[nodiscard]] Result<memory::Slice<const u8>, ErrorImpl> readBuffer(memory::Slice<u8> buffer) noexcept {
+        return impl().readBufferImpl(buffer);
     }
 
     /// @brief Read fixed‑size buffer
@@ -34,29 +34,17 @@ template<typename Impl> struct Readable : ReadableTag {
     /// @return Packet value or error
     template<typename T> [[nodiscard]] Result<T, ErrorImpl> readPacket() noexcept {
         static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
-
-        T packet;
-        const Result<memory::Slice<u8>, ErrorImpl> result = readBuffer(static_cast<void *>(&packet), static_cast<usize>(sizeof(T)));
-
-        if (result.isError()) {
-            return {result.error().value()};
-        } else {
-            return {packet};
-        }
+        return impl().template readPacketImpl<T>();
     }
 
 private:
-    [[nodiscard]] Result<memory::Slice<u8>, ErrorImpl> readBuffer(void *source, usize size) {
-        return impl().readBufferImpl(source, size);
-    }
-
     Impl &impl() noexcept { return *static_cast<Impl *>(this); }
     const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
 
     // Impl must provide:
 
-    // [[nodiscard]] Result<u8, ErrorImpl> readByteimpl() noexcept
-    // [[nodiscard]] Result<T, ErrorImpl> readBufferImpl(const void *source, usize size) noexcept
+    // [[nodiscard]] Result<memory::Slice<const u8>, ErrorImpl> readBufferImpl(memory::Slice<u8> buffer) noexcept
+    // template <typename T> [[nodiscard]] Result<T, ErrorImpl> readPacketImpl() noexcept
 };
 
 }// namespace kf::memory::io

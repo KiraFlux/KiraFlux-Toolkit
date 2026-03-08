@@ -19,14 +19,14 @@ template<typename Impl> struct Writable : WritableTag {
     /// @brief Write single byte
     /// @return true if successful
     [[nodiscard]] bool writeByte(u8 byte) noexcept {
-        return impl().writeByteImpl(byte);
+        return this->writePacket(byte);
     }
 
     /// @brief Write arbitrary data from buffer
     /// @param buffer Source data
     /// @return true if successful
     [[nodiscard]] bool writeBuffer(memory::Slice<const u8> buffer) noexcept {
-        return impl().writeBufferImpl(static_cast<const void *>(buffer.data()), buffer.size());
+        return impl().writeBufferImpl(buffer);
     }
 
     /// @brief Write fixed‑size packet
@@ -35,8 +35,7 @@ template<typename Impl> struct Writable : WritableTag {
     /// @return true if successful
     template<typename T> [[nodiscard]] bool writePacket(const T &packet) noexcept {
         static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
-
-        return impl().writeBufferImpl(static_cast<const void *>(&packet), static_cast<usize>(sizeof(T)));
+        return impl().writePacketImpl(packet);
     }
 
 private:
@@ -45,8 +44,8 @@ private:
 
     // Impl must provide:
 
-    // [[nodiscard]] bool writeByteImpl(u8 byte) noexcept
-    // [[nodiscard]] bool writeBufferImpl(const void *source, usize size) noexcept
+    // [[nodiscard]] bool writePacketImpl(T packet) noexcept // may use method overload
+    // [[nodiscard]] bool writeBufferImpl(memory::Slice<const u8> buffer) noexcept
 };
 
 }// namespace kf::memory::io
