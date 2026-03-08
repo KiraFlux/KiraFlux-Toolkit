@@ -40,14 +40,25 @@ template<typename Impl, typename ErrorImpl> struct Writable : WritableTag {
         return impl().writePacketImpl(std::forward<T>(packet));
     }
 
+    /// @brief Write mixed packet: fixed-size header and dymanic-sized buffer
+    /// @tparam T Type of packet (trivially copyable)
+    /// @param header Header to write
+    /// @param buffer Source buffer
+    /// @return Result indicating success or error
+    template<typename T> [[nodiscard]] Result<void, ErrorImpl> writeMixed(T &&header, memory::Slice<const u8> buffer) noexcept {
+        static_assert(std::is_trivially_copyable_v<std::decay_t<T>>, "T must be trivially copyable");
+        return impl().writeMixedImpl(std::forward<T>(header), buffer);
+    }
+
 private:
     Impl &impl() noexcept { return *static_cast<Impl *>(this); }
     const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
 
     // Impl must provide:
 
-    // [[nodiscard]] Result<void, Error> writePacketImpl(T packet) noexcept // may use method overload
     // [[nodiscard]] Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept
+    // [[nodiscard]] Result<void, Error> writePacketImpl(T &&packet) noexcept // may use method overload
+    // [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept
 };
 
 }// namespace kf::memory::io
