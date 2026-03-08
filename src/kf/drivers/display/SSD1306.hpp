@@ -7,45 +7,37 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/drivers/display/DisplayDriver.hpp"
+#include "kf/drivers/bus/iic/Tag.hpp"
 #include "kf/image/StaticImage.hpp"
+#include "kf/meta/type_check.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
+
+#include "kf/drivers/display/DisplayDriver.hpp"
+#include "kf/drivers/display/Tag.hpp"
 
 namespace kf::drivers::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-struct SSD1306 final : DisplayDriver<SSD1306, image::StaticImage<pixel::MonochromePixel, 128, 64>> {
+template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>> {
+    kf_crtp_check(typename I::BusImpl, kf::drivers::bus::iic::Tag);
+
+    using NodeImpl = I;
     using PixelImpl = pixel::MonochromePixel;
 
-    struct Config {
-        u32 i2c_clock_frequency;
-        u8 address;
-
-        explicit Config(u32 clock_frequency, u8 address = 0x3C) noexcept :
-            i2c_clock_frequency{clock_frequency}, address{address} {}
-    };
+    static constexpr u8 default_address = {0x3C};
 
 private:
-    const Config &_config;
-    TwoWire &_wire;
+    NodeImpl _node;
 
 public:
     /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(const Config &config, TwoWire &wire) noexcept :
-        _config{config}, _wire{wire} {}
+    explicit SSD1306(NodeImpl &&node) noexcept : _node{node} {}
 
     /// @brief Set display contrast level (0..255)
     /// @returns true - operation success
-    [[nodiscard]] bool setContrast(u8 value) const {
-        _wire.beginTransmission(_config.address);
-        if (_wire.write(CommandMode) != 1) { goto fail; }
-        if (_wire.write(Contrast) != 1) { goto fail; }
-        if (_wire.write(value) != 1) { goto fail; }
-        if (_wire.endTransmission() != 0) { goto fail; }
-
-        return true;
-    fail:
-        return false;
+    [[nodiscard]] bool setContrast(u8 value) noexcept {
+        const u8 packet[]{CommandMode, Contrast, value};
+        return _node.writePacket(packet).isOk();
     }
 
     /// @brief Enable or disable display power
@@ -62,9 +54,10 @@ public:
 
 private:
     // DisplayDriver interface implementation
+    friend struct DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>>;
 
     /// @brief Initialize display hardware via I2C
-    [[nodiscard]] bool initImpl() const noexcept {
+    [[nodiscard]] bool initImpl() noexcept {
         static constexpr u8 init_commands[] = {
             CommandMode,
 
@@ -107,20 +100,11 @@ private:
             0x3F,
         };
 
-        if (not _wire.begin()) { goto fail; }
-        if (not _wire.setClock(_config.i2c_clock_frequency)) { goto fail; }
-
-        _wire.beginTransmission(_config.address);
-        if (_wire.write(init_commands, sizeof(init_commands)) != sizeof(init_commands)) { goto fail; }
-        if (_wire.endTransmission() != 0) { goto fail; }
-
-        return true;
-    fail:
-        return false;
+        return _node.writePacket(init_commands).isOk();
     }
 
     /// @brief Transfer software buffer to display via I2C
-    [[nodiscard]] bool sendImpl() const noexcept {
+    [[nodiscard]] bool sendImpl() noexcept {
         static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
 
         static constexpr u8 set_area_commands[] = {
@@ -134,20 +118,15 @@ private:
             PixelImpl::template pages<64> - 1,
         };
 
-        auto p = _screen_image.buffer().data();
-        auto remaining = _screen_image.buffer().size();
+        auto p = this->_screen_image.buffer().data();
+        auto remaining = this->_screen_image.buffer().size();
 
-        _wire.beginTransmission(_config.address);
-        if (_wire.write(set_area_commands, sizeof(set_area_commands)) != sizeof(set_area_commands)) { goto fail; }
-        if (_wire.endTransmission() != 0) { goto fail; }
+        if (_node.writePacket(set_area_commands).isError()) { goto fail; }
 
         while (remaining > 0) {
             const auto chunk = min(packet_size, remaining);
 
-            _wire.beginTransmission(_config.address);
-            if (_wire.write(Command::DataMode) != 1) { goto fail; }
-            if (_wire.write(p, chunk) != chunk) { goto fail; }
-            if (_wire.endTransmission() != 0) { goto fail; }
+            if (_node.writeMixed(Command::DataMode, {p, chunk}).isError()) { goto fail; }
 
             p += chunk;
             remaining -= chunk;
@@ -158,7 +137,7 @@ private:
         return false;
     }
 
-    [[nodiscard]] bool supportOrientation(Orientation orientation) const noexcept {
+    [[nodiscard]] static bool supportOrientation(Orientation orientation) noexcept {
         switch (orientation) {
             case Orientation::Normal:
             case Orientation::MirrorX:
@@ -167,8 +146,6 @@ private:
             default:
                 return false;
         }
-
-        return true;
     }
 
     [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {
@@ -218,18 +195,10 @@ private:
     };
 
     /// @brief Send single command to display
-    [[nodiscard]] bool sendCommand(Command c) const noexcept {
-        _wire.beginTransmission(_config.address);
-        if (_wire.write(OneCommandMode) != 1) { goto fail; }
-        if (_wire.write(static_cast<u8>(c)) != 1) { goto fail; }
-        if (_wire.endTransmission() != 0) { goto fail; }
-
-        return true;
-    fail:
-        return false;
+    [[nodiscard]] bool sendCommand(Command c) noexcept {
+        const u8 packet[]{OneCommandMode, static_cast<u8>(c)};
+        return _node.writePacket(packet).isOk();
     }
-
-    friend Base;// CRTP
 };
 
-}// namespace kf
+}// namespace kf::drivers::display
