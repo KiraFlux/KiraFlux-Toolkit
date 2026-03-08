@@ -4,6 +4,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "kf/Result.hpp"
 #include "kf/aliases.hpp"
@@ -35,9 +36,9 @@ template<typename Impl> struct Writable : WritableTag {
     /// @tparam T Type of packet (trivially copyable)
     /// @param packet Value to write
     /// @return Result indicating success or error
-    template<typename T> [[nodiscard]] Result<void, ErrorImpl> writePacket(const T &packet) noexcept {
-        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
-        return impl().writePacketImpl(packet);
+    template<typename T> [[nodiscard]] Result<void, ErrorImpl> writePacket(T &&packet) noexcept {
+        static_assert(std::is_trivially_copyable_v<std::decay_t<T>>, "T must be trivially copyable");
+        return impl().writePacketImpl(std::forward<T>(packet));
     }
 
 private:
