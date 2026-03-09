@@ -17,9 +17,12 @@
 #include <kf/image/DynamicImage.hpp>
 
 // Actually uses in this demo
+#include <kf/bus/iic/ArduinoIIC.hpp>
 #include <kf/drivers/display/SSD1306.hpp>
 
-using kf::drivers::display::SSD1306;
+using kf::bus::iic::ArduinoIIC;
+using kf::drivers::display::Orientation;
+using SSD1306 = kf::drivers::display::SSD1306<ArduinoIIC::Node>;
 
 // Pixel format used by the display (monochrome)
 using P = SSD1306::PixelImpl;// = pixel::MonochromePixel
@@ -73,18 +76,21 @@ void setup() {
     delay(1000);
     Serial.println("SSD1306 Driver Demo");
 
-    // I2C bus (use default Wire)
-    // Wire.begin(); // may already be called by the driver, but call here to be safe
-    Wire.begin();
+    static ArduinoIIC::Config bus_config{
+        400'000,// I2C clock frequency (400 kHz typical)
+    };
+
+    ArduinoIIC bus{bus_config, Wire};
+
+    (void) bus.init();
 
     // Display configuration
-    static SSD1306::Config config{
-        400'000,// I2C clock frequency (400 kHz typical)
-        0x3C    // I2C address
+    static ArduinoIIC::Node::Config config{
+        .address = 0x3C,
     };
 
     // Driver instance references config and Wire.
-    static SSD1306 display{config, Wire};
+    static SSD1306 display{std::move(bus.createNode(config))};
 
     if (not display.init()) {
         Serial.println("Display init failed!");
@@ -96,9 +102,9 @@ void setup() {
 
     // Test only supported orientations.
     for (auto o: {
-             SSD1306::Orientation::Normal,
-             SSD1306::Orientation::MirrorX,
-             SSD1306::Orientation::MirrorY}) {
+             Orientation::Normal,
+             Orientation::MirrorX,
+             Orientation::MirrorY}) {
         if (display.orientation(o)) {
             demo(display, orient_names[static_cast<int>(o)]);
         } else {

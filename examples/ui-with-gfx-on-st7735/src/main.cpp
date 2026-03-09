@@ -3,6 +3,8 @@
 #include <Arduino.h>
 
 // uses in this demo:
+#include <kf/bus/spi/ArduinoSPI.hpp>
+#include <kf/drivers/display/Orientation.hpp>
 #include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
 #include <kf/image/DynamicImage.hpp>
@@ -10,8 +12,11 @@
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/ColoredTextRender.hpp>
 
+using kf::bus::spi::ArduinoSPI;
+using kf::drivers::display::Orientation;
+
 // Display Driver specialisation
-using MyDisplayDriver = kf::drivers::display::ST7735;
+using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node>;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
@@ -128,23 +133,36 @@ MyUI::Event eventFromChar(char c) {
 
 static auto &ui = MyUI::instance();
 
-// display config
-static MyDisplayDriver::Config display_config{
-    GPIO_NUM_5,
-    GPIO_NUM_2,
-    GPIO_NUM_15,
-    27000000,
-    MyDisplayDriver::Orientation::ClockWise,
+static ArduinoSPI::Config bus_config{
+    // use defauls
 };
 
-// display
-static MyDisplayDriver display{
-    display_config,
+static ArduinoSPI bus{
+    bus_config,
     SPI,
 };
 
+static ArduinoSPI::Node::Config node_config{
+    GPIO_NUM_5,// CS
+    27'000'000,// SPI frequency
+};
+
+// display config
+static MyDisplayDriver::Config display_config{
+    GPIO_NUM_2, // DC
+    GPIO_NUM_15,// RESET
+    Orientation::Normal,
+};
+
+// Driver instance references config and SPI bus.
+static MyDisplayDriver display{display_config, bus.createNode(node_config)};
+
+// display
+
 void setup() {
     Serial.begin(115200);
+
+    (void) bus.init();
 
     // display setup
     if (not display.init()) {

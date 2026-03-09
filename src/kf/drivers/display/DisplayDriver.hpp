@@ -3,9 +3,11 @@
 
 #pragma once
 
-#include "kf/drivers/display/Tag.hpp"
 #include "kf/image/Tag.hpp"
 #include "kf/meta/type_check.hpp"
+
+#include "kf/drivers/display/Orientation.hpp"
+#include "kf/drivers/display/Tag.hpp"
 
 namespace kf::drivers::display {
 
@@ -24,16 +26,6 @@ protected:
     ImageImpl _screen_image{};
 
 public:
-    /// @brief Display orientation modes
-    enum class Orientation : u8 {
-        Normal = 0,          ///< Default orientation
-        MirrorX = 1,         ///< Horizontal mirror
-        MirrorY = 2,         ///< Vertical mirror
-        Flip = 3,            ///< 180-degree rotation
-        ClockWise = 4,       ///< 90-degree clockwise rotation
-        CounterClockWise = 5,///< 90-degree counterclockwise rotation
-    };
-
     /// @brief image buffer
     [[nodiscard]] ImageImpl &image() noexcept { return _screen_image; }
 
@@ -43,10 +35,11 @@ public:
 
     /// @brief Transfer software buffer to display hardware
     /// @return true if success
-    [[nodiscard]] bool send() const noexcept { return implConst().sendImpl(); }
+    [[nodiscard]] bool send() noexcept { return impl().sendImpl(); }
 
-    /// @brief Set display orientation
-    /// @return true if success
+    /// @brief Set display orientation.
+    /// @param new_orientation New orientation value.
+    /// @return true if success, false if orientation not supported.
     [[nodiscard]] bool orientation(Orientation new_orientation) noexcept { return impl().setOrientationImpl(new_orientation); }
 
 protected:
@@ -55,13 +48,10 @@ protected:
     }
 
     // CRTP
-protected:
-    friend Impl;
-    using Base = DisplayDriver;
 
 private:
     [[nodiscard]] inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
-    [[nodiscard]] inline const Impl &implConst() const noexcept { return *static_cast<const Impl *>(this); }
+    [[nodiscard]] inline const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
 }// namespace kf::drivers::display
