@@ -6,11 +6,11 @@ sys.stdout = open("shapshot.txt", "wt", encoding='utf-8')
 repo_dir = Path(".")
 
 target_ext = (
-    "h", "hpp", "cpp", "md", "ino"
+    "h", "hpp", "cpp", "md", "ino", "yml", "sh"
 )
 
 target_dirs = (
-    "examples", "src", "test"
+    "examples", "src", "test", ".github"
 )
 
 for d in target_dirs:
