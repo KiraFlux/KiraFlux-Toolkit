@@ -37,8 +37,9 @@ public:
     /// @return true if success
     [[nodiscard]] bool send() noexcept { return impl().sendImpl(); }
 
-    /// @brief Set display orientation
-    /// @return true if success
+    /// @brief Set display orientation.
+    /// @param new_orientation New orientation value.
+    /// @return true if success, false if orientation not supported.
     [[nodiscard]] bool orientation(Orientation new_orientation) noexcept { return impl().setOrientationImpl(new_orientation); }
 
 protected:

@@ -11,14 +11,12 @@
 
 namespace kf::bus {
 
-/// @brief Bus static interface
-/// @tparam BusImpl Bus implementation.
-/// @note CRTP base class for bus implementations. Template parameter BusImpl must provide:
-///       - an `Error` type,
-///       - a nested `Node` type that inherits from `memory::io::Readable` and `memory::io::Writable` (checked via `kf_crtp_check`),
-///       - a nested `Node::Config` type,
-///       - a constructor `Node(BusImpl&, const Node::Config&)` for creating device nodes.
-///       The bus does not manage node lifetimes; it only offers a factory.
+/// @brief CRTP base class for bus implementations.
+/// @tparam BusImpl Concrete bus implementation (must inherit from this class).
+/// @tparam NodeImpl Type of node that will be created by the bus (must satisfy Readable and Writable).
+/// @tparam ErrorImpl Error type used by bus operations.
+/// @note The bus implementation must provide methods `initImpl()` and `quitImpl()`.
+///       Nodes are created via `createNode` and are expected to be movable.
 template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus : bus::Tag {
     kf_crtp_check(NodeImpl, kf::memory::io::ReadableTag);
     kf_crtp_check(NodeImpl, kf::memory::io::WritableTag);

@@ -13,6 +13,16 @@
 
 namespace kf::memory::io {
 
+/// @brief CRTP base class for readable streams (e.g. I2C, SPI, UART).
+/// @tparam Impl      Derived class.
+/// @tparam ErrorImpl Error type used by the implementation.
+/// @note Derived classes must implement:
+///
+///       - `Result<memory::Slice<const u8>, Error> readBufferImpl(memory::Slice<u8>)`
+///         Read up to buffer.size() bytes into the given buffer. Returns a slice of actually read data.
+///
+///       - `template<typename T> Result<T, Error> readPacketImpl()`
+///         Read a trivially copyable object of type T (size fixed at compile time).
 template<typename Impl, typename ErrorImpl> struct Readable : ReadableTag {
 
     /// @brief Read single byte
@@ -39,11 +49,6 @@ template<typename Impl, typename ErrorImpl> struct Readable : ReadableTag {
 private:
     Impl &impl() noexcept { return *static_cast<Impl *>(this); }
     const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
-
-    // Impl must provide:
-
-    // [[nodiscard]] Result<memory::Slice<const u8>, ErrorImpl> readBufferImpl(memory::Slice<u8> buffer) noexcept
-    // template <typename T> [[nodiscard]] Result<T, ErrorImpl> readPacketImpl() noexcept
 };
 
 }// namespace kf::memory::io

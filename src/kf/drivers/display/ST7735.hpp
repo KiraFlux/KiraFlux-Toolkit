@@ -26,9 +26,9 @@ template<typename I> struct ST7735 final : DisplayDriver<ST7735<I>, image::Viewp
         RgbMode = 0x00,///< RGB color order
         BgrMode = 0x08,///< BGR color order
 
-        MirrorTranspose = 0x20,///< Swap X and Y axes (rotation)
-        MirrorX = 0x40,        ///< Horizontal mirror
-        MirrorY = 0x80,        ///< Vertical mirror
+        MirrorTranspose = 0x20,///< Transpose image (Swap X and Y axes)
+        MirrorX = 0x40,        ///< Horizontal image mirror
+        MirrorY = 0x80,        ///< Vertical image mirror
     };
 
     /// @brief ST7735 command set (partial)
@@ -68,6 +68,8 @@ template<typename I> struct ST7735 final : DisplayDriver<ST7735<I>, image::Viewp
     explicit ST7735(const Config &config, NodeImpl &&node) noexcept :
         _config{config}, _node{node} {}
 
+    /// @brief Hardware reset of the display (pulse RESET pin).
+    /// @note Required after power‑up to initialise the internal state machine.
     void reset() const noexcept {
         digitalWrite(_config.pin_reset, LOW);
         delay(10);
@@ -78,7 +80,7 @@ template<typename I> struct ST7735 final : DisplayDriver<ST7735<I>, image::Viewp
 private:
     const Config &_config;///< Hardware configuration
     NodeImpl _node;
-    u8 _madctl_base_mode{MadCtl::RgbMode};///< Base MADCTL value
+    u8 _madctl_base_mode{0};///< Base MADCTL value
 
     // DisplayDriver impl
     friend struct DisplayDriver<ST7735<I>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;

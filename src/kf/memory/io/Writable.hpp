@@ -14,8 +14,19 @@
 
 namespace kf::memory::io {
 
-/// @brief Writable Stream
-/// @tparam Impl stream implementation
+/// @brief CRTP base class for writable streams.
+/// @tparam Impl      Derived class.
+/// @tparam ErrorImpl Error type used by the implementation.
+/// @note Derived classes must implement:
+///
+///       - `Result<void, Error> writeBufferImpl(memory::Slice<const u8>)`
+///         Write a contiguous buffer of bytes.
+///
+///       - `template<typename T> Result<void, Error> writePacketImpl(T &&packet)`
+///         Write a trivially copyable object.
+///
+///       - `template<typename T> Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer)`
+///         Write a small header followed by a buffer (e.g. command + data) in one transaction.
 template<typename Impl, typename ErrorImpl> struct Writable : WritableTag {
 
     /// @brief Write single byte
@@ -53,12 +64,6 @@ template<typename Impl, typename ErrorImpl> struct Writable : WritableTag {
 private:
     Impl &impl() noexcept { return *static_cast<Impl *>(this); }
     const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
-
-    // Impl must provide:
-
-    // [[nodiscard]] Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept
-    // [[nodiscard]] Result<void, Error> writePacketImpl(T &&packet) noexcept // may use method overload
-    // [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept
 };
 
 }// namespace kf::memory::io
