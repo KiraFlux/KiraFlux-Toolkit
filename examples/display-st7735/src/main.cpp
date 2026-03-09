@@ -12,14 +12,20 @@
 // - VCC      -> 3.3V
 // - GND      -> GND
 
-#include <Arduino.h>
-
-#include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
 #include <kf/gfx/Palette.hpp>
 #include <kf/image/DynamicImage.hpp>
 
-using kf::drivers::display::ST7735;
+#include <Arduino.h>
+#include <kf/drivers/bus/spi/ArduinoSPI.hpp>
+#include <kf/drivers/display/Orientation.hpp>
+#include <kf/drivers/display/ST7735.hpp>
+
+using kf::drivers::display::Orientation;
+
+using kf::drivers::bus::spi::ArduinoSPI;
+using ST7735 = kf::drivers::display::ST7735<ArduinoSPI::Node>;
+
 using P = ST7735::PixelImpl;        // Pixel format used by the display
 using Palette = kf::gfx::Palette<P>;// Palette for this pixel format
 
@@ -80,17 +86,31 @@ void setup() {
     delay(1000);
     Serial.println("ST7735 Driver Demo");
 
-    // Configuration must live as long as the display (static).
-    static ST7735::Config config{
+    static ArduinoSPI::Config bus_config{
+        // use defauls
+    };
+
+    static ArduinoSPI bus{
+        bus_config, 
+        SPI,
+    };
+
+    static ArduinoSPI::Node::Config node_config{
         GPIO_NUM_5, // CS
+        27'000'000, // SPI frequency
+    };
+
+    // Configuration must live as long as the display (static).
+    static ST7735::Config driver_config{
         GPIO_NUM_2, // DC
         GPIO_NUM_15,// RESET
-        27'000'000, // SPI frequency
-        ST7735::Orientation::Normal,
+        Orientation::Normal,
     };
 
     // Driver instance references config and SPI bus.
-    static ST7735 display{config, SPI};
+    static ST7735 display{driver_config, bus.createNode(node_config) };
+
+    (void) bus.init();
 
     if (not display.init()) {
         Serial.println("Display init failed!");
@@ -102,12 +122,12 @@ void setup() {
 
     // Test all orientations.
     for (auto o: {
-             ST7735::Orientation::Normal,
-             ST7735::Orientation::MirrorX,
-             ST7735::Orientation::MirrorY,
-             ST7735::Orientation::Flip,
-             ST7735::Orientation::ClockWise,
-             ST7735::Orientation::CounterClockWise,
+             Orientation::Normal,
+             Orientation::MirrorX,
+             Orientation::MirrorY,
+             Orientation::Flip,
+             Orientation::ClockWise,
+             Orientation::CounterClockWise,
          }) {
         (void) display.orientation(o);// change hardware orientation
         demo(display, orient_names[static_cast<int>(o)]);
