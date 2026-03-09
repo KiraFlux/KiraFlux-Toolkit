@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <Wire.h>
-
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/drivers/bus/iic/Tag.hpp"
@@ -13,7 +11,7 @@
 #include "kf/pixel/MonochromePixel.hpp"
 
 #include "kf/drivers/display/DisplayDriver.hpp"
-#include "kf/drivers/display/Tag.hpp"
+#include "kf/drivers/display/Orientation.hpp"
 
 namespace kf::drivers::display {
 
