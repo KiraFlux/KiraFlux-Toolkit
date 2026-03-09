@@ -3,8 +3,8 @@
 
 #pragma once
 
-namespace kf::drivers::bus {
+namespace kf::bus::spi {
 
 struct Tag {};
 
-}// namespace kf::drivers::bus
+}// namespace kf::bus::spi

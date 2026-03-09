@@ -7,9 +7,9 @@
 #include "kf/memory/io/tags.hpp"
 #include "kf/meta/type_check.hpp"
 
-#include "kf/drivers/bus/Tag.hpp"
+#include "kf/bus/Tag.hpp"
 
-namespace kf::drivers::bus {
+namespace kf::bus {
 
 /// @brief Bus static interface
 /// @tparam BusImpl Bus implementation.
@@ -39,4 +39,4 @@ private:
     // void quitImpl() noexcept
 };
 
-}// namespace kf::drivers::bus
+}// namespace kf::bus

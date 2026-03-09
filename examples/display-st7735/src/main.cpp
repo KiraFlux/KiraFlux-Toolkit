@@ -17,13 +17,13 @@
 #include <kf/image/DynamicImage.hpp>
 
 #include <Arduino.h>
-#include <kf/drivers/bus/spi/ArduinoSPI.hpp>
+#include <kf/bus/spi/ArduinoSPI.hpp>
 #include <kf/drivers/display/Orientation.hpp>
 #include <kf/drivers/display/ST7735.hpp>
 
 using kf::drivers::display::Orientation;
 
-using kf::drivers::bus::spi::ArduinoSPI;
+using kf::bus::spi::ArduinoSPI;
 using ST7735 = kf::drivers::display::ST7735<ArduinoSPI::Node>;
 
 using P = ST7735::PixelImpl;        // Pixel format used by the display

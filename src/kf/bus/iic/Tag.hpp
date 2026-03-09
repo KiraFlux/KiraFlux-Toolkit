@@ -3,8 +3,8 @@
 
 #pragma once
 
-namespace kf::drivers::bus::iic {
+namespace kf::bus::iic {
 
 struct Tag {};
 
-}// namespace kf::drivers::bus::iic
+}// namespace kf::bus::iic

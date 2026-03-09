@@ -2,9 +2,9 @@
 // Scans all I2C addresses and reports devices that acknowledge.
 
 #include <Arduino.h>
-#include <kf/drivers/bus/iic/ArduinoIIC.hpp>
+#include <kf/bus/iic/ArduinoIIC.hpp>
 
-using namespace kf::drivers::bus::iic;
+using kf::bus::iic::ArduinoIIC;
 
 // Configuration for the IIC bus (uses default Wire)
 ArduinoIIC::Config bus_config{};

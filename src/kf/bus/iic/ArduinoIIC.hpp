@@ -12,9 +12,9 @@
 #include "kf/memory/io/Readable.hpp"
 #include "kf/memory/io/Writable.hpp"
 
-#include "kf/drivers/bus/iic/IIC.hpp"
+#include "kf/bus/iic/IIC.hpp"
 
-namespace kf::drivers::bus::iic {
+namespace kf::bus::iic {
 
 namespace arduino::internal {
 
@@ -186,8 +186,8 @@ private:
     //
 
     // IIC impl
-    friend struct kf::drivers::bus::Bus<ArduinoIIC, Node, Error>;
-    friend struct kf::drivers::bus::iic::IIC<ArduinoIIC, Node, Error>;
+    friend struct kf::bus::Bus<ArduinoIIC, Node, Error>;
+    friend struct kf::bus::iic::IIC<ArduinoIIC, Node, Error>;
 
     [[nodiscard]] Result<void, Error> initImpl() noexcept {
         if (not _wire.begin()) { return Error::BeginFailed; }
@@ -216,4 +216,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::bus::iic
+}// namespace kf::bus::iic

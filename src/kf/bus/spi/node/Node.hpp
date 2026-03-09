@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "kf/drivers/bus/spi/node/Tag.hpp"
+#include "kf/bus/spi/node/Tag.hpp"
 
-namespace kf::drivers::bus::spi::node {
+namespace kf::bus::spi::node {
 
 template<typename Impl> struct Node : node::Tag {
     void init() noexcept { impl().initImpl(); }
@@ -15,4 +15,4 @@ private:
     const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
-}// namespace kf::drivers::bus::spi::node
+}// namespace kf::bus::spi::node

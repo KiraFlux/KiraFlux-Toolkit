@@ -14,10 +14,10 @@
 #include "kf/memory/io/Writable.hpp"
 #include "kf/memory/io/tags.hpp"
 
-#include "kf/drivers/bus/spi/SPI.hpp"
-#include "kf/drivers/bus/spi/node/Node.hpp"
+#include "kf/bus/spi/SPI.hpp"
+#include "kf/bus/spi/node/Node.hpp"
 
-namespace kf::drivers::bus::spi {
+namespace kf::bus::spi {
 
 namespace arduino::internal {
 
@@ -207,8 +207,8 @@ private:
     SPIClass &_spi;
 
     // SPI impl
-    friend struct kf::drivers::bus::Bus<ArduinoSPI, Node, Error>;
-    friend struct kf::drivers::bus::spi::SPI<ArduinoSPI, Node, Error>;
+    friend struct kf::bus::Bus<ArduinoSPI, Node, Error>;
+    friend struct kf::bus::spi::SPI<ArduinoSPI, Node, Error>;
 
     [[nodiscard]] Result<void, Error> initImpl() noexcept {
         if (_config.hasDefaultPins()) {
@@ -222,4 +222,4 @@ private:
     void quitImpl() noexcept { _spi.end(); }
 };
 
-}// namespace kf::drivers::bus::spi
+}// namespace kf::bus::spi

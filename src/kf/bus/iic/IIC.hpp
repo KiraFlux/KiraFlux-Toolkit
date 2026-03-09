@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include "kf/drivers/bus/Bus.hpp"
-#include "kf/drivers/bus/iic/Tag.hpp"
+#include "kf/bus/Bus.hpp"
+#include "kf/bus/iic/Tag.hpp"
 
-namespace kf::drivers::bus::iic {
+namespace kf::bus::iic {
 
 /// @brief CRTP base class for IIC bus implementations.
 /// @tparam Impl Concrete IIC bus implementation (must inherit from this class).
@@ -15,4 +15,4 @@ namespace kf::drivers::bus::iic {
 ///       a nested Node type and implement all required bus methods.
 template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct IIC : iic::Tag, Bus<BusImpl, NodeImpl, ErrorImpl> {};
 
-}// namespace kf::drivers::bus::iic
+}// namespace kf::bus::iic

@@ -5,7 +5,7 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/drivers/bus/iic/Tag.hpp"
+#include "kf/bus/iic/Tag.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
@@ -17,7 +17,7 @@ namespace kf::drivers::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
 template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>> {
-    kf_crtp_check(typename I::BusImpl, kf::drivers::bus::iic::Tag);
+    kf_crtp_check(typename I::BusImpl, kf::bus::iic::Tag);
 
     using NodeImpl = I;
     using PixelImpl = pixel::MonochromePixel;

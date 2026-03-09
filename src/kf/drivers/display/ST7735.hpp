@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/drivers/bus/spi/Tag.hpp"
+#include "kf/bus/spi/Tag.hpp"
 #include "kf/image/ViewportImage.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
@@ -16,7 +16,7 @@ namespace kf::drivers::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
 template<typename I> struct ST7735 final : DisplayDriver<ST7735<I>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {
-    kf_crtp_check(typename I::BusImpl, kf::drivers::bus::spi::Tag);
+    kf_crtp_check(typename I::BusImpl, kf::bus::spi::Tag);
 
     using NodeImpl = I;
     using PixelImpl = pixel::Rgb565Pixel;
@@ -135,11 +135,11 @@ private:
         sendCommand(Command::MADCTL);
         sendPacket(madctl);
 
-        const u8 data_x[4] {0, 0, 0, static_cast<u8>(this->_screen_image.maxX())};
+        const u8 data_x[4]{0, 0, 0, static_cast<u8>(this->_screen_image.maxX())};
         sendCommand(Command::CASET);
         sendPacket(data_x);
-        
-        const u8 data_y[4] {0, 0, 0, static_cast<u8>(this->_screen_image.maxY())};
+
+        const u8 data_y[4]{0, 0, 0, static_cast<u8>(this->_screen_image.maxY())};
         sendCommand(Command::RASET);
         sendPacket(data_y);
 
