@@ -15,6 +15,7 @@
 #include "kf/memory/io/tags.hpp"
 
 #include "kf/drivers/bus/spi/SPI.hpp"
+#include "kf/drivers/bus/spi/node/Node.hpp"
 
 namespace kf::drivers::bus::spi {
 
@@ -25,16 +26,17 @@ enum class Error : u8 {
     BufferTooLong,
 };
 
-template<typename I> struct Node : memory::io::Readable<Node<I>, Error>, memory::io::Writable<Node<I>, Error>, {
+template<typename I> struct ArduinoNode : node::Node<ArduinoNode<I>>, memory::io::Readable<ArduinoNode<I>, Error>, memory::io::Writable<ArduinoNode<I>, Error> {
     using BusImpl = I;
 
     struct Config {
         enum class BitOrder : u8 {
-            LSB = SPI_LSBFIRST,
-            MSB = SPI_MSBFIRST,
+            LeastSignificant = SPI_LSBFIRST,
+            MostSignificant = SPI_MSBFIRST,
         };
 
         enum ClockBits : u8 {
+            None = 0,
             PhaseBit = 0b01,   // 0 = idle low, 1 = idle high
             PolarityBit = 0b10,// 0 = sample on leading edge
         };
@@ -47,8 +49,8 @@ template<typename I> struct Node : memory::io::Readable<Node<I>, Error>, memory:
         constexpr explicit Config(
             gpio_num_t chip_select_pin,
             u32 clock_hz = 0,// 0: default Arduino SPI clock
-            BitOrder bit_order = BitOrder::MSB,
-            ClockBits clock_bits = 0) noexcept :
+            BitOrder bit_order = BitOrder::MostSignificant,
+            ClockBits clock_bits = ClockBits::None) noexcept :
             clock_hz{clock_hz}, pin_cs{static_cast<u8>(chip_select_pin)}, bit_order{bit_order}, clock_bits{clock_bits} {}
 
         constexpr SPISettings toArduinoSPISettings() const noexcept {
@@ -56,7 +58,7 @@ template<typename I> struct Node : memory::io::Readable<Node<I>, Error>, memory:
         }
     };
 
-    explicit Node(BusImpl &bus, const Config &config) noexcept : _spi{bus._spi}, _config{config} {}
+    explicit ArduinoNode(BusImpl &bus, const Config &config) noexcept : _spi{bus._spi}, _config{config} {}
 
 private:
     SPIClass &_spi;
@@ -76,12 +78,22 @@ private:
         chipSelected(false);
     }
 
+    // Node impl
+    friend struct node::Node<ArduinoNode<I>>;
+
+    void initImpl() const noexcept {
+        pinMode(_config.pin_cs, OUTPUT);
+        digitalWrite(_config.pin_cs, HIGH);
+    }
+
     // Readable impl
-    friend struct kf::memory::io::Readable<Node<I>, Error>;
+    friend struct kf::memory::io::Readable<ArduinoNode<I>, Error>;
 
     void readBytes(u8 *buffer, usize length) noexcept {
         _spi.transferBytes(nullptr, buffer, length);
     }
+
+    template<typename> static constexpr bool always_false{false};
 
     template<typename T> T readPacketUnchecked() noexcept {
         constexpr usize to_read = sizeof(T);
@@ -93,7 +105,6 @@ private:
         } else if constexpr (to_read == sizeof(u32)) {
             return static_cast<T>(_spi.transfer32(0));
         } else {
-            template<typename> constexpr bool always_false{false};
             static_assert(always_false<T>, "readPacketUnchecked supports only 1,2,4 byte types");
         }
     }
@@ -124,7 +135,7 @@ private:
     }
 
     // Writable impl
-    friend struct kf::memory::io::Writable<Node<I>, Error>;
+    friend struct kf::memory::io::Writable<ArduinoNode<I>, Error>;
 
     void writeBytes(const u8 *buffer, usize length) noexcept {
         _spi.transferBytes(buffer, nullptr, length);
@@ -136,7 +147,7 @@ private:
 
     void writePacketUnchecked(u32 packet) noexcept { _spi.write32(packet); }
 
-    template<typename T> void writePacketUnchecked(T &&packet) noexcept { writeBytes(&packet, sizeof(T)); }
+    template<typename T> void writePacketUnchecked(T &&packet) noexcept { writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(T)); }
 
     [[nodiscard]] Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept {
         beginTransaction();
@@ -163,9 +174,11 @@ private:
 
 }// namespace arduino::internal
 
-struct ArduinoSPI : public spi::SPI<ArduinoSPI, arduino::internal::Node<ArduinoSPI>, arduino::internal::Error> {
+struct ArduinoSPI : public spi::SPI<ArduinoSPI, arduino::internal::ArduinoNode<ArduinoSPI>, arduino::internal::Error> {
     using Error = arduino::internal::Error;
-    using Node = arduino::internal::Node<ArduinoSPI>;
+    using Node = arduino::internal::ArduinoNode<ArduinoSPI>;
+
+    friend Node;
 
     struct Config {
         using PinIndex = i8;
