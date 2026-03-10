@@ -1,4 +1,4 @@
-.PHONY: all test monitor examples shapshot ss lint
+.PHONY: all monitor test build-examples be shapshot ss lint new-example ne
 
 all: test
 
@@ -8,8 +8,10 @@ monitor:
 test:
 	pio test -e native
 
-examples:
+build-examples:
 	./build-examples.sh
+
+be: build-examples
 
 shapshot:
 	python shapshot.py
@@ -18,3 +20,10 @@ ss: shapshot
 
 lint:
 	./lint.sh
+
+name ?= new-example
+
+new-example:
+	python new-example.py $(name)
+
+ne: new-example
