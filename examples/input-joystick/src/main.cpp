@@ -54,16 +54,16 @@ void tune(Joystick::Config &config) {
     const unsigned samples_x = 100;
     const unsigned samples_y = 200;// may be different – each tuner stops after its own count
 
-    AnalogAxis::Tuner tunerX{config.x, samples_x};
-    AnalogAxis::Tuner tunerY{config.y, samples_y};
+    AnalogAxis::Tuner tunerX{config.x, my_joystick.axis_x, samples_x};
+    AnalogAxis::Tuner tunerY{config.y, my_joystick.axis_y, samples_y};
 
     tunerX.start();
     tunerY.start();
 
     // Feed samples until both tuners finish
     while (tunerX.running() or tunerY.running()) {
-        tunerX.poll(my_joystick.axis_x.readRaw());
-        tunerY.poll(my_joystick.axis_y.readRaw());
+        tunerX.poll();
+        tunerY.poll();
     }
     // After this, config.x and config.y contain calibrated dead‑zone and ranges.
 }
