@@ -5,10 +5,10 @@
 
 #include <Arduino.h>
 
-#include "kf/Tuner.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/math/filters/ExponentialFilter.hpp"
+#include "kf/tuner/SampleCollectingTuner.hpp"
 
 namespace kf::input {
 
@@ -18,7 +18,7 @@ struct AnalogAxis final {
     using AdcSignedValue = i16;
 
     struct Config {
-        using tuned_type = AdcSignedValue;
+        using SampleType = AdcSignedValue;
 
         static constexpr unsigned adc_bits{12};
 
@@ -46,29 +46,35 @@ struct AnalogAxis final {
         }
     };
 
-    struct AxisTuner final : Tuner<AxisTuner, Config> {
+    struct Tuner final : tuner::SampleCollectingTuner<Tuner, Config> {
+
     private:
         AdcSignedValue _max_sample{};
         AdcSignedValue _min_sample{};
         i64 _sum{};
 
     public:
-        explicit AxisTuner(Config &config, u16 samples) :
-            Tuner{config, samples} {}
+        explicit Tuner(Config &config, u16 samples) :
+            SampleCollectingTuner{config, samples} {}
 
-        void onStart() noexcept {
+    private:
+        // SampleCollectingTuner impl
+
+        friend struct SampleCollectingTuner<Tuner, Config>;
+
+        void onStartImpl() noexcept {
             _max_sample = 0;
             _min_sample = Config::max_analog_value;
             _sum = 0;
         }
 
-        void onSample(AdcSignedValue sample) noexcept {
+        void onSampleImpl(AdcSignedValue sample) noexcept {
             _max_sample = kf::max(_max_sample, sample);
             _min_sample = kf::min(_min_sample, sample);
             _sum += sample;
         }
 
-        void calculate(Config &c) const noexcept {
+        void calculateImpl(Config &c) const noexcept {
             constexpr auto margin{10};
             constexpr auto zone_percents{10};
             c.dead_zone = static_cast<AdcSignedValue>((_max_sample - _min_sample) / zone_percents + margin);
@@ -126,4 +132,4 @@ private:
     }
 };
 
-}// namespace kf
+}// namespace kf::input

@@ -54,8 +54,8 @@ void tune(Joystick::Config &config) {
     const unsigned samples_x = 100;
     const unsigned samples_y = 200;// may be different – each tuner stops after its own count
 
-    AnalogAxis::AxisTuner tunerX{config.x, samples_x};
-    AnalogAxis::AxisTuner tunerY{config.y, samples_y};
+    AnalogAxis::Tuner tunerX{config.x, samples_x};
+    AnalogAxis::Tuner tunerY{config.y, samples_y};
 
     tunerX.start();
     tunerY.start();
