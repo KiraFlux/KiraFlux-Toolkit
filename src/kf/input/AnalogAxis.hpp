@@ -17,32 +17,16 @@ namespace kf::input {
 struct AnalogAxis final {
     using AdcSignedValue = i16;
 
-    struct Config {
-        static constexpr unsigned adc_bits{12};
-        static constexpr AdcSignedValue max_analog_value{(1 << adc_bits) - 1};
-        static constexpr AdcSignedValue default_analog_center{max_analog_value / 2};
+    struct Config; // forward declaration
 
-        enum class Mode : u8 {
-            Normal,
-            Inverted,
-        } mode;
-        u8 pin;
-        AdcSignedValue dead_zone{0};
-        AdcSignedValue range_positive{calcPositiveRange(default_analog_center)};
-        AdcSignedValue range_negative{calcNegativeRange(default_analog_center)};
-
-        Config(gpio_num_t pin, Mode mode) noexcept :
-            pin{static_cast<u8>(pin)}, mode{mode} {}
-
-        [[nodiscard]] constexpr static AdcSignedValue calcPositiveRange(AdcSignedValue center) noexcept {
-            return static_cast<AdcSignedValue>(max_analog_value - center);
-        }
-
-        [[nodiscard]] constexpr static AdcSignedValue calcNegativeRange(AdcSignedValue center) noexcept {
-            return center;
-        }
-    };
-
+    /// @brief Tuner for a single analog axis.
+    /// @note Inherits from SampleCollectingTuner and implements the concrete logic:
+    ///
+    ///       - on start: reset min, max, sum.
+    ///
+    ///       - on sample: update min, max, sum.
+    ///
+    ///       - on calculate: compute dead zone and ranges based on collected data.
     struct Tuner final : tuner::SampleCollectingTuner<Tuner, Config> {
 
         explicit Tuner(Config &config, AnalogAxis &axis, u16 samples) :
@@ -74,11 +58,41 @@ struct AnalogAxis final {
         void calculateImpl(Config &c) const noexcept {
             constexpr auto margin{10};
             constexpr auto zone_percents{10};
-            
+
             c.dead_zone = static_cast<AdcSignedValue>((_max_sample - _min_sample) / zone_percents + margin);
             const auto center = static_cast<AdcSignedValue>(_sum / samples_total);
             c.range_positive = Config::calcPositiveRange(center);
             c.range_negative = Config::calcNegativeRange(center);
+        }
+    };
+
+    struct Config {
+        static constexpr unsigned adc_bits{12};
+        static constexpr AdcSignedValue max_analog_value{(1 << adc_bits) - 1};
+        static constexpr AdcSignedValue default_analog_center{max_analog_value / 2};
+
+        enum class Mode : u8 {
+            Normal,
+            Inverted,
+        } mode;
+        u8 pin;
+        AdcSignedValue dead_zone{0};
+        AdcSignedValue range_positive{calcPositiveRange(default_analog_center)};
+        AdcSignedValue range_negative{calcNegativeRange(default_analog_center)};
+
+        Config(gpio_num_t pin, Mode mode) noexcept :
+            pin{static_cast<u8>(pin)}, mode{mode} {}
+
+        [[nodiscard]] Tuner createTuner(AnalogAxis &axis, u16 samples) noexcept {
+            return Tuner{*this, axis, samples};
+        }
+
+        [[nodiscard]] constexpr static AdcSignedValue calcPositiveRange(AdcSignedValue center) noexcept {
+            return static_cast<AdcSignedValue>(max_analog_value - center);
+        }
+
+        [[nodiscard]] constexpr static AdcSignedValue calcNegativeRange(AdcSignedValue center) noexcept {
+            return center;
         }
     };
 

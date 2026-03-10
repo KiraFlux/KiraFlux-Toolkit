@@ -9,9 +9,26 @@
 
 namespace kf::tuner {
 
+/// @brief CRTP base class for tuners that collect a fixed number of samples before calculating.
+/// @tparam Impl Derived class implementing the actual tuning logic.
+/// @tparam I    Configuration type that will be updated after calculation.
+/// @note The derived class must provide:
+///
+///       - `void startImpl() noexcept`   – called when collection begins.
+///
+///       - `void pollImpl() noexcept`    – called for each sample; should process the current sample (e.g., update min/max/sum).
+///
+///       - `void calculateImpl(I&) noexcept` – called after all samples are collected; updates the configuration.
+///
+/// @details This class manages a state machine (Idle → Processing → Calculating → Idle).
+///          After `start()`, the caller must repeatedly call `poll()` until `running()` returns false.
+///          The `poll()` implementation of this class will invoke the derived class's `pollImpl()`
+///          for each sample and, once the required number of samples is reached, transition to
+///          the Calculating state and call `calculateImpl()`.
 template<typename Impl, typename I> struct SampleCollectingTuner : Tuner<SampleCollectingTuner<Impl, I>> {
     using ConfigImpl = I;
 
+    /// @brief Total number of samples to collect before calculating.
     const u16 samples_total;
 
     explicit SampleCollectingTuner(ConfigImpl &config, u16 samples) noexcept :
@@ -49,9 +66,7 @@ private:
                 impl().pollImpl();
                 _samples_processed += 1;
 
-                const bool is_ready = _samples_processed >= samples_total;
-
-                if (is_ready) {
+                if (_samples_processed >= samples_total) {
                     _state = State::Calculating;
                 }
             }
