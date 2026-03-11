@@ -3,7 +3,22 @@
 
 #include <kf/tuner/Tuner.hpp>
 
-struct MyConfig;// forward delaration
+struct MyTuner;// forward delaration
+
+// config imitation for this demo
+// tuner`s goal is find config values
+struct MyConfig {
+    static constexpr int value_limit{1000};
+
+    const char *name;
+    int middle, average;
+
+    MyTuner createTuner(int samples) noexcept;
+
+    void print() const noexcept {
+        Serial.printf("%s: middle=%d, average=%d\n", name, middle, average);
+    }
+};
 
 int mySensorReadRaw() noexcept {
     return random(0, MyConfig::value_limit);
@@ -80,20 +95,7 @@ private:
     }
 };
 
-// config imitation for this demo
-// tuner`s goal is find config values
-struct MyConfig {
-    static constexpr int value_limit{1000};
-
-    const char *name;
-    int middle, average;
-
-    MyTuner createTuner(int samples) noexcept { return MyTuner{*this, samples}; }
-
-    void print() const noexcept {
-        Serial.printf("%s: middle=%d, average=%d\n", name, middle, average);
-    }
-};
+MyTuner MyConfig::createTuner(int samples) noexcept { return MyTuner{*this, samples}; }
 
 void setup() {
     Serial.begin(115200);
