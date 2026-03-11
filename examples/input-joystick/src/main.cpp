@@ -48,25 +48,22 @@ const char *stringFromDirection(Direction dir) {
     return "?";// unreachable, but silences warning
 }
 
-// Calibration: AxisTuner measures min, max and computes dead‑zone & ranges.
-// Tuners are independent state machines; they can have different sample counts.
+// Calibration: create a combined tuner for both axes.
+// The tuner internally uses AxisTuner for X and Y; it reads raw values from
+// the joystick axes automatically on each poll().
 void tune(Joystick::Config &config) {
-    const unsigned samples_x = 100;
-    const unsigned samples_y = 200;// may be different – each tuner stops after its own count
+    const unsigned samples = 100;
+    auto tuner{config.createTuner(my_joystick, samples)};
 
-    AnalogAxis::AxisTuner tunerX{config.x, samples_x};
-    AnalogAxis::AxisTuner tunerY{config.y, samples_y};
+    tuner.start();
 
-    tunerX.start();
-    tunerY.start();
-
-    // Feed samples until both tuners finish
-    while (tunerX.running() or tunerY.running()) {
-        tunerX.poll(my_joystick.axis_x.readRaw());
-        tunerY.poll(my_joystick.axis_y.readRaw());
+    while (tuner.running()) {
+        tuner.poll();// reads X and Y raw values and feeds the tuners
+        delay(1);
     }
-    // After this, config.x and config.y contain calibrated dead‑zone and ranges.
 }
+
+static kf::math::Timer log_timer{kf::math::Milliseconds(500)};// print every 500 ms
 
 void setup() {
     Serial.begin(115200);
@@ -75,11 +72,10 @@ void setup() {
 
     my_joystick.init();      // sets pin modes
     tune(my_joystick_config);// calibrate – needs GPIO ready, call after init()
+    log_timer.start(millis());
 }
 
 void loop() {
-    static kf::math::Timer log_timer{kf::math::Milliseconds(500)};// print every 500 ms
-
     const auto now = millis();
 
     // Periodically log raw and normalised values
