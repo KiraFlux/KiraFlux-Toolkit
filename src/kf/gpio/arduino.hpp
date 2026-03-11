@@ -6,18 +6,22 @@
 #include <Arduino.h>
 
 #include "kf/aliases.hpp"
-
 #include "kf/gpio/GPIO.hpp"
 
 namespace kf::gpio::arduino {
 
+/// Digital input with configurable pull‑up/pull‑down.
+/// @note Pull mode is set during init(); after that the pin stays configured.
 struct DigitalInput : gpio::DigitalInput<DigitalInput, void> {
+    /// Pull configuration – values correspond to Arduino pinMode constants.
     enum class Pull : u8 {
-        External = INPUT,
-        InternalUp = INPUT_PULLUP,
-        InternalDown = INPUT_PULLDOWN,
+        External = INPUT,             ///< no internal pull, external resistor assumed
+        InternalUp = INPUT_PULLUP,    ///< enable internal pull‑up
+        InternalDown = INPUT_PULLDOWN,///< enable internal pull‑down (if supported)
     };
 
+    /// @param pin      GPIO number (e.g. GPIO_NUM_4)
+    /// @param pull_mode pull configuration (default: External)
     explicit DigitalInput(gpio_num_t pin, Pull pull_mode = Pull::External) noexcept
         : _pin{static_cast<u8>(pin)}, _pull_mode{pull_mode} {}
 
@@ -40,8 +44,11 @@ private:
     }
 };
 
+/// 12‑bit ADC input (ESP32 typical).
+/// @note AnalogReadResolution should be set globally (default 12 bits).
 struct AdcInput : gpio::AdcInput<AdcInput, void> {
 
+    /// @param pin GPIO number with ADC capability (e.g. GPIO_NUM_34)
     explicit AdcInput(gpio_num_t pin) noexcept :
         _pin{static_cast<u8>(pin)} {}
 
@@ -63,8 +70,10 @@ private:
     }
 };
 
+/// Digital output
 struct DigitalOutput : gpio::DigitalOutput<DigitalOutput, void> {
 
+    /// @param pin GPIO number (e.g. GPIO_NUM_2)
     explicit DigitalOutput(gpio_num_t pin) noexcept :
         _pin{static_cast<u8>(pin)} {}
 
@@ -86,19 +95,23 @@ private:
     }
 };
 
+/// PWM output using ESP32 LEDC hardware.
+/// @note One LEDC channel can control multiple pins (same frequency/resolution).
 struct PwmOutput : gpio::PwmOutput<PwmOutput, bool> {
 
     struct Config {
-        u32 frequency_hz;
-        u8 resolution_bits;
-        u8 pin;
-        u8 channel;
+        u32 frequency_hz;  ///< PWM frequency (Hz)
+        u8 resolution_bits;///< resolution in bits (1..16)
+        u8 pin;            ///< GPIO pin number
+        u8 channel;        ///< LEDC channel (0..15)
 
+        /// Maximum PWM value for given resolution (2^bits - 1).
         u16 maxPwm() const noexcept {
             return static_cast<u16>((1u << (resolution_bits)) - 1u);
         }
     };
 
+    /// @param config reference to configuration (must outlive this object)
     explicit PwmOutput(Config &config) noexcept : _config{config} {}
 
 private:
