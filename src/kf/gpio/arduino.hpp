@@ -13,34 +13,45 @@ namespace kf::gpio::arduino {
 /// Digital input with configurable pull‑up/pull‑down.
 /// @note Pull mode is set during init(); after that the pin stays configured.
 struct DigitalInput : gpio::DigitalInput<DigitalInput, void> {
-    /// Pull configuration – values correspond to Arduino pinMode constants.
-    enum class Pull : u8 {
-        External = INPUT,             ///< no internal pull, external resistor assumed
-        InternalUp = INPUT_PULLUP,    ///< enable internal pull‑up
-        InternalDown = INPUT_PULLDOWN,///< enable internal pull‑down (if supported)
-    };
 
     /// @param pin      GPIO number (e.g. GPIO_NUM_4)
-    /// @param pull_mode pull configuration (default: External)
-    explicit DigitalInput(gpio_num_t pin, Pull pull_mode = Pull::External) noexcept
-        : _pin{static_cast<u8>(pin)}, _pull_mode{pull_mode} {}
+    /// @param pull_mode pull configuration
+    explicit DigitalInput(gpio_num_t pin, Pull pull_type) noexcept
+        : _pin{static_cast<u8>(pin)}, _state{static_cast<u8>(pull_type)} {}
 
 private:
-    const Pull _pull_mode;
     const u8 _pin;
+    u8 _state;
+
+    [[nodiscard]] u8 matchMode(bool inverted_reading) const noexcept {
+        if (static_cast<bool>(_state & external_pull_bit)) {
+            return INPUT;
+        } else {
+            return inverted_reading ? INPUT_PULLDOWN : INPUT_PULLUP;
+        }
+    }
 
     // Initable impl
     friend struct kf::mixin::Initable<DigitalInput, void>;
 
     void initImpl() noexcept {
-        pinMode(_pin, static_cast<u8>(_pull_mode));
+        const bool inverted_reading = ((_state & pull_up_bit) == 0);
+        pinMode(_pin, matchMode(inverted_reading));
+        _state = static_cast<u8>(inverted_reading);
     }
 
     // input impl
     friend struct kf::gpio::Input<DigitalInput, bool, void>;
 
     [[nodiscard]] bool readImpl() const noexcept {
-        return digitalRead(_pin);
+        const auto level = static_cast<bool>(digitalRead(_pin));
+
+        // if inverted
+        if (static_cast<bool>(_state)) {
+            return not level;
+        } else {
+            return level;
+        }
     }
 };
 

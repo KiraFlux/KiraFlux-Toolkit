@@ -5,9 +5,9 @@
 
 using namespace kf::gpio::arduino;
 
-DigitalInput button{GPIO_NUM_10, DigitalInput::Pull::External};// button to GND
-DigitalOutput led{GPIO_NUM_12};                                // LED with resistor
-AdcInput adc{GPIO_NUM_34};                                     // potentiometer (12‑bit)
+DigitalInput button{GPIO_NUM_10, DigitalInput::Pull::ExternalDown};// button to GND
+DigitalOutput led{GPIO_NUM_12};                                    // LED with resistor
+AdcInput adc{GPIO_NUM_34};                                         // potentiometer (12‑bit)
 
 PwmOutput::Config ledc_config{
     .frequency_hz = 10000,
@@ -27,11 +27,13 @@ void setup() {
     (void) pwm.init();
 
     AdcInput::resolution(12);
-    Serial.println(AdcInput::resolution()); // get current adc resolution bits
-    Serial.println(AdcInput::maxValue()); // get current adc resolution bits
+    Serial.println(AdcInput::resolution());// get current adc resolution bits
+    Serial.println(AdcInput::maxValue());  // get current max value with current resolution
 }
 
 void loop() {
+    static auto pwm_max = pwm.maxDuty();
+
     // Button → LED
     led.write(button.read());
 
@@ -41,7 +43,8 @@ void loop() {
     // PWM sawtooth (0 -> 1023 -> 0...)
     static int i = 0;
     pwm.write(i);
-    i = (i + 1) & 1023;
+    i += 1;
+    i &= pwm_max;
 
     delay(10);
 }
