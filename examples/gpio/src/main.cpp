@@ -25,13 +25,17 @@ void setup() {
     led.init();
     adc.init();
     (void) pwm.init();
+
+    AdcInput::resolution(12);
+    Serial.println(AdcInput::resolution()); // get current adc resolution bits
+    Serial.println(AdcInput::maxValue()); // get current adc resolution bits
 }
 
 void loop() {
     // Button → LED
     led.write(button.read());
 
-    // Print ADC value (0-4095)
+    // Print ADC value (0..4095)
     Serial.println(adc.read());
 
     // PWM sawtooth (0 -> 1023 -> 0...)
