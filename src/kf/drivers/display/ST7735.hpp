@@ -5,6 +5,7 @@
 
 #include "kf/aliases.hpp"
 #include "kf/bus/spi/Tag.hpp"
+#include "kf/gpio/GPIO.hpp"
 #include "kf/image/ViewportImage.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
@@ -15,10 +16,12 @@
 namespace kf::drivers::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-template<typename I> struct ST7735 final : DisplayDriver<ST7735<I>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {
-    kf_crtp_check(typename I::BusImpl, kf::bus::spi::Tag);
+template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {
+    kf_crtp_check(typename Ib::BusImpl, kf::bus::spi::Tag);
+    kf_crtp_check(Ido, kf::gpio::DigitalOutputTag);
 
-    using NodeImpl = I;
+    using NodeImpl = Ib;
+    using DigitalOutputPinImpl = Ido;
     using PixelImpl = pixel::Rgb565Pixel;
 
     /// @brief Memory Access Control (MADCTL) register bits
@@ -53,45 +56,37 @@ template<typename I> struct ST7735 final : DisplayDriver<ST7735<I>, image::Viewp
     /// @brief Hardware configuration for ST7735
     struct Config {
         Orientation orientation;///< Initial display orientation
-        u8 pin_data_command;    ///< Data/command selection pin
-        u8 pin_reset;           ///< Reset pin
-
-        constexpr explicit Config(
-            gpio_num_t dc,
-            gpio_num_t reset,
-            Orientation orientation = Orientation::Normal) noexcept :
-            pin_data_command{static_cast<u8>(dc)},
-            pin_reset{static_cast<u8>(reset)},
-            orientation{orientation} {}
     };
 
-    explicit ST7735(const Config &config, NodeImpl &&node) noexcept :
-        _config{config}, _node{node} {}
+    explicit ST7735(const Config &config, NodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
+        _config{config}, _node{node}, _pin_data_command{pin_data_command}, _pin_reset{pin_reset} {}
 
     /// @brief Hardware reset of the display (pulse RESET pin).
     /// @note Required after power‑up to initialise the internal state machine.
     void reset() const noexcept {
-        digitalWrite(_config.pin_reset, LOW);
+        _pin_reset.write(false);
         delay(10);
-        digitalWrite(_config.pin_reset, HIGH);
+        _pin_reset.write(true);
         delay(120);
     }
 
 private:
     const Config &_config;///< Hardware configuration
     NodeImpl _node;
+    DigitalOutputPinImpl _pin_data_command;
+    DigitalOutputPinImpl _pin_reset;
+
     u8 _madctl_base_mode{0};///< Base MADCTL value
 
     // DisplayDriver impl
-    friend struct DisplayDriver<ST7735<I>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;
+    friend struct DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;
 
     /// @brief Initialize display hardware via SPI
     /// @return Always returns true (hardware errors not checked)
     [[nodiscard]] bool initImpl() noexcept {
         _node.init();
-
-        pinMode(_config.pin_data_command, OUTPUT);
-        pinMode(_config.pin_reset, OUTPUT);
+        _pin_data_command.init();
+        _pin_reset.init();
 
         reset();
 
@@ -151,17 +146,17 @@ private:
     // Low-level communication
 
     void sendBuffer(memory::Slice<const u8> buffer) noexcept {
-        digitalWrite(_config.pin_data_command, HIGH);
+        _pin_data_command.write(true);
         (void) _node.writeBuffer(buffer);
     }
 
     template<typename T> void sendPacket(T &&packet) noexcept {
-        digitalWrite(_config.pin_data_command, HIGH);
+        _pin_data_command.write(true);
         (void) _node.writePacket(std::forward<T>(packet));
     }
 
     void sendCommand(Command c) noexcept {
-        digitalWrite(_config.pin_data_command, LOW);
+        _pin_data_command.write(false);
         (void) _node.writeByte(static_cast<u8>(c));
     }
 };
