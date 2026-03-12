@@ -2,19 +2,13 @@
 #include <kf/Logger.hpp>
 
 #include <kf/drivers/actuators/PwmPositionServo.hpp>
+#include <kf/gpio/arduino.hpp>
 
-using kf::drivers::actuators::PwmPositionServo;
-
-// 50 Hz, 16-bit resolution works for most RC servos
-static const PwmPositionServo::PwmConfig pwm_config{
-    .ledc_frequency_hz = 50,
-    .ledc_resolution_bits = 16,
-};
+using kf::gpio::arduino::PwmOutput;
+using PwmPositionServo = kf::drivers::actuators::PwmPositionServo<PwmOutput>;
 
 // GPIO13, channel 0; 0..180 deg range
 static const PwmPositionServo::DriverConfig driver_config{
-    .signal_pin = GPIO_NUM_13,
-    .ledc_channel = 0,
     .min_angle = 0,
     .max_angle = 180,
 };
@@ -25,15 +19,26 @@ static const PwmPositionServo::PulseConfig pulse_config{
     .max_pulse = {2500, 180},
 };
 
-static PwmPositionServo servo{pwm_config, driver_config, pulse_config};
+// 50 Hz, 12-bit resolution works for most RC servos
+PwmOutput::Config pwm_config{
+    .frequency_hz = 50,
+    .resolution_bits = 12,
+    .pin = static_cast<kf::u8>(GPIO_NUM_13),
+    .channel = 0,
+};
+
+static PwmPositionServo servo{
+    driver_config,
+    pulse_config,
+    PwmOutput{pwm_config},
+};
 
 void setup() {
     Serial.begin(115200);
     kf::Logger::writer = [](kf::memory::StringView s) { Serial.write(s.data(), s.size()); };
 
     // check configs
-    bool failed = not pwm_config.check();
-    failed |= not driver_config.check();
+    bool failed = not driver_config.check();
     failed |= not pulse_config.check();
     if (failed) {
         Serial.println("Servo config check failed");
@@ -47,7 +52,7 @@ void setup() {
 
     // sweep 0 -> 180 -> 0
     for (int angle = -180; angle <= 180; angle += 1) {
-        servo.set(abs(180 - angle));
+        servo.write(abs(180 - angle));
         delay(20);
     }
 }

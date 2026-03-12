@@ -6,54 +6,28 @@
 #include <Arduino.h>
 
 #include "kf/algorithm.hpp"
+#include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
+#include "kf/meta/type_check.hpp"
 #include "kf/validation.hpp"
 
 namespace kf::drivers::actuators {
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
-struct PwmPositionServo {
+template<typename I> struct PwmPositionServo {
+    kf_crtp_check(I, kf::gpio::PwmOutputTag);
+    using PwmImpl = I;
 
     static constexpr auto logger{Logger::create("PwmPositionServo")};
 
-    /// @brief PWM signal configuration for LEDC hardware
-    struct PwmConfig : Validatable<PwmConfig> {
-        u32 ledc_frequency_hz;  ///< PWM frequency in Hz
-        u8 ledc_resolution_bits;///< PWM resolution (8-16 bits)
-
-        /// @brief Calculate maximum duty cycle value
-        /// @return Maximum duty cycle value (2^resolution - 1)
-        [[nodiscard]] constexpr u32 maxDuty() const noexcept {
-            return (1u << ledc_resolution_bits) - 1u;
-        }
-
-        /// @brief Convert pulse width to duty cycle value
-        /// @param pulse_width Pulse width in microseconds
-        /// @return Duty cycle value for LEDC hardware
-        [[nodiscard]] u16 dutyFromPulseWidth(math::Microseconds pulse_width) const noexcept {
-            const auto t = u64{pulse_width} * ledc_frequency_hz * maxDuty();
-            return static_cast<u16>(t / 1'000'000u);
-        }
-
-        /// @brief Validate PWM configuration parameters
-        void checkImpl(Validator &validator) const noexcept {
-            kf_Validator_check(validator, logger, ledc_frequency_hz > 0);
-            kf_Validator_check(validator, logger, ledc_resolution_bits >= 8);
-            kf_Validator_check(validator, logger, ledc_resolution_bits <= 16);
-        }
-    };
-
     /// @brief Servo driver hardware configuration
     struct DriverConfig : Validatable<DriverConfig> {
-        u8 signal_pin;          ///< GPIO pin for PWM signal output
-        u8 ledc_channel;        ///< LEDC channel (0-15) for ESP32 PWM
         math::Degrees min_angle;///< Minimum servo rotation angle
         math::Degrees max_angle;///< Maximum servo rotation angle
 
         /// @brief Validate driver configuration parameters
         void checkImpl(Validator &validator) const noexcept {
-            kf_Validator_check(validator, logger, ledc_channel <= 15);
             kf_Validator_check(validator, logger, min_angle < max_angle);
         }
     };
@@ -87,59 +61,39 @@ struct PwmPositionServo {
         }
     };
 
-private:
-    const PwmConfig &_pwm_settings;      ///< PWM signal configuration
-    const DriverConfig &_driver_settings;///< Servo hardware configuration
-    const PulseConfig &_pulse_settings;  ///< Angle-pulse mapping configuration
-
-public:
     /// @brief Construct servo driver instance
     /// @param pwm_settings PWM signal configuration
     /// @param driver_settings Servo hardware configuration
     /// @param pulse_settings Angle-pulse mapping configuration
     explicit constexpr PwmPositionServo(
-        const PwmConfig &pwm_settings,
         const DriverConfig &driver_settings,
-        const PulseConfig &pulse_settings) noexcept :
-        _driver_settings{driver_settings}, _pwm_settings(pwm_settings), _pulse_settings(pulse_settings) {}
+        const PulseConfig &pulse_settings,
+        PwmImpl &&pin_pwm) noexcept :
+        _driver_settings{driver_settings}, _pulse_settings(pulse_settings), _pin_pwm{pin_pwm} {}
 
     /// @brief Initialize servo driver hardware
     /// @return true if PWM channel setup successful
-    /// @note Configures ESP32 LEDC hardware for PWM generation
-    [[nodiscard]] bool init() const noexcept {
-        const auto freq = ledcSetup(
-            _driver_settings.ledc_channel,
-            _pwm_settings.ledc_frequency_hz,
-            _pwm_settings.ledc_resolution_bits);
-
-        if (0 == freq) {
-            logger.error("LEDC setup failed");
-            return false;
-        }
-
-        ledcAttachPin(_driver_settings.signal_pin, _driver_settings.ledc_channel);
-
-        return true;
+    [[nodiscard]] bool init() noexcept {
+        return _pin_pwm.init();
     }
 
     /// @brief Set servo to target angle
     /// @param angle Target angle in degrees
     /// @note Automatically converts angle to PWM duty cycle
-    void set(math::Degrees angle) noexcept {
-        write(_pwm_settings.dutyFromPulseWidth(_pulse_settings.pulseWidthFromAngle(angle)));
+    void write(math::Degrees angle) noexcept {
+        _pin_pwm.write(_pin_pwm.dutyFromPulseWidth(_pulse_settings.pulseWidthFromAngle(angle)));
     }
 
     /// @brief Disable servo (stop PWM signal)
     void disable() noexcept {
-        write(0);
+        _pin_pwm.write(0);
     }
 
 private:
-    /// @brief Write duty cycle value to LEDC hardware
-    /// @param duty Duty cycle value (0 to maxDuty)
-    void write(u16 duty) const noexcept {
-        ledcWrite(_driver_settings.ledc_channel, duty);
-    }
+    const DriverConfig &_driver_settings;///< Servo hardware configuration
+    const PulseConfig &_pulse_settings;  ///< Angle-pulse mapping configuration
+
+    PwmImpl _pin_pwm;
 };
 
 }// namespace kf::drivers::actuators
