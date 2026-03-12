@@ -28,7 +28,7 @@ template<typename Impl, typename InitResultType> struct AdcInput : Input<Impl, u
 
     [[nodiscard]] static u8 resolution() noexcept { return Impl::getResolutionImpl(); }
 
-    [[nodiscard]] u16 valueMax() noexcept { return static_cast<u16>((1u << resolution()) - 1u); }
+    [[nodiscard]] static u16 maxValue() noexcept { return static_cast<u16>((1u << resolution()) - 1u); }
 };
 
 /// @brief CRTP base for outputs.
