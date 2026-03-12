@@ -53,6 +53,8 @@ struct AdcInput : gpio::AdcInput<AdcInput, void> {
         _pin{static_cast<u8>(pin)} {}
 
 private:
+    static u8 _resolution_bits;
+
     const u8 _pin;
 
     // Initable impl
@@ -68,7 +70,21 @@ private:
     [[nodiscard]] u16 readImpl() const noexcept {
         return analogRead(_pin);
     }
+
+    // adc input impl
+    friend struct kf::gpio::AdcInput<AdcInput, void>;
+
+    static void setResolutionImpl(u8 resolution_bits) noexcept {
+        if (_resolution_bits != resolution_bits) {
+            _resolution_bits = resolution_bits;
+            analogReadResolution(_resolution_bits);
+        }
+    }
+
+    static u8 getResolutionImpl() noexcept { return _resolution_bits; }
 };
+
+u8 AdcInput::_resolution_bits{12};// Arduino default resolution on ESP32 is 12-bits
 
 /// Digital output
 struct DigitalOutput : gpio::DigitalOutput<DigitalOutput, void> {
