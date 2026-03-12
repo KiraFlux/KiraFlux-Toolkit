@@ -23,7 +23,13 @@ template<typename Impl, typename InitResultType> struct DigitalInput : Input<Imp
 struct AdcInputTag {};
 
 /// @brief Analog input specialization.
-template<typename Impl, typename InitResultType> struct AdcInput : Input<Impl, u16, InitResultType>, AdcInputTag {};
+template<typename Impl, typename InitResultType> struct AdcInput : Input<Impl, u16, InitResultType>, AdcInputTag {
+    static void resolution(u8 resolution_bits) noexcept { Impl::setResolutionImpl(resolution_bits); }
+
+    [[nodiscard]] static u8 resolution() noexcept { return Impl::getResolutionImpl(); }
+
+    [[nodiscard]] u16 valueMax() noexcept { return static_cast<u16>((1u << resolution()) - 1u); }
+};
 
 /// @brief CRTP base for outputs.
 /// @note Requires `void writeImpl(T) const` in derived class.
