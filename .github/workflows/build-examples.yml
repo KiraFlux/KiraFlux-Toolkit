@@ -2,17 +2,50 @@ name: Build Examples
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: [dev, main]
   pull_request:
-    branches: [ "main", "dev" ]
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
-  build:
+  gather-examples:
     runs-on: ubuntu-latest
+    outputs:
+      examples: ${{ steps.find.outputs.examples }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install PlatformIO
-        run: pip install platformio
-      - name: Build all examples
-        run: ./build-examples.sh
+      - name: Find example directories
+        id: find
+        run: chmod +x ./find-examples.sh && echo "examples=$(bash find-examples.sh)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: gather-examples
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false      # continue building other examples even if one fails
+      matrix:
+        example: ${{ fromJson(needs.gather-examples.outputs.examples) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Cache PlatformIO core, packages and pip to speed up subsequent builds
+      - name: Cache PlatformIO and pip
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+            ~/.platformio/packages
+          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini', 'library.json') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'        # latest Python 3 (PlatformIO requires 3.7+)
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build ${{ matrix.example }}
+        run: pio run -d "${{ matrix.example }}"
