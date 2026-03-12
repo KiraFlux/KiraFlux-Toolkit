@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/aliases.hpp"
+#include "kf/math/units.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 
@@ -45,6 +46,17 @@ template<typename Impl, typename InitResultType> struct DigitalOutput : Output<I
 struct PwmOutputTag {};
 
 /// @brief Analog output specialization.
-template<typename Impl, typename InitResultType> struct PwmOutput : Output<Impl, u16, InitResultType>, PwmOutputTag {};
+template<typename Impl, typename InitResultType> struct PwmOutput : Output<Impl, u16, InitResultType>, PwmOutputTag {
+    [[nodiscard]] u32 frequency() const noexcept { return static_cast<const Impl *>(this)->getFrequencyImpl(); }
+
+    [[nodiscard]] u8 resolution() const noexcept { return static_cast<const Impl *>(this)->getResolutionImpl(); }
+
+    [[nodiscard]] u16 maxDuty() const noexcept { return static_cast<u16>((1u << resolution()) - 1u); }
+
+    [[nodiscard]] u16 dutyFromPulseWidth(kf::math::Microseconds pulse_width) const noexcept {
+        const auto t = u64{pulse_width} * frequency() * maxDuty();
+        return static_cast<u16>(t / 1'000'000u);
+    }
+};
 
 }// namespace kf::gpio

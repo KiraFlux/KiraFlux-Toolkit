@@ -152,6 +152,13 @@ private:
     void writeImpl(u16 level) const noexcept {
         ledcWrite(_config.channel, level);
     }
+
+    // pwm output impl
+    friend struct kf::gpio::PwmOutput<PwmOutput, bool>;
+
+    u32 getFrequencyImpl() const noexcept { return _config.frequency_hz; }
+
+    u8 getResolutionImpl() const noexcept { return _config.resolution_bits; }
 };
 
 }// namespace kf::gpio::arduino
