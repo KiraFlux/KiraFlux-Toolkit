@@ -1,33 +1,42 @@
-// Demo for KiraFlux input abstractions: AnalogAxis, Joystick, JoystickListener
+// Demo for KiraFlux input abstractions: NormalizedAdcInput, Joystick, JoystickListener
 
 #include <Arduino.h>
 #include <kf/math/Timer.hpp>
 
 // target files for this demo
-#include <kf/input/AnalogAxis.hpp>
+#include <kf/gpio/arduino.hpp>
 #include <kf/input/Joystick.hpp>
 #include <kf/input/JoystickListener.hpp>
+#include <kf/input/NormalizedAdcInput.hpp>
 
-using kf::input::AnalogAxis;
-using kf::input::Joystick;
-using kf::input::JoystickListener;
+using kf::gpio::arduino::AdcInput;
+using NormalizedAdcInput = kf::input::NormalizedAdcInput<AdcInput>;
+using Joystick = kf::input::Joystick<NormalizedAdcInput>;
+using JoystickListener = kf::input::JoystickListener<Joystick>;
 
 // Configuration – must outlive joystick instance (referenced)
 Joystick::Config my_joystick_config{
     .x = {
-        GPIO_NUM_34,
-        AnalogAxis::Config::Mode::Normal,
+        .inverted = false,
+        // .dead_zone = 123,
+        // .range_positive = 45,
+        // .range_negative = 67,
     },
     .y = {
-        GPIO_NUM_35,
-        AnalogAxis::Config::Mode::Inverted,
+        .inverted = true,
     },
+};
+
+NormalizedAdcInput::FilterImpl::Config axis_filter_config{
+    .factor = 0.1f,
 };
 
 // Joystick – must outlive listener instance (referenced)
 Joystick my_joystick{
     my_joystick_config,// referenced, must stay alive
-    0.1f,              // filter coefficient for both axes
+    axis_filter_config,// referenced, must stay alive
+    AdcInput{GPIO_NUM_34},
+    AdcInput{GPIO_NUM_35},
 };
 
 JoystickListener my_listener{
@@ -88,7 +97,7 @@ void loop() {
         const int y_raw = my_joystick.axis_y.readRaw();
         const float y_norm = my_joystick.axis_y.read();
 
-        const auto combined = my_joystick.read();// (x, y, magnitude), normalized to unit circle
+        const auto [x, y, magnitude] = my_joystick.read();// normalized to unit circle
 
         Serial.printf(
             "Ax: %5d %+1.3f \t"
@@ -96,7 +105,7 @@ void loop() {
             "Both: (%+1.3f, %+1.3f): %1.3f\n",
             x_raw, x_norm,
             y_raw, y_norm,
-            combined.x, combined.y, combined.magnitude);
+            x, y, magnitude);
     }
 
     // Direction change events (with autorepeat)

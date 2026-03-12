@@ -20,11 +20,13 @@
 #include <kf/bus/spi/ArduinoSPI.hpp>
 #include <kf/drivers/display/Orientation.hpp>
 #include <kf/drivers/display/ST7735.hpp>
+#include <kf/gpio/arduino.hpp>
 
 using kf::drivers::display::Orientation;
 
 using kf::bus::spi::ArduinoSPI;
-using ST7735 = kf::drivers::display::ST7735<ArduinoSPI::Node>;
+using kf::gpio::arduino::DigitalOutput;
+using ST7735 = kf::drivers::display::ST7735<ArduinoSPI::Node, DigitalOutput>;
 
 using P = ST7735::PixelImpl;        // Pixel format used by the display
 using Palette = kf::gfx::Palette<P>;// Palette for this pixel format
@@ -91,24 +93,27 @@ void setup() {
     };
 
     static ArduinoSPI bus{
-        bus_config, 
+        bus_config,
         SPI,
     };
 
     static ArduinoSPI::Node::Config node_config{
-        GPIO_NUM_5, // CS
-        27'000'000, // SPI frequency
+        GPIO_NUM_5,// CS
+        27'000'000,// SPI frequency
     };
 
     // Configuration must live as long as the display (static).
     static ST7735::Config driver_config{
-        GPIO_NUM_2, // DC
-        GPIO_NUM_15,// RESET
         Orientation::Normal,
     };
 
     // Driver instance references config and SPI bus.
-    static ST7735 display{driver_config, bus.createNode(node_config) };
+    static ST7735 display{
+        driver_config,
+        bus.createNode(node_config),
+        DigitalOutput{GPIO_NUM_2},
+        DigitalOutput{GPIO_NUM_15},
+    };
 
     (void) bus.init();
 

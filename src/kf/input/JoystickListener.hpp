@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/input/Joystick.hpp"
 #include "kf/math/Timer.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf::input {
 
-struct JoystickListener {
+template<typename I> struct JoystickListener {
     enum class Direction : u8 {
         Up = 0,
         Down = 1,
@@ -19,9 +19,11 @@ struct JoystickListener {
         Home
     };
 
+    using JoystickImpl = I;
+
 private:
-    Joystick &_joystick;
-    const float _threshold;
+    JoystickImpl &_joystick;
+    const f32 _threshold;
 
     math::Timer _repeat_timer{static_cast<kf::math::Milliseconds>(100)};
     math::Timer _initial_delay{static_cast<kf::math::Milliseconds>(400)};
@@ -30,11 +32,14 @@ private:
     bool _has_changed{false};
 
 public:
-    explicit JoystickListener(Joystick &joy, float threshold = 0.6f) noexcept
-        : _joystick{joy}, _threshold{threshold} {}
+    explicit JoystickListener(JoystickImpl &joystick, f32 threshold = 0.6f) noexcept
+        : _joystick{joystick}, _threshold{threshold} {}
 
     void poll(math::Milliseconds now) noexcept {
-        const auto new_direction = calculateDirection();
+        const auto x = _joystick.axis_x.read();
+        const auto y = _joystick.axis_y.read();
+
+        const auto new_direction = calculateDirection(x, y);
 
         if (new_direction != _current_direction) {
             _current_direction = new_direction;
@@ -74,11 +79,9 @@ public:
         return ch;
     }
 
-    [[nodiscard]] Direction calculateDirection() const noexcept {
-        const auto x = _joystick.axis_x.read();
-        const auto y = _joystick.axis_y.read();
-        const auto ax = std::abs(x);
-        const auto ay = std::abs(y);
+    [[nodiscard]] Direction calculateDirection(f32 x, f32 y) const noexcept {
+        const auto ax = kf::abs(x);
+        const auto ay = kf::abs(y);
 
         if (ax < _threshold and ay < _threshold) {
             return Direction::Home;

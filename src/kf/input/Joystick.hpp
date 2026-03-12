@@ -3,19 +3,20 @@
 
 #pragma once
 
-#include "kf/input/AnalogAxis.hpp"
+#include "kf/input/NormalizedAdcInput.hpp"
 #include "kf/tuner/Tuner.hpp"
 
 namespace kf::input {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
-struct Joystick final {
+template<typename I> struct Joystick final {
+    using NormalizedAdcInputImpl = I;
 
     struct Config;// forward declaration
 
     /// @brief Tuner for a complete two‑axis joystick.
-    /// @note Aggregates two AnalogAxis::Tuner instances (X and Y).
+    /// @note Aggregates two NormalizedAdcInput::Tuner instances (X and Y).
     ///       After start(), call poll() repeatedly until running() returns false.
     ///       The tuner reads raw values from the joystick axes internally.
     struct Tuner : tuner::Tuner<Tuner> {
@@ -24,8 +25,7 @@ struct Joystick final {
             _tuner_y{config.y.createTuner(joystick.axis_y, samples)} {}
 
     private:
-        AnalogAxis::Tuner _tuner_x;
-        AnalogAxis::Tuner _tuner_y;
+        typename NormalizedAdcInputImpl::Tuner _tuner_x, _tuner_y;
 
         // Tuner impl
         friend struct tuner::Tuner<Tuner>;
@@ -46,22 +46,24 @@ struct Joystick final {
     };
 
     struct Config {
-        AnalogAxis::Config x;
-        AnalogAxis::Config y;
+        typename NormalizedAdcInputImpl::Config x, y;
 
         [[nodiscard]] Tuner createTuner(Joystick &joystick, u16 samples) noexcept {
             return Tuner{*this, joystick, samples};
         }
     };
 
-    AnalogAxis axis_x;///< X-axis input (horizontal movement)
-    AnalogAxis axis_y;///< Y-axis input (vertical movement)
+    NormalizedAdcInputImpl axis_x, axis_y;
 
-    explicit Joystick(const Config &config, f32 filter_k) noexcept :
-        axis_x{config.x, filter_k},
-        axis_y{config.y, filter_k} {}
+    explicit Joystick(
+        const Config &config,
+        const typename NormalizedAdcInputImpl::FilterImpl::Config &filter_config,
+        typename NormalizedAdcInputImpl::AdcPinImpl &&pin_x,
+        typename NormalizedAdcInputImpl::AdcPinImpl &&pin_y) noexcept :
+        axis_x{config.x, filter_config, std::move(pin_x)},
+        axis_y{config.y, filter_config, std::move(pin_y)} {}
 
-    void init() const noexcept {
+    void init() noexcept {
         axis_x.init();
         axis_y.init();
     }

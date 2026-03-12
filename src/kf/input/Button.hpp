@@ -3,67 +3,42 @@
 
 #pragma once
 
-#include <Arduino.h>
-
 #include "kf/aliases.hpp"
+#include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
+#include "kf/meta/type_check.hpp"
 
 namespace kf::input {
 
 /// @brief Minimal button with press detection only
-struct Button {
+template<typename I> struct Button {
+    kf_crtp_check(I, kf::gpio::DigitalInputTag);
+
+    using PinImpl = I;
 
     struct Config {
         math::Milliseconds debounce;
-        u8 pin;
-
-        enum class Mode : u8 {
-            PullUp,
-            PullDown
-        } mode;
-
-        enum class PullType : u8 {
-            External,
-            Internal
-        } pull_type;
-
-        explicit Config(
-            gpio_num_t pin,
-            Mode mode,
-            PullType pull_type,
-            math::Milliseconds debounce = 30) noexcept :
-            pin{static_cast<u8>(pin)}, mode{mode}, pull_type{pull_type}, debounce{debounce} {}
-
-        [[nodiscard]] bool normalize(bool state) const noexcept {
-            return mode == Mode::PullDown == state;
-        }
-
-        [[nodiscard]] u8 matchMode() const noexcept {
-            if (pull_type == PullType::External) {
-                return INPUT;
-            }
-            return (mode == Mode::PullUp) ? INPUT_PULLUP : INPUT_PULLDOWN;
-        }
     };
 
 private:
     const Config &_config;
     math::Milliseconds _next{0};
+    PinImpl _pin;
     bool _last_stable{false};
     bool _last_raw{false};
     bool _click_ready{false};
 
 public:
-    explicit Button(const Config &config) noexcept :
-        _config{config} {}
+    explicit Button(const Config &config, PinImpl &&pin) noexcept :
+        _config{config}, _pin{pin} {}
 
-    void init() const noexcept {
-        pinMode(_config.pin, _config.matchMode());
+    void init() noexcept {
+        _pin.init();
     }
 
     /// @brief Poll button state - must be called regularly
     void poll(math::Milliseconds now) noexcept {
-        const bool state = _config.normalize(digitalRead(_config.pin));
+        const bool state = _pin.read();
 
         if (state != _last_raw) {
             _last_raw = state;
@@ -98,4 +73,4 @@ public:
     }
 };
 
-}// namespace kf
+}// namespace kf::input
