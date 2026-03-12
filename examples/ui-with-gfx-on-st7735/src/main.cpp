@@ -7,6 +7,7 @@
 #include <kf/drivers/display/Orientation.hpp>
 #include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
+#include <kf/gpio/arduino.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/UI.hpp>
@@ -14,9 +15,10 @@
 
 using kf::bus::spi::ArduinoSPI;
 using kf::drivers::display::Orientation;
+using kf::gpio::arduino::DigitalOutput;
 
 // Display Driver specialisation
-using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node>;
+using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node, DigitalOutput>;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
@@ -149,13 +151,16 @@ static ArduinoSPI::Node::Config node_config{
 
 // display config
 static MyDisplayDriver::Config display_config{
-    GPIO_NUM_2, // DC
-    GPIO_NUM_15,// RESET
     Orientation::Normal,
 };
 
 // Driver instance references config and SPI bus.
-static MyDisplayDriver display{display_config, bus.createNode(node_config)};
+static MyDisplayDriver display{
+    display_config,
+    bus.createNode(node_config),
+    DigitalOutput{GPIO_NUM_2},
+    DigitalOutput{GPIO_NUM_15},
+};
 
 // display
 
