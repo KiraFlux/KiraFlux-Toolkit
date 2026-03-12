@@ -32,7 +32,7 @@ public:
     explicit Button(const Config &config, PinImpl &&pin) noexcept :
         _config{config}, _pin{pin} {}
 
-    void init() const noexcept {
+    void init() noexcept {
         _pin.init();
     }
 
