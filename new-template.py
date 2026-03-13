@@ -10,7 +10,7 @@ PLATFORMIO_INI = """
 platform = espressif32
 board = esp32dev
 framework = arduino
-lib_extra_dirs = ../..
+lib_extra_dirs = ../../..
 
 ; remove gnu++11, add gnu++17 (with GCC ext)
 build_unflags = -std=gnu++11
