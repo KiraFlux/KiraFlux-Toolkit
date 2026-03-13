@@ -28,6 +28,7 @@ jobs:
       matrix:
         example: ${{ fromJson(needs.gather-examples.outputs.examples) }}
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-platformio
       - name: Build ${{ matrix.example }}
         run: pio run -d "${{ matrix.example }}"

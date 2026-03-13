@@ -28,6 +28,7 @@ jobs:
       matrix:
         suite: ${{ fromJson(needs.gather-test-suites.outputs.suites) }}
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-platformio
       - name: Run test suite ${{ matrix.suite }}
         run: pio test -e native --filter "${{ matrix.suite }}"
