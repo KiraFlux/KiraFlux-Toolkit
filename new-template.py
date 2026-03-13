@@ -61,10 +61,10 @@ def _create_new_test(group_name: str, test_name: str) -> int:
     print(f"Created new test '{group_name}/{test_name}' ({test_path})")
     return 0
 
-def _create_new_example(example_name: str) -> int:
-    print(f"New example: {example_name=}")
+def _create_new_example(group_name: str, example_name: str) -> int:
+    print(f"New example: {group_name=} {example_name=}")
 
-    example_path = REPO_DIR / "examples" / example_name
+    example_path = REPO_DIR / "examples" / group_name / example_name
 
     if example_path.exists():
         print(f"{example_path=} exists")
@@ -90,7 +90,7 @@ def _start(args: Sequence[str]) -> int:
     target_name = args[1]
 
     ret = {
-        "example": (1, _create_new_example),
+        "example": (2, _create_new_example),
         "test": (2, _create_new_test),
     }.get(target_name)
 

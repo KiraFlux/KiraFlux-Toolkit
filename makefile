@@ -1,7 +1,7 @@
 .PHONY: all monitor test build-examples be shapshot ss lint new-example ne new-test nt
 
-name ?= unnamed # new example/test name
-group ?= common # test group
+name ?= unnamed # target example/test name
+group ?= common # target example/test group
 
 all: test
 
@@ -25,7 +25,7 @@ lint:
 	./lint.sh
 
 new-example:
-	python new-template.py example $(name)
+	python new-template.py example $(group) $(name)
 
 ne: new-example
 
