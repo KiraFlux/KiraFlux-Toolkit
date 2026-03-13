@@ -6,7 +6,7 @@ sys.stdout = open("shapshot.txt", "wt", encoding='utf-8')
 REPO_DIR = Path(".")
 
 target_ext = (
-    "h", "hpp", "cpp", "md", "ino", "yml", "sh", "py"
+    "h", "hpp", "cpp", "md", "ino", "yml", "sh", "py", "ini"
 )
 
 target_dirs = (
