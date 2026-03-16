@@ -45,6 +45,28 @@ void loop() {
 }
 """
 
+EXAMPLE_MAKEFILE = """
+.PHONY: all c clean u upload m monitor
+
+all:
+	pio run
+
+clean:
+	pio run --target clean
+
+c: clean
+
+upload:
+	pio run --target upload
+
+u: upload
+
+monitor:
+	pio device monitor
+
+m: monitor
+"""
+
 def _create_new_test(group_name: str, test_name: str) -> int:
     print(f"New test: {group_name=} {test_name=}")
 
@@ -72,6 +94,7 @@ def _create_new_example(group_name: str, example_name: str) -> int:
 
     example_path.mkdir(parents=True)
     (example_path / "platformio.ini").write_text(PLATFORMIO_INI)
+    (example_path / "makefile").write_text(EXAMPLE_MAKEFILE)
     
     src_path = example_path / "src"
     src_path.mkdir()
