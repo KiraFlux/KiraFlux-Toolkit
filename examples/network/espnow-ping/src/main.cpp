@@ -45,9 +45,14 @@ void setup() {
         Serial.println(EspNow::stringFromError(other_peer_add_result.error().value()));
         return;
     } else {
-        other_peer_add_result.ok().value().onReceive([](const kf::memory::Slice<const kf::u8> data) {
+        const auto result = other_peer_add_result.ok().value().onReceive([](const kf::memory::Slice<const kf::u8> data) {
             Serial.printf("from [%s] got %d bytes", EspNow::stringFromMac(other_peer_address).data(), data.size());
         });
+
+        if (result.isError()) {
+            Serial.println("Failed to attach receive callback");
+            return;
+        }
     }
 
     target_peer = other_peer_add_result.ok();
@@ -57,10 +62,12 @@ void loop() {
     delay(5000);
 
     if (broadcast_peer.hasValue()) {
-        broadcast_peer.value().sendPacket("[broadcast]: ping");
+        const auto result = broadcast_peer.value().sendPacket("[broadcast]: ping");
+        if (result.isError()) { Serial.println("[broadcast]: Failed to send"); }
     }
 
     if (target_peer.hasValue()) {
-        target_peer.value().sendPacket("ping");
+        const auto result = target_peer.value().sendPacket("ping");
+        if (result.isError()) { Serial.println("Failed to send"); }
     }
 }
