@@ -54,6 +54,11 @@ public:
         }
     }
 
+    void value(const T& new_value) noexcept {
+        _engaged = true;
+        _value = new_value;
+    }
+
     /// @brief Get stored value or default
     /// @param default_value Value to return if Option is empty
     /// @return Stored value if present, default_value otherwise
