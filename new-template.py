@@ -70,7 +70,7 @@ def _create_new_example(group_name: str, example_name: str) -> int:
         print(f"{example_path=} exists")
         return 1
 
-    example_path.mkdir()
+    example_path.mkdir(parents=True)
     (example_path / "platformio.ini").write_text(PLATFORMIO_INI)
     
     src_path = example_path / "src"
