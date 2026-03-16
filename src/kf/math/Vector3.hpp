@@ -128,6 +128,6 @@ template<typename T> struct Vector3 final {
 };
 
 using Vector3f = Vector3<f32>;///< Float precision 3D vector
-using Vector = Vector3<i32>;  ///< Integer precision 3D vector
+using Vector3i = Vector3<i32>;///< Integer precision 3D vector
 
 }// namespace kf::math
