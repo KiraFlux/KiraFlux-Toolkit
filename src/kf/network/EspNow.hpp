@@ -17,6 +17,7 @@
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/Map.hpp"
 #include "kf/memory/Slice.hpp"
+#include "kf/memory/io/Writable.hpp"
 #include "kf/meta/Singleton.hpp"
 
 namespace kf::network {
@@ -46,7 +47,7 @@ struct EspNow : meta::Singleton<EspNow> {
     };
 
     /// @brief ESP-NOW peer representation with communication capabilities
-    struct Peer {
+    struct Peer : kf::memory::io::Writable<Peer, Error> {
         /// @brief Handler type for receiving data from this specific peer
         using ReceiveHandler = Function<void(memory::Slice<const u8>)>;
 
@@ -84,35 +85,11 @@ struct EspNow : meta::Singleton<EspNow> {
         /// @return Const reference to MAC address
         [[nodiscard]] const Mac &mac() const noexcept { return _mac; }
 
-        /// @brief Send typed packet to peer
-        /// @tparam T Type of data to send (must fit in ESP_NOW_MAX_DATA_LEN)
-        /// @param value Data to send
-        /// @return Success or Error
-        /// @note Automatically checks size constraint at compile time
-        template<typename T> [[nodiscard]] Result<void, Error> sendPacket(const T &value) noexcept {
-            static_assert(sizeof(T) < ESP_NOW_MAX_DATA_LEN, "Message is too big!");
-            return processSend(static_cast<const void *>(&value), sizeof(T));
-        }
-
-        /// @brief Send raw buffer to peer
-        /// @param buffer Data slice to send
-        /// @return Success or Error
-        /// @note Checks size constraint at runtime
-        [[nodiscard]] Result<void, Error> sendBuffer(memory::Slice<const u8> buffer) noexcept {
-            if (buffer.size() > ESP_NOW_MAX_DATA_LEN) {
-                return {Error::TooBigMessage};
-            }
-
-            return processSend(buffer.data(), buffer.size());
-        }
-
         /// @brief Set receive handler for this peer
         /// @param handler Callback function for incoming data
         /// @return Success or Error (PeerNotFound if peer doesn't exist)
         [[nodiscard]] Result<void, Error> onReceive(ReceiveHandler &&handler) noexcept {
-            if (not exist()) {
-                return {Error::PeerNotFound};
-            }
+            if (not exist()) { return {Error::PeerNotFound}; }
 
             auto &espnow = EspNow::instance();
             auto context = espnow.getPeerContext(_mac);
@@ -152,15 +129,17 @@ struct EspNow : meta::Singleton<EspNow> {
         }
 
     private:
+        /// @brief Private constructor (use Peer::add)
+        explicit Peer(const Mac &mac) noexcept :
+            _mac{mac} {}
+
+        // Writable impl
+        friend struct kf::memory::io::Writable<Peer, Error>;
+
         /// @brief Internal send implementation
-        /// @param data Pointer to data buffer
-        /// @param len Size of data in bytes
         /// @return Success or translated ESP-NOW error
         [[nodiscard]] Result<void, Error> processSend(const void *data, usize len) noexcept {
-            const auto result = esp_now_send(
-                _mac.data(),
-                static_cast<const u8 *>(data),
-                len);
+            const auto result = esp_now_send(_mac.data(), static_cast<const u8 *>(data), len);
 
             if (ESP_OK == result) {
                 return {};
@@ -169,9 +148,26 @@ struct EspNow : meta::Singleton<EspNow> {
             }
         }
 
-        /// @brief Private constructor (use Peer::add)
-        explicit Peer(const Mac &mac) noexcept :
-            _mac{mac} {}
+        [[nodiscard]] Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) {
+            if (buffer.size() > ESP_NOW_MAX_DATA_LEN) { return {Error::TooBigMessage}; }
+            return processSend(buffer.data(), buffer.size());
+        }
+
+        template<typename T> [[nodiscard]] Result<void, Error> writePacketImpl(T &&packet) {
+            static_assert(sizeof(T) < ESP_NOW_MAX_DATA_LEN, "Message is too big!");
+            return processSend(static_cast<const void *>(&packet), sizeof(T));
+        }
+
+        template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) {
+            const auto mixed_size = sizeof(T) + buffer.size();
+            u8 mixed[mixed_size];
+            
+            const auto header_data = reinterpret_cast<const u8 *>(&header);
+            std::copy(header_data, header_data + sizeof(T), mixed);
+            std::copy(buffer.begin(), buffer.end(), mixed + sizeof(T));
+        
+            return processSend(static_cast<const void *>(mixed), mixed_size);
+        }
     };
 
 private:
