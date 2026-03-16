@@ -45,7 +45,6 @@ public:
 
     template<usize M, typename... Args> constexpr static ArrayString formatted(const char (&fmt)[M], Args... args) noexcept {
         static_assert(M > 0, "String literal must not be empty");
-        static_assert(N >= M, "String capacity must be greater than format string");
         ArrayString ret{};
         (void) ret.format(fmt, args...);
         return ret;
