@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace kf::meta {
+namespace kf::mixin {
 
 /// @brief Thread-safe Singleton pattern implementation
 /// @tparam T Type to be instantiated as singleton

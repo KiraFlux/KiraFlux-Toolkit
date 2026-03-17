@@ -9,8 +9,8 @@
 #include "kf/memory/ArrayList.hpp"
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/meta/Singleton.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/Singleton.hpp"
 #include "kf/ui/internal/UI.hpp"
 #include "kf/ui/render/Tag.hpp"
 
@@ -19,10 +19,10 @@ namespace kf::ui {
 /// @brief User interface framework with widget-based rendering
 /// @tparam R Renderer implementation type (must inherit from kf::ui::Render)
 /// @note Singleton pattern ensures single UI instance with event queue and page management
-template<typename R, typename E> struct UI final : meta::Singleton<UI<R, E>> {
+template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>> {
     kf_crtp_check(R, kf::ui::render::Tag);
 
-    friend struct meta::Singleton<UI<R, E>>;
+    friend struct mixin::Singleton<UI<R, E>>;
 
     using RenderImpl = R;                            ///< Renderer implementation type
     using RenderConfig = typename RenderImpl::Config;///< Renderer Configuration type
@@ -244,4 +244,4 @@ public:
     };
 };
 
-}// namespace kf
+}// namespace kf::ui

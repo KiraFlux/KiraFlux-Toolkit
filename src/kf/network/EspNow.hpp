@@ -18,14 +18,14 @@
 #include "kf/memory/Map.hpp"
 #include "kf/memory/Slice.hpp"
 #include "kf/memory/io/Writable.hpp"
-#include "kf/meta/Singleton.hpp"
+#include "kf/mixin/Singleton.hpp"
 
 namespace kf::network {
 
 /// @brief Encapsulates ESP-NOW protocol in safe C++ abstractions
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks
-struct EspNow : meta::Singleton<EspNow> {
-    friend struct meta::Singleton<EspNow>;
+struct EspNow : mixin::Singleton<EspNow> {
+    friend struct mixin::Singleton<EspNow>;
 
     using Mac = memory::Array<u8, ESP_NOW_ETH_ALEN>;///< MAC address type (6 bytes)
 
@@ -161,11 +161,11 @@ struct EspNow : meta::Singleton<EspNow> {
         template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) {
             const auto mixed_size = sizeof(T) + buffer.size();
             u8 mixed[mixed_size];
-            
+
             const auto header_data = reinterpret_cast<const u8 *>(&header);
             std::copy(header_data, header_data + sizeof(T), mixed);
             std::copy(buffer.begin(), buffer.end(), mixed + sizeof(T));
-        
+
             return processSend(static_cast<const void *>(mixed), mixed_size);
         }
     };
