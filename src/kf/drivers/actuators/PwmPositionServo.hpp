@@ -9,15 +9,16 @@
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/Initable.hpp"
 #include "kf/validation.hpp"
 
 namespace kf::drivers::actuators {
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
-template<typename I> struct PwmPositionServo {
+template<typename I> struct PwmPositionServo final : mixin::Initable<PwmPositionServo, bool> {
     kf_crtp_check(I, kf::gpio::PwmOutputTag);
-    using PwmImpl = I;
+    using PwmPinImpl = I;
 
     static constexpr auto logger{Logger::create("PwmPositionServo")};
 
@@ -68,32 +69,33 @@ template<typename I> struct PwmPositionServo {
     explicit constexpr PwmPositionServo(
         const DriverConfig &driver_settings,
         const PulseConfig &pulse_settings,
-        PwmImpl &&pin_pwm) noexcept :
-        _driver_settings{driver_settings}, _pulse_settings(pulse_settings), _pin_pwm{pin_pwm} {}
-
-    /// @brief Initialize servo driver hardware
-    /// @return true if PWM channel setup successful
-    [[nodiscard]] bool init() noexcept {
-        return _pin_pwm.init();
-    }
+        PwmPinImpl &&pin) noexcept :
+        _driver_settings{driver_settings}, _pulse_settings(pulse_settings), _pin{pin} {}
 
     /// @brief Set servo to target angle
     /// @param angle Target angle in degrees
     /// @note Automatically converts angle to PWM duty cycle
     void write(math::Degrees angle) noexcept {
-        _pin_pwm.write(_pin_pwm.dutyFromPulseWidth(_pulse_settings.pulseWidthFromAngle(angle)));
+        _pin.write(_pin.dutyFromPulseWidth(_pulse_settings.pulseWidthFromAngle(angle)));
     }
 
     /// @brief Disable servo (stop PWM signal)
     void disable() noexcept {
-        _pin_pwm.write(0);
+        _pin.write(0);
     }
 
 private:
     const DriverConfig &_driver_settings;///< Servo hardware configuration
     const PulseConfig &_pulse_settings;  ///< Angle-pulse mapping configuration
 
-    PwmImpl _pin_pwm;
+    PwmPinImpl _pin;
+
+    // Initable impl
+    friend struct kf::mixin::Initable<PwmPositionServo, bool>;
+
+    bool initImpl() noexcept {
+        return _pin.init();
+    }
 };
 
 }// namespace kf::drivers::actuators
