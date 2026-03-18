@@ -6,13 +6,14 @@
 #include <Arduino.h>
 
 #include "kf/math/units.hpp"
+#include "kf/mixin/Initable.hpp"
 #include "kf/validation.hpp"
 
 namespace kf::drivers::sensors {
 
 /// @brief Two-phase incremental rotary encoder with position tracking
 /// @note Uses interrupt on phase A for accurate position counting
-struct Encoder {
+struct Encoder : mixin::Initable<Encoder, void> {
 
     /// @brief Alias for encoder position in ticks
     using Ticks = i32;
@@ -64,14 +65,6 @@ public:
         const ConversionConfig &conversion_settings) noexcept :
         pins{pins_settings}, conversion{conversion_settings} {}
 
-    /// @brief Initialize encoder GPIO pins
-    /// @note Must be called before enabling interrupts
-    void init() noexcept {
-        pinMode(pins.phase_a, INPUT);
-        pinMode(pins.phase_b, INPUT);
-        enable(); // <-- why here?
-    }
-
     /// @brief Enable interrupt handling for encoder
     void enable() {
         attachInterruptArg(
@@ -117,6 +110,14 @@ private:
             encoder._position -= 1;
         }
     }
+
+    // Initable impl
+    friend struct kf::mixin::Initable<Encoder, void>;
+
+    void initImpl() noexcept {
+        pinMode(pins.phase_a, INPUT);
+        pinMode(pins.phase_b, INPUT);
+    }
 };
 
-}// namespace kf
+}// namespace kf::drivers::sensors
