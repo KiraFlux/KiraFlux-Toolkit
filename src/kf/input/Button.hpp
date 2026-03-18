@@ -7,11 +7,12 @@
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/Initable.hpp"
 
 namespace kf::input {
 
 /// @brief Minimal button with press detection only
-template<typename I> struct Button {
+template<typename I> struct Button : mixin::Initable<Button, void> {
     kf_crtp_check(I, kf::gpio::DigitalInputTag);
 
     using PinImpl = I;
@@ -20,21 +21,8 @@ template<typename I> struct Button {
         math::Milliseconds debounce;
     };
 
-private:
-    const Config &_config;
-    math::Milliseconds _next{0};
-    PinImpl _pin;
-    bool _last_stable{false};
-    bool _last_raw{false};
-    bool _click_ready{false};
-
-public:
     explicit Button(const Config &config, PinImpl &&pin) noexcept :
         _config{config}, _pin{pin} {}
-
-    void init() noexcept {
-        _pin.init();
-    }
 
     /// @brief Poll button state - must be called regularly
     void poll(math::Milliseconds now) noexcept {
@@ -70,6 +58,21 @@ public:
     /// @return true if button is currently pressed (after debounce)
     [[nodiscard]] bool pressed() const noexcept {
         return _last_stable;
+    }
+
+private:
+    const Config &_config;
+    math::Milliseconds _next{0};
+    PinImpl _pin;
+    bool _last_stable{false};
+    bool _last_raw{false};
+    bool _click_ready{false};
+
+    // Initable impl
+    friend struct kf::mixin::Initable<Button, void>;
+
+    void initImpl() noexcept {
+        _pin.init();
     }
 };
 
