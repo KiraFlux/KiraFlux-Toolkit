@@ -14,7 +14,7 @@ struct InitableTag {};
 /// @brief CRTP mixin initialisation.
 /// @tparam Impl Derived class (must provide `initImpl()`).
 /// @tparam T    Return type of init() (void or any).
-template<typename Impl, typename T, typename = void> struct Initable : InitableTag {
+template<typename Impl, typename T> struct Initable : InitableTag {
     [[nodiscard]] T init() noexcept {
         return static_cast<Impl *>(this)->initImpl();
     }

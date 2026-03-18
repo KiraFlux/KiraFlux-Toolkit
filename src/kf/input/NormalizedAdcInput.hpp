@@ -14,7 +14,7 @@
 namespace kf::input {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
-template<typename I> struct NormalizedAdcInput final : mixin::Initable<NormalizedAdcInput, void> {
+template<typename I> struct NormalizedAdcInput final : mixin::Initable<NormalizedAdcInput<I>, void> {
     kf_crtp_check(I, kf::gpio::AdcInputTag);
 
     using AdcPinImpl = I;
@@ -130,7 +130,7 @@ private:
     }
 
     // Initable impl
-    friend struct kf::mixin::Initable<NormalizedAdcInput, void>;
+    friend struct kf::mixin::Initable<NormalizedAdcInput<I>, void>;
 
     void initImpl() noexcept {
         _pin.init();

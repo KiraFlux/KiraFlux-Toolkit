@@ -11,12 +11,14 @@
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/validation.hpp"
+#include "kf/mixin/Initable.hpp"
+
 
 namespace kf::drivers::actuators {
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
-template<typename I> struct PwmPositionServo final : mixin::Initable<PwmPositionServo, bool> {
+template<typename I> struct PwmPositionServo final : mixin::Initable<PwmPositionServo<I>, bool> {
     kf_crtp_check(I, kf::gpio::PwmOutputTag);
     using PwmPinImpl = I;
 
@@ -91,7 +93,7 @@ private:
     PwmPinImpl _pin;
 
     // Initable impl
-    friend struct kf::mixin::Initable<PwmPositionServo, bool>;
+    friend struct kf::mixin::Initable<PwmPositionServo<I>, bool>;
 
     bool initImpl() noexcept {
         return _pin.init();

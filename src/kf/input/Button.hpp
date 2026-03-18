@@ -12,7 +12,7 @@
 namespace kf::input {
 
 /// @brief Minimal button with press detection only
-template<typename I> struct Button : mixin::Initable<Button, void> {
+template<typename I> struct Button : mixin::Initable<Button<I>, void> {
     kf_crtp_check(I, kf::gpio::DigitalInputTag);
 
     using PinImpl = I;
@@ -69,7 +69,7 @@ private:
     bool _click_ready{false};
 
     // Initable impl
-    friend struct kf::mixin::Initable<Button, void>;
+    friend struct kf::mixin::Initable<Button<I>, void>;
 
     void initImpl() noexcept {
         _pin.init();
