@@ -9,22 +9,11 @@ namespace kf::controllers {
 
 /// @brief Two-degree-of-freedom robotic manipulator with servo control
 /// @note Controls arm and claw axes using PWM-position servo drivers
-template<typename I> struct Manipulator2DOF {
-    using ServoImpl = I;
+template<typename I> struct Manipulator2DOF final : mixin::Initable<Manipulator2DOF, bool> {
+    using ActuatorImpl = I;
 
     /// @brief Construct manipulator instance
-    explicit Manipulator2DOF(ServoImpl &&arm, ServoImpl &&claw) noexcept : _arm{arm}, _claw{claw} {}
-
-    /// @brief Initialize both servo axes
-    /// @return true if both servos initialized successfully
-    [[nodiscard]] bool init() noexcept {
-        bool ok{false};
-
-        if (not(ok = _arm.init())) { goto ret; }
-        if (not(ok = _claw.init())) { goto ret; }
-
-        return ret;
-    }
+    explicit Manipulator2DOF(ActuatorImpl &&arm, ActuatorImpl &&claw) noexcept : _arm{arm}, _claw{claw} {}
 
     /// @brief Set arm axis angle
     void arm(math::Degrees angle) noexcept { _arm.write(angle); }
@@ -39,7 +28,16 @@ template<typename I> struct Manipulator2DOF {
     void disableClaw() noexcept { _claw.disable(); }
 
 private:
-    ServoImpl _arm, _claw;
+    ActuatorImpl _arm, _claw;
+
+    // Initable impl
+    friend struct kf::mixin::Initable<Manipulator2DOF, bool>;
+
+    bool initImpl() noexcept {
+        if (not _arm.init()) { return false; }
+        if (not _claw.init()) { return false; }
+        return true;
+    }
 };
 
 }// namespace kf::controllers
