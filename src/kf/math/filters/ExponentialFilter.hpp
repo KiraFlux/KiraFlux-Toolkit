@@ -21,13 +21,13 @@ template<typename T> struct ExponentialFilter {
     /// @param value New input value
     /// @return Current filtered value after update
     [[nodiscard]] const T &calc(const T &value) noexcept {
-        current_filtered += (value - current_filtered) * _config.factor;
-        return current_filtered;
+        _current_filtered += (value - _current_filtered) * _config.factor;
+        return _current_filtered;
     }
 
 private:
     const Config &_config;
-    T current_filtered{};
+    T _current_filtered{};
 };
 
 }// namespace kf::math::filters
