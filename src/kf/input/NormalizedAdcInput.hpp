@@ -8,12 +8,13 @@
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/filters/ExponentialFilter.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/Initable.hpp"
 #include "kf/tuner/SampleCollectingTuner.hpp"
 
 namespace kf::input {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
-template<typename I> struct NormalizedAdcInput final {
+template<typename I> struct NormalizedAdcInput final : mixin::Initable<NormalizedAdcInput, void> {
     kf_crtp_check(I, kf::gpio::AdcInputTag);
 
     using AdcPinImpl = I;
@@ -31,10 +32,10 @@ template<typename I> struct NormalizedAdcInput final {
     ///
     ///       - on calculate: compute dead zone and ranges based on collected data.
     struct Tuner final : tuner::SampleCollectingTuner<Tuner, Config> {
-        using Base = kf::tuner::SampleCollectingTuner<Tuner, Config>;
+        using TunerBase = kf::tuner::SampleCollectingTuner<Tuner, Config>;
 
         explicit Tuner(Config &config, NormalizedAdcInput &normalized_input, u16 samples) :
-            _normalized_input{normalized_input}, Base{config, samples} {}
+            _normalized_input{normalized_input}, TunerBase{config, samples} {}
 
     private:
         NormalizedAdcInput &_normalized_input;
@@ -43,8 +44,7 @@ template<typename I> struct NormalizedAdcInput final {
         i64 _sum{};
 
         // SampleCollectingTuner impl
-
-        friend Base;
+        friend TunerBase;
 
         void startImpl() noexcept {
             _max_sample = 0;
@@ -89,16 +89,8 @@ template<typename I> struct NormalizedAdcInput final {
         }
     };
 
-private:
-    const Config &_config;
-    FilterImpl _filter;
-    AdcPinImpl _pin;
-
-public:
     explicit NormalizedAdcInput(const Config &config, const typename FilterImpl::Config &filter_config, AdcPinImpl &&pin) noexcept :
         _config{config}, _filter{filter_config}, _pin{pin} {}
-
-    void init() noexcept { _pin.init(); }
 
     [[nodiscard]] u16 readRaw() const noexcept { return _pin.read(); }
 
@@ -116,6 +108,10 @@ public:
     }
 
 private:
+    const Config &_config;
+    FilterImpl _filter;
+    AdcPinImpl _pin;
+
     /// @brief Internal normalized reading without inversion
     [[nodiscard]] f32 pureRead() noexcept {
         const auto deviation = static_cast<AdcSignedValue>(readRaw()) - _config.range_negative;
@@ -131,6 +127,13 @@ private:
         } else {
             return filtered / f32(_config.range_positive);
         }
+    }
+
+    // Initable impl
+    friend struct kf::mixin::Initable<NormalizedAdcInput, void>;
+
+    void initImpl() noexcept {
+        _pin.init();
     }
 };
 
