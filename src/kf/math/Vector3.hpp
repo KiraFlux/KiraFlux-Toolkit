@@ -15,54 +15,72 @@ template<typename T> struct Vector3 final {
 
     using Scalar = T;///< Vector component type
 
-    T x, y, z;
+    Scalar x, y, z;
 
     /// @brief Default constructor (initializes to zero)
-    Vector3() noexcept :
+    constexpr Vector3() noexcept :
         x{0}, y{0}, z{0} {}
 
     /// @brief Construct from x, y, z components
-    Vector3(T x, T y, T z) noexcept :
+    constexpr Vector3(Scalar x, Scalar y, Scalar z) noexcept :
         x{x}, y{y}, z{z} {}
 
     /// @brief Vector addition
     /// @param other Vector to add
     /// @return Sum vector
-    [[nodiscard]] Vector3 operator+(const Vector3 &other) const noexcept {
-        return {x + other.x, y + other.y, z + other.z};
+    [[nodiscard]] constexpr Vector3 operator+(const Vector3 &other) const noexcept {
+        return {
+            static_cast<Scalar>(x + other.x),
+            static_cast<Scalar>(y + other.y),
+            static_cast<Scalar>(z + other.z),
+        };
     }
 
     /// @brief Vector subtraction
     /// @param other Vector to subtract
     /// @return Difference vector
-    [[nodiscard]] Vector3 operator-(const Vector3 &other) const noexcept {
-        return {x - other.x, y - other.y, z - other.z};
+    [[nodiscard]] constexpr Vector3 operator-(const Vector3 &other) const noexcept {
+        return {
+            static_cast<Scalar>(x - other.x),
+            static_cast<Scalar>(y - other.y),
+            static_cast<Scalar>(z - other.z),
+        };
     }
 
     /// @brief Scalar multiplication
     /// @param scalar Multiplication factor
     /// @return Scaled vector
-    [[nodiscard]] Vector3 operator*(T scalar) const noexcept {
-        return {x * scalar, y * scalar, z * scalar};
+    [[nodiscard]] constexpr Vector3 operator*(Scalar scalar) const noexcept {
+        return {
+            static_cast<Scalar>(x * scalar),
+            static_cast<Scalar>(y * scalar),
+            static_cast<Scalar>(z * scalar),
+        };
     }
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] Option<Vector3> divChecked(T scalar) const noexcept {
-        if (scalar == 0) {
-            return {};
-        }
+    [[nodiscard]] Option<Vector3> divChecked(Scalar scalar) const noexcept {
+        if (scalar == 0) { return {}; }
 
-        return {Vector3{x / scalar, y / scalar, z / scalar}};
+        return {Vector3{
+            static_cast<Scalar>(x / scalar),
+            static_cast<Scalar>(y / scalar),
+            static_cast<Scalar>(z / scalar),
+        }};
     }
 
     /// @brief Scalar division
     /// @param scalar Division factor
     /// @return Divided vector
     /// @warning No zero-check (use divChecked for safe division)
-    [[nodiscard]] Vector3 operator/(T scalar) const noexcept {
-        return Vector3{x / scalar, y / scalar, z / scalar};
+    [[nodiscard]] constexpr Vector3 operator/(Scalar scalar) const noexcept {
+        return {
+            static_cast<Scalar>(x / scalar),
+            static_cast<Scalar>(y / scalar),
+            static_cast<Scalar>(z / scalar),
+        };
     }
 
     /// @brief Vector addition assignment
@@ -87,42 +105,45 @@ template<typename T> struct Vector3 final {
 
     /// @brief Calculate vector length (magnitude)
     /// @return Euclidean length
-    [[nodiscard]] T length() const noexcept {
-        return std::sqrt(x * x + y * y + z * z);
+    [[nodiscard]] constexpr Scalar length() const noexcept {
+        return static_cast<Scalar>(std::sqrt(x * x + y * y + z * z));
     }
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
     [[nodiscard]] Option<Vector3> normalized() const noexcept {
-        const T len = length();
+        const auto len = length();
 
-        if (len == 0) {
-            return {};
-        }
+        if (len == 0) { return {}; }
 
-        return {Vector3{x / len, y / len, z / len}};
+        return {Vector3{
+            static_cast<Scalar>(x / len),
+            static_cast<Scalar>(y / len),
+            static_cast<Scalar>(z / len),
+        }};
     }
 
     /// @brief Calculate dot product with another vector
     /// @param other Second vector
     /// @return Dot product value
-    [[nodiscard]] T dot(const Vector3 &other) const noexcept {
-        return x * other.x + y * other.y + z * other.z;
+    [[nodiscard]] constexpr Scalar dot(const Vector3 &other) const noexcept {
+        return static_cast<Scalar>(x * other.x + y * other.y + z * other.z);
     }
 
     /// @brief Calculate cross product with another vector
     /// @param other Second vector
     /// @return Cross product vector (perpendicular to both inputs)
-    [[nodiscard]] Vector3 cross(const Vector3 &other) const noexcept {
+    [[nodiscard]] constexpr Vector3 cross(const Vector3 &other) const noexcept {
         return {
-            y * other.z - z * other.y,
-            z * other.x - x * other.z,
-            x * other.y - y * other.x};
+            static_cast<Scalar>(y * other.z - z * other.y),
+            static_cast<Scalar>(z * other.x - x * other.z),
+            static_cast<Scalar>(x * other.y - y * other.x),
+        };
     }
 
     /// @brief Check if vector is zero (all components zero)
     /// @return true if all components are zero
-    [[nodiscard]] inline bool isZero() const noexcept {
+    [[nodiscard]] constexpr bool isZero() const noexcept {
         return x == 0 and y == 0 and z == 0;
     }
 };
