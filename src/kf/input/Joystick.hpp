@@ -4,13 +4,14 @@
 #pragma once
 
 #include "kf/input/NormalizedAdcInput.hpp"
+#include "kf/mixin/Initable.hpp"
 #include "kf/tuner/Tuner.hpp"
 
 namespace kf::input {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
-template<typename I> struct Joystick final {
+template<typename I> struct Joystick final : mixin::Initable<Joystick, void> {
     using NormalizedAdcInputImpl = I;
 
     struct Config;// forward declaration
@@ -63,11 +64,6 @@ template<typename I> struct Joystick final {
         axis_x{config.x, filter_config, std::move(pin_x)},
         axis_y{config.y, filter_config, std::move(pin_y)} {}
 
-    void init() noexcept {
-        axis_x.init();
-        axis_y.init();
-    }
-
     /// @brief Normalized joystick reading value
     struct Value {
         f32 x;        ///< Normalized X-axis value (-1.0 to 1.0)
@@ -87,5 +83,15 @@ template<typename I> struct Joystick final {
         if (h > 1) { return {x / h, y / h, 1}; }
         return {x, y, h};
     }
+
+private:
+    // Initable impl
+    friend struct kf::mixin::Initable<Joystick, void>;
+
+    void initImpl() noexcept {
+        axis_x.init();
+        axis_y.init();
+    }
 };
+
 }// namespace kf::input
