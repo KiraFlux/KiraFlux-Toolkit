@@ -13,9 +13,9 @@ namespace kf::drivers::actuators {
 
 /// @brief Motor driver supporting IArduino Motor Shield and L298N/L293D H-bridge
 /// @note Provides bidirectional PWM control with configurable dead zone and direction
-template<typename PwmPinImpl, typename DigitalPinImpl> struct L298nMotor {
+template<typename PwmPinImpl, typename DigitalPinImpl> struct L298nMotor final : mixin::Initable<L298nMotor, bool> {
 
-    /// @brief Signed PWM value type for bidirectional control
+    /// @brief PWM value type for control
     using DutyType = u16;
 
     /// @brief Positive rotation direction definition
@@ -36,15 +36,6 @@ template<typename PwmPinImpl, typename DigitalPinImpl> struct L298nMotor {
 
     explicit constexpr L298nMotor(const Config &config, PwmPinImpl &&pin_pwm, DigitalPinImpl &&pin_dir) noexcept :
         _config{config}, _pin_pwm{pin_pwm}, _pin_dir{pin_dir} {}
-
-    /// @brief Initialize motor driver hardware
-    /// @return true if initialization successful
-    [[nodiscard]] bool init() noexcept {
-        _pin_dir.init();
-        if (not _pin_pwm.init()) { return false; }
-        _max_pwm = _pin_pwm.maxDuty();
-        return true;
-    }
 
     /// @brief Set motor speed from normalized value
     /// @param value Normalized speed (-1.0 to 1.0)
@@ -73,6 +64,18 @@ private:
         } else {
             return static_cast<DutyType>(i32(value * f32(_max_pwm - _config.dead_zone)) + _config.dead_zone);
         }
+    }
+
+    // Initable impl
+    friend struct kf::mixin::Initable<L298nMotor, bool>;
+
+    bool initImpl() noexcept {
+        _pin_dir.init();
+        if (not _pin_pwm.init()) { return false; }
+
+        _max_pwm = _pin_pwm.maxDuty();
+
+        return true;
     }
 };
 
