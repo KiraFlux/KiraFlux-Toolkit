@@ -51,11 +51,11 @@ public:
     }
 
 private:
-    // DisplayDriver interface implementation
-    friend struct DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>>;
+    // Initable impl
+    friend struct kf::mixin::Initable<SSD1306<I>, bool>;
 
     /// @brief Initialize display hardware via I2C
-    [[nodiscard]] bool initImpl() noexcept {
+    bool initImpl() noexcept {
         static constexpr u8 init_commands[] = {
             CommandMode,
 
@@ -101,8 +101,11 @@ private:
         return _node.writePacket(init_commands).isOk();
     }
 
+    // DisplayDriver interface implementation
+    friend struct DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>>;
+
     /// @brief Transfer software buffer to display via I2C
-    [[nodiscard]] bool sendImpl() noexcept {
+    bool sendImpl() noexcept {
         static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
 
         static constexpr u8 set_area_commands[] = {
@@ -116,8 +119,8 @@ private:
             PixelImpl::template pages<64> - 1,
         };
 
-        auto p = this->_screen_image.buffer().data();
-        auto remaining = this->_screen_image.buffer().size();
+        auto p = this->image().buffer().data();
+        auto remaining = this->image().buffer().size();
 
         if (_node.writePacket(set_area_commands).isError()) { goto fail; }
 
@@ -146,7 +149,7 @@ private:
         }
     }
 
-    [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {
+    bool setOrientationImpl(Orientation orientation) noexcept {
         if (not supportOrientation(orientation)) { return false; }
 
         constexpr auto flip_x = 0b01;

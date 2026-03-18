@@ -78,12 +78,12 @@ private:
 
     u8 _madctl_base_mode{0};///< Base MADCTL value
 
-    // DisplayDriver impl
-    friend struct DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;
+    // Initable impl
+    friend struct kf::mixin::Initable<ST7735<Ib, Ido>, bool>;
 
     /// @brief Initialize display hardware via SPI
     /// @return Always returns true (hardware errors not checked)
-    [[nodiscard]] bool initImpl() noexcept {
+    bool initImpl() noexcept {
         _node.init();
         _pin_data_command.init();
         _pin_reset.init();
@@ -108,14 +108,17 @@ private:
         return true;
     }
 
-    [[nodiscard]] bool sendImpl() noexcept {
+    // DisplayDriver impl
+    friend struct DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;
+
+    bool sendImpl() noexcept {
         sendCommand(Command::RAMWR);
-        sendBuffer({reinterpret_cast<const u8 *>(this->_screen_image.buffer().data()), this->imageBufferSizeBytes()});
+        sendBuffer({reinterpret_cast<const u8 *>(this->image().buffer().data()), this->image().size()});
         return true;// Arduino SPI cannot tell anything about errors
     }
 
     /// @brief Apply orientation transformation (full 6-way support)
-    [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {
+    bool setOrientationImpl(Orientation orientation) noexcept {
         constexpr u8 orient_to_transform[]{
             0,                                        // Orientation::Normal
             MadCtl::MirrorX,                          // Orientation::MirrorX
@@ -127,16 +130,16 @@ private:
 
         const u8 madctl = _madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
 
-        this->_screen_image.transposed((madctl & MadCtl::MirrorTranspose) != 0);
+        this->image().transposed((madctl & MadCtl::MirrorTranspose) != 0);
 
         sendCommand(Command::MADCTL);
         sendPacket(madctl);
 
-        const u8 data_x[4]{0, 0, 0, static_cast<u8>(this->_screen_image.maxX())};
+        const u8 data_x[4]{0, 0, 0, static_cast<u8>(this->image().maxX())};
         sendCommand(Command::CASET);
         sendPacket(data_x);
 
-        const u8 data_y[4]{0, 0, 0, static_cast<u8>(this->_screen_image.maxY())};
+        const u8 data_y[4]{0, 0, 0, static_cast<u8>(this->image().maxY())};
         sendCommand(Command::RASET);
         sendPacket(data_y);
 

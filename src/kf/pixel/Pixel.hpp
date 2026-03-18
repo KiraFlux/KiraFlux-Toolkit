@@ -3,14 +3,15 @@
 
 #pragma once
 
+#include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/memory/Slice.hpp"
 
-#include "kf/pixel/Tag.hpp"
-
 namespace kf::pixel {
 
-template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : Tag {
+struct PixelTag {};
+
+template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelTag {
     // types
 
     using PositionType = i16;

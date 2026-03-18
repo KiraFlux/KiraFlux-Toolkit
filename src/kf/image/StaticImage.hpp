@@ -8,7 +8,7 @@
 #include "kf/memory/Array.hpp"
 #include "kf/memory/Slice.hpp"
 #include "kf/meta/type_check.hpp"
-#include "kf/pixel/Tag.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
 
@@ -20,7 +20,7 @@ namespace kf::image {
 /// The image buffer is embedded directly in the object and cannot be resized.
 /// Useful for storing icons, logos, and other predefined graphics.
 template<typename P, math::Pixels W, math::Pixels H> struct StaticImage final : Image<StaticImage<P, W, H>, P> {
-    kf_crtp_check(P, pixel::Tag);
+    kf_crtp_check(P, pixel::PixelTag);
     
     using PixelImpl = P;
     using BufferType = typename PixelImpl::BufferType;
