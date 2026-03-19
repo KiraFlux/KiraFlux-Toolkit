@@ -17,7 +17,7 @@ namespace kf::drivers::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
 template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {
-    kf_crtp_check(typename Ib::BusImpl, kf::bus::spi::Tag);
+    kf_crtp_check(Ib, kf::bus::spi::SpiNodeTag);
     kf_crtp_check(Ido, kf::gpio::DigitalOutputTag);
 
     using NodeImpl = Ib;
@@ -59,7 +59,7 @@ template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<I
     };
 
     explicit ST7735(const Config &config, NodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
-        _config{config}, _node{node}, _pin_data_command{pin_data_command}, _pin_reset{pin_reset} {}
+        _config{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
 
 private:
     const Config &_config;///< Hardware configuration

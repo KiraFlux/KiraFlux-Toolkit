@@ -23,6 +23,7 @@
 #include "kf/memory/Slice.hpp"
 #include "kf/memory/io/Writable.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Singleton.hpp"
 
@@ -63,7 +64,7 @@ struct EspNow final : kf::mixin::Singleton<EspNow>,
     using Error = internal::EspNowError;
 
     /// @brief ESP-NOW peer representation with communication capabilities
-    struct Peer : kf::memory::io::Writable<Peer, Error> {
+    struct Peer final : memory::io::Writable<Peer, Error>, mixin::NonCopyable {
         /// @brief Handler type for receiving data from this specific peer
         using ReceiveHandler = Function<void(memory::Slice<const u8>)>;
 

@@ -11,10 +11,12 @@
 #include "kf/mixin/Initable.hpp"
 #include "kf/tuner/SampleCollectingTuner.hpp"
 
+#include "kf/drivers/sensors/Sensor.hpp"
+
 namespace kf::drivers::sensors {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
-template<typename I> struct NormalizedAdcInput final : mixin::Initable<NormalizedAdcInput<I>, void> {
+template<typename I> struct NormalizedAdcInput final : Sensor<NormalizedAdcInput<I>, f32, void> {
     kf_crtp_check(I, kf::gpio::AdcInputTag);
 
     using AdcPinImpl = I;
@@ -98,19 +100,6 @@ template<typename I> struct NormalizedAdcInput final : mixin::Initable<Normalize
 
     [[nodiscard]] u16 readRaw() const noexcept { return _pin.read(); }
 
-    /// @brief Read normalized axis position
-    /// @return Filtered value normalized to [-1.0, 1.0] range
-    /// @note Applies dead zone, filtering, and optional inversion
-    [[nodiscard]] f32 read() noexcept {
-        auto result = pureRead();
-
-        if (_config.inverted) {
-            result *= -1;
-        }
-
-        return result;
-    }
-
 private:
     const Config &_config;
     FilterImpl _filter;
@@ -134,11 +123,24 @@ private:
     }
 
     // impl
-
     using This = NormalizedAdcInput<I>;
 
     KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept { _pin.init(); }
+
+    friend struct Sensor<This, f32, void>;
+    /// @brief Read normalized axis position
+    /// @return Filtered value normalized to [-1.0, 1.0] range
+    /// @note Applies dead zone, filtering, and optional inversion
+    [[nodiscard]] f32 readImpl() noexcept {
+        auto result = pureRead();
+
+        if (_config.inverted) {
+            result *= -1;
+        }
+
+        return result;
+    }
 };
 
 }// namespace kf::drivers::sensors

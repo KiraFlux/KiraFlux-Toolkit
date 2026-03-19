@@ -7,6 +7,9 @@
 
 namespace kf::bus::iic {
 
+struct IicNodeTag {};
+template<typename Impl, typename ErrorImpl> struct IicNode : IicNodeTag, BusNode<Impl, ErrorImpl> {};
+
 struct Tag {};
 
 /// @brief CRTP base class for IIC bus implementations.

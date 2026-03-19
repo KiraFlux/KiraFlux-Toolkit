@@ -10,6 +10,7 @@
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 
@@ -116,7 +117,7 @@ private:
 
 public:
     /// @brief UI page containing widgets and title
-    struct Page {
+    struct Page : mixin::NonCopyable {
         explicit Page(memory::StringView title) :
             _title{title} {}
 
@@ -220,7 +221,7 @@ private:
     KF_IMPL_TIMED_POLLABLE(This);
     void pollImpl(math::Milliseconds now) noexcept {
         // Process active page update, pending events and render if needed
-        
+
         if (nullptr == _active_page) { return; }
 
         _active_page->onUpdate(now);

@@ -6,6 +6,7 @@
 #include "kf/image/Image.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
 #include "kf/drivers/display/Orientation.hpp"
@@ -20,6 +21,7 @@ struct DisplayDriverTag {};
 template<typename Impl, typename I>
 struct DisplayDriver : DisplayDriverTag,
                        mixin::Initable<Impl, bool>,
+                       mixin::NonCopyable,
                        mixin::Resettable<Impl> {
     kf_crtp_check(I, image::ImageTag);
 

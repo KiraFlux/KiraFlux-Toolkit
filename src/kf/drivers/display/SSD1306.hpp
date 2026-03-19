@@ -17,7 +17,7 @@ namespace kf::drivers::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
 template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>> {
-    kf_crtp_check(typename I::BusImpl, kf::bus::iic::Tag);
+    kf_crtp_check(I, kf::bus::iic::IicNodeTag);
 
     using NodeImpl = I;
     using PixelImpl = pixel::MonochromePixel;
@@ -56,7 +56,7 @@ template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, image::Sta
     static constexpr u8 default_address = {0x3C};
 
     /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(NodeImpl &&node) noexcept : _node{node} {}
+    explicit SSD1306(NodeImpl &&node) noexcept : _node{std::move(node)} {}
 
     /// @brief Set display contrast level (0..255)
     /// @returns true - operation success

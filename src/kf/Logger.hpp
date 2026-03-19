@@ -5,11 +5,12 @@
 
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 namespace kf {
 
 /// @brief Logging system for embedded applications
-struct Logger final {
+struct Logger final : mixin::NonCopyable {
     using WriteHandler = void (*)(memory::StringView);
 
     static WriteHandler writer;///< Current output handler (nullptr disables logging)
@@ -25,7 +26,7 @@ public:
         return Logger{memory::StringView{key, N - 1}};
     }
 
-#define MAKE(__entry_name__)                                       \
+#define MAKE(__entry_name__)                                               \
     void __entry_name__(const memory::StringView message) const noexcept { \
         write(memory::StringView{#__entry_name__}, message);               \
     }

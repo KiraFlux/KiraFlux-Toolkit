@@ -7,12 +7,13 @@
 #include "kf/aliases.hpp"
 #include "kf/math/Timer.hpp"
 #include "kf/math/units.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 
 namespace kf::input {
 
-template<typename I> struct JoystickListener final : kf::mixin::Resettable<JoystickListener<I>>, kf::mixin::TimedPollable<JoystickListener<I>> {
+template<typename I> struct JoystickListener final : mixin::NonCopyable, mixin::Resettable<JoystickListener<I>>, mixin::TimedPollable<JoystickListener<I>> {
     using JoystickImpl = I;
 
     enum class Direction : u8 {

@@ -13,6 +13,7 @@
 #include "kf/memory/Array.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/ui/render/Render.hpp"
 
 // Internal
@@ -34,7 +35,7 @@ template<typename R, typename V, typename P> struct UI final {
 
     /// @brief Base widget class for all UI components
     /// @note All interactive UI elements inherit from this class
-    struct Widget {
+    struct Widget : mixin::NonCopyable {
         /// @brief Construct widget and add to specified page
         /// @param root Page to add widget to
         explicit Widget(P &root) {

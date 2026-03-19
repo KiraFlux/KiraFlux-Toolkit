@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Pollable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
@@ -19,7 +20,7 @@ struct TunerTag {};
 ///       - `void resetImpl() noexcept` (from mixin::Resettable)
 ///
 ///       - `void pollImpl() noexcept` (from mixin::Pollable)
-template<typename Impl> struct Tuner : TunerTag, mixin::Resettable<Impl>, mixin::Pollable<Impl> {
+template<typename Impl> struct Tuner : TunerTag, mixin::NonCopyable, mixin::Resettable<Impl>, mixin::Pollable<Impl> {
 
     /// @brief Check if the tuner is still running (collecting or calculating).
     [[nodiscard]] bool running() const noexcept { return static_cast<const Impl *>(this)->runningImpl(); }

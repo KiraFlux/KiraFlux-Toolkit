@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
 namespace kf::math::filters {
@@ -11,7 +12,7 @@ struct FilterTag {};
 
 /// @brief CRTP mixin reset.
 /// @tparam Impl Derived class (must provide `resetImpl()`).
-template<typename Impl, typename T> struct Filter : FilterTag, mixin::Resettable<Impl> {
+template<typename Impl, typename T> struct Filter : FilterTag, mixin::NonCopyable, mixin::Resettable<Impl> {
 
     /// @brief Update filter with new sample
     /// @param value New input value

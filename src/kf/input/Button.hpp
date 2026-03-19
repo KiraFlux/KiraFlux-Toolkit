@@ -8,12 +8,13 @@
 #include "kf/math/units.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 
 namespace kf::input {
 
 /// @brief Minimal button with press detection only
-template<typename I> struct Button : kf::mixin::Initable<Button<I>, void>, kf::mixin::TimedPollable<Button<I>> {
+template<typename I> struct Button : mixin::Initable<Button<I>, void>, mixin::NonCopyable, mixin::TimedPollable<Button<I>> {
     kf_crtp_check(I, kf::gpio::DigitalInputTag);
 
     using PinImpl = I;

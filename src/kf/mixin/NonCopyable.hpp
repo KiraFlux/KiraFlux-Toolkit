@@ -13,6 +13,11 @@ struct NonCopyable {
     /// @brief Deleted copy assignment operator (non-copyable)
     NonCopyable &operator=(const NonCopyable &) = delete;
 
+    // Only move
+
+    NonCopyable(NonCopyable &&) = default;
+    NonCopyable &operator=(NonCopyable &&) = default;
+
 protected:
     /// @brief Protected default constructor (ensures single instance)
     NonCopyable() = default;

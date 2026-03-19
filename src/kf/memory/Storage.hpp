@@ -6,12 +6,14 @@
 #include <Preferences.h>
 #include <type_traits>
 
+#include "kf/mixin/NonCopyable.hpp"
+
 namespace kf::memory {
 
 /// @brief Persistent storage wrapper for ESP32 Preferences
 /// @tparam T Data type to store
 /// @note Uses ESP32's Preferences library for non-volatile storage
-template<typename T> struct Storage final {
+template<typename T> struct Storage final : mixin::NonCopyable {
     static_assert(std::is_trivial_v<T>, "T must be trivially copyable");
 
 private:
@@ -65,8 +67,6 @@ public:
     ret:
         return ok;
     }
-
-    Storage(const Storage &) = delete;// non-copyable
 };
 
-}// namespace kf
+}// namespace kf::memory

@@ -27,7 +27,7 @@ enum class Error : u8 {};
 /// @note This class is movable but not copyable. It manages a dedicated chip select pin and SPI settings.
 ///       Each transaction begins with CS active and applies the stored SPI configuration.
 ///       The node is created via ArduinoSPI::createNode() and must outlive the bus.
-template<typename I> struct ArduinoNode : Node<ArduinoNode<I>>, memory::io::Readable<ArduinoNode<I>, Error>, memory::io::Writable<ArduinoNode<I>, Error> {
+template<typename I> struct ArduinoSpiNode : SpiNode<ArduinoSpiNode<I>, Error> {
     using BusImpl = I;
 
     /// @brief Bit order for SPI transfers.
@@ -78,7 +78,7 @@ template<typename I> struct ArduinoNode : Node<ArduinoNode<I>>, memory::io::Read
         }
     };
 
-    explicit ArduinoNode(BusImpl &bus, const Config &config) noexcept : _spi{bus._spi}, _config{config} {}
+    explicit ArduinoSpiNode(BusImpl &bus, const Config &config) noexcept : _spi{bus._spi}, _config{config} {}
 
 private:
     SPIClass &_spi;
@@ -105,7 +105,7 @@ private:
 
     // impl
 
-    using This = ArduinoNode<I>;
+    using This = ArduinoSpiNode<I>;
 
     KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept {
@@ -211,9 +211,9 @@ private:
 
 }// namespace arduino::internal
 
-struct ArduinoSPI : public spi::SPI<ArduinoSPI, arduino::internal::ArduinoNode<ArduinoSPI>, arduino::internal::Error> {
+struct ArduinoSPI : public spi::SPI<ArduinoSPI, arduino::internal::ArduinoSpiNode<ArduinoSPI>, arduino::internal::Error> {
     using Error = arduino::internal::Error;
-    using Node = arduino::internal::ArduinoNode<ArduinoSPI>;
+    using Node = arduino::internal::ArduinoSpiNode<ArduinoSPI>;
 
     friend Node;
 

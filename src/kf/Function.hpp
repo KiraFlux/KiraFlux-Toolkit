@@ -8,6 +8,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "kf/mixin/NonCopyable.hpp"
+
 namespace kf {
 
 template<typename Signature, size_t BufferSize = 16, size_t Alignment = alignof(std::max_align_t)>
@@ -22,7 +24,7 @@ class Function;
  * @tparam Alignment Alignment requirement for internal storage
  */
 template<typename R, typename... Args, size_t BufferSize, size_t Alignment>
-class Function<R(Args...), BufferSize, Alignment> {
+class Function<R(Args...), BufferSize, Alignment> : mixin::NonCopyable {
 private:
     struct Base {
         virtual ~Base() noexcept = default;
@@ -101,10 +103,6 @@ public:
     Function(F &&f) {
         construct(std::forward<F>(f));
     }
-
-    // Non-copyable
-    Function(const Function &) = delete;
-    Function &operator=(const Function &) = delete;
 
     // Movable
     Function(Function &&other) noexcept {

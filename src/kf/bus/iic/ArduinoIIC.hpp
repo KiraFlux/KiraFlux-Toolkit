@@ -43,7 +43,7 @@ enum class Error : u8 {
 /// @note This class is movable but not copyable. It holds a reference to the underlying TwoWire instance
 ///       and manages the I2C address and transaction state. All I/O operations are blocking.
 ///       The node is created via `ArduinoIIC::createNode()` and must remain valid while the bus exists.
-template<typename I> struct Node : memory::io::Readable<Node<I>, Error>, memory::io::Writable<Node<I>, Error> {
+template<typename I> struct ArduinoIicNode : IicNode<ArduinoIicNode<I>, Error> {
     using BusImpl = I;
 
     /// @brief Configuration for an Arduino Wire I2C node.
@@ -51,7 +51,7 @@ template<typename I> struct Node : memory::io::Readable<Node<I>, Error>, memory:
         u8 address;///< 7‑bit I2C device address (usually 0x08–0x77). Wire.h uses 7‑bit format
     };
 
-    explicit Node(BusImpl &bus, const Config &config) noexcept : _wire{bus._wire}, _config{config} {}
+    explicit ArduinoIicNode(BusImpl &bus, const Config &config) noexcept : _wire{bus._wire}, _config{config} {}
 
 private:
     const Config &_config;
@@ -59,7 +59,7 @@ private:
 
     // impl
 
-    using This = Node<BusImpl>;
+    using This = ArduinoIicNode<BusImpl>;
 
     KF_IMPL_READABLE(This, Error);
 
@@ -182,9 +182,9 @@ private:
 
 };// namespace arduino::internal
 
-struct ArduinoIIC : IIC<ArduinoIIC, arduino::internal::Node<ArduinoIIC>, arduino::internal::Error> {
+struct ArduinoIIC : IIC<ArduinoIIC, arduino::internal::ArduinoIicNode<ArduinoIIC>, arduino::internal::Error> {
     using Error = arduino::internal::Error;
-    using Node = arduino::internal::Node<ArduinoIIC>;
+    using Node = arduino::internal::ArduinoIicNode<ArduinoIIC>;
 
     friend Node;
 

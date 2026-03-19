@@ -9,13 +9,14 @@
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/math/filters/LowFrequencyFilter.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
 namespace kf::math {
 
 /// @brief PID controller implementation
 /// @note Includes derivative filtering and integral anti-windup
-struct PID final : kf::mixin::Resettable<PID> {
+struct PID final : mixin::NonCopyable, mixin::Resettable<PID> {
 
     using FilterImpl = filters::LowFrequencyFilter<f32>;
 

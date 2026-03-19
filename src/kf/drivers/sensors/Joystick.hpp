@@ -7,13 +7,25 @@
 #include "kf/tuner/Tuner.hpp"
 
 #include "kf/drivers/sensors/NormalizedAdcInput.hpp"
+#include "kf/drivers/sensors/Sensor.hpp"
 
 namespace kf::drivers::sensors {
 
+namespace internal {
+struct Value {
+    f32 x;        ///< Normalized X-axis value (-1.0 to 1.0)
+    f32 y;        ///< Normalized Y-axis value (-1.0 to 1.0)
+    f32 magnitude;///< Combined vector magnitude (0.0 to 1.0)
+};
+}// namespace internal
+
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
-template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> {
+template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Value, void> {
     using NormalizedAdcInputImpl = I;
+
+    /// @brief Normalized joystick reading value
+    using Value = internal::Value;
 
     struct Config;// forward declaration
 
@@ -68,17 +80,21 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
         axis_x{config.x, filter_config, std::move(pin_x)},
         axis_y{config.y, filter_config, std::move(pin_y)} {}
 
-    /// @brief Normalized joystick reading value
-    struct Value {
-        f32 x;        ///< Normalized X-axis value (-1.0 to 1.0)
-        f32 y;        ///< Normalized Y-axis value (-1.0 to 1.0)
-        f32 magnitude;///< Combined vector magnitude (0.0 to 1.0)
-    };
+private:
+    // impl
+    using This = Joystick<I>;
 
+    KF_IMPL_INITABLE(This, void);
+    void initImpl() noexcept {
+        axis_x.init();
+        axis_y.init();
+    }
+
+    friend struct Sensor<This, Value, void>;
     /// @brief Read current joystick position with normalization
     /// @return Normalized X, Y coordinates and magnitude
     /// @note Output is normalized to unit circle (clamped at magnitude 1.0)
-    [[nodiscard]] Value read() noexcept {
+    [[nodiscard]] Value readImpl() noexcept {
         const auto x = axis_x.read();
         const auto y = axis_y.read();
         const auto h = std::hypot(x, y);
@@ -86,17 +102,6 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
         if (h < 1e-3) { return {0, 0, 0}; }
         if (h > 1) { return {x / h, y / h, 1}; }
         return {x, y, h};
-    }
-
-private:
-    // impl
-
-    using This = Joystick<I>;
-
-    KF_IMPL_INITABLE(This, void);
-    void initImpl() noexcept {
-        axis_x.init();
-        axis_y.init();
     }
 };
 

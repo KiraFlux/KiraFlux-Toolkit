@@ -9,7 +9,7 @@
 #include "kf/mixin/Initable.hpp"
 #include "kf/validation.hpp"
 
-namespace kf::drivers::sensors {
+namespace kf::input {
 
 /// @brief Two-phase incremental rotary encoder with position tracking
 /// @note Uses interrupt on phase A for accurate position counting
@@ -121,4 +121,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::sensors
+}// namespace kf::input

@@ -11,6 +11,7 @@
 #include "kf/memory/Array.hpp"
 #include "kf/memory/io/InputStream.hpp"
 #include "kf/memory/io/OutputStream.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 namespace kf::network {
 
@@ -18,7 +19,7 @@ namespace kf::network {
 /// @tparam N Exact count of local instructions
 /// @tparam Tlc Type of local instruction code
 /// @tparam Trc Type of remote instruction code
-template<usize N, typename Tlc, typename Trc = Tlc> struct MizLangBridge {
+template<usize N, typename Tlc, typename Trc = Tlc> struct MizLangBridge final : mixin::NonCopyable {
     enum class Error : u8 {
         Receiver_CodeNotExists,
         Receiver_CodeReadFail,
@@ -50,13 +51,8 @@ public:
         _output_stream{std::move(output_stream)},
         _instructions{std::move(instructions)} {}
 
-    struct Instruction {
-    private:
-        const SendFunctionType _sender;
-        memory::io::OutputStream &_output_stream;
-        const RemoteCodeType _code;
+    struct Instruction final : mixin::NonCopyable {
 
-    public:
         explicit Instruction(memory::io::OutputStream &output_stream, RemoteCodeType code, SendFunctionType sender) noexcept :
             _output_stream{output_stream}, _sender{std::move(sender)}, _code{code} {}
 
@@ -72,6 +68,11 @@ public:
             }
             return _sender(_output_stream, args);
         }
+
+    private:
+        const SendFunctionType _sender;
+        memory::io::OutputStream &_output_stream;
+        const RemoteCodeType _code;
     };
 
     [[nodiscard]] Instruction createInstruction(SendFunctionType sender_function) noexcept {
@@ -103,4 +104,4 @@ public:
     }
 };
 
-}// namespace kf
+}// namespace kf::network

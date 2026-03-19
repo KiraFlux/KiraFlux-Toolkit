@@ -5,6 +5,7 @@
 
 #include "kf/aliases.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 #include "kf/ui/internal/ValuePlacement.hpp"
 
@@ -15,7 +16,7 @@ struct RenderTag {};
 /// @brief CRTP base class for UI rendering systems
 /// @tparam Impl Concrete renderer implementation type
 /// @note Delegates all rendering operations to derived class implementation
-template<typename Impl> struct Render : RenderTag {
+template<typename Impl> struct Render : RenderTag, mixin::NonCopyable {
     // Control operations
 
     /// @brief Prepare render buffer for new frame

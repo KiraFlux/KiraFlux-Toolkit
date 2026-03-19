@@ -8,9 +8,13 @@
 #include "kf/memory/io/Writable.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
 
 namespace kf::bus {
+
+struct BusNodeTag {};
+template<typename Impl, typename ErrorImpl> struct BusNode : BusNodeTag, mixin::NonCopyable, memory::io::Readable<Impl, ErrorImpl>, memory::io::Writable<Impl, ErrorImpl> {};
 
 struct BusTag {};
 
@@ -23,10 +27,9 @@ struct BusTag {};
 template<typename BusImpl, typename NodeImpl, typename ErrorImpl>
 struct Bus : BusTag,
              mixin::Initable<BusImpl, Result<void, ErrorImpl>>,
+             mixin::NonCopyable,
              mixin::Quitable<BusImpl> {
-
-    kf_crtp_check(NodeImpl, kf::memory::io::ReadableTag);
-    kf_crtp_check(NodeImpl, kf::memory::io::WritableTag);
+    kf_crtp_check(NodeImpl, kf::bus::BusNodeTag);
 
     [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept {
         return NodeImpl{*static_cast<BusImpl *>(this), config};
