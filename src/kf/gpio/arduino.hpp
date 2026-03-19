@@ -16,8 +16,8 @@ struct DigitalInput : gpio::DigitalInput<DigitalInput, void> {
 
     /// @param pin      GPIO number (e.g. GPIO_NUM_4)
     /// @param pull_mode pull configuration
-    explicit DigitalInput(gpio_num_t pin, Pull pull_type) noexcept
-        : _pin{static_cast<u8>(pin)}, _state{static_cast<u8>(pull_type)} {}
+    explicit DigitalInput(gpio_num_t pin, Pull pull_type) noexcept :
+        _pin{static_cast<u8>(pin)}, _state{static_cast<u8>(pull_type)} {}
 
 private:
     const u8 _pin;
@@ -43,7 +43,6 @@ private:
 
     // input impl
     friend struct kf::gpio::Input<This, bool, void>;
-
     [[nodiscard]] bool readImpl() const noexcept {
         const auto level = static_cast<bool>(digitalRead(_pin));
 
