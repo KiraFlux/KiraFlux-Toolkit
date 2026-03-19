@@ -22,12 +22,39 @@ template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, image::Sta
     using NodeImpl = I;
     using PixelImpl = pixel::MonochromePixel;
 
+    /// @brief SSD1306 command set
+    enum Command : u8 {
+        DisplayOff = 0xAE,///< Turn display off
+        DisplayOn = 0xAF, ///< Turn display on
+
+        CommandMode = 0x00,   ///< Start command stream
+        OneCommandMode = 0x80,///< Single command prefix
+        DataMode = 0x40,      ///< Data transmission prefix
+
+        AddressingMode = 0x20,///< Set addressing mode
+        Horizontal = 0x00,    ///< Horizontal addressing
+        Vertical = 0x01,      ///< Vertical addressing
+
+        NormalV = 0xC8,///< Normal vertical scan direction
+        FlipV = 0xC0,  ///< Flipped vertical scan direction
+        NormalH = 0xA1,///< Normal horizontal segment remap
+        FlipH = 0xA0,  ///< Flipped horizontal segment remap
+
+        Contrast = 0x81,     ///< Set contrast command
+        SetComPins = 0xDA,   ///< COM pins hardware configuration
+        SetVcomDetect = 0xDB,///< Set VCOMH deselect level
+        ClockDiv = 0xD5,     ///< Set display clock divide ratio
+        SetMultiplex = 0xA8, ///< Set multiplex ratio
+        ColumnAddr = 0x21,   ///< Set column address range
+        PageAddr = 0x22,     ///< Set page address range
+        ChargePump = 0x8D,   ///< Charge pump setting
+
+        NormalDisplay = 0xA6,///< Normal pixel color (black on white)
+        InvertDisplay = 0xA7 ///< Inverted pixel color (white on black)
+    };
+
     static constexpr u8 default_address = {0x3C};
 
-private:
-    NodeImpl _node;
-
-public:
     /// @brief Construct SSD1306 driver instance
     explicit SSD1306(NodeImpl &&node) noexcept : _node{node} {}
 
@@ -51,7 +78,16 @@ public:
     }
 
 private:
-    // Initable impl
+    NodeImpl _node;
+
+    /// @brief Send single command to display
+    [[nodiscard]] bool sendCommand(Command c) noexcept {
+        const u8 packet[]{OneCommandMode, static_cast<u8>(c)};
+        return _node.writePacket(packet).isOk();
+    }
+
+    // impl
+
     friend struct kf::mixin::Initable<SSD1306<I>, bool>;
 
     /// @brief Initialize display hardware via I2C
@@ -101,7 +137,10 @@ private:
         return _node.writePacket(init_commands).isOk();
     }
 
-    // DisplayDriver interface implementation
+    friend struct kf::mixin::Resettable<SSD1306<I>>;
+
+    void resetImpl() const noexcept {}
+
     friend struct DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>>;
 
     /// @brief Transfer software buffer to display via I2C
@@ -162,43 +201,6 @@ private:
         return true;
     fail:
         return false;
-    }
-
-    /// @brief SSD1306 command set
-    enum Command : u8 {
-        DisplayOff = 0xAE,///< Turn display off
-        DisplayOn = 0xAF, ///< Turn display on
-
-        CommandMode = 0x00,   ///< Start command stream
-        OneCommandMode = 0x80,///< Single command prefix
-        DataMode = 0x40,      ///< Data transmission prefix
-
-        AddressingMode = 0x20,///< Set addressing mode
-        Horizontal = 0x00,    ///< Horizontal addressing
-        Vertical = 0x01,      ///< Vertical addressing
-
-        NormalV = 0xC8,///< Normal vertical scan direction
-        FlipV = 0xC0,  ///< Flipped vertical scan direction
-        NormalH = 0xA1,///< Normal horizontal segment remap
-        FlipH = 0xA0,  ///< Flipped horizontal segment remap
-
-        Contrast = 0x81,     ///< Set contrast command
-        SetComPins = 0xDA,   ///< COM pins hardware configuration
-        SetVcomDetect = 0xDB,///< Set VCOMH deselect level
-        ClockDiv = 0xD5,     ///< Set display clock divide ratio
-        SetMultiplex = 0xA8, ///< Set multiplex ratio
-        ColumnAddr = 0x21,   ///< Set column address range
-        PageAddr = 0x22,     ///< Set page address range
-        ChargePump = 0x8D,   ///< Charge pump setting
-
-        NormalDisplay = 0xA6,///< Normal pixel color (black on white)
-        InvertDisplay = 0xA7 ///< Inverted pixel color (white on black)
-    };
-
-    /// @brief Send single command to display
-    [[nodiscard]] bool sendCommand(Command c) noexcept {
-        const u8 packet[]{OneCommandMode, static_cast<u8>(c)};
-        return _node.writePacket(packet).isOk();
     }
 };
 

@@ -61,15 +61,6 @@ template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<I
     explicit ST7735(const Config &config, NodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
         _config{config}, _node{node}, _pin_data_command{pin_data_command}, _pin_reset{pin_reset} {}
 
-    /// @brief Hardware reset of the display (pulse RESET pin).
-    /// @note Required after power‑up to initialise the internal state machine.
-    void reset() const noexcept {
-        _pin_reset.write(false);
-        delay(10);
-        _pin_reset.write(true);
-        delay(120);
-    }
-
 private:
     const Config &_config;///< Hardware configuration
     NodeImpl _node;
@@ -78,7 +69,8 @@ private:
 
     u8 _madctl_base_mode{0};///< Base MADCTL value
 
-    // Initable impl
+    // impl
+
     friend struct kf::mixin::Initable<ST7735<Ib, Ido>, bool>;
 
     /// @brief Initialize display hardware via SPI
@@ -88,7 +80,7 @@ private:
         _pin_data_command.init();
         _pin_reset.init();
 
-        reset();
+        this->reset();
 
         sendCommand(Command::SWRESET);
         delay(150);
@@ -108,7 +100,17 @@ private:
         return true;
     }
 
-    // DisplayDriver impl
+    friend struct kf::mixin::Resettable<ST7735<Ib, Ido>>;
+
+    /// @brief Hardware reset of the display (pulse RESET pin).
+    /// @note Required after power‑up to initialise the internal state machine.
+    void resetImpl() const noexcept {
+        _pin_reset.write(false);
+        delay(10);
+        _pin_reset.write(true);
+        delay(120);
+    }
+
     friend struct DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;
 
     bool sendImpl() noexcept {
