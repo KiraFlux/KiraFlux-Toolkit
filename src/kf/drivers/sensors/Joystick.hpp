@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "kf/input/NormalizedAdcInput.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/tuner/Tuner.hpp"
-#include "kf/mixin/Initable.hpp"
 
-namespace kf::input {
+#include "kf/drivers/sensors/NormalizedAdcInput.hpp"
+
+namespace kf::drivers::sensors {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
@@ -95,4 +95,4 @@ private:
     }
 };
 
-}// namespace kf::input
+}// namespace kf::drivers::sensors

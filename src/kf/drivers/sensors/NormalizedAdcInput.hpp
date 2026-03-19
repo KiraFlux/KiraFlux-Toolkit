@@ -11,7 +11,7 @@
 #include "kf/mixin/Initable.hpp"
 #include "kf/tuner/SampleCollectingTuner.hpp"
 
-namespace kf::input {
+namespace kf::drivers::sensors {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
 template<typename I> struct NormalizedAdcInput final : mixin::Initable<NormalizedAdcInput<I>, void> {
@@ -137,4 +137,4 @@ private:
     }
 };
 
-}// namespace kf::input
+}// namespace kf::drivers::sensors

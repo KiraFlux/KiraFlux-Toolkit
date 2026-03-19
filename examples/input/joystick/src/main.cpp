@@ -5,13 +5,14 @@
 
 // target files for this demo
 #include <kf/gpio/arduino.hpp>
-#include <kf/input/Joystick.hpp>
+#include <kf/drivers/sensors/Joystick.hpp>
+#include <kf/drivers/sensors/NormalizedAdcInput.hpp>
+
 #include <kf/input/JoystickListener.hpp>
-#include <kf/input/NormalizedAdcInput.hpp>
 
 using kf::gpio::arduino::AdcInput;
-using NormalizedAdcInput = kf::input::NormalizedAdcInput<AdcInput>;
-using Joystick = kf::input::Joystick<NormalizedAdcInput>;
+using NormalizedAdcInput = kf::drivers::sensors::NormalizedAdcInput<AdcInput>;
+using Joystick = kf::drivers::sensors::Joystick<NormalizedAdcInput>;
 using JoystickListener = kf::input::JoystickListener<Joystick>;
 
 // Configuration – must outlive joystick instance (referenced)
