@@ -5,6 +5,7 @@
 
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
 namespace kf::math::filters {
@@ -12,7 +13,7 @@ namespace kf::math::filters {
 /// @brief Complementary filter for sensor fusion
 /// @tparam T Data type (typically float or vector type)
 /// @note Combines low-frequency and high-frequency sensor data using weighted average
-template<typename T> struct ComplementaryFilter final : kf::mixin::Resettable<ComplementaryFilter<T>> {
+template<typename T> struct ComplementaryFilter final : mixin::NonCopyable, mixin::Resettable<ComplementaryFilter<T>> {
     using ValueType = T;
 
     struct Config {

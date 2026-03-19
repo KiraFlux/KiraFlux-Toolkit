@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
@@ -35,7 +37,7 @@ template<typename PwmPinImpl, typename DigitalPinImpl> struct L298nMotor final :
     };
 
     explicit constexpr L298nMotor(const Config &config, PwmPinImpl &&pin_pwm, DigitalPinImpl &&pin_dir) noexcept :
-        _config{config}, _pin_pwm{pin_pwm}, _pin_dir{pin_dir} {}
+        _config{config}, _pin_pwm{std::move(pin_pwm)}, _pin_dir{std::move(pin_dir)} {}
 
     /// @brief Set motor speed from normalized value
     /// @param value Normalized speed (-1.0 to 1.0)

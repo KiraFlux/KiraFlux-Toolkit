@@ -4,12 +4,14 @@
 #pragma once
 
 #include "kf/math/units.hpp"
+#include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 namespace kf::controllers {
 
 /// @brief Two-degree-of-freedom robotic manipulator with servo control
 /// @note Controls arm and claw axes using PWM-position servo drivers
-template<typename I> struct Manipulator2DOF final : mixin::Initable<Manipulator2DOF, bool> {
+template<typename I> struct Manipulator2DOF final : mixin::NonCopyable, mixin::Initable<Manipulator2DOF, bool> {
     using ActuatorImpl = I;
 
     /// @brief Construct manipulator instance
@@ -31,8 +33,9 @@ private:
     ActuatorImpl _arm, _claw;
 
     // impl
+    using This = Manipulator2DOF;
 
-    KF_IMPL_INITABLE(Manipulator2DOF, bool);
+    KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept {
         if (not _arm.init()) { return false; }
         if (not _claw.init()) { return false; }

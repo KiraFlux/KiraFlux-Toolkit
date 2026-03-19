@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/gpio/GPIO.hpp"
@@ -96,7 +98,7 @@ template<typename I> struct NormalizedAdcInput final : Sensor<NormalizedAdcInput
     };
 
     explicit NormalizedAdcInput(const Config &config, const typename FilterImpl::Config &filter_config, AdcPinImpl &&pin) noexcept :
-        _config{config}, _filter{filter_config}, _pin{pin} {}
+        _config{config}, _filter{filter_config}, _pin{std::move(pin)} {}
 
     [[nodiscard]] u16 readRaw() const noexcept { return _pin.read(); }
 

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <Arduino.h>
+#include <utility>
 
 #include "kf/algorithm.hpp"
 #include "kf/gpio/GPIO.hpp"
@@ -71,7 +71,7 @@ template<typename I> struct PwmPositionServo final : Actuator<PwmPositionServo<I
         const DriverConfig &driver_settings,
         const PulseConfig &pulse_settings,
         PwmPinImpl &&pin) noexcept :
-        _driver_settings{driver_settings}, _pulse_settings(pulse_settings), _pin{pin} {}
+        _driver_settings{driver_settings}, _pulse_settings(pulse_settings), _pin{std::move(pin)} {}
 
     /// @brief Set servo to target angle
     /// @param angle Target angle in degrees

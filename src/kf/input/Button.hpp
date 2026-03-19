@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "kf/aliases.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
@@ -24,7 +26,7 @@ template<typename I> struct Button : mixin::Initable<Button<I>, void>, mixin::No
     };
 
     explicit Button(const Config &config, PinImpl &&pin) noexcept :
-        _config{config}, _pin{pin} {}
+        _config{config}, _pin{std::move(pin)} {}
 
     /// @brief Check if button was clicked (consumes the click)
     /// @return true if button was pressed since last call
