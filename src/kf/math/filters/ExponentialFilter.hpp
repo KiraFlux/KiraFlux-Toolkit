@@ -28,7 +28,7 @@ private:
     // impl
     using This = ExponentialFilter<ValueType>;
 
-    KF_IMPL_FILTER(this, ValueType);
+    KF_IMPL_FILTER(This, ValueType);
     ValueType calcImpl(const ValueType &value) noexcept {
         _current_filtered += (value - _current_filtered) * _config.factor;
         return _current_filtered;
