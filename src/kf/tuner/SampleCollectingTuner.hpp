@@ -58,8 +58,7 @@ private:
         impl().resetImpl();
     }
 
-    friend struct kf::mixin::Pollable<This>;
-
+    KF_IMPL_POLLABLE(This);
     void pollImpl() noexcept {
         switch (_state) {
             case State::Idle://

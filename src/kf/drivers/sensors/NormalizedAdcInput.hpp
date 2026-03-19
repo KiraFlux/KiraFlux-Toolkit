@@ -45,7 +45,9 @@ template<typename I> struct NormalizedAdcInput final : mixin::Initable<Normalize
 
         // impl
 
-        friend struct kf::mixin::Resettable<Tuner>;
+        using This = Tuner;
+
+        friend struct kf::mixin::Resettable<This>;
 
         void resetImpl() noexcept {
             _max_sample = 0;
@@ -53,8 +55,7 @@ template<typename I> struct NormalizedAdcInput final : mixin::Initable<Normalize
             _sum = 0;
         }
 
-        friend struct kf::mixin::Pollable<Tuner>;
-
+        KF_IMPL_POLLABLE(This);
         void pollImpl() noexcept {
             const auto sample = AdcSignedValue(_normalized_input.readRaw());
             _max_sample = kf::max(_max_sample, sample);

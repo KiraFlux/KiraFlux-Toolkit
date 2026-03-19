@@ -31,21 +31,22 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
 
         // impl
 
-        friend struct kf::mixin::Resettable<Tuner>;
+        using This = Tuner;
+
+        friend struct kf::mixin::Resettable<This>;
 
         void resetImpl() noexcept {
             _tuner_x.reset();
             _tuner_y.reset();
         }
 
-        friend struct kf::mixin::Pollable<Tuner>;
-
+        KF_IMPL_POLLABLE(This);
         void pollImpl() noexcept {
             _tuner_x.poll();
             _tuner_y.poll();
         }
 
-        friend struct kf::tuner::Tuner<Tuner>;
+        friend struct kf::tuner::Tuner<This>;
 
         bool runningImpl() const noexcept {
             return _tuner_x.running() or _tuner_y.running();

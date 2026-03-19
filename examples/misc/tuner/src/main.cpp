@@ -61,10 +61,9 @@ private:
         Serial.printf("[%d] %s: starting\n", millis(), _config.name);
     }
 
-    friend struct kf::mixin::Pollable<MyTuner>;
-
-    // on pull - state-depended
+    KF_IMPL_POLLABLE(MyTuner);
     void pollImpl() noexcept {
+        // on pull - state-depended
         switch (_state) {
             case State::Idle:
                 return;
