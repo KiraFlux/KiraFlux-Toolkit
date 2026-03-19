@@ -11,7 +11,7 @@ struct ResettableTag {};
 /// @tparam Impl Derived class (must provide `resetImpl()`).
 template<typename Impl> struct Resettable : ResettableTag {
 
-    /// @brief Reset: release resources, terminate, etc.
+    /// @brief Reset: full state-reset
     void reset() noexcept { static_cast<Impl *>(this)->resetImpl(); }
 };
 
