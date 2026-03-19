@@ -219,8 +219,10 @@ private:
 
     // impl
 
+    using This = ArduinoIIC;
+
     using InitResult = kf::Result<void, Error>;
-    KF_IMPL_INITABLE(ArduinoIIC, InitResult);
+    KF_IMPL_INITABLE(This, InitResult);
     InitResult initImpl() noexcept {
         if (not _wire.begin()) { return Error::BeginFailed; }
 
@@ -243,7 +245,7 @@ private:
         return {};
     }
 
-    friend struct kf::mixin::Quitable<ArduinoIIC>;
+    KF_IMPL_QUITABLE(This);
     void quitImpl() noexcept {
         (void) _wire.end();// just ignore
     }

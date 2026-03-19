@@ -264,10 +264,9 @@ private:
         return {};
     }
 
-    friend struct kf::mixin::Quitable<This>;
-
-    /// @note Unregisters callbacks and deinitializes ESP-NOW
+    KF_IMPL_QUITABLE(This);
     void quitImpl() noexcept {
+        // Unregisters callbacks and deinitializes ESP-NOW
         (void) esp_now_unregister_recv_cb();
         (void) esp_now_deinit();
     }

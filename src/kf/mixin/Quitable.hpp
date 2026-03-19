@@ -16,3 +16,5 @@ template<typename Impl> struct Quitable : QuitableTag {
 };
 
 }// namespace kf::mixin
+
+#define KF_IMPL_QUITABLE(__impl__) friend struct kf::mixin::Quitable<__impl__>

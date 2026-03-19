@@ -247,8 +247,10 @@ private:
 
     // impl
 
+    using This = ArduinoSPI;
+
     using InitResult = Result<void, Error>;
-    KF_IMPL_INITABLE(ArduinoSPI, InitResult);
+    KF_IMPL_INITABLE(This, InitResult);
     InitResult initImpl() noexcept {
         if (_config.hasDefaultPins()) {
             _spi.begin();
@@ -258,8 +260,7 @@ private:
         return {};
     }
 
-    friend struct kf::mixin::Quitable<ArduinoSPI>;
-
+    KF_IMPL_QUITABLE(This);
     void quitImpl() noexcept { _spi.end(); }
 };
 
