@@ -39,9 +39,9 @@ template<typename I> struct NormalizedAdcInput final : mixin::Initable<Normalize
 
     private:
         NormalizedAdcInput &_normalized_input;
+        i64 _sum{};
         AdcSignedValue _max_sample{};
         AdcSignedValue _min_sample{};
-        i64 _sum{};
 
         // impl
 
@@ -53,7 +53,7 @@ template<typename I> struct NormalizedAdcInput final : mixin::Initable<Normalize
             _sum = 0;
         }
 
-        friend TunerBase;
+        friend struct kf::mixin::Pollable<Tuner>;
 
         void pollImpl() noexcept {
             const auto sample = AdcSignedValue(_normalized_input.readRaw());
@@ -61,6 +61,8 @@ template<typename I> struct NormalizedAdcInput final : mixin::Initable<Normalize
             _min_sample = kf::min(_min_sample, sample);
             _sum += sample;
         }
+
+        friend TunerBase;
 
         void calculateImpl(Config &config) const noexcept {
             constexpr auto margin{10};

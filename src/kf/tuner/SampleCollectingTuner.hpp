@@ -11,59 +11,61 @@ namespace kf::tuner {
 
 /// @brief CRTP base class for tuners that collect a fixed number of samples before calculating.
 /// @tparam Impl Derived class implementing the actual tuning logic.
-/// @tparam I    Configuration type that will be updated after calculation.
+/// @tparam T    Configuration type that will be updated after calculation.
 /// @note The derived class must provide:
 ///
-///       - `void startImpl() noexcept`   – called when collection begins.
+///       - `void resetImpl() noexcept`   – called when collection begins.
 ///
 ///       - `void pollImpl() noexcept`    – called for each sample; should process the current sample (e.g., update min/max/sum).
 ///
-///       - `void calculateImpl(I&) noexcept` – called after all samples are collected; updates the configuration.
+///       - `void calculateImpl(T&) noexcept` – called after all samples are collected; updates the configuration.
 ///
-/// @details This class manages a state machine (Idle → Processing → Calculating → Idle).
-///          After `start()`, the caller must repeatedly call `poll()` until `running()` returns false.
+/// @details This class manages a state machine (Idle -> Running -> Calculating -> Idle).
+///          After `reset()`, the caller must repeatedly call `poll()` until `running()` returns false.
 ///          The `poll()` implementation of this class will invoke the derived class's `pollImpl()`
 ///          for each sample and, once the required number of samples is reached, transition to
 ///          the Calculating state and call `calculateImpl()`.
-template<typename Impl, typename I> struct SampleCollectingTuner : Tuner<SampleCollectingTuner<Impl, I>> {
-    using ConfigImpl = I;
-
-    /// @brief Total number of samples to collect before calculating.
-    const u16 samples_total;
-
-    explicit SampleCollectingTuner(ConfigImpl &config, u16 samples) noexcept :
-        _config{config}, samples_total{samples} {}
-
-private:
-    ConfigImpl &_config;
-    u16 _samples_processed{0};
+template<typename Impl, typename T> struct SampleCollectingTuner : Tuner<SampleCollectingTuner<Impl, T>> {
+    using ConfigType = T;
+    using SampleCounterType = u16;
 
     enum class State : u8 {
         Idle,
-        Processing,
+        Running,
         Calculating,
-    } _state{State::Idle};
+    };
+
+    /// @brief Total number of samples to collect before calculating.
+    const SampleCounterType samples_total;
+
+    explicit SampleCollectingTuner(ConfigType &config, SampleCounterType samples) noexcept :
+        _config{config}, samples_total{samples} {}
+
+private:
+    ConfigType &_config;
+    SampleCounterType _samples_processed{0};
+    State _state{State::Idle};
 
     // impl
 
-    friend struct kf::mixin::Resettable<SampleCollectingTuner<Impl, I>>;
+    using This = SampleCollectingTuner<Impl, T>;
+
+    friend struct kf::mixin::Resettable<This>;
 
     void resetImpl() noexcept {
-        _state = State::Processing;
+        _state = State::Running;
         _samples_processed = 0;
         impl().resetImpl();
     }
 
-    friend struct kf::tuner::Tuner<SampleCollectingTuner<Impl, I>>;
-
-    [[nodiscard]] bool runningImpl() const noexcept { return _state != State::Idle; }
+    friend struct kf::mixin::Pollable<This>;
 
     void pollImpl() noexcept {
         switch (_state) {
             case State::Idle://
                 return;
 
-            case State::Processing: {
+            case State::Running: {
                 impl().pollImpl();
                 _samples_processed += 1;
 
@@ -80,6 +82,10 @@ private:
                 return;
         }
     }
+
+    friend struct kf::tuner::Tuner<This>;
+
+    [[nodiscard]] bool runningImpl() const noexcept { return _state != State::Idle; }
 
     // CRTP
     Impl &impl() noexcept { return *static_cast<Impl *>(this); }

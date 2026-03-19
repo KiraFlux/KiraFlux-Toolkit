@@ -61,13 +61,7 @@ private:
         Serial.printf("[%d] %s: starting\n", millis(), _config.name);
     }
 
-    // Tuner CRTP interface impl
-    friend struct kf::tuner::Tuner<MyTuner>;
-
-    // tuner is running if it is not idle
-    bool runningImpl() const noexcept {
-        return _state != State::Idle;
-    }
+    friend struct kf::mixin::Pollable<MyTuner>;
 
     // on pull - state-depended
     void pollImpl() noexcept {
@@ -96,6 +90,14 @@ private:
             }
                 return;
         }
+    }
+
+    // Tuner CRTP interface impl
+    friend struct kf::tuner::Tuner<MyTuner>;
+
+    // tuner is running if it is not idle
+    bool runningImpl() const noexcept {
+        return _state != State::Idle;
     }
 };
 

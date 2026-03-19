@@ -38,15 +38,17 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
             _tuner_y.reset();
         }
 
-        friend struct tuner::Tuner<Tuner>;
-
-        [[nodiscard]] bool runningImpl() const noexcept {
-            return _tuner_x.running() or _tuner_y.running();
-        }
+        friend struct kf::mixin::Pollable<Tuner>;
 
         void pollImpl() noexcept {
             _tuner_x.poll();
             _tuner_y.poll();
+        }
+
+        friend struct kf::tuner::Tuner<Tuner>;
+
+        bool runningImpl() const noexcept {
+            return _tuner_x.running() or _tuner_y.running();
         }
     };
 
