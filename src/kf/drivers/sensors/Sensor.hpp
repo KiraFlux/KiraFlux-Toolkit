@@ -16,7 +16,7 @@ struct SensorTag {};
 /// @tparam Measurement Result of `read()`
 /// @tparam InitResult Reslt of `init()`
 template<typename Impl, typename Measurement, typename InitResult>
-struct Sensor : SensorTag, meta::CRTP<Impl>, mixin::NonCopyable, mixin::Initable<Impl, InitResult> {
+struct Sensor : SensorTag, meta::CRTP<Impl>, mixin::Initable<Impl, InitResult>, mixin::NonCopyable {
 
     [[nodiscard]] Measurement read() noexcept { return this->impl().readImpl(); }
 };

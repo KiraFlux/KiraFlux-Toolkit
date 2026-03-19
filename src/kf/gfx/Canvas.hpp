@@ -62,9 +62,9 @@ public:
         math::Pixels sub_offset_x, math::Pixels sub_offset_y) noexcept {
         const auto frame_result = _frame.sub(sub_width, sub_height, sub_offset_x, sub_offset_y);
         if (frame_result.isOk()) {
-            return {Canvas{frame_result.ok().value(), *_active_font, _foreground, _background}};
+            return {Canvas{frame_result.value(), *_active_font, _foreground, _background}};
         } else {
-            return {frame_result.error().value()};
+            return {frame_result.error()};
         }
     }
 

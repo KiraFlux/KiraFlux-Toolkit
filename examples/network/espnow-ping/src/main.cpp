@@ -16,51 +16,55 @@ void onUnknown(const EspNow::Mac &mac, kf::memory::Slice<const kf::u8> data) {
     Serial.printf("(unknown): from [%s] got %d bytes\n", EspNow::stringFromMac(mac).data(), data.size());
 }
 
-kf::Option<EspNow::Peer> createBroadcastPeer() {
+void setupBroadcastPeer() {
     EspNow::instance().onReceiveFromUnknown(onUnknown);
 
-    const auto result = EspNow::Peer::add(broadcast_address);
+    auto result = EspNow::Peer::add(broadcast_address);
     if (result.isError()) {
-        Serial.printf("Failed to add broadcast peer: %s\n", EspNow::stringFromError(result.error().value()));
+        Serial.printf("Failed to add broadcast peer: %s\n", EspNow::stringFromError(result.error()));
     }
 
-    return result.ok();// Peer or None
+    if (result.isOk()) {
+        broadcast_peer.value(std::move(result.value()));
+    }
 }
 
 void onTarget(kf::memory::Slice<const kf::u8> data) {
     Serial.printf("from [%s] got %d bytes\n", EspNow::stringFromMac(target_peer_address).data(), data.size());
 }
 
-kf::Option<EspNow::Peer> createTargetPeer() {
+void setupTargetPeer() {
     EspNow::instance().onReceiveFromUnknown(onUnknown);
 
-    const auto peer_add_result = EspNow::Peer::add(target_peer_address);
+    auto peer_add_result = EspNow::Peer::add(target_peer_address);
     if (peer_add_result.isError()) {
-        Serial.printf("Failed to add broadcast peer: %s\n", EspNow::stringFromError(peer_add_result.error().value()));
+        Serial.printf("Failed to add broadcast peer: %s\n", EspNow::stringFromError(peer_add_result.error()));
     } else {
         // ok => attach handler
 
-        const auto result = peer_add_result.ok().value().onReceive(onTarget);
+        const auto result = peer_add_result.value().onReceive(onTarget);
         if (result.isError()) {
-            Serial.printf("Failed to attach receive callback: %s\n", EspNow::stringFromError(result.error().value()));
+            Serial.printf("Failed to attach receive callback: %s\n", EspNow::stringFromError(result.error()));
         }
     }
 
-    return peer_add_result.ok();// Peer or None
+    if (peer_add_result.isOk()) {
+        target_peer.value(std::move(peer_add_result.value()));
+    }
 }
 
 void setup() {
     Serial.begin(115200);
     Serial.printf("Self: %s\n", EspNow::stringFromMac(EspNow::instance().mac()).data());
 
-    const auto init_error_option = EspNow::instance().init().error();
-    if (init_error_option.hasValue()) {
-        Serial.println(EspNow::stringFromError(init_error_option.value()));
+    const auto init_error_option = EspNow::instance().init();
+    if (init_error_option.isError()) {
+        Serial.println(EspNow::stringFromError(init_error_option.error()));
         return;
     }
 
-    broadcast_peer = createBroadcastPeer();
-    target_peer = createTargetPeer();
+    setupBroadcastPeer();
+    setupTargetPeer();
 }
 
 void loop() {

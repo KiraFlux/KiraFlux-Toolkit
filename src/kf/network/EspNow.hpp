@@ -88,7 +88,7 @@ struct EspNow final : kf::mixin::Singleton<EspNow>,
             const auto result = esp_now_add_peer(&peer);
 
             if (ESP_OK == result) {
-                return {Peer{mac}};
+                return {std::move(Peer{mac})};
             } else {
                 return {translateEspnowError(result)};
             }

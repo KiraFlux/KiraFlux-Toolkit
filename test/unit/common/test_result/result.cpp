@@ -1,6 +1,6 @@
-#include <unity.h>
-
 #include <kf/Result.hpp>
+
+#include <unity.h>
 
 using kf::Result;
 
@@ -17,33 +17,28 @@ template<typename T> struct ResultTester {
     static void test_is_ok() {
         Result<T, Error> r{value};
         TEST_ASSERT_TRUE(r.isOk());
-        TEST_ASSERT_TRUE(r.ok().hasValue());
-        TEST_ASSERT_TRUE(value == r.ok().value());
-        TEST_ASSERT_FALSE(r.error().hasValue());
+        TEST_ASSERT_TRUE(value == r.value());
     }
 
     static void test_is_error() {
         Result<T, Error> r{error};
         TEST_ASSERT_TRUE(r.isError());
-        TEST_ASSERT_FALSE(r.ok().hasValue());
-        TEST_ASSERT_TRUE(r.error().hasValue());
-        TEST_ASSERT_TRUE(error == r.error().value());
+        TEST_ASSERT_TRUE(error == r.error());
     }
 
     static void test_copy() {
         Result<T, Error> a{value};
-        Result<T, Error> b{a};
+        Result<T, Error> b{a};// copy
         TEST_ASSERT_TRUE(a.isOk());
         TEST_ASSERT_TRUE(b.isOk());
-        TEST_ASSERT_TRUE(a.ok().value() == b.ok().value());
-        TEST_ASSERT_NOT_EQUAL(&a.ok().value(), &b.ok().value());
+        TEST_ASSERT_TRUE(a.value() == b.value());
+        TEST_ASSERT_NOT_EQUAL(&a.value(), &b.value());
     }
 
     static void test_const() {
         const Result<T, Error> r{value};
         TEST_ASSERT_TRUE(r.isOk());
-        const auto ok_opt = r.ok();
-        TEST_ASSERT_TRUE(value == ok_opt.value());
+        TEST_ASSERT_TRUE(value == r.value());
     }
 };
 
@@ -51,15 +46,13 @@ void test_void_ok() {
     Result<void, Error> r{};
     TEST_ASSERT_TRUE(r.isOk());
     TEST_ASSERT_FALSE(r.isError());
-    TEST_ASSERT_FALSE(r.error().hasValue());
 }
 
 void test_void_error() {
     Result<void, Error> r{error};
     TEST_ASSERT_TRUE(r.isError());
     TEST_ASSERT_FALSE(r.isOk());
-    TEST_ASSERT_TRUE(r.error().hasValue());
-    TEST_ASSERT_TRUE(error == r.error().value());
+    TEST_ASSERT_TRUE(error == r.error());
 }
 
 void test_void_copy() {

@@ -154,7 +154,7 @@ void simple() {
     ArrayString<10> s;
     const auto result = s.format("hello");
     TEST_ASSERT_TRUE(result.isOk());
-    TEST_ASSERT_EQUAL(5, result.ok().value());
+    TEST_ASSERT_EQUAL(5, result.value());
     assertStr(s, "hello", 5);
 }
 void truncated() {
