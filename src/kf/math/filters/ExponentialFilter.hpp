@@ -13,6 +13,8 @@ namespace kf::math::filters {
 /// @tparam T Data type (typically float or integer)
 /// @note Simple first-order IIR filter for smoothing noisy signals
 template<typename T> struct ExponentialFilter : Filter<ExponentialFilter<T>, T> {
+    using ValueType = T;
+
     struct Config {
         f32 factor;///< Smoothing factor (0.0 to 1.0, higher = faster response)
     };
@@ -21,20 +23,20 @@ template<typename T> struct ExponentialFilter : Filter<ExponentialFilter<T>, T> 
 
 private:
     const Config &_config;
-    T _current_filtered{};
+    ValueType _current_filtered{};
 
     // impl
-    using This = ExponentialFilter<T>;
+    using This = ExponentialFilter<ValueType>;
 
-    friend struct kf::math::filters::Filter<This, T>;
-    T calcImpl(const T &value) noexcept {
+    KF_IMPL_FILTER(this, ValueType);
+    ValueType calcImpl(const ValueType &value) noexcept {
         _current_filtered += (value - _current_filtered) * _config.factor;
         return _current_filtered;
     }
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
-        _current_filtered = T{};
+        _current_filtered = ValueType{};
     }
 };
 

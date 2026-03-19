@@ -13,6 +13,7 @@ namespace kf::math::filters {
 /// @tparam T Scalar type (typically float or integer)
 /// @note Uses exponential smoothing to attenuate high-frequency noise
 template<typename T> struct LowFrequencyFilter : Filter<LowFrequencyFilter<T>, T> {
+    using ValueType = T;
 
     struct Config {
         f32 factor;///< Smoothing factor (0.0 to 1.0)
@@ -23,14 +24,14 @@ template<typename T> struct LowFrequencyFilter : Filter<LowFrequencyFilter<T>, T
 
 private:
     const Config &_config;
-    T _filtered{};          ///< Current filtered value
+    ValueType _filtered{};  ///< Current filtered value
     bool _first_step{false};///< First sample flag for initialization
 
     // impl
-    using This = LowFrequencyFilter<T>;
+    using This = LowFrequencyFilter<ValueType>;
 
-    friend struct kf::math::filters::Filter<This, T>;
-    T calcImpl(const T &x) noexcept {
+    KF_IMPL_FILTER(this, ValueType);
+    ValueType calcImpl(const ValueType &x) noexcept {
         if (_first_step) {
             _first_step = false;
             goto set;

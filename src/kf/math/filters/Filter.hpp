@@ -20,3 +20,5 @@ template<typename Impl, typename T> struct Filter : FilterTag, mixin::Resettable
 };
 
 }// namespace kf::math::filters
+
+#define KF_IMPL_FILTER(__impl__, __value_type__) friend struct kf::math::filters::Filter<__impl__, __value_type__>
