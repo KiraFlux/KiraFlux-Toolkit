@@ -11,12 +11,12 @@ Button::Config my_button_config{
     .debounce = 50,// ms
 };
 
-Button my_button{my_button_config, DigitalInput{GPIO_NUM_15, DigitalInput::Pull::InternalDown}};
+Button my_button{/* & */ my_button_config, DigitalInput{GPIO_NUM_15, DigitalInput::Pull::InternalDown}};
 
 void setup() {
     Serial.begin(115200);
 
-    my_button.init();
+    my_button.init();// setup GPIO
 }
 
 void loop() {

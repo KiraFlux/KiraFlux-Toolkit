@@ -8,11 +8,12 @@
 #include "kf/math/units.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/TimedPollable.hpp"
 
 namespace kf::input {
 
 /// @brief Minimal button with press detection only
-template<typename I> struct Button : mixin::Initable<Button<I>, void> {
+template<typename I> struct Button : kf::mixin::Initable<Button<I>, void>, kf::mixin::TimedPollable<Button<I>> {
     kf_crtp_check(I, kf::gpio::DigitalInputTag);
 
     using PinImpl = I;
@@ -24,9 +25,39 @@ template<typename I> struct Button : mixin::Initable<Button<I>, void> {
     explicit Button(const Config &config, PinImpl &&pin) noexcept :
         _config{config}, _pin{pin} {}
 
-    /// @brief Poll button state - must be called regularly
-    void poll(math::Milliseconds now) noexcept {
+    /// @brief Check if button was clicked (consumes the click)
+    /// @return true if button was pressed since last call
+    [[nodiscard]] bool clicked() noexcept {
+        if (_click_ready) {
+            _click_ready = false;
+            return true;
+        }
+        return false;
+    }
+
+    /// @brief Check current button state
+    /// @return true if button is currently pressed (after debounce)
+    [[nodiscard]] bool pressed() const noexcept { return _last_stable; }
+
+private:
+    const Config &_config;
+    math::Milliseconds _next{0};
+    PinImpl _pin;
+    bool _last_stable{false};
+    bool _last_raw{false};
+    bool _click_ready{false};
+
+    // impl
+    using This = Button<I>;
+
+    friend struct kf::mixin::Initable<This, void>;
+    void initImpl() noexcept { _pin.init(); }
+
+    friend struct kf::mixin::TimedPollable<This>;
+    void pollImpl(math::Milliseconds now) noexcept {
         const bool state = _pin.read();
+
+        // todo use Timer here
 
         if (state != _last_raw) {
             _last_raw = state;
@@ -42,37 +73,6 @@ template<typename I> struct Button : mixin::Initable<Button<I>, void> {
                 }
             }
         }
-    }
-
-    /// @brief Check if button was clicked (consumes the click)
-    /// @return true if button was pressed since last call
-    [[nodiscard]] bool clicked() noexcept {
-        if (_click_ready) {
-            _click_ready = false;
-            return true;
-        }
-        return false;
-    }
-
-    /// @brief Check current button state
-    /// @return true if button is currently pressed (after debounce)
-    [[nodiscard]] bool pressed() const noexcept {
-        return _last_stable;
-    }
-
-private:
-    const Config &_config;
-    math::Milliseconds _next{0};
-    PinImpl _pin;
-    bool _last_stable{false};
-    bool _last_raw{false};
-    bool _click_ready{false};
-
-    // Initable impl
-    friend struct kf::mixin::Initable<Button<I>, void>;
-
-    void initImpl() noexcept {
-        _pin.init();
     }
 };
 
