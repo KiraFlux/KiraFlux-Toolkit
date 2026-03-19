@@ -8,6 +8,7 @@
 #include "kf/memory/io/Writable.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/Quitable.hpp"
 
 namespace kf::bus {
 
@@ -19,17 +20,17 @@ struct BusTag {};
 /// @tparam ErrorImpl Error type used by bus operations.
 /// @note The bus implementation must provide methods `initImpl()` and `quitImpl()`.
 ///       Nodes are created via `createNode` and are expected to be movable.
-template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus : BusTag, mixin::Initable<BusImpl, Result<void, ErrorImpl>> {
+template<typename BusImpl, typename NodeImpl, typename ErrorImpl>
+struct Bus : BusTag,
+             mixin::Initable<BusImpl, Result<void, ErrorImpl>>,
+             mixin::Quitable<BusImpl> {
+
     kf_crtp_check(NodeImpl, kf::memory::io::ReadableTag);
     kf_crtp_check(NodeImpl, kf::memory::io::WritableTag);
 
-    void quit() noexcept { impl().quitImpl(); }
-
-    [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept { return NodeImpl{impl(), config}; }
-
-private:
-    BusImpl &impl() noexcept { return *static_cast<BusImpl *>(this); }
-    const BusImpl &impl() const noexcept { return *static_cast<const BusImpl *>(this); }
+    [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept {
+        return NodeImpl{*static_cast<BusImpl *>(this), config};
+    }
 
     // methods:
     // ctor: BusImpl::Node(BusImpl &, Node::Config &)

@@ -215,7 +215,8 @@ private:
     const Config &_config;
     TwoWire &_wire;
 
-    // Initable impl
+    // impl
+
     friend struct kf::mixin::Initable<ArduinoIIC, Result<void, Error>>;
 
     Result<void, Error> initImpl() noexcept {
@@ -240,9 +241,7 @@ private:
         return {};
     }
 
-    // IIC impl
-    friend struct kf::bus::Bus<ArduinoIIC, Node, Error>;
-    friend struct kf::bus::iic::IIC<ArduinoIIC, Node, Error>;
+    friend struct kf::mixin::Quitable<ArduinoIIC>;
 
     void quitImpl() noexcept {
         (void) _wire.end();// just ignore

@@ -243,7 +243,8 @@ private:
     const Config _config;
     SPIClass &_spi;
 
-    // Initable impl
+    // impl
+    
     friend struct kf::mixin::Initable<ArduinoSPI, Result<void, Error>>;
 
     Result<void, Error> initImpl() noexcept {
@@ -255,9 +256,7 @@ private:
         return {};
     }
 
-    // SPI impl
-    friend struct kf::bus::Bus<ArduinoSPI, Node, Error>;
-    friend struct kf::bus::spi::SPI<ArduinoSPI, Node, Error>;
+    friend struct kf::mixin::Quitable<ArduinoSPI>;
 
     void quitImpl() noexcept { _spi.end(); }
 };
