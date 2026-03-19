@@ -17,7 +17,6 @@ namespace kf::ui::render {
 /// @tparam N Text buffer capacity in characters
 /// @note Implements Render CRTP interface for character-based display
 template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
-    friend struct Render<PlainTextRender<N>>;
 
     using Glyph = u8;///< Text interface measurement unit in glyphs
 
@@ -34,9 +33,11 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
         Config(const Config &) = delete;
     };
 
+    constexpr explicit PlainTextRender(const Config &config) noexcept : _config{config} {}
+
 private:
     memory::ArrayString<N> _buffer{};///< Output buffer for rendered text
-    Config _config{};        ///< Current renderer configuration
+    const Config &_config{};         ///< Current renderer configuration
 
     /// @brief Cursor state for tracking rendering position
     struct Cursor {
@@ -69,8 +70,6 @@ private:
     } _cursor{};
 
 public:
-    Config &getConfig() { return _config; }
-
     /// @brief Helper to write character with cursor tracking
     void writeChar(char ch) noexcept {
         if (_buffer.full() or _cursor.row >= _config.rows_total) { return; }
@@ -102,6 +101,8 @@ public:
 
 private:
     // Render Interface Implementation
+
+    friend struct Render<PlainTextRender<N>>;
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
         // Subtract 1 for title row
@@ -143,7 +144,7 @@ private:
     template<typename T> void sliderImpl(
         T slider_value, T min_value, T max_value,
         internal::ValuePlacement value_placement) noexcept {
-        
+
         // Textual now supports only show/hide placement
         if (internal::ValuePlacement::Hidden != value_placement) {
             this->value(slider_value);

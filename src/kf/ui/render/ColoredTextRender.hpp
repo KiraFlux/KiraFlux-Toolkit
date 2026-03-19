@@ -7,19 +7,17 @@
 namespace kf::ui::render {
 
 template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
-    friend struct Render<ColoredTextRender<N>>;
-
-private:
     using Wrapped = PlainTextRender<N>;
-    Wrapped _wrapped{};
-
-public:
     using Config = typename Wrapped::Config;
 
-    Config &getConfig() { return _wrapped.getConfig(); }
+    constexpr explicit ColoredTextRender(const Config &config) noexcept : _wrapped{config} {}
 
 private:
+    Wrapped _wrapped{};
+
     // Render CRTP Implementation
+
+    friend struct Render<ColoredTextRender<N>>;
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return _wrapped.widgetsAvailable(); }
 

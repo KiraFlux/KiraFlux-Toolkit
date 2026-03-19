@@ -11,6 +11,7 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Singleton.hpp"
+#include "kf/mixin/TimedPollable.hpp"
 
 #include "kf/ui/internal/UI.hpp"
 #include "kf/ui/render/Render.hpp"
@@ -20,10 +21,8 @@ namespace kf::ui {
 /// @brief User interface framework with widget-based rendering
 /// @tparam R Renderer implementation type (must inherit from kf::ui::Render)
 /// @note Singleton pattern ensures single UI instance with event queue and page management
-template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>> {
+template<typename R, typename E> struct UI final : kf::mixin::Singleton<UI<R, E>>, kf::mixin::TimedPollable<UI<R, E>> {
     kf_crtp_check(R, kf::ui::render::RenderTag);
-
-    friend struct mixin::Singleton<UI<R, E>>;
 
     using RenderImpl = R;                            ///< Renderer implementation type
     using RenderConfig = typename RenderImpl::Config;///< Renderer Configuration type
@@ -72,15 +71,9 @@ public:
     /// @tparam T Arithmetic type (int, float, etc.)
     template<typename T> using Slider = typename InternalUI::template Slider<T>;
 
-private:
-    memory::Queue<Event> _events{};///< Event queue for pending UI events
-    Page *_active_page{nullptr};   ///< Currently active page for rendering
-    RenderImpl _render_system{};   ///< Renderer implementation instance
-
-public:
     /// @brief Access renderer configuration
     /// @return Reference to renderer config structure
-    [[nodiscard]] RenderConfig &renderConfig() noexcept { return _render_system.getConfig(); }
+    [[nodiscard]] RenderConfig &renderConfig() noexcept { return _render_config; }
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
@@ -98,41 +91,11 @@ public:
         _events.push(event);
     }
 
-    /// @brief Process active page update, pending events and render if needed
-    /// @note Must be called regularly (e.g., in main loop)
-    void poll(math::Milliseconds now) noexcept {
-        if (nullptr == _active_page) { return; }
-
-        _active_page->onUpdate(now);
-
-        if (_events.empty()) { return; }
-
-        constexpr usize max_events_per_poll{20};
-        usize events_processed{0};
-
-        bool render_required{false};
-
-        while (not _events.empty() and events_processed < max_events_per_poll) {
-            render_required |= _active_page->onEvent(_events.front());
-            events_processed += 1;
-            _events.pop();
-        }
-
-        if (render_required) {
-            _render_system.prepare();
-            _active_page->render(_render_system);
-            _render_system.finish();
-        }
-    }
-
 private:
     /// @brief Special widget for creating page navigation buttons
     /// @note Internal use only - use Page::link() for page navigation
     struct PageSetter final : Widget {
-    private:
-        Page &_target;///< Target page for navigation
 
-    public:
         explicit PageSetter(Page &target) noexcept :
             _target{target} {}
 
@@ -146,18 +109,14 @@ private:
             render.arrow();
             render.value(_target.title());
         }
+
+    private:
+        Page &_target;///< Target page for navigation
     };
 
 public:
     /// @brief UI page containing widgets and title
     struct Page {
-    private:
-        memory::ArrayList<Widget *> _widgets{};///< List of widgets on this page
-        PageSetter _to_this{*this};            ///< Navigation widget to this page
-        memory::StringView _title;             ///< Page title displayed in header
-        isize _cursor{0};                      ///< Current widget cursor position (focused widget index)
-
-    public:
         explicit Page(memory::StringView title) :
             _title{title} {}
 
@@ -230,6 +189,11 @@ public:
         [[nodiscard]] memory::StringView title() const noexcept { return _title; }
 
     private:
+        memory::ArrayList<Widget *> _widgets{};///< List of widgets on this page
+        PageSetter _to_this{*this};            ///< Navigation widget to this page
+        memory::StringView _title;             ///< Page title displayed in header
+        isize _cursor{0};                      ///< Current widget cursor position (focused widget index)
+
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
         /// @return true if cursor position changed (redraw required)
@@ -243,6 +207,44 @@ public:
             }
         }
     };
+
+private:
+    memory::Queue<Event> _events{};           ///< Event queue for pending UI events
+    RenderConfig _render_config{};            ///< Render Configuration
+    RenderImpl _render_system{_render_config};///< Renderer system implementation instance
+    Page *_active_page{nullptr};              ///< Currently active page for rendering
+
+    // impl
+    using This = UI<R, E>;
+
+    friend struct kf::mixin::Singleton<This>;
+
+    friend struct kf::mixin::TimedPollable<This>;
+    /// @brief Process active page update, pending events and render if needed
+    void pollImpl(math::Milliseconds now) noexcept {
+        if (nullptr == _active_page) { return; }
+
+        _active_page->onUpdate(now);
+
+        if (_events.empty()) { return; }
+
+        constexpr usize max_events_per_poll{20};
+        usize events_processed{0};
+
+        bool render_required{false};
+
+        while (not _events.empty() and events_processed < max_events_per_poll) {
+            render_required |= _active_page->onEvent(_events.front());
+            events_processed += 1;
+            _events.pop();
+        }
+
+        if (render_required) {
+            _render_system.prepare();
+            _active_page->render(_render_system);
+            _render_system.finish();
+        }
+    }
 };
 
 }// namespace kf::ui
