@@ -23,6 +23,7 @@
 #include "kf/memory/Slice.hpp"
 #include "kf/memory/io/Writable.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Singleton.hpp"
 
 namespace kf::network {
@@ -48,7 +49,9 @@ enum class EspNowError : u8 {
 
 /// @brief Encapsulates ESP-NOW protocol in safe C++ abstractions
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks
-struct EspNow final : kf::mixin::Singleton<EspNow>, kf::mixin::Initable<EspNow, Result<void, internal::EspNowError>> {
+struct EspNow final : kf::mixin::Singleton<EspNow>,
+                      kf::mixin::Initable<EspNow, Result<void, internal::EspNowError>>,
+                      kf::mixin::Quitable<EspNow> {
     friend struct kf::mixin::Singleton<EspNow>;
 
     /// @brief MAC address type (6 bytes)
@@ -182,13 +185,6 @@ struct EspNow final : kf::mixin::Singleton<EspNow>, kf::mixin::Initable<EspNow, 
         }
     };
 
-    /// @brief Deinitialize ESP-NOW protocol
-    /// @note Unregisters callbacks and deinitializes ESP-NOW
-    static void quit() noexcept {
-        (void) esp_now_unregister_recv_cb();
-        (void) esp_now_deinit();
-    }
-
     /// @brief Get local device MAC address
     /// @return Const reference to MAC address
     [[nodiscard]] const Mac &mac() const noexcept { return _local_mac; }
@@ -263,6 +259,14 @@ private:
         if (ESP_OK != handler_result) { return {translateEspnowError(handler_result)}; }
 
         return {};
+    }
+
+    friend struct kf::mixin::Quitable<EspNow>;
+
+    /// @note Unregisters callbacks and deinitializes ESP-NOW
+    void quitImpl() noexcept {
+        (void) esp_now_unregister_recv_cb();
+        (void) esp_now_deinit();
     }
 
     // stringFrom...
