@@ -7,6 +7,7 @@
 #include "kf/memory/io/Readable.hpp"
 #include "kf/memory/io/Writable.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/Initable.hpp"
 
 namespace kf::bus {
 
@@ -18,11 +19,9 @@ struct BusTag {};
 /// @tparam ErrorImpl Error type used by bus operations.
 /// @note The bus implementation must provide methods `initImpl()` and `quitImpl()`.
 ///       Nodes are created via `createNode` and are expected to be movable.
-template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus : BusTag {
+template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus : BusTag, mixin::Initable<BusImpl, Result<void, ErrorImpl>> {
     kf_crtp_check(NodeImpl, kf::memory::io::ReadableTag);
     kf_crtp_check(NodeImpl, kf::memory::io::WritableTag);
-
-    [[nodiscard]] Result<void, ErrorImpl> init() noexcept { return impl().initImpl(); }
 
     void quit() noexcept { impl().quitImpl(); }
 

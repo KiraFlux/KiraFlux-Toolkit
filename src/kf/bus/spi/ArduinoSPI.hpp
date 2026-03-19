@@ -243,11 +243,10 @@ private:
     const Config _config;
     SPIClass &_spi;
 
-    // SPI impl
-    friend struct kf::bus::Bus<ArduinoSPI, Node, Error>;
-    friend struct kf::bus::spi::SPI<ArduinoSPI, Node, Error>;
+    // Initable impl
+    friend struct kf::mixin::Initable<ArduinoSPI, Result<void, Error>>;
 
-    [[nodiscard]] Result<void, Error> initImpl() noexcept {
+    Result<void, Error> initImpl() noexcept {
         if (_config.hasDefaultPins()) {
             _spi.begin();
         } else {
@@ -255,6 +254,10 @@ private:
         }
         return {};
     }
+
+    // SPI impl
+    friend struct kf::bus::Bus<ArduinoSPI, Node, Error>;
+    friend struct kf::bus::spi::SPI<ArduinoSPI, Node, Error>;
 
     void quitImpl() noexcept { _spi.end(); }
 };

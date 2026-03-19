@@ -35,7 +35,7 @@ enum class Error : u8 {
     Timeout,         ///< Transaction timed out (exceeded Wire timeout).
     BufferTooLong,   ///< Data to send exceeds the internal Wire transmit buffer size.
     IncompletePacket,///< Read operation returned fewer bytes than requested.
-    Unknown,///< Any other unspecified error from Arduino Wire (endTransmission code 4).
+    Unknown,         ///< Any other unspecified error from Arduino Wire (endTransmission code 4).
 };
 
 /// @brief I2C node implementation that adapts Arduino TwoWire to the library's Readable/Writable interfaces.
@@ -215,13 +215,10 @@ private:
     const Config &_config;
     TwoWire &_wire;
 
-    //
+    // Initable impl
+    friend struct kf::mixin::Initable<ArduinoIIC, Result<void, Error>>;
 
-    // IIC impl
-    friend struct kf::bus::Bus<ArduinoIIC, Node, Error>;
-    friend struct kf::bus::iic::IIC<ArduinoIIC, Node, Error>;
-
-    [[nodiscard]] Result<void, Error> initImpl() noexcept {
+    Result<void, Error> initImpl() noexcept {
         if (not _wire.begin()) { return Error::BeginFailed; }
 
         if (not _config.hasDefaultClock()) {
@@ -242,6 +239,10 @@ private:
 
         return {};
     }
+
+    // IIC impl
+    friend struct kf::bus::Bus<ArduinoIIC, Node, Error>;
+    friend struct kf::bus::iic::IIC<ArduinoIIC, Node, Error>;
 
     void quitImpl() noexcept {
         (void) _wire.end();// just ignore
