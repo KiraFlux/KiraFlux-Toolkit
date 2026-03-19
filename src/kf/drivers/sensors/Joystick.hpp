@@ -91,9 +91,11 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
     }
 
 private:
-    // Initable impl
-    friend struct kf::mixin::Initable<Joystick<I>, void>;
+    // impl
 
+    using This = Joystick<I>;
+
+    KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept {
         axis_x.init();
         axis_y.init();

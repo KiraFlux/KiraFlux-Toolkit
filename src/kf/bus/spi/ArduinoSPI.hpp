@@ -103,16 +103,18 @@ private:
         chipSelected(false);
     }
 
-    // Initable impl
-    friend struct kf::mixin::Initable<ArduinoNode<I>, void>;
+    // impl
 
+    using This = ArduinoNode<I>;
+
+    KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept {
         pinMode(_config.pin_cs, OUTPUT);
         digitalWrite(_config.pin_cs, HIGH);
     }
 
     // Readable impl
-    friend struct kf::memory::io::Readable<ArduinoNode<I>, Error>;
+    friend struct kf::memory::io::Readable<This, Error>;
 
     /// @brief Read `length` bytes from the device while sending zeros (full‑duplex).
     void readBytes(u8 *buffer, usize length) noexcept {
@@ -165,7 +167,7 @@ private:
     }
 
     // Writable impl
-    friend struct kf::memory::io::Writable<ArduinoNode<I>, Error>;
+    friend struct kf::memory::io::Writable<This, Error>;
 
     /// @brief Write raw bytes to the device (simplex).
     void writeBytes(const u8 *buffer, usize length) noexcept {
@@ -244,10 +246,10 @@ private:
     SPIClass &_spi;
 
     // impl
-    
-    friend struct kf::mixin::Initable<ArduinoSPI, Result<void, Error>>;
 
-    Result<void, Error> initImpl() noexcept {
+    using InitResult = Result<void, Error>;
+    KF_IMPL_INITABLE(ArduinoSPI, InitResult);
+    InitResult initImpl() noexcept {
         if (_config.hasDefaultPins()) {
             _spi.begin();
         } else {

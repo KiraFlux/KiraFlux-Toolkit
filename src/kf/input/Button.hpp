@@ -50,7 +50,7 @@ private:
     // impl
     using This = Button<I>;
 
-    friend struct kf::mixin::Initable<This, void>;
+    KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept { _pin.init(); }
 
     friend struct kf::mixin::TimedPollable<This>;

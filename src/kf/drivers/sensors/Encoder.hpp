@@ -111,9 +111,10 @@ private:
         }
     }
 
-    // Initable impl
-    friend struct kf::mixin::Initable<Encoder, void>;
+    // impl
+    using This = Encoder;
 
+    KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept {
         pinMode(pins.phase_a, INPUT);
         pinMode(pins.phase_b, INPUT);

@@ -245,10 +245,13 @@ private:
     };
 
     // impl
-    friend struct kf::mixin::Initable<EspNow, Result<void, internal::EspNowError>>;
 
+    using This = EspNow;
+
+    using InitResult = Result<void, Error>;
+    KF_IMPL_INITABLE(This, InitResult);
     /// @note Sets WiFi to station mode and registers receive callback
-    Result<void, Error> initImpl() noexcept {
+    InitResult initImpl() noexcept {
         const auto wifi_ok = WiFiClass::mode(WIFI_MODE_STA);
         if (not wifi_ok) { return {Error::InternalError}; }
 
@@ -261,7 +264,7 @@ private:
         return {};
     }
 
-    friend struct kf::mixin::Quitable<EspNow>;
+    friend struct kf::mixin::Quitable<This>;
 
     /// @note Unregisters callbacks and deinitializes ESP-NOW
     void quitImpl() noexcept {

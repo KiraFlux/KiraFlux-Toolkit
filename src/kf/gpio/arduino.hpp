@@ -31,9 +31,10 @@ private:
         }
     }
 
-    // Initable impl
-    friend struct kf::mixin::Initable<DigitalInput, void>;
+    // impl
+    using This = DigitalInput;
 
+    KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept {
         const bool inverted_reading = ((_state & pull_up_bit) == 0);
         pinMode(_pin, matchMode(inverted_reading));
@@ -41,7 +42,7 @@ private:
     }
 
     // input impl
-    friend struct kf::gpio::Input<DigitalInput, bool, void>;
+    friend struct kf::gpio::Input<This, bool, void>;
 
     [[nodiscard]] bool readImpl() const noexcept {
         const auto level = static_cast<bool>(digitalRead(_pin));
@@ -68,23 +69,21 @@ private:
 
     const u8 _pin;
 
-    // Initable impl
-    friend struct kf::mixin::Initable<AdcInput, void>;
+    // impl
 
+    using This = AdcInput;
+
+    KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept {
         pinMode(_pin, INPUT);
     }
 
-    // input impl
-    friend struct kf::gpio::Input<AdcInput, u16, void>;
-
+    friend struct kf::gpio::Input<This, u16, void>;
     [[nodiscard]] u16 readImpl() const noexcept {
         return analogRead(_pin);
     }
 
-    // adc input impl
-    friend struct kf::gpio::AdcInput<AdcInput, void>;
-
+    friend struct kf::gpio::AdcInput<This, void>;
     static void setResolutionImpl(u8 new_resolution_bits) noexcept {
         if (resolution_bits != new_resolution_bits) {
             resolution_bits = new_resolution_bits;
@@ -107,16 +106,15 @@ struct DigitalOutput : gpio::DigitalOutput<DigitalOutput, void> {
 private:
     const u8 _pin;
 
-    // Initable impl
-    friend struct kf::mixin::Initable<DigitalOutput, void>;
+    // impl
+    using This = DigitalOutput;
 
+    KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept {
         pinMode(_pin, OUTPUT);
     }
 
-    // output impl
     friend struct kf::gpio::Output<DigitalOutput, bool, void>;
-
     void writeImpl(bool level) const noexcept {
         digitalWrite(_pin, level);
     }
@@ -142,11 +140,13 @@ struct PwmOutput : gpio::PwmOutput<PwmOutput, bool> {
     explicit PwmOutput(Config &config) noexcept : _config{config} {}
 
 private:
-    Config &_config;
+    const Config &_config;
 
-    // Initable impl
-    friend struct kf::mixin::Initable<PwmOutput, bool>;
+    // impl
 
+    using This = PwmOutput;
+
+    KF_IMPL_INITABLE(This, bool);
     [[nodiscard]] bool initImpl() noexcept {
         if (ledcSetup(_config.channel, _config.frequency_hz, _config.resolution_bits) == 0) {
             return false;
@@ -157,18 +157,13 @@ private:
         return true;
     }
 
-    // output impl
     friend struct kf::gpio::Output<PwmOutput, u16, bool>;
-
     void writeImpl(u16 level) const noexcept {
         ledcWrite(_config.channel, level);
     }
 
-    // pwm output impl
     friend struct kf::gpio::PwmOutput<PwmOutput, bool>;
-
     u32 getFrequencyImpl() const noexcept { return _config.frequency_hz; }
-
     u8 getResolutionImpl() const noexcept { return _config.resolution_bits; }
 };
 

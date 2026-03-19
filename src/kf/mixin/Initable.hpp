@@ -5,8 +5,6 @@
 
 #include <type_traits>
 
-#include "kf/meta/CRTP.hpp"
-
 namespace kf::mixin {
 
 struct InitableTag {};
@@ -28,3 +26,5 @@ template<typename Impl> struct Initable<Impl, void> : InitableTag {
 };
 
 }// namespace kf::mixin
+
+#define KF_IMPL_INITABLE(__impl__, __init_result_type) friend struct kf::mixin::Initable<__impl__, __init_result_type>

@@ -30,9 +30,11 @@ template<typename I> struct Sharp : kf::mixin::Initable<Sharp<I>, void> {
 private:
     PinImpl _pin;
 
-    // initable impl
+    // impl
 
-    friend struct kf::mixin::Initable<Sharp<I>, void>;
+    using This = Sharp<I>;
+
+    KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept { _pin.init(); }
 };
 

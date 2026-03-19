@@ -88,8 +88,9 @@ private:
 
     // impl
 
-    friend struct kf::mixin::Initable<SSD1306<I>, bool>;
+    using This = SSD1306<I>;
 
+    KF_IMPL_INITABLE(This, bool);
     /// @brief Initialize display hardware via I2C
     bool initImpl() noexcept {
         static constexpr u8 init_commands[] = {
@@ -137,11 +138,11 @@ private:
         return _node.writePacket(init_commands).isOk();
     }
 
-    friend struct kf::mixin::Resettable<SSD1306<I>>;
+    friend struct kf::mixin::Resettable<This>;
 
     void resetImpl() const noexcept {}
 
-    friend struct DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>>;
+    friend struct DisplayDriver<This, image::StaticImage<pixel::MonochromePixel, 128, 64>>;
 
     /// @brief Transfer software buffer to display via I2C
     bool sendImpl() noexcept {

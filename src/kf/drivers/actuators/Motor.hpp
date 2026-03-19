@@ -67,9 +67,11 @@ private:
         }
     }
 
-    // Initable impl
-    friend struct kf::mixin::Initable<L298nMotor<PwmPinImpl, DigitalPinImpl>, bool>;
+    // impl
 
+    using This = L298nMotor<PwmPinImpl, DigitalPinImpl>;
+
+    KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept {
         _pin_dir.init();
         if (not _pin_pwm.init()) { return false; }

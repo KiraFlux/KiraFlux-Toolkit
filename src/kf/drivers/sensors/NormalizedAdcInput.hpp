@@ -134,12 +134,12 @@ private:
         }
     }
 
-    // Initable impl
-    friend struct kf::mixin::Initable<NormalizedAdcInput<I>, void>;
+    // impl
 
-    void initImpl() noexcept {
-        _pin.init();
-    }
+    using This = NormalizedAdcInput<I>;
+
+    KF_IMPL_INITABLE(This, void);
+    void initImpl() noexcept { _pin.init(); }
 };
 
 }// namespace kf::drivers::sensors

@@ -30,9 +30,9 @@ template<typename I> struct Manipulator2DOF final : mixin::Initable<Manipulator2
 private:
     ActuatorImpl _arm, _claw;
 
-    // Initable impl
-    friend struct kf::mixin::Initable<Manipulator2DOF, bool>;
+    // impl
 
+    KF_IMPL_INITABLE(Manipulator2DOF, bool);
     bool initImpl() noexcept {
         if (not _arm.init()) { return false; }
         if (not _claw.init()) { return false; }

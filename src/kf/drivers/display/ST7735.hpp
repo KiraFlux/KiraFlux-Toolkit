@@ -71,10 +71,9 @@ private:
 
     // impl
 
-    friend struct kf::mixin::Initable<ST7735<Ib, Ido>, bool>;
+    using This = ST7735<Ib, Ido>;
 
-    /// @brief Initialize display hardware via SPI
-    /// @return Always returns true (hardware errors not checked)
+    KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept {
         _node.init();
         _pin_data_command.init();
@@ -97,10 +96,10 @@ private:
         sendCommand(Command::DISPON);
         delay(100);
 
-        return true;
+        return true;// Always returns true (hardware errors not checked)
     }
 
-    friend struct kf::mixin::Resettable<ST7735<Ib, Ido>>;
+    friend struct kf::mixin::Resettable<This>;
 
     /// @brief Hardware reset of the display (pulse RESET pin).
     /// @note Required after power‑up to initialise the internal state machine.
@@ -111,7 +110,7 @@ private:
         delay(120);
     }
 
-    friend struct DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;
+    friend struct DisplayDriver<This, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;
 
     bool sendImpl() noexcept {
         sendCommand(Command::RAMWR);

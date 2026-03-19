@@ -219,9 +219,9 @@ private:
 
     // impl
 
-    friend struct kf::mixin::Initable<ArduinoIIC, Result<void, Error>>;
-
-    Result<void, Error> initImpl() noexcept {
+    using InitResult = kf::Result<void, Error>;
+    KF_IMPL_INITABLE(ArduinoIIC, InitResult);
+    InitResult initImpl() noexcept {
         if (not _wire.begin()) { return Error::BeginFailed; }
 
         if (not _config.hasDefaultClock()) {
@@ -244,7 +244,6 @@ private:
     }
 
     friend struct kf::mixin::Quitable<ArduinoIIC>;
-
     void quitImpl() noexcept {
         (void) _wire.end();// just ignore
     }

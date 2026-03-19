@@ -11,8 +11,6 @@
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/validation.hpp"
-#include "kf/mixin/Initable.hpp"
-
 
 namespace kf::drivers::actuators {
 
@@ -89,15 +87,14 @@ template<typename I> struct PwmPositionServo final : mixin::Initable<PwmPosition
 private:
     const DriverConfig &_driver_settings;///< Servo hardware configuration
     const PulseConfig &_pulse_settings;  ///< Angle-pulse mapping configuration
-
     PwmPinImpl _pin;
 
-    // Initable impl
-    friend struct kf::mixin::Initable<PwmPositionServo<I>, bool>;
+    // impl
 
-    bool initImpl() noexcept {
-        return _pin.init();
-    }
+    using This = PwmPositionServo<I>;
+
+    KF_IMPL_INITABLE(This, bool);
+    bool initImpl() noexcept { return _pin.init(); }
 };
 
 }// namespace kf::drivers::actuators
