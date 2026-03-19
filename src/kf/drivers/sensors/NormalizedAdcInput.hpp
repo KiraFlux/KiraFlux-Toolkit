@@ -44,11 +44,9 @@ template<typename I> struct NormalizedAdcInput final : mixin::Initable<Normalize
         AdcSignedValue _min_sample{};
 
         // impl
-
         using This = Tuner;
 
-        friend struct kf::mixin::Resettable<This>;
-
+        KF_IMPL_RESETTABLE(This);
         void resetImpl() noexcept {
             _max_sample = 0;
             _min_sample = AdcPinImpl::maxValue();

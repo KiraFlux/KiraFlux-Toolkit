@@ -24,16 +24,15 @@ private:
     T _current_filtered{};
 
     // impl
+    using This = ExponentialFilter<T>;
 
-    friend struct kf::math::filters::Filter<ExponentialFilter<T>, T>;
-
+    friend struct kf::math::filters::Filter<This, T>;
     T calcImpl(const T &value) noexcept {
         _current_filtered += (value - _current_filtered) * _config.factor;
         return _current_filtered;
     }
 
-    friend struct kf::mixin::Resettable<ExponentialFilter<T>>;
-
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
         _current_filtered = T{};
     }

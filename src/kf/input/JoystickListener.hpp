@@ -69,7 +69,7 @@ private:
     //impl
     using This = JoystickListener<I>;
 
-    friend struct kf::mixin::Resettable<This>;
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
         _current_direction = Direction::Home;
         _has_changed = false;

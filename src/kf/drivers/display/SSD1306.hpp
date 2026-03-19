@@ -87,7 +87,6 @@ private:
     }
 
     // impl
-
     using This = SSD1306<I>;
 
     KF_IMPL_INITABLE(This, bool);
@@ -138,8 +137,7 @@ private:
         return _node.writePacket(init_commands).isOk();
     }
 
-    friend struct kf::mixin::Resettable<This>;
-
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() const noexcept {}
 
     friend struct DisplayDriver<This, image::StaticImage<pixel::MonochromePixel, 128, 64>>;

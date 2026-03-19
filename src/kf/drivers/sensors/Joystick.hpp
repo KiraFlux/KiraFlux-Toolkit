@@ -30,11 +30,9 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
         typename NormalizedAdcInputImpl::Tuner _tuner_x, _tuner_y;
 
         // impl
-
         using This = Tuner;
 
-        friend struct kf::mixin::Resettable<This>;
-
+        KF_IMPL_RESETTABLE(This);
         void resetImpl() noexcept {
             _tuner_x.reset();
             _tuner_y.reset();
@@ -47,7 +45,6 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
         }
 
         friend struct kf::tuner::Tuner<This>;
-
         bool runningImpl() const noexcept {
             return _tuner_x.running() or _tuner_y.running();
         }

@@ -27,9 +27,9 @@ private:
     bool _first_step{false};///< First sample flag for initialization
 
     // impl
+    using This = LowFrequencyFilter<T>;
 
-    friend struct kf::math::filters::Filter<LowFrequencyFilter<T>, T>;
-
+    friend struct kf::math::filters::Filter<This, T>;
     T calcImpl(const T &x) noexcept {
         if (_first_step) {
             _first_step = false;
@@ -47,8 +47,7 @@ private:
         return _filtered;
     }
 
-    friend struct kf::mixin::Resettable<ExponentialFilter<T>>;
-
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
         _first_step = true;
     }

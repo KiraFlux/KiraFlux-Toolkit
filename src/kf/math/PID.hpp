@@ -76,9 +76,9 @@ private:
     f32 _last_error{nan}; ///< Previous error value
 
     // impl
+    using This = PID;
 
-    friend struct kf::mixin::Resettable<PID>;
-
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
         _dx = 0.0f;
         _ix = 0.0f;

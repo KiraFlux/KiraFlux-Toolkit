@@ -48,10 +48,9 @@ private:
 
     // impl
 
-    friend struct kf::mixin::Resettable<MyTuner>;
-
-    // reset tuner state
+    KF_IMPL_RESETTABLE(MyTuner);
     void resetImpl() noexcept {
+        // reset tuner state
         _samples_collected = 0;
         _min = MyConfig::value_limit;
         _max = 0;

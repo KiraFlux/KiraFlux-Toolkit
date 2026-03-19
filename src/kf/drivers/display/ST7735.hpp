@@ -70,7 +70,6 @@ private:
     u8 _madctl_base_mode{0};///< Base MADCTL value
 
     // impl
-
     using This = ST7735<Ib, Ido>;
 
     KF_IMPL_INITABLE(This, bool);
@@ -99,11 +98,9 @@ private:
         return true;// Always returns true (hardware errors not checked)
     }
 
-    friend struct kf::mixin::Resettable<This>;
-
-    /// @brief Hardware reset of the display (pulse RESET pin).
-    /// @note Required after power‑up to initialise the internal state machine.
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() const noexcept {
+        // Required after power‑up to initialise the internal state machine.
         _pin_reset.write(false);
         delay(10);
         _pin_reset.write(true);

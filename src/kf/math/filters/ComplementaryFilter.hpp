@@ -43,9 +43,9 @@ private:
     bool _first_step{true};///< First iteration flag for initialization
 
     // impl
+    using This = ComplementaryFilter<T>;
 
-    friend struct kf::mixin::Resettable<ComplementaryFilter<T>>;
-
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
         _first_step = true;// Reset filter state (next calc will reinitialize with measurement)
     }

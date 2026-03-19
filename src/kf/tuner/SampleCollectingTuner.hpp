@@ -50,8 +50,7 @@ private:
 
     using This = SampleCollectingTuner<Impl, T>;
 
-    friend struct kf::mixin::Resettable<This>;
-
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
         _state = State::Running;
         _samples_processed = 0;
@@ -83,7 +82,6 @@ private:
     }
 
     friend struct kf::tuner::Tuner<This>;
-
     [[nodiscard]] bool runningImpl() const noexcept { return _state != State::Idle; }
 
     // CRTP
