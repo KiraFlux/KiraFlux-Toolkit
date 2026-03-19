@@ -76,7 +76,7 @@ private:
         _in_repeat_mode = false;
     }
 
-    friend struct kf::mixin::TimedPollable<This>;
+    KF_IMPL_TIMED_POLLABLE(This);
     void pollImpl(math::Milliseconds now) noexcept {
         const auto x = _joystick.axis_x.read();
         const auto y = _joystick.axis_y.read();

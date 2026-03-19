@@ -219,9 +219,10 @@ private:
 
     KF_IMPL_SINGLETON(This);
 
-    friend struct kf::mixin::TimedPollable<This>;
-    /// @brief Process active page update, pending events and render if needed
+    KF_IMPL_TIMED_POLLABLE(This);
     void pollImpl(math::Milliseconds now) noexcept {
+        // Process active page update, pending events and render if needed
+        
         if (nullptr == _active_page) { return; }
 
         _active_page->onUpdate(now);

@@ -53,7 +53,7 @@ private:
     KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept { _pin.init(); }
 
-    friend struct kf::mixin::TimedPollable<This>;
+    KF_IMPL_TIMED_POLLABLE(This);
     void pollImpl(math::Milliseconds now) noexcept {
         const bool state = _pin.read();
 
