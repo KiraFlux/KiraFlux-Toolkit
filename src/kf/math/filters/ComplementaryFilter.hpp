@@ -5,13 +5,14 @@
 
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
+#include "kf/mixin/Resettable.hpp"
 
 namespace kf::math::filters {
 
 /// @brief Complementary filter for sensor fusion
 /// @tparam T Data type (typically float or vector type)
 /// @note Combines low-frequency and high-frequency sensor data using weighted average
-template<typename T> struct ComplementaryFilter {
+template<typename T> struct ComplementaryFilter final : kf::mixin::Resettable<ComplementaryFilter<T>> {
 
     /// @brief Construct complementary filter instance
     /// @param alpha Filter coefficient (higher = more trust in prediction)
@@ -36,15 +37,18 @@ template<typename T> struct ComplementaryFilter {
         return _filtered;
     }
 
-    /// @brief Reset filter state (next calc will reinitialize with measurement)
-    void reset() noexcept {
-        _first_step = true;
-    }
-
 private:
     const f32 _alpha;      ///< Filter coefficient for prediction (0.0 to 1.0)
     T _filtered{};         ///< Current filtered value
     bool _first_step{true};///< First iteration flag for initialization
+
+    // impl
+
+    friend struct kf::mixin::Resettable<ComplementaryFilter<T>>;
+
+    void resetImpl() noexcept {
+        _first_step = true;// Reset filter state (next calc will reinitialize with measurement)
+    }
 };
 
 }// namespace kf::math::filters
