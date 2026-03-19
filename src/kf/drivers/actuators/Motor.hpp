@@ -3,18 +3,17 @@
 
 #pragma once
 
-#include <Arduino.h>
-
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
-#include "kf/mixin/Initable.hpp"
+
+#include "kf/drivers/actuators/Actuator.hpp"
 
 namespace kf::drivers::actuators {
 
 /// @brief Motor driver supporting IArduino Motor Shield and L298N/L293D H-bridge
 /// @note Provides bidirectional PWM control with configurable dead zone and direction
-template<typename PwmPinImpl, typename DigitalPinImpl> struct L298nMotor final : mixin::Initable<L298nMotor<PwmPinImpl, DigitalPinImpl>, bool> {
+template<typename PwmPinImpl, typename DigitalPinImpl> struct L298nMotor final : Actuator<L298nMotor<PwmPinImpl, DigitalPinImpl>, bool> {
 
     /// @brief PWM value type for control
     using DutyType = u16;
@@ -68,7 +67,6 @@ private:
     }
 
     // impl
-
     using This = L298nMotor<PwmPinImpl, DigitalPinImpl>;
 
     KF_IMPL_INITABLE(This, bool);
@@ -80,6 +78,8 @@ private:
 
         return true;
     }
+
+    friend struct Actuator<This, bool>;
 };
 
 }// namespace kf::drivers::actuators

@@ -9,14 +9,15 @@
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
 #include "kf/meta/type_check.hpp"
-#include "kf/mixin/Initable.hpp"
 #include "kf/validation.hpp"
+
+#include "kf/drivers/actuators/Actuator.hpp"
 
 namespace kf::drivers::actuators {
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
-template<typename I> struct PwmPositionServo final : mixin::Initable<PwmPositionServo<I>, bool> {
+template<typename I> struct PwmPositionServo final : Actuator<PwmPositionServo<I>, bool> {
     kf_crtp_check(I, kf::gpio::PwmOutputTag);
     using PwmPinImpl = I;
 
@@ -95,6 +96,8 @@ private:
 
     KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept { return _pin.init(); }
+
+    friend struct Actuator<This, bool>;
 };
 
 }// namespace kf::drivers::actuators
