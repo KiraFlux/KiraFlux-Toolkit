@@ -9,14 +9,16 @@
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/math/filters/LowFrequencyFilter.hpp"
+#include "kf/mixin/Resettable.hpp"
 
 namespace kf::math {
 
 /// @brief PID controller implementation
 /// @note Includes derivative filtering and integral anti-windup
-struct PID {
+struct PID final : kf::mixin::Resettable<PID> {
 
-public:
+    using FilterImpl = filters::LowFrequencyFilter<f32>;
+
     /// @brief PID controller tuning parameters
     struct Config {
         f32 p;           ///< Proportional gain coefficient
@@ -24,23 +26,15 @@ public:
         f32 d;           ///< Derivative gain coefficient
         f32 i_limit;     ///< Integral term saturation limit
         f32 output_limit;///< Controller output saturation limit
+
+        typename FilterImpl::Config dx_filter;///< Derivative filter
     };
 
-private:
-    static constexpr auto nan = std::numeric_limits<f32>::quiet_NaN();
-
-    const Config &_config;                      ///< Reference to tuning parameters
-    filters::LowFrequencyFilter<f32> _dx_filter;///< Low-pass filter for derivative term
-    f32 _dx{0};                                 ///< Current derivative value
-    f32 _ix{0};                                 ///< Current integral value
-    f32 _last_error{nan};                       ///< Previous error value
-
-public:
     /// @brief Construct PID controller instance
     /// @param PID tuning parameters
     /// @param dx_filter_alpha Derivative filter smoothing factor (default: 1.0 = no filtering)
-    explicit PID(const Config &config, f32 dx_filter_alpha = 1.0f) noexcept :
-        _config{config}, _dx_filter{dx_filter_alpha} {}
+    explicit PID(const Config &config) noexcept :
+        _config{config}, _dx_filter{config.dx_filter} {}
 
     /// @brief Calculate PID controller output
     /// @param error Current control error (setpoint - measurement)
@@ -72,8 +66,20 @@ public:
             _config.output_limit);
     }
 
-    /// @brief Reset controller internal state (integral and derivative terms)
-    void reset() noexcept {
+private:
+    static constexpr auto nan = std::numeric_limits<f32>::quiet_NaN();
+
+    const Config &_config;///< Reference to tuning parameters
+    FilterImpl _dx_filter;///< Low-pass filter for derivative term
+    f32 _dx{0};           ///< Current derivative value
+    f32 _ix{0};           ///< Current integral value
+    f32 _last_error{nan}; ///< Previous error value
+
+    // impl
+
+    friend struct kf::mixin::Resettable<PID>;
+
+    void resetImpl() noexcept {
         _dx = 0.0f;
         _ix = 0.0f;
         _last_error = nan;
