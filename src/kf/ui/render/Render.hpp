@@ -5,20 +5,17 @@
 
 #include "kf/aliases.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/ui/render/Tag.hpp"
 
 #include "kf/ui/internal/ValuePlacement.hpp"
 
 namespace kf::ui::render {
 
+struct RenderTag {};
+
 /// @brief CRTP base class for UI rendering systems
 /// @tparam Impl Concrete renderer implementation type
 /// @note Delegates all rendering operations to derived class implementation
-template<typename Impl> struct Render : Tag {
-    friend Impl;
-
-    using Base = Render;
-
+template<typename Impl> struct Render : RenderTag {
     // Control operations
 
     /// @brief Prepare render buffer for new frame
@@ -36,7 +33,7 @@ template<typename Impl> struct Render : Tag {
 
     /// @brief Get remaining widget rendering capacity
     /// @return Number of widgets that can still be rendered in current frame
-    [[nodiscard]] usize widgetsAvailable() const noexcept { return implConst().widgetsAvailableImpl(); }
+    [[nodiscard]] usize widgetsAvailable() const noexcept { return impl().widgetsAvailableImpl(); }
 
     // Value rendering
 
@@ -83,11 +80,8 @@ template<typename Impl> struct Render : Tag {
     void endAltBlock() noexcept { impl().endAltBlockImpl(); }
 
 private:
-    /// @brief Get reference to derived implementation
-    /// @return Reference to concrete renderer instance
-    inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
-
-    inline const Impl &implConst() const noexcept { return *static_cast<const Impl *>(this); }
+    Impl &impl() noexcept { return *static_cast<Impl *>(this); }
+    const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
 }// namespace kf::ui::render

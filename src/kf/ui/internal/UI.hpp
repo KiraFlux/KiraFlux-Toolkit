@@ -13,7 +13,7 @@
 #include "kf/memory/Array.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/type_check.hpp"
-#include "kf/ui/render/Tag.hpp"
+#include "kf/ui/render/Render.hpp"
 
 // Internal
 #include "kf/ui/internal/ComboBoxItem.hpp"
@@ -30,7 +30,7 @@ namespace kf::ui::internal {
 /// @tparam V Event Value Type
 /// @tparam P Page Type
 template<typename R, typename V, typename P> struct UI final {
-    kf_crtp_check(R, kf::ui::render::Tag);
+    kf_crtp_check(R, kf::ui::render::RenderTag);
 
     /// @brief Base widget class for all UI components
     /// @note All interactive UI elements inherit from this class
@@ -157,8 +157,8 @@ template<typename R, typename V, typename P> struct UI final {
     template<typename T, usize N> struct ComboBox final : Widget, HasChangeHandler<T> {
         static_assert(N >= 1, "N >= 1");
 
-        using Value = T;                     ///< ComboBox value type
-        using Item = ComboBoxItem<T>;        ///< Item type (in option)
+        using Value = T;                             ///< ComboBox value type
+        using Item = ComboBoxItem<T>;                ///< Item type (in option)
         using ItemContainer = memory::Array<Item, N>;///< Container type for options
 
     private:
