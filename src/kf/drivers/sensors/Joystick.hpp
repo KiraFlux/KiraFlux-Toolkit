@@ -44,7 +44,7 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
             _tuner_y.poll();
         }
 
-        friend struct kf::tuner::Tuner<This>;
+        KF_IMPL_TUNER(This);
         bool runningImpl() const noexcept {
             return _tuner_x.running() or _tuner_y.running();
         }

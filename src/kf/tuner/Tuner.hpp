@@ -26,3 +26,5 @@ template<typename Impl> struct Tuner : TunerTag, mixin::Resettable<Impl>, mixin:
 };
 
 }// namespace kf::tuner
+
+#define KF_IMPL_TUNER(__impl__) friend struct kf::tuner::Tuner<__impl__>

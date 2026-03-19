@@ -91,10 +91,10 @@ private:
     }
 
     // Tuner CRTP interface impl
-    friend struct kf::tuner::Tuner<MyTuner>;
 
-    // tuner is running if it is not idle
+    KF_IMPL_TUNER(MyTuner);
     bool runningImpl() const noexcept {
+        // tuner is running if it is not idle
         return _state != State::Idle;
     }
 };

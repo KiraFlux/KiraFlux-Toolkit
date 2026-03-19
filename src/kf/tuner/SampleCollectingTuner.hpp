@@ -81,7 +81,7 @@ private:
         }
     }
 
-    friend struct kf::tuner::Tuner<This>;
+    KF_IMPL_TUNER(This);
     [[nodiscard]] bool runningImpl() const noexcept { return _state != State::Idle; }
 
     // CRTP
