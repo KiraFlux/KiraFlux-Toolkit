@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
 
 namespace kf::math::filters {
@@ -12,18 +13,11 @@ namespace kf::math::filters {
 /// @note Combines low-frequency and high-frequency sensor data using weighted average
 template<typename T> struct ComplementaryFilter {
 
-private:
-    const f32 _alpha;          ///< Filter coefficient for prediction (0.0 to 1.0)
-    const f32 _one_minus_alpha;///< Complementary coefficient (1.0 - alpha)
-    T _filtered{};             ///< Current filtered value
-    bool _first_step{true};    ///< First iteration flag for initialization
-
-public:
     /// @brief Construct complementary filter instance
     /// @param alpha Filter coefficient (higher = more trust in prediction)
     /// @note alpha=0.0: trust only measurement, alpha=1.0: trust only prediction
     explicit ComplementaryFilter(f32 alpha) noexcept :
-        _alpha{alpha}, _one_minus_alpha{1.0f - alpha} {}
+        _alpha{alpha} {}
 
     /// @brief Calculate filtered value from measurement and rate of change
     /// @param x Current measurement value
@@ -36,7 +30,7 @@ public:
             _filtered = x;
         } else {
             T prediction = _filtered + dx * dt;
-            _filtered = _alpha * prediction + _one_minus_alpha * x;
+            _filtered = _alpha * prediction + (1.0f - _alpha) * x;
         }
 
         return _filtered;
@@ -46,6 +40,11 @@ public:
     void reset() noexcept {
         _first_step = true;
     }
+
+private:
+    const f32 _alpha;      ///< Filter coefficient for prediction (0.0 to 1.0)
+    T _filtered{};         ///< Current filtered value
+    bool _first_step{true};///< First iteration flag for initialization
 };
 
-}// namespace kf
+}// namespace kf::math::filters

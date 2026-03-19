@@ -5,29 +5,38 @@
 
 #include "kf/aliases.hpp"
 
+#include "kf/math/filters/Filter.hpp"
+
 namespace kf::math::filters {
 
 /// @brief Exponential moving average filter (EMA)
 /// @tparam T Data type (typically float or integer)
 /// @note Simple first-order IIR filter for smoothing noisy signals
-template<typename T> struct ExponentialFilter {
+template<typename T> struct ExponentialFilter : Filter<ExponentialFilter<T>, T> {
     struct Config {
         f32 factor;///< Smoothing factor (0.0 to 1.0, higher = faster response)
     };
 
     constexpr explicit ExponentialFilter(const Config &config) noexcept : _config{config} {}
 
-    /// @brief Update filter with new sample
-    /// @param value New input value
-    /// @return Current filtered value after update
-    [[nodiscard]] const T &calc(const T &value) noexcept {
+private:
+    const Config &_config;
+    T _current_filtered{};
+
+    // impl
+
+    friend struct kf::math::filters::Filter<ExponentialFilter<T>, T>;
+
+    T calcImpl(const T &value) noexcept {
         _current_filtered += (value - _current_filtered) * _config.factor;
         return _current_filtered;
     }
 
-private:
-    const Config &_config;
-    T _current_filtered{};
+    friend struct kf::mixin::Resettable<ExponentialFilter<T>>;
+
+    void resetImpl() noexcept {
+        _current_filtered = T{};
+    }
 };
 
 }// namespace kf::math::filters
