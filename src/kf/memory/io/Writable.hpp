@@ -10,9 +10,9 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/Slice.hpp"
 
-#include "kf/memory/io/tags.hpp"
-
 namespace kf::memory::io {
+
+struct WritableTag {};
 
 /// @brief CRTP base class for writable streams.
 /// @tparam Impl      Derived class.

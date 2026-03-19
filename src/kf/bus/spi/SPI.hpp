@@ -6,13 +6,14 @@
 #include "kf/meta/type_check.hpp"
 
 #include "kf/bus/Bus.hpp"
-#include "kf/bus/spi/Tag.hpp"
 #include "kf/mixin/Initable.hpp"
 
 namespace kf::bus::spi {
 
 struct NodeTag {};
 template<typename Impl> struct Node : NodeTag, mixin::Initable<Impl, void> {};
+
+struct Tag {};
 
 /// @brief CRTP base class for SPI bus implementations.
 /// @tparam Impl Concrete bus implementation (must inherit from this class).

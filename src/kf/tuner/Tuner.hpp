@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "kf/tuner/Tag.hpp"
-
 namespace kf::tuner {
+
+struct TunerTag {};
 
 /// @brief CRTP base class for all tuners.
 /// @tparam Impl Derived class implementing the actual tuning logic.
@@ -16,7 +16,7 @@ namespace kf::tuner {
 ///       - `bool runningImpl() const noexcept`
 ///
 ///       - `void pollImpl() noexcept`
-template<typename Impl> struct Tuner : tuner::Tag {
+template<typename Impl> struct Tuner : TunerTag {
 
     /// @brief Check if the tuner is still running (collecting or calculating).
     [[nodiscard]] bool running() const noexcept { return impl().runningImpl(); }

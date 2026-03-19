@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/aliases.hpp"
-#include "kf/bus/spi/Tag.hpp"
+#include "kf/bus/spi/SPI.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/image/ViewportImage.hpp"
 #include "kf/meta/type_check.hpp"

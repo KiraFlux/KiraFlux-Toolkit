@@ -12,7 +12,6 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/io/Readable.hpp"
 #include "kf/memory/io/Writable.hpp"
-#include "kf/memory/io/tags.hpp"
 
 #include "kf/bus/spi/SPI.hpp"
 

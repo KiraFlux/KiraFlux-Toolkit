@@ -4,12 +4,13 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/memory/io/tags.hpp"
+#include "kf/memory/io/Readable.hpp"
+#include "kf/memory/io/Writable.hpp"
 #include "kf/meta/type_check.hpp"
 
-#include "kf/bus/Tag.hpp"
-
 namespace kf::bus {
+
+struct BusTag {};
 
 /// @brief CRTP base class for bus implementations.
 /// @tparam BusImpl Concrete bus implementation (must inherit from this class).
@@ -17,7 +18,7 @@ namespace kf::bus {
 /// @tparam ErrorImpl Error type used by bus operations.
 /// @note The bus implementation must provide methods `initImpl()` and `quitImpl()`.
 ///       Nodes are created via `createNode` and are expected to be movable.
-template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus : bus::Tag {
+template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus : BusTag {
     kf_crtp_check(NodeImpl, kf::memory::io::ReadableTag);
     kf_crtp_check(NodeImpl, kf::memory::io::WritableTag);
 

@@ -5,7 +5,7 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/bus/iic/Tag.hpp"
+#include "kf/bus/iic/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
