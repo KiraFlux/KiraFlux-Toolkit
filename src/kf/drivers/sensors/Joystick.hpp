@@ -19,7 +19,7 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
 
     /// @brief Tuner for a complete two‑axis joystick.
     /// @note Aggregates two NormalizedAdcInput::Tuner instances (X and Y).
-    ///       After start(), call poll() repeatedly until running() returns false.
+    ///       After reset(), call poll() repeatedly until running() returns false.
     ///       The tuner reads raw values from the joystick axes internally.
     struct Tuner : tuner::Tuner<Tuner> {
         explicit Tuner(Config &config, Joystick &joystick, u16 samples) noexcept :
@@ -29,16 +29,19 @@ template<typename I> struct Joystick final : mixin::Initable<Joystick<I>, void> 
     private:
         typename NormalizedAdcInputImpl::Tuner _tuner_x, _tuner_y;
 
-        // Tuner impl
+        // impl
+
+        friend struct kf::mixin::Resettable<Tuner>;
+
+        void resetImpl() noexcept {
+            _tuner_x.reset();
+            _tuner_y.reset();
+        }
+
         friend struct tuner::Tuner<Tuner>;
 
         [[nodiscard]] bool runningImpl() const noexcept {
             return _tuner_x.running() or _tuner_y.running();
-        }
-
-        void startImpl() noexcept {
-            _tuner_x.start();
-            _tuner_y.start();
         }
 
         void pollImpl() noexcept {

@@ -44,18 +44,19 @@ private:
         Calculating,
     } _state{State::Idle};
 
-    //
+    // impl
 
-    // Tuner impl
+    friend struct kf::mixin::Resettable<SampleCollectingTuner<Impl, I>>;
+
+    void resetImpl() noexcept {
+        _state = State::Processing;
+        _samples_processed = 0;
+        impl().resetImpl();
+    }
+
     friend struct kf::tuner::Tuner<SampleCollectingTuner<Impl, I>>;
 
     [[nodiscard]] bool runningImpl() const noexcept { return _state != State::Idle; }
-
-    void startImpl() noexcept {
-        _state = State::Processing;
-        _samples_processed = 0;
-        impl().startImpl();
-    }
 
     void pollImpl() noexcept {
         switch (_state) {

@@ -46,11 +46,12 @@ private:
         _max = max(sample, _max);
     }
 
-    // Tuner CRTP interface impl
-    friend struct kf::tuner::Tuner<MyTuner>;
+    // impl
 
-    // on start - reset tuner state
-    void startImpl() noexcept {
+    friend struct kf::mixin::Resettable<MyTuner>;
+
+    // reset tuner state
+    void resetImpl() noexcept {
         _samples_collected = 0;
         _min = MyConfig::value_limit;
         _max = 0;
@@ -59,6 +60,9 @@ private:
 
         Serial.printf("[%d] %s: starting\n", millis(), _config.name);
     }
+
+    // Tuner CRTP interface impl
+    friend struct kf::tuner::Tuner<MyTuner>;
 
     // tuner is running if it is not idle
     bool runningImpl() const noexcept {
@@ -109,9 +113,9 @@ void setup() {
     auto tuner_3{config_1.createTuner(1000)};
 
     // launch tuners
-    tuner_1.start();
-    tuner_2.start();
-    tuner_3.start();
+    tuner_1.reset();
+    tuner_2.reset();
+    tuner_3.reset();
 
     // parallel tuners polling
     while (tuner_1.running() or tuner_2.running() or tuner_3.running()) {

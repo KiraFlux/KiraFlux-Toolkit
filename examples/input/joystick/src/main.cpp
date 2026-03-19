@@ -65,7 +65,7 @@ void tune(Joystick::Config &config) {
     const unsigned samples = 100;
     auto tuner{config.createTuner(my_joystick, samples)};
 
-    tuner.start();
+    tuner.reset();
 
     while (tuner.running()) {
         tuner.poll();// reads X and Y raw values and feeds the tuners

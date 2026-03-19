@@ -26,12 +26,12 @@ template<typename I> struct NormalizedAdcInput final : mixin::Initable<Normalize
     /// @brief Tuner for a single analog axis.
     /// @note Inherits from SampleCollectingTuner and implements the concrete logic:
     ///
-    ///       - on start: reset min, max, sum.
+    ///       - on reset: reset min, max, sum.
     ///
     ///       - on sample: update min, max, sum.
     ///
     ///       - on calculate: compute dead zone and ranges based on collected data.
-    struct Tuner final : tuner::SampleCollectingTuner<Tuner, Config> {
+    struct Tuner final : kf::tuner::SampleCollectingTuner<Tuner, Config> {
         using TunerBase = kf::tuner::SampleCollectingTuner<Tuner, Config>;
 
         explicit Tuner(Config &config, NormalizedAdcInput &normalized_input, u16 samples) :
@@ -43,14 +43,17 @@ template<typename I> struct NormalizedAdcInput final : mixin::Initable<Normalize
         AdcSignedValue _min_sample{};
         i64 _sum{};
 
-        // SampleCollectingTuner impl
-        friend TunerBase;
+        // impl
 
-        void startImpl() noexcept {
+        friend struct kf::mixin::Resettable<Tuner>;
+
+        void resetImpl() noexcept {
             _max_sample = 0;
             _min_sample = AdcPinImpl::maxValue();
             _sum = 0;
         }
+
+        friend TunerBase;
 
         void pollImpl() noexcept {
             const auto sample = AdcSignedValue(_normalized_input.readRaw());
