@@ -217,7 +217,7 @@ private:
     // impl
     using This = UI<R, E>;
 
-    friend struct kf::mixin::Singleton<This>;
+    KF_IMPL_SINGLETON(This);
 
     friend struct kf::mixin::TimedPollable<This>;
     /// @brief Process active page update, pending events and render if needed

@@ -52,7 +52,6 @@ enum class EspNowError : u8 {
 struct EspNow final : kf::mixin::Singleton<EspNow>,
                       kf::mixin::Initable<EspNow, Result<void, internal::EspNowError>>,
                       kf::mixin::Quitable<EspNow> {
-    friend struct kf::mixin::Singleton<EspNow>;
 
     /// @brief MAC address type (6 bytes)
     using Mac = memory::Array<u8, ESP_NOW_ETH_ALEN>;
@@ -247,6 +246,8 @@ private:
     // impl
 
     using This = EspNow;
+
+    KF_IMPL_SINGLETON(This);
 
     using InitResult = Result<void, Error>;
     KF_IMPL_INITABLE(This, InitResult);

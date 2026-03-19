@@ -6,15 +6,15 @@
 namespace kf::mixin {
 
 /// @brief Thread-safe Singleton pattern implementation
-/// @tparam T Type to be instantiated as singleton
+/// @tparam Impl Type to be instantiated as singleton
 /// @note Uses Meyer's singleton (static local variable) for thread safety
-template<typename T> struct Singleton {
+template<typename Impl> struct Singleton {
 
     /// @brief Get reference to the single instance
-    /// @return Reference to the unique instance of type T
+    /// @return Reference to the unique instance of type Impl
     /// @note Instance is created on first call (lazy initialization)
-    static T &instance() noexcept {
-        static T instance{};// NOLINT(*-dynamic-static-initializers)
+    static Impl &instance() noexcept {
+        static Impl instance{};// NOLINT(*-dynamic-static-initializers)
         return instance;
     }
 
@@ -32,4 +32,6 @@ protected:
     ~Singleton() = default;
 };
 
-}// namespace kf
+}// namespace kf::mixin
+
+#define KF_IMPL_SINGLETON(__impl__) friend struct kf::mixin::Singleton<__impl__>
