@@ -3,12 +3,15 @@
 
 #pragma once
 
+#include "kf/mixin/NonCopyable.hpp"
+
 namespace kf::mixin {
 
 /// @brief Thread-safe Singleton pattern implementation
 /// @tparam Impl Type to be instantiated as singleton
 /// @note Uses Meyer's singleton (static local variable) for thread safety
 template<typename Impl> struct Singleton {
+    KF_IMPL_NON_COPYABLE();
 
     /// @brief Get reference to the single instance
     /// @return Reference to the unique instance of type Impl
@@ -18,17 +21,8 @@ template<typename Impl> struct Singleton {
         return instance;
     }
 
-    /// @brief Deleted copy constructor (non-copyable)
-    Singleton(const Singleton &) = delete;
-
-    /// @brief Deleted copy assignment operator (non-copyable)
-    Singleton &operator=(const Singleton &) = delete;
-
 protected:
-    /// @brief Protected default constructor (ensures single instance)
     Singleton() = default;
-
-    /// @brief Protected destructor (ensures controlled lifetime)
     ~Singleton() = default;
 };
 
