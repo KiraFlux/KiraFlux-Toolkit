@@ -57,10 +57,11 @@ private:
     const Config &_config;
     TwoWire &_wire;
 
+    // impl
+
     using This = Node<BusImpl>;
 
-    // Readable impl
-    friend struct kf::memory::io::Readable<This, Error>;
+    KF_IMPL_READABLE(This, Error);
 
     /// @brief Request `requested` bytes from the I2C device.
     /// @return Number of bytes actually available.
@@ -114,8 +115,7 @@ private:
 
     //
 
-    // Writable impl
-    friend struct kf::memory::io::Writable<This, Error>;
+    KF_IMPL_WRITABLE(This, Error);
 
     /// @brief Begin an I2C transmission (send START condition).
     /// @note Must be called before writing any data.

@@ -52,3 +52,5 @@ private:
 };
 
 }// namespace kf::memory::io
+
+#define KF_IMPL_READABLE(__impl__, __error_type__) friend struct kf::memory::io::Readable<__impl__, __error_type__>

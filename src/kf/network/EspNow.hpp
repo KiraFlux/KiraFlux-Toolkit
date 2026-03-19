@@ -147,8 +147,11 @@ struct EspNow final : kf::mixin::Singleton<EspNow>,
         explicit Peer(const Mac &mac) noexcept :
             _mac{mac} {}
 
-        // Writable impl
-        friend struct kf::memory::io::Writable<Peer, Error>;
+        // impl
+
+        using This = Peer;
+
+        KF_IMPL_WRITABLE(This, Error);
 
         /// @brief Internal send implementation
         /// @return Success or translated ESP-NOW error

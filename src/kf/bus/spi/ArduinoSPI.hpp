@@ -113,8 +113,7 @@ private:
         digitalWrite(_config.pin_cs, HIGH);
     }
 
-    // Readable impl
-    friend struct kf::memory::io::Readable<This, Error>;
+    KF_IMPL_READABLE(This, Error);
 
     /// @brief Read `length` bytes from the device while sending zeros (full‑duplex).
     void readBytes(u8 *buffer, usize length) noexcept {
@@ -166,8 +165,7 @@ private:
         return {value};
     }
 
-    // Writable impl
-    friend struct kf::memory::io::Writable<This, Error>;
+    KF_IMPL_WRITABLE(This, Error);
 
     /// @brief Write raw bytes to the device (simplex).
     void writeBytes(const u8 *buffer, usize length) noexcept {

@@ -67,3 +67,5 @@ private:
 };
 
 }// namespace kf::memory::io
+
+#define KF_IMPL_WRITABLE(__impl__, __error_type__) friend struct kf::memory::io::Writable<__impl__, __error_type__>
