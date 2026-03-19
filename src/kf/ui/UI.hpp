@@ -217,8 +217,6 @@ private:
     // impl
     using This = UI<R, E>;
 
-    KF_IMPL_SINGLETON(This);
-
     KF_IMPL_TIMED_POLLABLE(This);
     void pollImpl(math::Milliseconds now) noexcept {
         // Process active page update, pending events and render if needed

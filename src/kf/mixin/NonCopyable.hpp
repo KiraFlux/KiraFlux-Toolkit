@@ -22,5 +22,3 @@ protected:
 };
 
 }// namespace kf::mixin
-
-#define KF_IMPL_NON_COPYABLE() friend struct kf::mixin::NonCopyable

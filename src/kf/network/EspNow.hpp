@@ -250,8 +250,6 @@ private:
 
     using This = EspNow;
 
-    KF_IMPL_SINGLETON(This);
-
     using InitResult = Result<void, Error>;
     KF_IMPL_INITABLE(This, InitResult);
     /// @note Sets WiFi to station mode and registers receive callback
