@@ -8,10 +8,11 @@
 #include "kf/math/Timer.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Resettable.hpp"
+#include "kf/mixin/TimedPollable.hpp"
 
 namespace kf::input {
 
-template<typename I> struct JoystickListener final : kf::mixin::Resettable<JoystickListener<I>> {
+template<typename I> struct JoystickListener final : kf::mixin::Resettable<JoystickListener<I>>, kf::mixin::TimedPollable<JoystickListener<I>> {
     using JoystickImpl = I;
 
     enum class Direction : u8 {
@@ -22,14 +23,65 @@ template<typename I> struct JoystickListener final : kf::mixin::Resettable<Joyst
         Home
     };
 
-    explicit JoystickListener(JoystickImpl &joystick, f32 threshold = 0.6f) noexcept :
-        _joystick{joystick}, _threshold{threshold} {}
+    struct Config {
+        f32 threshold;///< 0..1
+        kf::math::Milliseconds repeat_timeout, delay;
 
-    void poll(math::Milliseconds now) noexcept {
+        [[nodiscard]] Direction calculateDirection(f32 x, f32 y) const noexcept {
+            const auto ax = kf::abs(x);
+            const auto ay = kf::abs(y);
+            // todo array-map
+            if (ax < threshold and ay < threshold) {
+                return Direction::Home;
+            }
+            if (ax > ay) {
+                return x > 0 ? Direction::Right : Direction::Left;
+            } else {
+                return y > 0 ? Direction::Up : Direction::Down;
+            }
+        }
+    };
+
+    explicit JoystickListener(JoystickImpl &joystick, const Config &config) noexcept :
+        _joystick{joystick}, _config{config}, _repeat_timer{config.repeat_timeout}, _initial_delay{config.delay} {}
+
+    [[nodiscard]] Direction direction() const noexcept { return _current_direction; }
+
+    [[nodiscard]] bool repeating() const noexcept { return _in_repeat_mode; }
+
+    /// @note Resets has_changed
+    [[nodiscard]] bool changed() noexcept {
+        bool ret = _has_changed;
+        _has_changed = false;
+        return ret;
+    }
+
+private:
+    JoystickImpl &_joystick;
+    const Config &_config;
+    math::Timer _repeat_timer;
+    math::Timer _initial_delay;
+
+    Direction _current_direction{Direction::Home};
+    bool _in_repeat_mode{false};
+    bool _has_changed{false};
+
+    //impl
+    using This = JoystickListener<I>;
+
+    friend struct kf::mixin::Resettable<This>;
+    void resetImpl() noexcept {
+        _current_direction = Direction::Home;
+        _has_changed = false;
+        _in_repeat_mode = false;
+    }
+
+    friend struct kf::mixin::TimedPollable<This>;
+    void pollImpl(math::Milliseconds now) noexcept {
         const auto x = _joystick.axis_x.read();
         const auto y = _joystick.axis_y.read();
 
-        const auto new_direction = calculateDirection(x, y);
+        const auto new_direction = _config.calculateDirection(x, y);
 
         if (new_direction != _current_direction) {
             _current_direction = new_direction;
@@ -56,51 +108,6 @@ template<typename I> struct JoystickListener final : kf::mixin::Resettable<Joyst
         } else {
             _in_repeat_mode = false;
         }
-    }
-
-    [[nodiscard]] Direction direction() const noexcept { return _current_direction; }
-
-    [[nodiscard]] bool repeating() const noexcept { return _in_repeat_mode; }
-
-    /// @note Resets has_changed
-    [[nodiscard]] bool changed() noexcept {
-        bool ch = _has_changed;
-        _has_changed = false;
-        return ch;
-    }
-
-private:
-    JoystickImpl &_joystick;
-    const f32 _threshold;
-
-    math::Timer _repeat_timer{static_cast<kf::math::Milliseconds>(100)};
-    math::Timer _initial_delay{static_cast<kf::math::Milliseconds>(400)};
-    Direction _current_direction{Direction::Home};
-    bool _in_repeat_mode{false};
-    bool _has_changed{false};
-
-    [[nodiscard]] Direction calculateDirection(f32 x, f32 y) const noexcept {
-        const auto ax = kf::abs(x);
-        const auto ay = kf::abs(y);
-
-        if (ax < _threshold and ay < _threshold) {
-            return Direction::Home;
-        }
-        if (ax > ay) {
-            return x > 0 ? Direction::Right : Direction::Left;
-        } else {
-            return y > 0 ? Direction::Up : Direction::Down;
-        }
-    }
-
-    //impl
-
-    friend struct kf::mixin::Resettable<JoystickListener<I>>;
-
-    void resetImpl() noexcept {
-        _current_direction = Direction::Home;
-        _has_changed = false;
-        _in_repeat_mode = false;
     }
 };
 
