@@ -14,6 +14,7 @@ struct TimedPollableTag {};
 template<typename Impl> struct TimedPollable : TimedPollableTag {
 
     /// @brief Poll
+    /// @note Must be called regularly (e.g., in main loop)
     void poll(kf::math::Milliseconds now) noexcept { static_cast<Impl *>(this)->pollImpl(now); }
 };
 
