@@ -7,10 +7,13 @@
 #include "kf/aliases.hpp"
 #include "kf/math/Timer.hpp"
 #include "kf/math/units.hpp"
+#include "kf/mixin/Resettable.hpp"
 
 namespace kf::input {
 
-template<typename I> struct JoystickListener {
+template<typename I> struct JoystickListener final : kf::mixin::Resettable<JoystickListener<I>> {
+    using JoystickImpl = I;
+
     enum class Direction : u8 {
         Up = 0,
         Down = 1,
@@ -19,21 +22,8 @@ template<typename I> struct JoystickListener {
         Home
     };
 
-    using JoystickImpl = I;
-
-private:
-    JoystickImpl &_joystick;
-    const f32 _threshold;
-
-    math::Timer _repeat_timer{static_cast<kf::math::Milliseconds>(100)};
-    math::Timer _initial_delay{static_cast<kf::math::Milliseconds>(400)};
-    Direction _current_direction{Direction::Home};
-    bool _in_repeat_mode{false};
-    bool _has_changed{false};
-
-public:
-    explicit JoystickListener(JoystickImpl &joystick, f32 threshold = 0.6f) noexcept
-        : _joystick{joystick}, _threshold{threshold} {}
+    explicit JoystickListener(JoystickImpl &joystick, f32 threshold = 0.6f) noexcept :
+        _joystick{joystick}, _threshold{threshold} {}
 
     void poll(math::Milliseconds now) noexcept {
         const auto x = _joystick.axis_x.read();
@@ -79,6 +69,16 @@ public:
         return ch;
     }
 
+private:
+    JoystickImpl &_joystick;
+    const f32 _threshold;
+
+    math::Timer _repeat_timer{static_cast<kf::math::Milliseconds>(100)};
+    math::Timer _initial_delay{static_cast<kf::math::Milliseconds>(400)};
+    Direction _current_direction{Direction::Home};
+    bool _in_repeat_mode{false};
+    bool _has_changed{false};
+
     [[nodiscard]] Direction calculateDirection(f32 x, f32 y) const noexcept {
         const auto ax = kf::abs(x);
         const auto ay = kf::abs(y);
@@ -93,7 +93,11 @@ public:
         }
     }
 
-    void reset() noexcept {
+    //impl
+
+    friend struct kf::mixin::Resettable<JoystickListener<I>>;
+
+    void resetImpl() noexcept {
         _current_direction = Direction::Home;
         _has_changed = false;
         _in_repeat_mode = false;
