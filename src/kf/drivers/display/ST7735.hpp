@@ -3,13 +3,14 @@
 
 #pragma once
 
-#include <Arduino.h> // for delay
+#include <Arduino.h>// for delay
 
 #include "kf/aliases.hpp"
 #include "kf/bus/spi/SPI.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/image/ViewportImage.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/Configurable.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
 
 #include "kf/drivers/display/DisplayDriver.hpp"
@@ -18,16 +19,24 @@
 namespace kf::drivers::display {
 namespace internal {
 using ST7735_ImageImpl = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
-}
+
+struct ST7735_Config {
+    Orientation init_orientation;
+};
+
+}// namespace internal
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, internal::ST7735_ImageImpl> {
+template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, internal::ST7735_ImageImpl>, mixin::Configurable<internal::ST7735_Config> {
     kf_crtp_check(Ib, kf::bus::spi::SpiNodeTag);
     kf_crtp_check(Ido, kf::gpio::DigitalOutputTag);
 
     using NodeImpl = Ib;
     using DigitalOutputPinImpl = Ido;
     using PixelImpl = typename internal::ST7735_ImageImpl::PixelImpl;
+
+    /// @brief Hardware configuration for ST7735
+    using Config = internal::ST7735_Config;
 
     /// @brief Memory Access Control (MADCTL) register bits
     enum MadCtl : u8 {
@@ -58,16 +67,10 @@ template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<I
         COLMOD = 0x3A ///< Color mode setting
     };
 
-    /// @brief Hardware configuration for ST7735
-    struct Config {
-        Orientation orientation;///< Initial display orientation
-    };
-
     explicit ST7735(const Config &config, NodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
-        _config{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
+        mixin::Configurable<internal::ST7735_Config>{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
 
 private:
-    const Config &_config;///< Hardware configuration
     NodeImpl _node;
     DigitalOutputPinImpl _pin_data_command;
     DigitalOutputPinImpl _pin_reset;
@@ -112,7 +115,7 @@ private:
         const u8 color_mode{0x05};// 16-bit color (RGB565)
         sendPacket(color_mode);
 
-        (void) this->orientation(_config.orientation);// Ignored becauce always true
+        (void) this->orientation(this->config().init_orientation);// Ignored becauce always true
 
         sendCommand(Command::DISPON);
         delay(100);

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/tuner/Tuner.hpp"
 
@@ -12,7 +13,7 @@
 namespace kf::drivers::sensors {
 
 namespace internal {
-struct Value {
+struct Joystick_Value {
     f32 x;        ///< Normalized X-axis value (-1.0 to 1.0)
     f32 y;        ///< Normalized Y-axis value (-1.0 to 1.0)
     f32 magnitude;///< Combined vector magnitude (0.0 to 1.0)
@@ -21,13 +22,15 @@ struct Value {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
-template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Value, void> {
+template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joystick_Value, void> {
     using NormalizedAdcInputImpl = I;
 
     /// @brief Normalized joystick reading value
-    using Value = internal::Value;
+    using Value = internal::Joystick_Value;
 
-    struct Config;// forward declaration
+    struct Config {
+        typename NormalizedAdcInputImpl::Config x, y;
+    };
 
     /// @brief Tuner for a complete two‑axis joystick.
     /// @note Aggregates two NormalizedAdcInput::Tuner instances (X and Y).
@@ -35,8 +38,8 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Value
     ///       The tuner reads raw values from the joystick axes internally.
     struct Tuner : tuner::Tuner<Tuner> {
         explicit Tuner(Config &config, Joystick &joystick, u16 samples) noexcept :
-            _tuner_x{config.x.createTuner(joystick.axis_x, samples)},
-            _tuner_y{config.y.createTuner(joystick.axis_y, samples)} {}
+            _tuner_x{config.x, joystick.axis_x, samples},
+            _tuner_y{config.y, joystick.axis_y, samples} {}
 
     private:
         typename NormalizedAdcInputImpl::Tuner _tuner_x, _tuner_y;
@@ -59,14 +62,6 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Value
         KF_IMPL_TUNER(This);
         bool runningImpl() const noexcept {
             return _tuner_x.running() or _tuner_y.running();
-        }
-    };
-
-    struct Config {
-        typename NormalizedAdcInputImpl::Config x, y;
-
-        [[nodiscard]] Tuner createTuner(Joystick &joystick, u16 samples) noexcept {
-            return Tuner{*this, joystick, samples};
         }
     };
 

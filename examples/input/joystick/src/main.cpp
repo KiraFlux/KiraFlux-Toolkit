@@ -71,7 +71,8 @@ const char *stringFromDirection(Direction dir) {
 // the joystick axes automatically on each poll().
 void tune(Joystick::Config &config) {
     const unsigned samples = 100;
-    auto tuner{config.createTuner(my_joystick, samples)};
+
+    Joystick::Tuner tuner{config, my_joystick, samples};
 
     tuner.reset();
 
