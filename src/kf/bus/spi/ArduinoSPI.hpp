@@ -240,11 +240,10 @@ struct ArduinoSPI : public spi::SPI<ArduinoSPI, arduino::internal::ArduinoSpiNod
     explicit ArduinoSPI(const Config &config, SPIClass &spi) : _config{config}, _spi{spi} {}
 
 private:
-    const Config _config;
+    const Config &_config;
     SPIClass &_spi;
 
     // impl
-
     using This = ArduinoSPI;
 
     using InitResult = Result<void, Error>;
