@@ -7,6 +7,7 @@
 
 #include "kf/aliases.hpp"
 #include "kf/gpio/GPIO.hpp"
+#include "kf/mixin/Configurable.hpp"
 
 namespace kf::gpio::arduino {
 
@@ -118,51 +119,52 @@ private:
     }
 };
 
+// PwmOutput
+namespace internal::pwm {
+struct Config {
+    u32 frequency_hz;  ///< PWM frequency (Hz)
+    u8 resolution_bits;///< resolution in bits (1..16)
+    u8 pin;            ///< GPIO pin number
+    u8 channel;        ///< LEDC channel (0..15)
+
+    /// Maximum PWM value for given resolution (2^bits - 1).
+    constexpr u16 maxDuty() const noexcept {
+        return static_cast<u16>((1u << (resolution_bits)) - 1u);
+    }
+};
+}// namespace internal::pwm
+
 /// PWM output using ESP32 LEDC hardware.
 /// @note One LEDC channel can control multiple pins (same frequency/resolution).
-struct PwmOutput : gpio::PwmOutput<PwmOutput, bool> {
+struct PwmOutput : gpio::PwmOutput<PwmOutput, bool>, mixin::Configurable<internal::pwm::Config> {
+    using Config = internal::pwm::Config;
 
-    struct Config {
-        u32 frequency_hz;  ///< PWM frequency (Hz)
-        u8 resolution_bits;///< resolution in bits (1..16)
-        u8 pin;            ///< GPIO pin number
-        u8 channel;        ///< LEDC channel (0..15)
-
-        /// Maximum PWM value for given resolution (2^bits - 1).
-        constexpr u16 maxDuty() const noexcept {
-            return static_cast<u16>((1u << (resolution_bits)) - 1u);
-        }
-    };
-
-    /// @param config reference to configuration (must outlive this object)
-    explicit PwmOutput(Config &config) noexcept : _config{config} {}
+    using mixin::Configurable<Config>::Configurable;
 
 private:
-    const Config &_config;
-
     // impl
 
     using This = PwmOutput;
 
     KF_IMPL_INITABLE(This, bool);
     [[nodiscard]] bool initImpl() noexcept {
-        if (ledcSetup(_config.channel, _config.frequency_hz, _config.resolution_bits) == 0) {
+        if (ledcSetup(this->config().channel, this->config().frequency_hz, this->config().resolution_bits) == 0) {
             return false;
         }
 
-        ledcAttachPin(_config.pin, _config.channel);
+        ledcAttachPin(this->config().pin, this->config().channel);
 
         return true;
     }
 
     KF_IMPL(kf::gpio::Output<PwmOutput, u16, bool>);
     void writeImpl(u16 level) const noexcept {
-        ledcWrite(_config.channel, level);
+        ledcWrite(this->config().channel, level);
     }
 
     KF_IMPL(kf::gpio::PwmOutput<PwmOutput, bool>);
-    u32 getFrequencyImpl() const noexcept { return _config.frequency_hz; }
-    u8 getResolutionImpl() const noexcept { return _config.resolution_bits; }
+    u32 getFrequencyImpl() const noexcept { return this->config().frequency_hz; }
+    u8 getResolutionImpl() const noexcept { return this->config().resolution_bits; }
 };
 
 }// namespace kf::gpio::arduino
