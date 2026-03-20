@@ -5,6 +5,7 @@
 
 #include "kf/aliases.hpp"
 #include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 #include "kf/math/filters/Filter.hpp"
 
@@ -12,7 +13,7 @@ namespace kf::math::filters {
 
 // ExponentialFilter
 namespace internal::ef {
-struct Config {
+struct Config final : mixin::NonCopyable {
     f32 factor;///< Smoothing factor (0.0 to 1.0, higher = faster response)
 };
 }// namespace internal::ef

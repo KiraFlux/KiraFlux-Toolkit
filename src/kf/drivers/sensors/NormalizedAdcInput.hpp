@@ -12,14 +12,14 @@
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/tuner/SampleCollectingTuner.hpp"
 
 #include "kf/drivers/sensors/Sensor.hpp"
 
 namespace kf::drivers::sensors {
-
-namespace internal {
-struct NormalizedAdcInput_Config {
+namespace internal::nai {// // NormalizedAdcInput
+struct Config final : mixin::NonCopyable {
     using AdcSignedValue = i16;
 
     bool inverted;
@@ -35,16 +35,15 @@ struct NormalizedAdcInput_Config {
         return center;
     }
 };
-
-}// namespace internal
+}// namespace internal::nai
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
-template<typename I> struct NormalizedAdcInput final : Sensor<NormalizedAdcInput<I>, f32, void>, mixin::Configurable<internal::NormalizedAdcInput_Config> {
+template<typename I> struct NormalizedAdcInput final : Sensor<NormalizedAdcInput<I>, f32, void>, mixin::Configurable<internal::nai::Config> {
     kf_crtp_check(I, kf::gpio::AdcInputTag);
 
     using AdcPinImpl = I;
     using FilterImpl = math::filters::ExponentialFilter<f32>;
-    using Config = internal::NormalizedAdcInput_Config;
+    using Config = internal::nai::Config;
 
     /// @brief Tuner for a single analog axis.
     /// @note Inherits from SampleCollectingTuner and implements the concrete logic:

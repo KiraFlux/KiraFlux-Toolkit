@@ -13,10 +13,9 @@
 #include "kf/mixin/TimedPollable.hpp"
 
 namespace kf::input {
+namespace internal::jl {
 
-namespace internal {
-
-enum class JoystickListenerDirection : u8 {
+enum class Direction : u8 {
     Up = 0,
     Down = 1,
     Left = 2,
@@ -24,34 +23,34 @@ enum class JoystickListenerDirection : u8 {
     Home
 };
 
-struct JoystickListenerConfig {
+struct Config final : mixin::NonCopyable {
     f32 threshold;///< 0..1
     kf::math::Milliseconds repeat_timeout, delay;
 
-    [[nodiscard]] JoystickListenerDirection calculateDirection(f32 x, f32 y) const noexcept {
+    [[nodiscard]] Direction calculateDirection(f32 x, f32 y) const noexcept {
         const auto ax = kf::abs(x);
         const auto ay = kf::abs(y);
         // todo array-map
         if (ax < threshold and ay < threshold) {
-            return JoystickListenerDirection::Home;
+            return Direction::Home;
         }
         if (ax > ay) {
-            return x > 0 ? JoystickListenerDirection::Right : JoystickListenerDirection::Left;
+            return x > 0 ? Direction::Right : Direction::Left;
         } else {
-            return y > 0 ? JoystickListenerDirection::Up : JoystickListenerDirection::Down;
+            return y > 0 ? Direction::Up : Direction::Down;
         }
     }
 };
-}// namespace internal
+}// namespace internal::jl
 
 template<typename I>
-struct JoystickListener final : mixin::Configurable<internal::JoystickListenerConfig>,
+struct JoystickListener final : mixin::Configurable<internal::jl::Config>,
                                 mixin::NonCopyable,
                                 mixin::Resettable<JoystickListener<I>>,
                                 mixin::TimedPollable<JoystickListener<I>> {
     using JoystickImpl = I;
-    using Config = internal::JoystickListenerConfig;
-    using Direction = internal::JoystickListenerDirection;
+    using Config = internal::jl::Config;
+    using Direction = internal::jl::Direction;
 
     explicit JoystickListener(JoystickImpl &joystick, const Config &config) noexcept :
         _joystick{joystick}, mixin::Configurable<Config>{config}, _repeat_timer{config.repeat_timeout}, _initial_delay{config.delay} {}
@@ -60,7 +59,7 @@ struct JoystickListener final : mixin::Configurable<internal::JoystickListenerCo
 
     [[nodiscard]] bool repeating() const noexcept { return _in_repeat_mode; }
 
-    /// @note Resets has_changed
+    /// @note Resets has_changeda
     [[nodiscard]] bool changed() noexcept {
         const bool ret = _has_changed;
         _has_changed = false;

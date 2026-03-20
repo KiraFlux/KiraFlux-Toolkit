@@ -7,13 +7,14 @@
 
 #include "kf/math/units.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/validation.hpp"
 
 namespace kf::input {
 
 /// @brief Two-phase incremental rotary encoder with position tracking
 /// @note Uses interrupt on phase A for accurate position counting
-struct Encoder : mixin::Initable<Encoder, void> {
+struct Encoder : mixin::Initable<Encoder, void>, mixin::NonCopyable {
 
     /// @brief Alias for encoder position in ticks
     using Ticks = i32;
@@ -21,7 +22,7 @@ struct Encoder : mixin::Initable<Encoder, void> {
     static constexpr auto logger{Logger::create("Encoder")};
 
     /// @brief Conversion configuration between ticks and physical units
-    struct ConversionConfig : Validatable<ConversionConfig> {
+    struct ConversionConfig final : Validatable<ConversionConfig>, mixin::NonCopyable {
         f32 ticks_in_one_mm;///< Ticks per millimeter (must be positive)
 
         /// @brief Convert ticks to millimeters
@@ -41,7 +42,7 @@ struct Encoder : mixin::Initable<Encoder, void> {
     };
 
     /// @brief GPIO pin configuration for encoder
-    struct PinsConfig {
+    struct PinsConfig final : mixin::NonCopyable {
         /// @brief Interrupt trigger edge
         enum class Edge : u8 {
             Rising = RISING, ///< Trigger on rising edge (LOW to HIGH)
@@ -56,10 +57,6 @@ struct Encoder : mixin::Initable<Encoder, void> {
     const PinsConfig &pins;
     const ConversionConfig &conversion;
 
-private:
-    volatile Ticks _position{0};///< Current position in ticks
-
-public:
     explicit Encoder(
         const PinsConfig &pins_settings,
         const ConversionConfig &conversion_settings) noexcept :
@@ -100,6 +97,8 @@ public:
     }
 
 private:
+    volatile Ticks _position{0};///< Current position in ticks
+
     /// @brief Primary phase interrupt handler for rotary encoder
     IRAM_ATTR static void interruptHandler(void *instance) noexcept {
         auto &encoder = *static_cast<Encoder *>(instance);

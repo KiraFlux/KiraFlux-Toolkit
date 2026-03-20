@@ -15,17 +15,18 @@
 #include "kf/mixin/TimedPollable.hpp"
 
 namespace kf::input {
-
 namespace internal {
-
-struct ButtonConfig {
+struct ButtonConfig final : mixin::NonCopyable {
     math::Milliseconds debounce;
 };
-
 }// namespace internal
 
 /// @brief Minimal button with press detection only
-template<typename I> struct Button : mixin::Initable<Button<I>, void>, mixin::NonCopyable, mixin::TimedPollable<Button<I>>, mixin::Configurable<internal::ButtonConfig> {
+template<typename I>
+struct Button : mixin::Initable<Button<I>, void>,
+                mixin::NonCopyable,
+                mixin::TimedPollable<Button<I>>,
+                mixin::Configurable<internal::ButtonConfig> {
     kf_crtp_check(I, kf::gpio::DigitalInputTag);
 
     using PinImpl = I;

@@ -9,13 +9,14 @@
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 #include "kf/drivers/actuators/Actuator.hpp"
 
 namespace kf::drivers::actuators {
 namespace internal {
 
-struct MotorConfig {
+struct MotorConfig final : mixin::NonCopyable {
     /// @brief PWM value type for control
     using DutyType = u16;
 

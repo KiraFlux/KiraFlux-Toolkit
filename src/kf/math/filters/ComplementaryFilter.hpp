@@ -13,7 +13,7 @@ namespace kf::math::filters {
 
 // ComplementaryFilter
 namespace internal::cf {
-struct Config {
+struct Config final : mixin::NonCopyable {
     f32 factor;///< Filter coefficient for prediction (0.0 to 1.0)
 };
 

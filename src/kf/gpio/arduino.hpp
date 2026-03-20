@@ -8,6 +8,7 @@
 #include "kf/aliases.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 namespace kf::gpio::arduino {
 
@@ -121,7 +122,7 @@ private:
 
 // PwmOutput
 namespace internal::pwm {
-struct Config {
+struct Config final : mixin::NonCopyable {
     u32 frequency_hz;  ///< PWM frequency (Hz)
     u8 resolution_bits;///< resolution in bits (1..16)
     u8 pin;            ///< GPIO pin number

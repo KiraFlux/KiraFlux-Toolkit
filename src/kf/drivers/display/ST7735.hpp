@@ -11,6 +11,7 @@
 #include "kf/image/ViewportImage.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
 
 #include "kf/drivers/display/DisplayDriver.hpp"
@@ -20,7 +21,7 @@ namespace kf::drivers::display {
 namespace internal {
 using ST7735_ImageImpl = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
 
-struct ST7735_Config {
+struct ST7735_Config final : mixin::NonCopyable {
     Orientation init_orientation;
 };
 

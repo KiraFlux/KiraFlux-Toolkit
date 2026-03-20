@@ -14,35 +14,34 @@
 #include "kf/mixin/Resettable.hpp"
 
 namespace kf::math {
+namespace internal::pid {
 
-namespace internal {
+using FilterImpl = filters::LowFrequencyFilter<f32>;
 
-using PidFilterImpl = filters::LowFrequencyFilter<f32>;
-
-struct PidConfig {
+struct Config final : mixin::NonCopyable {
     f32 p;           ///< Proportional gain coefficient
     f32 i;           ///< Integral gain coefficient
     f32 d;           ///< Derivative gain coefficient
     f32 i_limit;     ///< Integral term saturation limit
     f32 output_limit;///< Controller output saturation limit
 
-    typename PidFilterImpl::Config dx_filter;///< Derivative filter config
+    typename FilterImpl::Config dx_filter;///< Derivative filter config
 
     constexpr f32 calc(f32 x, f32 ix, f32 dx) const noexcept {
         return kf::clamp(p * x + i * ix + d * dx, -output_limit, output_limit);
     }
 };
 
-}// namespace internal
+}// namespace internal::pid
 
 /// @brief PID controller implementation
 /// @note Includes derivative filtering and integral anti-windup
-struct PID final : mixin::Configurable<internal::PidConfig>, mixin::NonCopyable, mixin::Resettable<PID> {
+struct PID final : mixin::Configurable<internal::pid::Config>, mixin::NonCopyable, mixin::Resettable<PID> {
 
-    using FilterImpl = internal::PidFilterImpl;
+    using FilterImpl = internal::pid::FilterImpl;
 
     /// @brief PID controller tuning parameters
-    using Config = internal::PidConfig;
+    using Config = internal::pid::Config;
 
     /// @brief Construct PID controller instance
     /// @param PID tuning parameters

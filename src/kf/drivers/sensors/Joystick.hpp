@@ -5,6 +5,7 @@
 
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/tuner/Tuner.hpp"
 
 #include "kf/drivers/sensors/NormalizedAdcInput.hpp"
@@ -28,7 +29,7 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
     /// @brief Normalized joystick reading value
     using Value = internal::Joystick_Value;
 
-    struct Config {
+    struct Config final : mixin::NonCopyable {
         typename NormalizedAdcInputImpl::Config x, y;
     };
 
