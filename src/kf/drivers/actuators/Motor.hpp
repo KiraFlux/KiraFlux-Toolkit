@@ -28,7 +28,7 @@ struct MotorConfig {
     };
 
     DutyType dead_zone;
-    DutyType max_pwm;
+    DutyType max_duty;
     Direction normal_direction;///< Positive rotation direction
 
     [[nodiscard]] bool getValueLevel(f32 value) const noexcept {
@@ -40,7 +40,7 @@ struct MotorConfig {
         if (abs_value < normalized_dead_zone) {
             return 0;
         } else {
-            return static_cast<DutyType>(i32(abs_value * f32(max_pwm - dead_zone)) + dead_zone);
+            return static_cast<DutyType>(i32(abs_value * f32(max_duty - dead_zone)) + dead_zone);
         }
     }
 };

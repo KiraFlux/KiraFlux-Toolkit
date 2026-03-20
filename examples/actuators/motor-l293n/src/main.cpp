@@ -19,7 +19,7 @@ PwmOutput::Config pwm_config{
 // static/global: must outlive motor
 L293N::Config driver_config{
     .dead_zone = 500,// motor start moving with pwm >= 500
-    .max_pwm = pwm_config.maxPwm(),
+    .max_duty = pwm_config.maxDuty(),
     .normal_direction = L293N::Config::Direction::CW,// motor.write(1.0) -> Clock wise rotation
 };
 
