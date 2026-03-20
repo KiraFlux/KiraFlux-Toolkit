@@ -38,7 +38,7 @@ private:
 
     template<typename T> void sliderImlpl(
         T value, T min_value, T max_value,
-        internal::ValuePlacement value_placement) noexcept {
+        ui::internal::ValuePlacement value_placement) noexcept {
         _wrapped.splider(value, min_value, max_value, value_placement);
     }
 
