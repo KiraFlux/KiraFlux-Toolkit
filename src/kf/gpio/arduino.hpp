@@ -129,7 +129,7 @@ struct PwmOutput : gpio::PwmOutput<PwmOutput, bool> {
         u8 channel;        ///< LEDC channel (0..15)
 
         /// Maximum PWM value for given resolution (2^bits - 1).
-        u16 maxPwm() const noexcept {
+        constexpr u16 maxPwm() const noexcept {
             return static_cast<u16>((1u << (resolution_bits)) - 1u);
         }
     };
