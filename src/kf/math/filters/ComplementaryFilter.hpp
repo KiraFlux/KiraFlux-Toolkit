@@ -5,26 +5,31 @@
 
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
+#include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
 namespace kf::math::filters {
 
+// ComplementaryFilter
+namespace internal::cf {
+struct Config {
+    f32 factor;///< Filter coefficient for prediction (0.0 to 1.0)
+};
+
+}// namespace internal::cf
+
 /// @brief Complementary filter for sensor fusion
 /// @tparam T Data type (typically float or vector type)
 /// @note Combines low-frequency and high-frequency sensor data using weighted average
-template<typename T> struct ComplementaryFilter final : mixin::NonCopyable, mixin::Resettable<ComplementaryFilter<T>> {
+template<typename T>
+struct ComplementaryFilter final : mixin::Configurable<internal::cf::Config>,
+                                   mixin::NonCopyable,
+                                   mixin::Resettable<ComplementaryFilter<T>> {
     using ValueType = T;
+    using Config = internal::cf::Config;
 
-    struct Config {
-        f32 factor;///< Filter coefficient for prediction (0.0 to 1.0)
-    };
-
-    /// @brief Construct complementary filter instance
-    /// @param alpha Filter coefficient (higher = more trust in prediction)
-    /// @note alpha=0.0: trust only measurement, alpha=1.0: trust only prediction
-    explicit ComplementaryFilter(const Config &config) noexcept :
-        _config{config} {}
+    using mixin::Configurable<Config>::Configurable;
 
     /// @brief Calculate filtered value from measurement and rate of change
     /// @param x Current measurement value
@@ -37,14 +42,13 @@ template<typename T> struct ComplementaryFilter final : mixin::NonCopyable, mixi
             _filtered = x;
         } else {
             const auto prediction = _filtered + dx * dt;
-            _filtered = _config.factor * prediction + (1.0f - _config.factor) * x;
+            _filtered = this->config().factor * prediction + (1.0f - this->config().factor) * x;
         }
 
         return _filtered;
     }
 
 private:
-    const Config &_config;
     ValueType _filtered{}; ///< Current filtered value
     bool _first_step{true};///< First iteration flag for initialization
 
