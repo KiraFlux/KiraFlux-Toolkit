@@ -9,24 +9,30 @@
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 
 namespace kf::input {
 
+namespace internal {
+
+struct ButtonConfig {
+    math::Milliseconds debounce;
+};
+
+}// namespace internal
+
 /// @brief Minimal button with press detection only
-template<typename I> struct Button : mixin::Initable<Button<I>, void>, mixin::NonCopyable, mixin::TimedPollable<Button<I>> {
+template<typename I> struct Button : mixin::Initable<Button<I>, void>, mixin::NonCopyable, mixin::TimedPollable<Button<I>>, mixin::Configurable<internal::ButtonConfig> {
     kf_crtp_check(I, kf::gpio::DigitalInputTag);
 
     using PinImpl = I;
-
-    struct Config {
-        math::Milliseconds debounce;
-    };
+    using Config = internal::ButtonConfig;
 
     explicit Button(const Config &config, PinImpl &&pin) noexcept :
-        _config{config}, _pin{std::move(pin)} {}
+        mixin::Configurable<Config>{config}, _pin{std::move(pin)} {}
 
     /// @brief Check if button was clicked (consumes the click)
     /// @return true if button was pressed since last call
@@ -43,7 +49,6 @@ template<typename I> struct Button : mixin::Initable<Button<I>, void>, mixin::No
     [[nodiscard]] bool pressed() const noexcept { return _last_stable; }
 
 private:
-    const Config &_config;
     math::Milliseconds _next{0};
     PinImpl _pin;
     bool _last_stable{false};
@@ -64,7 +69,7 @@ private:
 
         if (state != _last_raw) {
             _last_raw = state;
-            _next = now + _config.debounce;
+            _next = now + this->config().debounce;
         }
 
         if (now >= _next) {
