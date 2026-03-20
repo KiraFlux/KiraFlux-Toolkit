@@ -9,17 +9,18 @@ using kf::gpio::arduino::PwmOutput;
 using L293N = kf::drivers::actuators::L298nMotor<PwmOutput, DigitalOutput>;
 
 // static/global: must outlive motor
-L293N::Config driver_config{
-    .dead_zone = 500,                        // motor start moving with pwm >= 500
-    .normal_direction = L293N::Direction::CW,// motor.write(1.0) -> Clock wise rotation
-};
-
-// static/global: must outlive motor
 PwmOutput::Config pwm_config{
     .frequency_hz = 30'000,// typical for DC motors
     .resolution_bits = 10,
     .pin = static_cast<kf::u8>(GPIO_NUM_26),
     .channel = 0,
+};
+
+// static/global: must outlive motor
+L293N::Config driver_config{
+    .dead_zone = 500,// motor start moving with pwm >= 500
+    .max_pwm = pwm_config.maxPwm(),
+    .normal_direction = L293N::Config::Direction::CW,// motor.write(1.0) -> Clock wise rotation
 };
 
 L293N motor{
@@ -46,7 +47,7 @@ void setup() {
     Serial.println("CCW");
     delay(2000);
 
-    motor.stop();
+    motor.disable();
     Serial.println("Done");
 }
 
