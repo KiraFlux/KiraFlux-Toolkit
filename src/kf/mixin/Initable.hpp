@@ -5,8 +5,6 @@
 
 #include <type_traits>
 
-#include "kf/meta/CRTP.hpp"
-
 namespace kf::mixin {
 
 struct InitableTag {};
@@ -14,7 +12,7 @@ struct InitableTag {};
 /// @brief CRTP mixin initialisation.
 /// @tparam Impl Derived class (must provide `initImpl()`).
 /// @tparam T    Return type of init() (void or any).
-template<typename Impl, typename T, typename = void> struct Initable : InitableTag {
+template<typename Impl, typename T> struct Initable : InitableTag {
     [[nodiscard]] T init() noexcept {
         return static_cast<Impl *>(this)->initImpl();
     }
@@ -28,3 +26,5 @@ template<typename Impl> struct Initable<Impl, void> : InitableTag {
 };
 
 }// namespace kf::mixin
+
+#define KF_IMPL_INITABLE(__impl__, __init_result_type) friend struct ::kf::mixin::Initable<__impl__, __init_result_type>

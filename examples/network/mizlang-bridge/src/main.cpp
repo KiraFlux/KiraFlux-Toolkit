@@ -56,7 +56,7 @@ void setup() {
     if (send_result.isError()) {
         // send failed.
 
-        const Bridge::Error error_kind = send_result.error().value();// if result.isError() => error() is some and has value() garanteed.
+        const Bridge::Error error_kind = send_result.error();// if result.isError() => error() is some and has value() garanteed.
     }
 }
 

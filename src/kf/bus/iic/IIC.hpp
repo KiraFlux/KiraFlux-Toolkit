@@ -4,9 +4,13 @@
 #pragma once
 
 #include "kf/bus/Bus.hpp"
-#include "kf/bus/iic/Tag.hpp"
 
 namespace kf::bus::iic {
+
+struct IicNodeTag {};
+template<typename Impl, typename ErrorImpl> struct IicNode : IicNodeTag, BusNode<Impl, ErrorImpl> {};
+
+struct Tag {};
 
 /// @brief CRTP base class for IIC bus implementations.
 /// @tparam Impl Concrete IIC bus implementation (must inherit from this class).

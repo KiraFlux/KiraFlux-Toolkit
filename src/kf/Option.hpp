@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <utility>
 
 namespace kf {
 
@@ -12,6 +13,7 @@ namespace kf {
 /// @note Embedded-friendly implementation without exceptions or heap allocation
 template<typename T> struct Option {
     static_assert(std::is_trivially_destructible_v<T>, "T must be trivially destructible");
+    static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
 
 private:
     union {
@@ -22,9 +24,12 @@ private:
 
 public:
     /// @brief Construct Option with value (copy)
-    /// @param value Value to store in Option
     constexpr Option(const T &value) noexcept :// NOLINT(*-explicit-constructor)
         _engaged{true}, _value{value} {}
+
+    /// @brief Construct Option with value (move)
+    constexpr Option(T &&value) noexcept :// NOLINT(*-explicit-constructor)
+        _engaged{true}, _value{std::move(value)} {}
 
     /// @brief Construct empty Option (no value)
     constexpr Option() noexcept :
@@ -54,7 +59,12 @@ public:
         }
     }
 
-    void value(const T& new_value) noexcept {
+    void value(T &&new_value) noexcept {
+        _engaged = true;
+        _value = std::move(new_value);
+    }
+
+    void value(const T &new_value) noexcept {
         _engaged = true;
         _value = new_value;
     }
@@ -63,6 +73,10 @@ public:
     /// @param default_value Value to return if Option is empty
     /// @return Stored value if present, default_value otherwise
     /// @note Safe alternative to value() that doesn't terminate
+    [[nodiscard]] constexpr T valueOr(T &&default_value) const noexcept {
+        return _engaged ? _value : std::move(default_value);
+    }
+
     [[nodiscard]] constexpr T valueOr(const T &default_value) const noexcept {
         return _engaged ? _value : default_value;
     }

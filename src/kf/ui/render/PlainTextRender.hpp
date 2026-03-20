@@ -8,72 +8,71 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
+
 #include "kf/ui/internal/ValuePlacement.hpp"
 #include "kf/ui/render/Render.hpp"
 
 namespace kf::ui::render {
 
+// PlainTextRender
+namespace internal::ptr {
+using Glyph = u8;///< Text interface measurement unit in glyphs
+
+struct Config final : mixin::NonCopyable {
+    Function<void(memory::StringView)> on_render_finish{nullptr};///< Callback invoked when rendering completes
+
+    Glyph row_max_length{16}; ///< Maximum characters per row
+    Glyph rows_total{4};      ///< Total available rows in display
+    Glyph float_places{2};    ///< Decimal places for float
+    Glyph double_places{4};   ///< Decimal places for double
+    bool title_centered{true};///< Render Title centered
+};
+
+/// @brief Cursor state for tracking rendering position
+struct Cursor {
+    Glyph row{0}, col{0};///< Current position
+
+    /// @brief Reset cursor to beginning
+    void reset() { *this = {}; }
+
+    /// @brief Move to next line
+    void newline() {
+        row += 1;
+        col = 0;
+    }
+
+    /// @brief Check if we can write more characters in current row
+    /// @param row_max_length Maximum columns per row
+    [[nodiscard]] bool canWrite(Glyph row_max_length) const noexcept {
+        return col < row_max_length;
+    }
+
+    /// @brief Advance cursor position by N characters
+    void advance(Glyph count, Glyph row_max_length) noexcept {
+        col += count;
+        if (col >= row_max_length) {
+            newline();
+        }
+    }
+};
+
+}// namespace internal::ptr
+
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
 /// @note Implements Render CRTP interface for character-based display
-template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
-    friend struct Render<PlainTextRender<N>>;
-
-    using Glyph = u8;///< Text interface measurement unit in glyphs
+template<usize N> struct PlainTextRender : Render<PlainTextRender<N>>, mixin::Configurable<internal::ptr::Config> {
 
     /// @brief Text renderer configuration
-    struct Config {
-        Function<void(memory::StringView)> on_render_finish{nullptr};///< Callback invoked when rendering completes
+    using Config = internal::ptr::Config;
 
-        Glyph row_max_length{16}; ///< Maximum characters per row
-        Glyph rows_total{4};      ///< Total available rows in display
-        Glyph float_places{2};    ///< Decimal places for float
-        Glyph double_places{4};   ///< Decimal places for double
-        bool title_centered{true};///< Render Title centered
-
-        Config(const Config &) = delete;
-    };
-
-private:
-    memory::ArrayString<N> _buffer{};///< Output buffer for rendered text
-    Config _config{};        ///< Current renderer configuration
-
-    /// @brief Cursor state for tracking rendering position
-    struct Cursor {
-        Glyph row{0};        ///< Current row position
-        Glyph col{0};        ///< Current column position
-        bool contrast{false};///< Whether we're in contrast mode
-
-        /// @brief Reset cursor to beginning
-        void reset() { *this = {}; }
-
-        /// @brief Move to next line
-        void newline() {
-            row += 1;
-            col = 0;
-        }
-
-        /// @brief Check if we can write more characters in current row
-        /// @param row_max_length Maximum columns per row
-        [[nodiscard]] bool canWrite(Glyph row_max_length) const noexcept {
-            return col < row_max_length;
-        }
-
-        /// @brief Advance cursor position by N characters
-        void advance(Glyph count, Glyph row_max_length) noexcept {
-            col += count;
-            if (col >= row_max_length) {
-                newline();
-            }
-        }
-    } _cursor{};
-
-public:
-    Config &getConfig() { return _config; }
+    using mixin::Configurable<Config>::Configurable;
 
     /// @brief Helper to write character with cursor tracking
     void writeChar(char ch) noexcept {
-        if (_buffer.full() or _cursor.row >= _config.rows_total) { return; }
+        if (_buffer.full() or _cursor.row >= this->config().rows_total) { return; }
 
         if (ch == '\n') {
             _cursor.newline();
@@ -81,9 +80,9 @@ public:
             return;
         }
 
-        if (not _cursor.canWrite(_config.row_max_length)) { return; }
+        if (not _cursor.canWrite(this->config().row_max_length)) { return; }
 
-        _cursor.advance(1, _config.row_max_length);
+        _cursor.advance(1, this->config().row_max_length);
         (void) _buffer.push(ch);
     }
 
@@ -101,12 +100,15 @@ public:
     }
 
 private:
-    // Render Interface Implementation
+    memory::ArrayString<N> _buffer{};///< Output buffer for rendered text
+    internal::ptr::Cursor _cursor{};
+
+    KF_IMPL(Render<PlainTextRender<N>>);
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
         // Subtract 1 for title row
-        if (_config.rows_total > _cursor.row + 1) {
-            return _config.rows_total - _cursor.row - 1;
+        if (this->config().rows_total > _cursor.row + 1) {
+            return this->config().rows_total - _cursor.row - 1;
         } else {
             return 0;
         }
@@ -118,14 +120,14 @@ private:
     }
 
     void finishImpl() noexcept {
-        if (_config.on_render_finish) {
-            _config.on_render_finish(_buffer.view());
+        if (this->config().on_render_finish) {
+            this->config().on_render_finish(_buffer.view());
         }
     }
 
     void titleImpl(memory::StringView title) noexcept {
-        if (_config.title_centered) {
-            const auto spaces = kf::max(0, (int(_config.row_max_length) - int(title.size())) / 2);
+        if (this->config().title_centered) {
+            const auto spaces = kf::max(0, (int(this->config().row_max_length) - int(title.size())) / 2);
             for (int i = 0; i < spaces; i += 1) {
                 writeChar(' ');
             }
@@ -142,17 +144,17 @@ private:
 
     template<typename T> void sliderImpl(
         T slider_value, T min_value, T max_value,
-        internal::ValuePlacement value_placement) noexcept {
-        
+        ui::internal::ValuePlacement value_placement) noexcept {
+
         // Textual now supports only show/hide placement
-        if (internal::ValuePlacement::Hidden != value_placement) {
+        if (ui::internal::ValuePlacement::Hidden != value_placement) {
             this->value(slider_value);
             writeChar(' ');
         }
 
         writeChar('[');
         const usize start_col = _cursor.col;
-        const usize inner_width = _config.row_max_length - start_col - 1;// -1 for closing char
+        const usize inner_width = this->config().row_max_length - start_col - 1;// -1 for closing char
         const usize fill = (slider_value - min_value) * inner_width / (max_value - min_value);
 
         for (usize i = 0; i < fill; i += 1) {
@@ -169,6 +171,7 @@ private:
     }
 
     // Value rendering implementations
+
     void valueImpl(memory::StringView str) noexcept { writeString(str); }
 
     void valueImpl(bool slider_value) noexcept {
@@ -184,11 +187,11 @@ private:
     }
 
     void valueImpl(f32 real) noexcept {
-        writeReal(static_cast<f64>(real), _config.float_places);
+        writeReal(static_cast<f64>(real), this->config().float_places);
     }
 
     void valueImpl(f64 real) noexcept {
-        writeReal(real, _config.double_places);
+        writeReal(real, this->config().double_places);
     }
 
     // Decoration rendering

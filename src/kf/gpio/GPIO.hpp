@@ -5,13 +5,15 @@
 
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
+#include "kf/meta/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 namespace kf::gpio {
 
 /// @brief CRTP base for inputs.
 /// @note Requires `T readImpl() const` in derived class.
-template<typename Impl, typename LevelType, typename InitResultType> struct Input : mixin::Initable<Impl, InitResultType> {
+template<typename Impl, typename LevelType, typename InitResultType> struct Input : mixin::Initable<Impl, InitResultType>, mixin::NonCopyable {
     LevelType read() const noexcept { return static_cast<const Impl *>(this)->readImpl(); }
 };
 
@@ -44,7 +46,7 @@ template<typename Impl, typename InitResultType> struct AdcInput : Input<Impl, u
 
 /// @brief CRTP base for outputs.
 /// @note Requires `void writeImpl(T) const` in derived class.
-template<typename Impl, typename LevelType, typename InitResultType> struct Output : mixin::Initable<Impl, InitResultType> {
+template<typename Impl, typename LevelType, typename InitResultType> struct Output : mixin::Initable<Impl, InitResultType>, mixin::NonCopyable {
     void write(LevelType level) const noexcept { static_cast<const Impl *>(this)->writeImpl(level); }
 };
 

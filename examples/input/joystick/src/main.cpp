@@ -4,23 +4,26 @@
 #include <kf/math/Timer.hpp>
 
 // target files for this demo
+#include <kf/drivers/sensors/Joystick.hpp>
+#include <kf/drivers/sensors/NormalizedAdcInput.hpp>
 #include <kf/gpio/arduino.hpp>
-#include <kf/input/Joystick.hpp>
+
 #include <kf/input/JoystickListener.hpp>
-#include <kf/input/NormalizedAdcInput.hpp>
 
 using kf::gpio::arduino::AdcInput;
-using NormalizedAdcInput = kf::input::NormalizedAdcInput<AdcInput>;
-using Joystick = kf::input::Joystick<NormalizedAdcInput>;
+using NormalizedAdcInput = kf::drivers::sensors::NormalizedAdcInput<AdcInput>;
+using Joystick = kf::drivers::sensors::Joystick<NormalizedAdcInput>;
 using JoystickListener = kf::input::JoystickListener<Joystick>;
 
 // Configuration – must outlive joystick instance (referenced)
 Joystick::Config my_joystick_config{
     .x = {
         .inverted = false,
-        // .dead_zone = 123,
-        // .range_positive = 45,
-        // .range_negative = 67,
+
+        // tuned automaticly:
+        // .dead_zone = ... ,
+        // .range_positive = ... ,
+        // .range_negative = ... ,
     },
     .y = {
         .inverted = true,
@@ -39,9 +42,15 @@ Joystick my_joystick{
     AdcInput{GPIO_NUM_35},
 };
 
+JoystickListener::Config my_listener_config{
+    .threshold = 0.5f,    // neutral zone threshold (normalized value)
+    .repeat_timeout = 100,// ms
+    .delay = 400,         // ms
+};
+
 JoystickListener my_listener{
-    my_joystick,// referenced, must stay alive
-    0.5f,       // neutral zone threshold (normalized value)
+    my_joystick,       // referenced, must stay alive
+    my_listener_config,// referenced, must stay alive
 };
 
 using Direction = JoystickListener::Direction;
@@ -62,9 +71,10 @@ const char *stringFromDirection(Direction dir) {
 // the joystick axes automatically on each poll().
 void tune(Joystick::Config &config) {
     const unsigned samples = 100;
-    auto tuner{config.createTuner(my_joystick, samples)};
 
-    tuner.start();
+    Joystick::Tuner tuner{config, my_joystick, samples};
+
+    tuner.reset();
 
     while (tuner.running()) {
         tuner.poll();// reads X and Y raw values and feeds the tuners

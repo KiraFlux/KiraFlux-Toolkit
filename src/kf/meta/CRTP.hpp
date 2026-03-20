@@ -17,3 +17,5 @@ template<typename Impl> struct CRTP {
 };
 
 }// namespace kf::meta
+
+#define KF_IMPL(...) friend struct __VA_ARGS__

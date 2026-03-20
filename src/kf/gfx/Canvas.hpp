@@ -13,14 +13,14 @@
 #include "kf/image/DynamicImage.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/meta/type_check.hpp"
-#include "kf/pixel/Tag.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf::gfx {
 
 /// @brief Drawing context with graphics primitives and text rendering
 /// @tparam P Pixel format for canvas operations
 template<typename P> struct Canvas {
-    kf_crtp_check(P, pixel::Tag);
+    kf_crtp_check(P, pixel::PixelTag);
 
     using PixelImpl = P;
     using ColorType = typename PixelImpl::ColorType;
@@ -62,9 +62,9 @@ public:
         math::Pixels sub_offset_x, math::Pixels sub_offset_y) noexcept {
         const auto frame_result = _frame.sub(sub_width, sub_height, sub_offset_x, sub_offset_y);
         if (frame_result.isOk()) {
-            return {Canvas{frame_result.ok().value(), *_active_font, _foreground, _background}};
+            return {Canvas{frame_result.value(), *_active_font, _foreground, _background}};
         } else {
-            return {frame_result.error().value()};
+            return {frame_result.error()};
         }
     }
 

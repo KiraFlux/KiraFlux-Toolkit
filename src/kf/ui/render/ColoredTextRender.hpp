@@ -7,19 +7,15 @@
 namespace kf::ui::render {
 
 template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
-    friend struct Render<ColoredTextRender<N>>;
-
-private:
     using Wrapped = PlainTextRender<N>;
-    Wrapped _wrapped{};
-
-public:
     using Config = typename Wrapped::Config;
 
-    Config &getConfig() { return _wrapped.getConfig(); }
+    constexpr explicit ColoredTextRender(const Config &config) noexcept : _wrapped{config} {}
 
 private:
-    // Render CRTP Implementation
+    Wrapped _wrapped{};
+
+    KF_IMPL(Render<ColoredTextRender<N>>);
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return _wrapped.widgetsAvailable(); }
 
@@ -42,7 +38,7 @@ private:
 
     template<typename T> void sliderImlpl(
         T value, T min_value, T max_value,
-        internal::ValuePlacement value_placement) noexcept {
+        ui::internal::ValuePlacement value_placement) noexcept {
         _wrapped.splider(value, min_value, max_value, value_placement);
     }
 

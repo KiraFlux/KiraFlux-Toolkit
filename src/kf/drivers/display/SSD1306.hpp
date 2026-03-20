@@ -5,7 +5,7 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/bus/iic/Tag.hpp"
+#include "kf/bus/iic/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
@@ -14,22 +14,52 @@
 #include "kf/drivers/display/Orientation.hpp"
 
 namespace kf::drivers::display {
+namespace internal {
+using SSD1306_ImageImpl = image::StaticImage<pixel::MonochromePixel, 128, 64>;
+}
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>> {
-    kf_crtp_check(typename I::BusImpl, kf::bus::iic::Tag);
+template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, internal::SSD1306_ImageImpl> {
+    kf_crtp_check(I, kf::bus::iic::IicNodeTag);
 
     using NodeImpl = I;
-    using PixelImpl = pixel::MonochromePixel;
+    using PixelImpl = typename internal::SSD1306_ImageImpl::PixelImpl;
+
+    /// @brief SSD1306 command set
+    enum Command : u8 {
+        DisplayOff = 0xAE,///< Turn display off
+        DisplayOn = 0xAF, ///< Turn display on
+
+        CommandMode = 0x00,   ///< Start command stream
+        OneCommandMode = 0x80,///< Single command prefix
+        DataMode = 0x40,      ///< Data transmission prefix
+
+        AddressingMode = 0x20,///< Set addressing mode
+        Horizontal = 0x00,    ///< Horizontal addressing
+        Vertical = 0x01,      ///< Vertical addressing
+
+        NormalV = 0xC8,///< Normal vertical scan direction
+        FlipV = 0xC0,  ///< Flipped vertical scan direction
+        NormalH = 0xA1,///< Normal horizontal segment remap
+        FlipH = 0xA0,  ///< Flipped horizontal segment remap
+
+        Contrast = 0x81,     ///< Set contrast command
+        SetComPins = 0xDA,   ///< COM pins hardware configuration
+        SetVcomDetect = 0xDB,///< Set VCOMH deselect level
+        ClockDiv = 0xD5,     ///< Set display clock divide ratio
+        SetMultiplex = 0xA8, ///< Set multiplex ratio
+        ColumnAddr = 0x21,   ///< Set column address range
+        PageAddr = 0x22,     ///< Set page address range
+        ChargePump = 0x8D,   ///< Charge pump setting
+
+        NormalDisplay = 0xA6,///< Normal pixel color (black on white)
+        InvertDisplay = 0xA7 ///< Inverted pixel color (white on black)
+    };
 
     static constexpr u8 default_address = {0x3C};
 
-private:
-    NodeImpl _node;
-
-public:
     /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(NodeImpl &&node) noexcept : _node{node} {}
+    explicit SSD1306(NodeImpl &&node) noexcept : _node{std::move(node)} {}
 
     /// @brief Set display contrast level (0..255)
     /// @returns true - operation success
@@ -50,12 +80,25 @@ public:
         return sendCommand(invert ? InvertDisplay : NormalDisplay);
     }
 
-private:
-    // DisplayDriver interface implementation
-    friend struct DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>>;
+    [[nodiscard]] constexpr static bool supportOrientation(Orientation orientation) noexcept {
+        return orientation == Orientation::Normal or orientation == Orientation::MirrorX or orientation == Orientation::MirrorY;
+    }
 
+private:
+    NodeImpl _node;
+
+    /// @brief Send single command to display
+    [[nodiscard]] bool sendCommand(Command c) noexcept {
+        const u8 packet[]{OneCommandMode, static_cast<u8>(c)};
+        return _node.writePacket(packet).isOk();
+    }
+
+    // impl
+    using This = SSD1306<I>;
+
+    KF_IMPL_INITABLE(This, bool);
     /// @brief Initialize display hardware via I2C
-    [[nodiscard]] bool initImpl() noexcept {
+    bool initImpl() noexcept {
         static constexpr u8 init_commands[] = {
             CommandMode,
 
@@ -101,8 +144,13 @@ private:
         return _node.writePacket(init_commands).isOk();
     }
 
-    /// @brief Transfer software buffer to display via I2C
-    [[nodiscard]] bool sendImpl() noexcept {
+    KF_IMPL_RESETTABLE(This);
+    void resetImpl() const noexcept {}
+
+    KF_IMPL(DisplayDriver<This, internal::SSD1306_ImageImpl>);
+    bool sendImpl() noexcept {
+        // Transfer software buffer to display via I2C
+
         static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
 
         static constexpr u8 set_area_commands[] = {
@@ -116,8 +164,8 @@ private:
             PixelImpl::template pages<64> - 1,
         };
 
-        auto p = this->_screen_image.buffer().data();
-        auto remaining = this->_screen_image.buffer().size();
+        auto p = this->image().buffer().data();
+        auto remaining = this->image().buffer().size();
 
         if (_node.writePacket(set_area_commands).isError()) { goto fail; }
 
@@ -135,18 +183,7 @@ private:
         return false;
     }
 
-    [[nodiscard]] static bool supportOrientation(Orientation orientation) noexcept {
-        switch (orientation) {
-            case Orientation::Normal:
-            case Orientation::MirrorX:
-            case Orientation::MirrorY:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {
+    bool setOrientationImpl(Orientation orientation) noexcept {
         if (not supportOrientation(orientation)) { return false; }
 
         constexpr auto flip_x = 0b01;
@@ -159,43 +196,6 @@ private:
         return true;
     fail:
         return false;
-    }
-
-    /// @brief SSD1306 command set
-    enum Command : u8 {
-        DisplayOff = 0xAE,///< Turn display off
-        DisplayOn = 0xAF, ///< Turn display on
-
-        CommandMode = 0x00,   ///< Start command stream
-        OneCommandMode = 0x80,///< Single command prefix
-        DataMode = 0x40,      ///< Data transmission prefix
-
-        AddressingMode = 0x20,///< Set addressing mode
-        Horizontal = 0x00,    ///< Horizontal addressing
-        Vertical = 0x01,      ///< Vertical addressing
-
-        NormalV = 0xC8,///< Normal vertical scan direction
-        FlipV = 0xC0,  ///< Flipped vertical scan direction
-        NormalH = 0xA1,///< Normal horizontal segment remap
-        FlipH = 0xA0,  ///< Flipped horizontal segment remap
-
-        Contrast = 0x81,     ///< Set contrast command
-        SetComPins = 0xDA,   ///< COM pins hardware configuration
-        SetVcomDetect = 0xDB,///< Set VCOMH deselect level
-        ClockDiv = 0xD5,     ///< Set display clock divide ratio
-        SetMultiplex = 0xA8, ///< Set multiplex ratio
-        ColumnAddr = 0x21,   ///< Set column address range
-        PageAddr = 0x22,     ///< Set page address range
-        ChargePump = 0x8D,   ///< Charge pump setting
-
-        NormalDisplay = 0xA6,///< Normal pixel color (black on white)
-        InvertDisplay = 0xA7 ///< Inverted pixel color (white on black)
-    };
-
-    /// @brief Send single command to display
-    [[nodiscard]] bool sendCommand(Command c) noexcept {
-        const u8 packet[]{OneCommandMode, static_cast<u8>(c)};
-        return _node.writePacket(packet).isOk();
     }
 };
 

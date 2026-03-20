@@ -4,39 +4,46 @@
 #pragma once
 
 #include "kf/aliases.hpp"
+#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
+
+#include "kf/math/filters/Filter.hpp"
 
 namespace kf::math::filters {
+
+// LowFrequencyFilter
+namespace internal::lff {
+struct Config final : mixin::NonCopyable {
+    f32 factor;///< Smoothing factor (0.0 to 1.0)
+};
+}// namespace internal::lff
 
 /// @brief Low-frequency filter (first-order low-pass)
 /// @tparam T Scalar type (typically float or integer)
 /// @note Uses exponential smoothing to attenuate high-frequency noise
-template<typename T> struct LowFrequencyFilter {
+template<typename T> struct LowFrequencyFilter : Filter<LowFrequencyFilter<T>, T>, mixin::Configurable<internal::lff::Config> {
+    using ValueType = T;
+    using Config = internal::lff::Config;
+
+    using mixin::Configurable<Config>::Configurable;
 
 private:
-    const f32 _alpha;          ///< Smoothing factor (0.0 to 1.0)
-    const f32 _one_minus_alpha;///< Complementary coefficient (1.0 - alpha)
-    T _filtered{};             ///< Current filtered value
-    bool _first_step{false};   ///< First sample flag for initialization
+    ValueType _filtered{};  ///< Current filtered value
+    bool _first_step{false};///< First sample flag for initialization
 
-public:
-    /// @brief Construct low-frequency filter instance
-    /// @param alpha Smoothing factor (higher = more smoothing, slower response)
-    /// @note alpha=0.0: output never changes, alpha=1.0: no filtering (direct pass-through)
-    explicit LowFrequencyFilter(f32 alpha) noexcept :
-        _alpha{alpha}, _one_minus_alpha{1.0f - alpha} {}
+    // impl
+    using This = LowFrequencyFilter<ValueType>;
 
-    /// @brief Update filter with new sample
-    /// @param x New input value
-    /// @return Current filtered value
-    [[nodiscard]] const T &calc(const T &x) noexcept {
+    KF_IMPL(Filter<This, ValueType>);
+    ValueType calcImpl(const ValueType &x) noexcept {
         if (_first_step) {
             _first_step = false;
             goto set;
         }
 
-        if (_alpha == 1.0) { goto set; }
+        if (this->config().factor == 1.0f) { goto set; }
 
-        _filtered = _filtered * _one_minus_alpha + x * _alpha;
+        _filtered = _filtered * (1.0f - this->config().factor) + x * this->config().factor;
         goto ret;
 
     set:
@@ -45,10 +52,10 @@ public:
         return _filtered;
     }
 
-    /// @brief Reset filter state (next sample will initialize filter)
-    void reset() noexcept {
+    KF_IMPL_RESETTABLE(This);
+    void resetImpl() noexcept {
         _first_step = true;
     }
 };
 
-}// namespace kf
+}// namespace kf::math::filters

@@ -4,8 +4,7 @@
 #pragma once
 
 #include <type_traits>
-
-#include "kf/Option.hpp"
+#include <utility>
 
 namespace kf {
 
@@ -16,23 +15,24 @@ namespace kf {
 template<typename T, typename E> struct Result {
     static_assert(not std::is_same_v<T, E>, "T and E must be different types");
     static_assert(std::is_trivially_destructible_v<T>, "T must be trivially destructible");
+    static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
     static_assert(std::is_trivially_destructible_v<E>, "E must be trivially destructible");
+    static_assert(std::is_trivially_copyable_v<E>, "E must be trivially copyable");
 
-private:
-    bool _is_ok;///< Flag indicating success (true) or error (false)
+    /// @brief Construct successful result with value (move)
+    constexpr Result(T &&value) noexcept :
+        _is_ok{true}, _value{std::move(value)} {}
 
-    union {
-        T _value;///< Storage for successful result (active when is_ok == true)
-        E _error;///< Storage for error result (active when is_ok == false)
-    };
-
-public:
-    /// @brief Construct successful result with value
-    constexpr Result(T value) noexcept :
+    /// @brief Construct successful result with value (copy)
+    constexpr Result(const T &value) noexcept :
         _is_ok{true}, _value{value} {}
 
-    /// @brief Construct error result with error
-    constexpr Result(E error) noexcept :
+    /// @brief Construct error result with error (move)
+    constexpr Result(E &&error) noexcept :
+        _is_ok{false}, _error{std::move(error)} {}
+
+    /// @brief Construct error result with error (copy)
+    constexpr Result(const E &error) noexcept :
         _is_ok{false}, _error{error} {}
 
     /// @brief Check if result contains a value (success)
@@ -41,25 +41,33 @@ public:
     /// @brief Check if result contains an error
     [[nodiscard]] constexpr bool isError() const noexcept { return not _is_ok; }
 
-    /// @brief Get successful value as Option
-    /// @return Option containing value if successful, empty Option otherwise
-    [[nodiscard]] constexpr Option<T> ok() const noexcept {
-        if (_is_ok) {
-            return {_value};
-        } else {
-            return {};
-        }
+    [[nodiscard]] T &value() noexcept {
+        if (isOk()) { return _value; }
+        abort();
     }
 
-    /// @brief Get error value as Option
-    /// @return Option containing error if failed, empty Option otherwise
-    [[nodiscard]] constexpr Option<E> error() const noexcept {
-        if (_is_ok) {
-            return {};
-        } else {
-            return {_error};
-        }
+    [[nodiscard]] const T &value() const noexcept {
+        if (isOk()) { return _value; }
+        abort();
     }
+
+    [[nodiscard]] E &error() noexcept {
+        if (isError()) { return _error; }
+        abort();
+    }
+
+    [[nodiscard]] const E &error() const noexcept {
+        if (isError()) { return _error; }
+        abort();
+    }
+
+private:
+    bool _is_ok;///< Flag indicating success (true) or error (false)
+
+    union {
+        T _value;///< Storage for successful result (active when is_ok == true)
+        E _error;///< Storage for error result (active when is_ok == false)
+    };
 };
 
 /// @brief Result specialization for void (success-only) operations
@@ -67,18 +75,18 @@ public:
 /// @note Used for operations that don't return a value on success
 template<typename E> struct Result<void, E> {
     static_assert(std::is_trivially_destructible_v<E>, "E must be trivially destructible");
+    static_assert(std::is_trivially_copyable_v<E>, "E must be trivially copyable");
 
-private:
-    bool _is_ok;///< Flag indicating success (true) or error (false)
-    E _error;  ///< Storage for error result (active when is_ok == false)
-
-public:
     /// @brief Construct successful void result
     constexpr Result() noexcept :
         _is_ok{true} {}
 
-    /// @brief Construct error result with error
-    constexpr Result(E error) noexcept :
+    /// @brief Construct error result with error (move)
+    constexpr Result(E &&error) noexcept :
+        _is_ok{false}, _error{std::move(error)} {}
+
+    /// @brief Construct error result with error (copy)
+    constexpr Result(const E &error) noexcept :
         _is_ok{false}, _error{error} {}
 
     /// @brief Check if result is successful
@@ -87,15 +95,19 @@ public:
     /// @brief Check if result contains an error
     [[nodiscard]] constexpr bool isError() const noexcept { return not _is_ok; }
 
-    /// @brief Get error value as Option
-    /// @return Option containing error if failed, empty Option otherwise
-    [[nodiscard]] constexpr Option<E> error() const noexcept {
-        if (_is_ok) {
-            return {};
-        } else {
-            return {_error};
-        }
+    [[nodiscard]] E &error() noexcept {
+        if (isError()) { return _error; }
+        abort();
     }
+
+    [[nodiscard]] const E &error() const noexcept {
+        if (isError()) { return _error; }
+        abort();
+    }
+
+private:
+    bool _is_ok;///< Flag indicating success (true) or error (false)
+    E _error;   ///< Storage for error result (active when is_ok == false)
 };
 
 }// namespace kf

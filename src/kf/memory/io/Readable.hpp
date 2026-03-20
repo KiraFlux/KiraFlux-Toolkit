@@ -9,9 +9,9 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/Slice.hpp"
 
-#include "kf/memory/io/tags.hpp"
-
 namespace kf::memory::io {
+
+struct ReadableTag {};
 
 /// @brief CRTP base class for readable streams (e.g. I2C, SPI, UART).
 /// @tparam Impl      Derived class.
@@ -52,3 +52,5 @@ private:
 };
 
 }// namespace kf::memory::io
+
+#define KF_IMPL_READABLE(__impl__, __error_type__) friend struct kf::memory::io::Readable<__impl__, __error_type__>

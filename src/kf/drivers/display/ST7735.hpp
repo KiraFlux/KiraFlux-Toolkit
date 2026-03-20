@@ -3,26 +3,41 @@
 
 #pragma once
 
+#include <Arduino.h>// for delay
+
 #include "kf/aliases.hpp"
-#include "kf/bus/spi/Tag.hpp"
+#include "kf/bus/spi/SPI.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/image/ViewportImage.hpp"
 #include "kf/meta/type_check.hpp"
+#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
 
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/drivers/display/Orientation.hpp"
 
 namespace kf::drivers::display {
+namespace internal {
+using ST7735_ImageImpl = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
+
+struct ST7735_Config final : mixin::NonCopyable {
+    Orientation init_orientation;
+};
+
+}// namespace internal
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {
-    kf_crtp_check(typename Ib::BusImpl, kf::bus::spi::Tag);
+template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, internal::ST7735_ImageImpl>, mixin::Configurable<internal::ST7735_Config> {
+    kf_crtp_check(Ib, kf::bus::spi::SpiNodeTag);
     kf_crtp_check(Ido, kf::gpio::DigitalOutputTag);
 
     using NodeImpl = Ib;
     using DigitalOutputPinImpl = Ido;
-    using PixelImpl = pixel::Rgb565Pixel;
+    using PixelImpl = typename internal::ST7735_ImageImpl::PixelImpl;
+
+    /// @brief Hardware configuration for ST7735
+    using Config = internal::ST7735_Config;
 
     /// @brief Memory Access Control (MADCTL) register bits
     enum MadCtl : u8 {
@@ -53,95 +68,15 @@ template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<I
         COLMOD = 0x3A ///< Color mode setting
     };
 
-    /// @brief Hardware configuration for ST7735
-    struct Config {
-        Orientation orientation;///< Initial display orientation
-    };
-
     explicit ST7735(const Config &config, NodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
-        _config{config}, _node{node}, _pin_data_command{pin_data_command}, _pin_reset{pin_reset} {}
-
-    /// @brief Hardware reset of the display (pulse RESET pin).
-    /// @note Required after power‑up to initialise the internal state machine.
-    void reset() const noexcept {
-        _pin_reset.write(false);
-        delay(10);
-        _pin_reset.write(true);
-        delay(120);
-    }
+        mixin::Configurable<internal::ST7735_Config>{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
 
 private:
-    const Config &_config;///< Hardware configuration
     NodeImpl _node;
     DigitalOutputPinImpl _pin_data_command;
     DigitalOutputPinImpl _pin_reset;
 
     u8 _madctl_base_mode{0};///< Base MADCTL value
-
-    // DisplayDriver impl
-    friend struct DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;
-
-    /// @brief Initialize display hardware via SPI
-    /// @return Always returns true (hardware errors not checked)
-    [[nodiscard]] bool initImpl() noexcept {
-        _node.init();
-        _pin_data_command.init();
-        _pin_reset.init();
-
-        reset();
-
-        sendCommand(Command::SWRESET);
-        delay(150);
-
-        sendCommand(Command::SLPOUT);
-        delay(255);
-
-        sendCommand(Command::COLMOD);
-        const u8 color_mode{0x05};// 16-bit color (RGB565)
-        sendPacket(color_mode);
-
-        (void) this->orientation(_config.orientation);// Ignored becauce always true
-
-        sendCommand(Command::DISPON);
-        delay(100);
-
-        return true;
-    }
-
-    [[nodiscard]] bool sendImpl() noexcept {
-        sendCommand(Command::RAMWR);
-        sendBuffer({reinterpret_cast<const u8 *>(this->_screen_image.buffer().data()), this->imageBufferSizeBytes()});
-        return true;// Arduino SPI cannot tell anything about errors
-    }
-
-    /// @brief Apply orientation transformation (full 6-way support)
-    [[nodiscard]] bool setOrientationImpl(Orientation orientation) noexcept {
-        constexpr u8 orient_to_transform[]{
-            0,                                        // Orientation::Normal
-            MadCtl::MirrorX,                          // Orientation::MirrorX
-            MadCtl::MirrorY,                          // Orientation::MirrorY
-            MadCtl::MirrorX | MadCtl::MirrorY,        // Orientation::Flip
-            MadCtl::MirrorX | MadCtl::MirrorTranspose,// Orientation::ClockWise
-            MadCtl::MirrorY | MadCtl::MirrorTranspose,// Orientation::CounterClockWise
-        };
-
-        const u8 madctl = _madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
-
-        this->_screen_image.transposed((madctl & MadCtl::MirrorTranspose) != 0);
-
-        sendCommand(Command::MADCTL);
-        sendPacket(madctl);
-
-        const u8 data_x[4]{0, 0, 0, static_cast<u8>(this->_screen_image.maxX())};
-        sendCommand(Command::CASET);
-        sendPacket(data_x);
-
-        const u8 data_y[4]{0, 0, 0, static_cast<u8>(this->_screen_image.maxY())};
-        sendCommand(Command::RASET);
-        sendPacket(data_y);
-
-        return true;
-    }
 
     // Low-level communication
 
@@ -158,6 +93,82 @@ private:
     void sendCommand(Command c) noexcept {
         _pin_data_command.write(false);
         (void) _node.writeByte(static_cast<u8>(c));
+    }
+
+    // impl
+    using This = ST7735<Ib, Ido>;
+
+    KF_IMPL_INITABLE(This, bool);
+    bool initImpl() noexcept {
+        _node.init();
+        _pin_data_command.init();
+        _pin_reset.init();
+
+        this->reset();
+
+        sendCommand(Command::SWRESET);
+        delay(150);
+
+        sendCommand(Command::SLPOUT);
+        delay(255);
+
+        sendCommand(Command::COLMOD);
+        const u8 color_mode{0x05};// 16-bit color (RGB565)
+        sendPacket(color_mode);
+
+        (void) this->orientation(this->config().init_orientation);// Ignored becauce always true
+
+        sendCommand(Command::DISPON);
+        delay(100);
+
+        return true;// Always returns true (hardware errors not checked)
+    }
+
+    KF_IMPL_RESETTABLE(This);
+    void resetImpl() const noexcept {
+        // Required after power‑up to initialise the internal state machine.
+        _pin_reset.write(false);
+        delay(10);
+        _pin_reset.write(true);
+        delay(120);
+    }
+
+    KF_IMPL(DisplayDriver<This, internal::ST7735_ImageImpl>);
+
+    bool sendImpl() noexcept {
+        sendCommand(Command::RAMWR);
+        sendBuffer({reinterpret_cast<const u8 *>(this->image().buffer().data()), this->image().size()});
+        return true;// Arduino SPI cannot tell anything about errors
+    }
+
+    bool setOrientationImpl(Orientation orientation) noexcept {
+        // full 6-way support
+
+        constexpr u8 orient_to_transform[]{
+            0,                                        // Orientation::Normal
+            MadCtl::MirrorX,                          // Orientation::MirrorX
+            MadCtl::MirrorY,                          // Orientation::MirrorY
+            MadCtl::MirrorX | MadCtl::MirrorY,        // Orientation::Flip
+            MadCtl::MirrorX | MadCtl::MirrorTranspose,// Orientation::ClockWise
+            MadCtl::MirrorY | MadCtl::MirrorTranspose,// Orientation::CounterClockWise
+        };
+
+        const u8 madctl = _madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
+
+        this->image().transposed((madctl & MadCtl::MirrorTranspose) != 0);
+
+        sendCommand(Command::MADCTL);
+        sendPacket(madctl);
+
+        const u8 data_x[4]{0, 0, 0, static_cast<u8>(this->image().maxX())};
+        sendCommand(Command::CASET);
+        sendPacket(data_x);
+
+        const u8 data_y[4]{0, 0, 0, static_cast<u8>(this->image().maxY())};
+        sendCommand(Command::RASET);
+        sendPacket(data_y);
+
+        return true;
     }
 };
 

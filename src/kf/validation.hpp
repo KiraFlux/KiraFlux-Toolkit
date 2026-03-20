@@ -4,17 +4,14 @@
 #pragma once
 
 #include "kf/Logger.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 namespace kf {
 
 /// @brief Validation helper for checking conditions and collecting errors
 /// @note Used to validate configuration and object states
-struct Validator {
+struct Validator final : mixin::NonCopyable {
 
-private:
-    usize _errors_total{0};///< Count of failed validation checks
-
-public:
     /// @brief Check a validation condition and log result
     void check(const Logger &logger, bool condition_ok, memory::StringView condition_string) noexcept {
         if (condition_ok) {
@@ -30,6 +27,9 @@ public:
     [[nodiscard]] bool passed() const noexcept {
         return _errors_total == 0;
     }
+
+private:
+    usize _errors_total{0};///< Count of failed validation checks
 };
 
 /// @brief CRTP base class for objects that can validate themselves

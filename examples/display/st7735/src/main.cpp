@@ -104,7 +104,7 @@ void setup() {
 
     // Configuration must live as long as the display (static).
     static ST7735::Config driver_config{
-        Orientation::Normal,
+        .init_orientation = Orientation::Normal,
     };
 
     // Driver instance references config and SPI bus.

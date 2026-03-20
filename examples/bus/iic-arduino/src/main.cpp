@@ -21,7 +21,7 @@ void setup() {
     auto initRes = bus.init();
     if (initRes.isError()) {
         Serial.print("Bus init failed: ");
-        switch (initRes.error().value()) {
+        switch (initRes.error()) {
             case ArduinoIIC::Error::ClockConfigFailed:
                 Serial.println("Clock config failed");
                 break;
@@ -58,7 +58,7 @@ void setup() {
             if (addr < 0x10) Serial.print('0');
             Serial.println(addr, HEX);
         } else {
-            auto err = result.error().value();
+            auto err = result.error();
             if (err == ArduinoIIC::Error::AddressNack) {
                 // Normal – no device
             } else if (err == ArduinoIIC::Error::Timeout) {

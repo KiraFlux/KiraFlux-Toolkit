@@ -4,12 +4,19 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/memory/io/tags.hpp"
+#include "kf/memory/io/Readable.hpp"
+#include "kf/memory/io/Writable.hpp"
 #include "kf/meta/type_check.hpp"
-
-#include "kf/bus/Tag.hpp"
+#include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Quitable.hpp"
 
 namespace kf::bus {
+
+struct BusNodeTag {};
+template<typename Impl, typename ErrorImpl> struct BusNode : BusNodeTag, mixin::NonCopyable, memory::io::Readable<Impl, ErrorImpl>, memory::io::Writable<Impl, ErrorImpl> {};
+
+struct BusTag {};
 
 /// @brief CRTP base class for bus implementations.
 /// @tparam BusImpl Concrete bus implementation (must inherit from this class).
@@ -17,19 +24,16 @@ namespace kf::bus {
 /// @tparam ErrorImpl Error type used by bus operations.
 /// @note The bus implementation must provide methods `initImpl()` and `quitImpl()`.
 ///       Nodes are created via `createNode` and are expected to be movable.
-template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus : bus::Tag {
-    kf_crtp_check(NodeImpl, kf::memory::io::ReadableTag);
-    kf_crtp_check(NodeImpl, kf::memory::io::WritableTag);
+template<typename BusImpl, typename NodeImpl, typename ErrorImpl>
+struct Bus : BusTag,
+             mixin::Initable<BusImpl, Result<void, ErrorImpl>>,
+             mixin::NonCopyable,
+             mixin::Quitable<BusImpl> {
+    kf_crtp_check(NodeImpl, kf::bus::BusNodeTag);
 
-    [[nodiscard]] Result<void, ErrorImpl> init() noexcept { return impl().initImpl(); }
-
-    void quit() noexcept { impl().quitImpl(); }
-
-    [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept { return NodeImpl{impl(), config}; }
-
-private:
-    BusImpl &impl() noexcept { return *static_cast<BusImpl *>(this); }
-    const BusImpl &impl() const noexcept { return *static_cast<const BusImpl *>(this); }
+    [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept {
+        return NodeImpl{*static_cast<BusImpl *>(this), config};
+    }
 
     // methods:
     // ctor: BusImpl::Node(BusImpl &, Node::Config &)

@@ -8,22 +8,17 @@
 #include "kf/image/StaticImage.hpp"
 #include "kf/math/units.hpp"
 #include "kf/meta/type_check.hpp"
-#include "kf/pixel/Tag.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
 
 template<typename P, usize W, usize H> struct ViewportImage final : Image<ViewportImage<P, W, H>, P> {
-    kf_crtp_check(P, pixel::Tag);
+    kf_crtp_check(P, pixel::PixelTag);
 
     using PixelImpl = P;
     using BufferType = typename PixelImpl::BufferType;
     using ColorType = typename PixelImpl::ColorType;
 
-private:
-    StaticImage<PixelImpl, W, H> _image{};///< Raw image buffer data
-    math::Pixels _logical_width{W}, _logical_height{H};
-
-public:
     /// @brief Set transpose status for image
     /// @note Swaps logical width <-> logical height
     void transposed(bool is_transposed) {
@@ -34,9 +29,14 @@ public:
     /// @brief Is image is actually transposed?
     [[nodiscard]] constexpr bool transposed() const noexcept { return W == _logical_width; }
 
-    // CRTP
 private:
-    friend Image<ViewportImage<PixelImpl, W, H>, PixelImpl>;
+    StaticImage<PixelImpl, W, H> _image{};///< Raw image buffer data
+    math::Pixels _logical_width{W}, _logical_height{H};
+
+    // impl
+    using This = ViewportImage<P, W, H>;
+
+    KF_IMPL(Image<This, P>);
 
     [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return _logical_width; }
 
