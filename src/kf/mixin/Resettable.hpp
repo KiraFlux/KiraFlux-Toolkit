@@ -17,4 +17,4 @@ template<typename Impl> struct Resettable : ResettableTag {
 
 }// namespace kf::mixin
 
-#define KF_IMPL_RESETTABLE(__impl__) friend struct kf::mixin::Resettable<__impl__>
+#define KF_IMPL_RESETTABLE(__impl__) friend struct ::kf::mixin::Resettable<__impl__>

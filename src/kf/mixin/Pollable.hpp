@@ -17,4 +17,4 @@ template<typename Impl> struct Pollable : PollableTag {
 
 }// namespace kf::mixin
 
-#define KF_IMPL_POLLABLE(__impl__) friend struct kf::mixin::Pollable<__impl__>
+#define KF_IMPL_POLLABLE(__impl__) friend struct ::kf::mixin::Pollable<__impl__>
