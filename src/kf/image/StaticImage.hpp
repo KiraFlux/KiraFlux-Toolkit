@@ -21,28 +21,28 @@ namespace kf::image {
 /// Useful for storing icons, logos, and other predefined graphics.
 template<typename P, math::Pixels W, math::Pixels H> struct StaticImage final : Image<StaticImage<P, W, H>, P> {
     kf_crtp_check(P, pixel::PixelTag);
-    
+
     using PixelImpl = P;
     using BufferType = typename PixelImpl::BufferType;
     using ColorType = typename PixelImpl::ColorType;
 
     using BufferStorage = memory::Array<BufferType, PixelImpl::template buffer_size<W, H>>;
 
-private:
-    /// @brief Raw image buffer data
-    /// @details Contains the pixel data for the entire image.
-    BufferStorage _buffer;
-
-public:
     explicit StaticImage(const BufferStorage &buffer) noexcept :
         _buffer{buffer} {}
 
     StaticImage() noexcept :
         _buffer{} {}
 
-    // CRTP
 private:
-    friend Image<StaticImage<PixelImpl, W, H>, PixelImpl>;
+    /// @brief Raw image buffer data
+    /// @details Contains the pixel data for the entire image.
+    BufferStorage _buffer;
+
+    // impl
+    using This = StaticImage<P, W, H>;
+
+    KF_IMPL(Image<This, P>);
 
     [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return W; }
 

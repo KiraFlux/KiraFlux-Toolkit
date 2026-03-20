@@ -97,7 +97,7 @@ private:
     KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept { return _pin.init(); }
 
-    friend struct Actuator<This, bool>;
+    KF_IMPL(Actuator<This, bool>);
 };
 
 }// namespace kf::drivers::actuators

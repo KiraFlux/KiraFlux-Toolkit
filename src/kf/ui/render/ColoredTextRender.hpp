@@ -15,9 +15,7 @@ template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
 private:
     Wrapped _wrapped{};
 
-    // Render CRTP Implementation
-
-    friend struct Render<ColoredTextRender<N>>;
+    KF_IMPL(Render<ColoredTextRender<N>>);
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return _wrapped.widgetsAvailable(); }
 

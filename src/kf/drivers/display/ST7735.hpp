@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <Arduino.h> // for delay
+
 #include "kf/aliases.hpp"
 #include "kf/bus/spi/SPI.hpp"
 #include "kf/gpio/GPIO.hpp"
@@ -14,15 +16,18 @@
 #include "kf/drivers/display/Orientation.hpp"
 
 namespace kf::drivers::display {
+namespace internal {
+using ST7735_ImageImpl = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
+}
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>> {
+template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, internal::ST7735_ImageImpl> {
     kf_crtp_check(Ib, kf::bus::spi::SpiNodeTag);
     kf_crtp_check(Ido, kf::gpio::DigitalOutputTag);
 
     using NodeImpl = Ib;
     using DigitalOutputPinImpl = Ido;
-    using PixelImpl = pixel::Rgb565Pixel;
+    using PixelImpl = typename internal::ST7735_ImageImpl::PixelImpl;
 
     /// @brief Memory Access Control (MADCTL) register bits
     enum MadCtl : u8 {
@@ -69,6 +74,23 @@ private:
 
     u8 _madctl_base_mode{0};///< Base MADCTL value
 
+    // Low-level communication
+
+    void sendBuffer(memory::Slice<const u8> buffer) noexcept {
+        _pin_data_command.write(true);
+        (void) _node.writeBuffer(buffer);
+    }
+
+    template<typename T> void sendPacket(T &&packet) noexcept {
+        _pin_data_command.write(true);
+        (void) _node.writePacket(std::forward<T>(packet));
+    }
+
+    void sendCommand(Command c) noexcept {
+        _pin_data_command.write(false);
+        (void) _node.writeByte(static_cast<u8>(c));
+    }
+
     // impl
     using This = ST7735<Ib, Ido>;
 
@@ -107,7 +129,7 @@ private:
         delay(120);
     }
 
-    friend struct DisplayDriver<This, image::ViewportImage<pixel::Rgb565Pixel, 128, 160>>;
+    KF_IMPL(DisplayDriver<This, internal::ST7735_ImageImpl>);
 
     bool sendImpl() noexcept {
         sendCommand(Command::RAMWR);
@@ -115,8 +137,9 @@ private:
         return true;// Arduino SPI cannot tell anything about errors
     }
 
-    /// @brief Apply orientation transformation (full 6-way support)
     bool setOrientationImpl(Orientation orientation) noexcept {
+        // full 6-way support
+
         constexpr u8 orient_to_transform[]{
             0,                                        // Orientation::Normal
             MadCtl::MirrorX,                          // Orientation::MirrorX
@@ -142,23 +165,6 @@ private:
         sendPacket(data_y);
 
         return true;
-    }
-
-    // Low-level communication
-
-    void sendBuffer(memory::Slice<const u8> buffer) noexcept {
-        _pin_data_command.write(true);
-        (void) _node.writeBuffer(buffer);
-    }
-
-    template<typename T> void sendPacket(T &&packet) noexcept {
-        _pin_data_command.write(true);
-        (void) _node.writePacket(std::forward<T>(packet));
-    }
-
-    void sendCommand(Command c) noexcept {
-        _pin_data_command.write(false);
-        (void) _node.writeByte(static_cast<u8>(c));
     }
 };
 

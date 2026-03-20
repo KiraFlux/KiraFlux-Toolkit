@@ -41,8 +41,7 @@ private:
         _state = static_cast<u8>(inverted_reading);
     }
 
-    // input impl
-    friend struct kf::gpio::Input<This, bool, void>;
+    KF_IMPL(kf::gpio::Input<This, bool, void>);
     [[nodiscard]] bool readImpl() const noexcept {
         const auto level = static_cast<bool>(digitalRead(_pin));
 
@@ -77,12 +76,12 @@ private:
         pinMode(_pin, INPUT);
     }
 
-    friend struct kf::gpio::Input<This, u16, void>;
+    KF_IMPL(kf::gpio::Input<This, u16, void>);
     [[nodiscard]] u16 readImpl() const noexcept {
         return analogRead(_pin);
     }
 
-    friend struct kf::gpio::AdcInput<This, void>;
+    KF_IMPL(kf::gpio::AdcInput<This, void>);
     static void setResolutionImpl(u8 new_resolution_bits) noexcept {
         if (resolution_bits != new_resolution_bits) {
             resolution_bits = new_resolution_bits;
@@ -113,7 +112,7 @@ private:
         pinMode(_pin, OUTPUT);
     }
 
-    friend struct kf::gpio::Output<DigitalOutput, bool, void>;
+    KF_IMPL(kf::gpio::Output<DigitalOutput, bool, void>);
     void writeImpl(bool level) const noexcept {
         digitalWrite(_pin, level);
     }
@@ -156,12 +155,12 @@ private:
         return true;
     }
 
-    friend struct kf::gpio::Output<PwmOutput, u16, bool>;
+    KF_IMPL(kf::gpio::Output<PwmOutput, u16, bool>);
     void writeImpl(u16 level) const noexcept {
         ledcWrite(_config.channel, level);
     }
 
-    friend struct kf::gpio::PwmOutput<PwmOutput, bool>;
+    KF_IMPL(kf::gpio::PwmOutput<PwmOutput, bool>);
     u32 getFrequencyImpl() const noexcept { return _config.frequency_hz; }
     u8 getResolutionImpl() const noexcept { return _config.resolution_bits; }
 };

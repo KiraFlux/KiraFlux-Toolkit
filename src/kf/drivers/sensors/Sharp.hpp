@@ -30,12 +30,9 @@ private:
     KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept { _pin.init(); }
 
-    friend struct Sensor<This, math::Millimeters, void>;
-    /// @brief Read distance in millimeters
-    /// @return Distance in millimeters (inverse of voltage)
-    /// @note Takes multiple samples for noise reduction
-    /// @warning correct calculus only with 10-bit ADC resolution
+    KF_IMPL(Sensor<This, math::Millimeters, void>);
     [[nodiscard]] math::Millimeters readImpl() noexcept {
+        // correct calculus only with 10-bit ADC resolution
         // todo generalize formula
         return 65535.0F / math::Millimeters(_pin.read());
     }

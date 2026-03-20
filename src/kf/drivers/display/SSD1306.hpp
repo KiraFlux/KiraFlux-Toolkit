@@ -14,13 +14,16 @@
 #include "kf/drivers/display/Orientation.hpp"
 
 namespace kf::drivers::display {
+namespace internal {
+using SSD1306_ImageImpl = image::StaticImage<pixel::MonochromePixel, 128, 64>;
+}
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, image::StaticImage<pixel::MonochromePixel, 128, 64>> {
+template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, internal::SSD1306_ImageImpl> {
     kf_crtp_check(I, kf::bus::iic::IicNodeTag);
 
     using NodeImpl = I;
-    using PixelImpl = pixel::MonochromePixel;
+    using PixelImpl = typename internal::SSD1306_ImageImpl::PixelImpl;
 
     /// @brief SSD1306 command set
     enum Command : u8 {
@@ -75,6 +78,10 @@ template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, image::Sta
     /// @returns true - operation success
     [[nodiscard]] bool invert(bool invert) noexcept {
         return sendCommand(invert ? InvertDisplay : NormalDisplay);
+    }
+
+    [[nodiscard]] constexpr static bool supportOrientation(Orientation orientation) noexcept {
+        return orientation == Orientation::Normal or orientation == Orientation::MirrorX or orientation == Orientation::MirrorY;
     }
 
 private:
@@ -140,10 +147,10 @@ private:
     KF_IMPL_RESETTABLE(This);
     void resetImpl() const noexcept {}
 
-    friend struct DisplayDriver<This, image::StaticImage<pixel::MonochromePixel, 128, 64>>;
-
-    /// @brief Transfer software buffer to display via I2C
+    KF_IMPL(DisplayDriver<This, internal::SSD1306_ImageImpl>);
     bool sendImpl() noexcept {
+        // Transfer software buffer to display via I2C
+
         static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
 
         static constexpr u8 set_area_commands[] = {
@@ -174,17 +181,6 @@ private:
         return true;
     fail:
         return false;
-    }
-
-    [[nodiscard]] static bool supportOrientation(Orientation orientation) noexcept {
-        switch (orientation) {
-            case Orientation::Normal:
-            case Orientation::MirrorX:
-            case Orientation::MirrorY:
-                return true;
-            default:
-                return false;
-        }
     }
 
     bool setOrientationImpl(Orientation orientation) noexcept {

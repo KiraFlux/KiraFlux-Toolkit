@@ -142,9 +142,11 @@ public:
             color);
     }
 
-    // CRTP
 private:
-    friend Image<DynamicImage<P>, P>;
+    // impl
+    using This = DynamicImage<P>;
+
+    KF_IMPL(Image<This, P>);
 
     [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return _width; }
 

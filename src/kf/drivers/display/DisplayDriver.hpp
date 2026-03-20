@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/image/Image.hpp"
+#include "kf/meta/CRTP.hpp"
 #include "kf/meta/type_check.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -22,7 +23,8 @@ template<typename Impl, typename I>
 struct DisplayDriver : DisplayDriverTag,
                        mixin::Initable<Impl, bool>,
                        mixin::NonCopyable,
-                       mixin::Resettable<Impl> {
+                       mixin::Resettable<Impl>,
+                       meta::CRTP<Impl> {
     kf_crtp_check(I, image::ImageTag);
 
     using ImageImpl = I;
@@ -34,19 +36,16 @@ struct DisplayDriver : DisplayDriverTag,
 
     /// @brief Transfer software buffer to display hardware
     /// @return true if success
-    [[nodiscard]] bool send() noexcept { return impl().sendImpl(); }
+    [[nodiscard]] bool send() noexcept { return this->impl().sendImpl(); }
 
     /// @brief Set display orientation.
     /// @param new_orientation New orientation value.
     /// @return true if success, false if orientation not supported.
-    [[nodiscard]] bool orientation(Orientation new_orientation) noexcept { return impl().setOrientationImpl(new_orientation); }
+    [[nodiscard]] bool orientation(Orientation new_orientation) noexcept { return this->impl().setOrientationImpl(new_orientation); }
 
 private:
     /// @brief Software frame buffer for display operations
     ImageImpl _screen_image{};
-
-    // CRTP
-    Impl &impl() noexcept { return *static_cast<Impl *>(this); }
 };
 
 }// namespace kf::drivers::display

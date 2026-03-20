@@ -8,6 +8,8 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/mixin/NonCopyable.hpp"
+
 #include "kf/ui/internal/ValuePlacement.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -21,7 +23,7 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
     using Glyph = u8;///< Text interface measurement unit in glyphs
 
     /// @brief Text renderer configuration
-    struct Config {
+    struct Config final : mixin::NonCopyable {
         Function<void(memory::StringView)> on_render_finish{nullptr};///< Callback invoked when rendering completes
 
         Glyph row_max_length{16}; ///< Maximum characters per row
@@ -29,11 +31,38 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>> {
         Glyph float_places{2};    ///< Decimal places for float
         Glyph double_places{4};   ///< Decimal places for double
         bool title_centered{true};///< Render Title centered
-
-        Config(const Config &) = delete;
     };
 
     constexpr explicit PlainTextRender(const Config &config) noexcept : _config{config} {}
+
+    /// @brief Helper to write character with cursor tracking
+    void writeChar(char ch) noexcept {
+        if (_buffer.full() or _cursor.row >= _config.rows_total) { return; }
+
+        if (ch == '\n') {
+            _cursor.newline();
+            (void) _buffer.push(ch);
+            return;
+        }
+
+        if (not _cursor.canWrite(_config.row_max_length)) { return; }
+
+        _cursor.advance(1, _config.row_max_length);
+        (void) _buffer.push(ch);
+    }
+
+    /// @brief Write string with cursor tracking
+    void writeString(memory::StringView str) noexcept {
+        for (char ch: str) {
+            writeChar(ch);
+        }
+    }
+
+    void writeReal(f64 real, u8 rounding) noexcept {
+        memory::ArrayString<24> temp;// Enough for double with precision
+        (void) temp.append(real, rounding);
+        writeString(temp.view());
+    }
 
 private:
     memory::ArrayString<N> _buffer{};///< Output buffer for rendered text
@@ -69,40 +98,7 @@ private:
         }
     } _cursor{};
 
-public:
-    /// @brief Helper to write character with cursor tracking
-    void writeChar(char ch) noexcept {
-        if (_buffer.full() or _cursor.row >= _config.rows_total) { return; }
-
-        if (ch == '\n') {
-            _cursor.newline();
-            (void) _buffer.push(ch);
-            return;
-        }
-
-        if (not _cursor.canWrite(_config.row_max_length)) { return; }
-
-        _cursor.advance(1, _config.row_max_length);
-        (void) _buffer.push(ch);
-    }
-
-    /// @brief Write string with cursor tracking
-    void writeString(memory::StringView str) noexcept {
-        for (char ch: str) {
-            writeChar(ch);
-        }
-    }
-
-    void writeReal(f64 real, u8 rounding) noexcept {
-        memory::ArrayString<24> temp;// Enough for double with precision
-        (void) temp.append(real, rounding);
-        writeString(temp.view());
-    }
-
-private:
-    // Render Interface Implementation
-
-    friend struct Render<PlainTextRender<N>>;
+    KF_IMPL(Render<PlainTextRender<N>>);
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
         // Subtract 1 for title row

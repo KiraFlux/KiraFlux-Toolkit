@@ -130,11 +130,9 @@ private:
     KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept { _pin.init(); }
 
-    friend struct Sensor<This, f32, void>;
-    /// @brief Read normalized axis position
-    /// @return Filtered value normalized to [-1.0, 1.0] range
-    /// @note Applies dead zone, filtering, and optional inversion
+    KF_IMPL(Sensor<This, f32, void>);
     [[nodiscard]] f32 readImpl() noexcept {
+        // Applies dead zone, filtering, and optional inversion
         auto result = pureRead();
 
         if (_config.inverted) {

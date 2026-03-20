@@ -81,7 +81,7 @@ private:
         return true;
     }
 
-    friend struct Actuator<This, bool>;
+    KF_IMPL(Actuator<This, bool>);
 };
 
 }// namespace kf::drivers::actuators
