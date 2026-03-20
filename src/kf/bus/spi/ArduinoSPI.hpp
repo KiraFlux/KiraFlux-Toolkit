@@ -12,12 +12,80 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/io/Readable.hpp"
 #include "kf/memory/io/Writable.hpp"
+#include "kf/mixin/Configurable.hpp"
 
 #include "kf/bus/spi/SPI.hpp"
 
 namespace kf::bus::spi {
 
-namespace arduino::internal {
+namespace internal::arduino {
+
+struct NodeConfig {
+
+    /// @brief Bit order for SPI transfers.
+    enum class BitOrder : u8 {
+        LeastSignificant = SPI_LSBFIRST,
+
+        /// @note default for most SPI devices
+        MostSignificant = SPI_MSBFIRST,
+    };
+
+    /// @brief SPI mode bits (CPOL and CPHA).
+    /// @note Standard SPI modes:
+    ///       Mode 0: PolarityBit = 0, PhaseBit = 0
+    ///       Mode 1: PolarityBit = 0, PhaseBit = 1
+    ///       Mode 2: PolarityBit = 1, PhaseBit = 0
+    ///       Mode 3: PolarityBit = 1, PhaseBit = 1
+    enum ClockBits : u8 {
+        None = 0,
+
+        /// Clock phase (CPHA)
+        /// 0 = sample on leading (first) clock edge
+        /// 1 = sample on trailing (second) edge
+        PhaseBit = 0b01,
+
+        /// Clock polarity (CPOL)
+        /// 0 = clock idle low
+        /// 1 = clock idle high
+        PolarityBit = 0b10,
+    };
+
+    u32 clock_hz;// desired SPI clock frequency
+    u8 pin_cs;   // software CS pin
+    BitOrder bit_order;
+    ClockBits clock_bits;
+
+    constexpr explicit NodeConfig(
+        gpio_num_t chip_select_pin,
+        u32 clock_hz,
+        BitOrder bit_order = BitOrder::MostSignificant,
+        ClockBits clock_bits = ClockBits::None) noexcept :
+        clock_hz{clock_hz}, pin_cs{static_cast<u8>(chip_select_pin)}, bit_order{bit_order}, clock_bits{clock_bits} {}
+
+    SPISettings toArduinoSPISettings() const noexcept {
+        return SPISettings{clock_hz, static_cast<u8>(bit_order), static_cast<u8>(clock_bits)};
+    }
+};
+
+struct BusConfig {
+    using PinIndex = i8;
+
+    static constexpr PinIndex default_pin = static_cast<PinIndex>(GPIO_NUM_NC);
+
+    PinIndex pin_mosi, pin_miso, pin_sck;
+
+    constexpr explicit BusConfig(
+        gpio_num_t mosi = GPIO_NUM_NC,
+        gpio_num_t miso = GPIO_NUM_NC,
+        gpio_num_t sck = GPIO_NUM_NC) noexcept :
+        pin_mosi{static_cast<PinIndex>(mosi)},
+        pin_miso{static_cast<PinIndex>(miso)},
+        pin_sck{static_cast<PinIndex>(sck)} {}
+
+    constexpr bool hasDefaultPins() const noexcept {
+        return pin_mosi == default_pin and pin_miso == default_pin and pin_sck == default_pin;
+    }
+};
 
 /// Dummy. Arduino SPI cannot provide information about errors
 enum class Error : u8 {};
@@ -27,74 +95,29 @@ enum class Error : u8 {};
 /// @note This class is movable but not copyable. It manages a dedicated chip select pin and SPI settings.
 ///       Each transaction begins with CS active and applies the stored SPI configuration.
 ///       The node is created via ArduinoSPI::createNode() and must outlive the bus.
-template<typename I> struct ArduinoSpiNode : SpiNode<ArduinoSpiNode<I>, Error> {
+template<typename I> struct ArduinoSpiNode : SpiNode<ArduinoSpiNode<I>, Error>, mixin::Configurable<NodeConfig> {
     using BusImpl = I;
 
     /// @brief Bit order for SPI transfers.
-    struct Config {
+    using Config = NodeConfig;
 
-        /// @brief Bit order for SPI transfers.
-        enum class BitOrder : u8 {
-            LeastSignificant = SPI_LSBFIRST,
-
-            /// @note default for most SPI devices
-            MostSignificant = SPI_MSBFIRST,
-        };
-
-        /// @brief SPI mode bits (CPOL and CPHA).
-        /// @note Standard SPI modes:
-        ///       Mode 0: PolarityBit = 0, PhaseBit = 0
-        ///       Mode 1: PolarityBit = 0, PhaseBit = 1
-        ///       Mode 2: PolarityBit = 1, PhaseBit = 0
-        ///       Mode 3: PolarityBit = 1, PhaseBit = 1
-        enum ClockBits : u8 {
-            None = 0,
-
-            /// Clock phase (CPHA)
-            /// 0 = sample on leading (first) clock edge
-            /// 1 = sample on trailing (second) edge
-            PhaseBit = 0b01,
-
-            /// Clock polarity (CPOL)
-            /// 0 = clock idle low
-            /// 1 = clock idle high
-            PolarityBit = 0b10,
-        };
-
-        u32 clock_hz;// desired SPI clock frequency
-        u8 pin_cs;   // software CS pin
-        BitOrder bit_order;
-        ClockBits clock_bits;
-
-        constexpr explicit Config(
-            gpio_num_t chip_select_pin,
-            u32 clock_hz,
-            BitOrder bit_order = BitOrder::MostSignificant,
-            ClockBits clock_bits = ClockBits::None) noexcept :
-            clock_hz{clock_hz}, pin_cs{static_cast<u8>(chip_select_pin)}, bit_order{bit_order}, clock_bits{clock_bits} {}
-
-        constexpr SPISettings toArduinoSPISettings() const noexcept {
-            return {clock_hz, static_cast<u8>(bit_order), static_cast<u8>(clock_bits)};
-        }
-    };
-
-    explicit ArduinoSpiNode(BusImpl &bus, const Config &config) noexcept : _spi{bus._spi}, _config{config} {}
+    explicit ArduinoSpiNode(BusImpl &bus, const Config &config) noexcept :
+        _spi{bus._spi}, mixin::Configurable<Config>{config} {}
 
 private:
     SPIClass &_spi;
-    const Config &_config;
 
     /// @brief Control the chip select line (active low).
     /// @param selected true to pull CS low (select device), false to release.
     void chipSelected(bool selected) noexcept {
-        digitalWrite(_config.pin_cs, selected ? LOW : HIGH);
+        digitalWrite(this->config().pin_cs, selected ? LOW : HIGH);
     }
 
     /// @brief Begin an SPI transaction: pull CS low and apply the stored SPI settings.
     /// @note Must be called before any data transfer.
     void beginTransaction() noexcept {
         chipSelected(true);
-        _spi.beginTransaction(_config.toArduinoSPISettings());
+        _spi.beginTransaction(this->config().toArduinoSPISettings());
     }
 
     /// @brief End an SPI transaction: pull CS high.
@@ -104,19 +127,17 @@ private:
     }
 
     // impl
-
     using This = ArduinoSpiNode<I>;
 
     KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept {
-        pinMode(_config.pin_cs, OUTPUT);
-        digitalWrite(_config.pin_cs, HIGH);
+        pinMode(this->config().pin_cs, OUTPUT);
+        digitalWrite(this->config().pin_cs, HIGH);
     }
 
     KF_IMPL_READABLE(This, Error);
-
-    /// @brief Read `length` bytes from the device while sending zeros (full‑duplex).
     void readBytes(u8 *buffer, usize length) noexcept {
+        // Read length bytes from the device while sending zeros (full‑duplex)
         _spi.transferBytes(nullptr, buffer, length);
     }
 
@@ -209,38 +230,18 @@ private:
     }
 };
 
-}// namespace arduino::internal
+}// namespace internal::arduino
 
-struct ArduinoSPI : public spi::SPI<ArduinoSPI, arduino::internal::ArduinoSpiNode<ArduinoSPI>, arduino::internal::Error> {
-    using Error = arduino::internal::Error;
-    using Node = arduino::internal::ArduinoSpiNode<ArduinoSPI>;
-
+struct ArduinoSPI : spi::SPI<ArduinoSPI, internal::arduino::ArduinoSpiNode<ArduinoSPI>, internal::arduino::Error>,
+                    mixin::Configurable<internal::arduino::BusConfig> {
+    using Config = internal::arduino::BusConfig;
+    using Error = internal::arduino::Error;
+    using Node = internal::arduino::ArduinoSpiNode<ArduinoSPI>;
     friend Node;
 
-    struct Config {
-        using PinIndex = i8;
-
-        static constexpr PinIndex default_pin = static_cast<PinIndex>(GPIO_NUM_NC);
-
-        PinIndex pin_mosi, pin_miso, pin_sck;
-
-        constexpr explicit Config(
-            gpio_num_t mosi = GPIO_NUM_NC,
-            gpio_num_t miso = GPIO_NUM_NC,
-            gpio_num_t sck = GPIO_NUM_NC) noexcept :
-            pin_mosi{static_cast<PinIndex>(mosi)},
-            pin_miso{static_cast<PinIndex>(miso)},
-            pin_sck{static_cast<PinIndex>(sck)} {}
-
-        constexpr bool hasDefaultPins() const noexcept {
-            return pin_mosi == default_pin and pin_miso == default_pin and pin_sck == default_pin;
-        }
-    };
-
-    explicit ArduinoSPI(const Config &config, SPIClass &spi) : _config{config}, _spi{spi} {}
+    explicit ArduinoSPI(const Config &config, SPIClass &spi) : mixin::Configurable<Config>{config}, _spi{spi} {}
 
 private:
-    const Config &_config;
     SPIClass &_spi;
 
     // impl
@@ -249,10 +250,10 @@ private:
     using InitResult = Result<void, Error>;
     KF_IMPL_INITABLE(This, InitResult);
     InitResult initImpl() noexcept {
-        if (_config.hasDefaultPins()) {
+        if (this->config().hasDefaultPins()) {
             _spi.begin();
         } else {
-            _spi.begin(_config.pin_sck, _config.pin_miso, _config.pin_mosi);
+            _spi.begin(this->config().pin_sck, this->config().pin_miso, this->config().pin_mosi);
         }
         return {};
     }
