@@ -13,14 +13,14 @@
 #include "kf/memory/io/Readable.hpp"
 #include "kf/memory/io/Writable.hpp"
 #include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 #include "kf/bus/spi/SPI.hpp"
 
 namespace kf::bus::spi {
-
 namespace internal::arduino {
 
-struct NodeConfig {
+struct NodeConfig final : mixin::NonCopyable {
 
     /// @brief Bit order for SPI transfers.
     enum class BitOrder : u8 {
@@ -67,7 +67,7 @@ struct NodeConfig {
     }
 };
 
-struct BusConfig {
+struct BusConfig final : mixin::NonCopyable {
     using PinIndex = i8;
 
     static constexpr PinIndex default_pin = static_cast<PinIndex>(GPIO_NUM_NC);
@@ -102,7 +102,7 @@ template<typename I> struct ArduinoSpiNode : SpiNode<ArduinoSpiNode<I>, Error>, 
     using Config = NodeConfig;
 
     explicit ArduinoSpiNode(BusImpl &bus, const Config &config) noexcept :
-        _spi{bus._spi}, mixin::Configurable<Config>{config} {}
+        mixin::Configurable<Config>{config}, _spi{bus._spi} {}
 
 private:
     SPIClass &_spi;
