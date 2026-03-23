@@ -3,6 +3,8 @@
 
 #pragma once
 
+namespace kf::ui::internal {
+
 template<typename T> struct value_limit_min;
 
 template<> struct value_limit_min<int> {
@@ -16,7 +18,6 @@ template<> struct value_limit_min<float> {
 template<> struct value_limit_min<double> {
     static constexpr double value{0.0};
 };
-
 
 template<typename T> struct value_limit_max;
 
@@ -36,3 +37,5 @@ template<typename T> struct ValueLimits {
     static constexpr T value_min{value_limit_min<T>::value};
     static constexpr T value_max{value_limit_max<T>::value};
 };
+
+}// namespace kf::ui::internal
