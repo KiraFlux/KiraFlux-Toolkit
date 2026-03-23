@@ -5,6 +5,7 @@
 
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Handlerable.hpp"
+#include "kf/mixin/Labeled.hpp"
 
 #include "kf/ui/widgets/Widget.hpp"
 
@@ -13,9 +14,9 @@ namespace kf::ui::widgets {
 struct ButtonTag {};
 
 /// @brief Button widget for triggering actions on click
-template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Handlerable<void> {
+template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Handlerable<void>, mixin::Labeled {
     explicit Button(typename U::PageImpl &root, memory::StringView label) :
-        Widget<U>{root}, _label{label} {}
+        Widget<U>{root}, mixin::Labeled{label} {}
 
     /// @brief Handle button click event
     [[nodiscard]] bool onClick() noexcept override {
@@ -26,12 +27,9 @@ template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Handlera
     /// @brief Render button with block styling
     void doRender(typename U::RenderImpl &render) const noexcept override {
         render.beginBlock();
-        render.value(_label);
+        render.value(this->label());
         render.endBlock();
     }
-
-private:
-    memory::StringView _label;///< Button label text
 };
 
 }// namespace kf::ui::widgets

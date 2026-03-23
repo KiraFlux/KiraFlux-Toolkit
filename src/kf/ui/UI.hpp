@@ -9,6 +9,7 @@
 #include "kf/memory/ArrayList.hpp"
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
@@ -119,7 +120,7 @@ private:
 
         void doRender(RenderImpl &render) const noexcept override {
             render.arrow();
-            render.value(_target.title());
+            render.value(_target.label());
         }
 
     private:
@@ -127,10 +128,10 @@ private:
     };
 
 public:
-    /// @brief UI page containing widgets and title
-    struct Page : mixin::NonCopyable {
-        explicit Page(memory::StringView title) :
-            _title{title} {}
+    /// @brief UI page containing widgets and label
+    struct Page : mixin::NonCopyable, mixin::Labeled {
+
+        using mixin::Labeled::Labeled;
 
         /// @brief Page behavior on entry
         virtual void onEntry() noexcept {}
@@ -157,7 +158,7 @@ public:
         /// @brief Render page content to display
         /// @note Handles cursor positioning and widget focus
         void render(RenderImpl &render) noexcept {
-            render.title(_title);
+            render.title(this->label());
 
             const usize available = render.widgetsAvailable();
             const usize start = (widgetsTotal() > available) ? kf::min(static_cast<usize>(_cursor), widgetsTotal() - available) : 0;
@@ -197,13 +198,9 @@ public:
         /// @brief Get total widget count on page
         [[nodiscard]] usize widgetsTotal() const noexcept { return _widgets.size(); }
 
-        /// @brief Get page title
-        [[nodiscard]] memory::StringView title() const noexcept { return _title; }
-
     private:
         memory::ArrayList<Widget *> _widgets{};///< List of widgets on this page
         PageSetter _to_this{*this};            ///< Navigation widget to this page
-        memory::StringView _title;             ///< Page title displayed in header
         isize _cursor{0};                      ///< Current widget cursor position (focused widget index)
 
         /// @brief Move cursor within page bounds

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "kf/mixin/Labeled.hpp"
+
 #include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::ui::widgets {
@@ -11,15 +13,15 @@ struct LabeledTag {};
 
 /// @brief Widget wrapper adding label to another widget
 /// @tparam W Type of widget being labeled (must inherit from Widget)
-template<typename U, typename W> struct Labeled final : LabeledTag, Widget<U> {
+template<typename U, typename W> struct Labeled final : LabeledTag, Widget<U>, mixin::Labeled {
     KF_CHECK_IMPL(W, ::kf::ui::widgets::WidgetTag);
 
     using Wrapped = W;///< Type of wrapped widget implementation
 
-    Wrapped wrapped;///< Wrapped widget instance
+    Wrapped wrapped;///< Wrapped widget instance // todo make as property
 
-    explicit Labeled(typename U::PageImpl &root, memory::StringView label, W impl) :
-        Widget<U>{root}, _label{label}, wrapped{std::move(impl)} {}
+    explicit Labeled(typename U::PageImpl &root, memory::StringView label, Wrapped &&impl) : // todo rename impl -> wrapped
+        Widget<U>{root}, mixin::Labeled{label}, wrapped{std::move(impl)} {}
 
     /// @brief Forward click event to wrapped widget
     /// @return Result from wrapped widget's onClick()
@@ -31,13 +33,10 @@ template<typename U, typename W> struct Labeled final : LabeledTag, Widget<U> {
 
     /// @brief Render label followed by wrapped widget
     void doRender(typename U::RenderImpl &render) const noexcept override {
-        render.value(_label);
+        render.value(this->label());
         render.colon();
         wrapped.doRender(render);
     }
-
-private:
-    memory::StringView _label;///< Label text
 };
 
 }// namespace kf::ui::widgets
