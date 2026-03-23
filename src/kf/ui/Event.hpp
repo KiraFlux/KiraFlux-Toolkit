@@ -9,60 +9,57 @@
 
 namespace kf::ui {
 
-/// @brief Incoming UI event with type and value packed into single byte
+/// @brief Incoming UI event with kind and value packed into single byte
 /// @tparam V Number of bits for event value
-template<u8 V> struct Event {
-    static constexpr u8 type_bits = 2;
-    static constexpr u8 value_bits = V;
-    static constexpr u8 total_bits = type_bits + value_bits;
+template<usize V> struct Event {
+    static constexpr auto type_bits{2u};
+    static constexpr auto value_bits{V};
+    static constexpr auto total_bits{static_cast<usize>(type_bits + value_bits)};
 
     using Value = typename meta::BitTraits<value_bits>::min_signed;
     using Storage = typename meta::BitTraits<total_bits>::min_unsigned;
     using UnsignedValue = typename meta::BitTraits<value_bits>::min_unsigned;
 
-    static constexpr u8 storage_bits = sizeof(Storage) * 8;
+    static constexpr auto storage_bits{static_cast<usize>(sizeof(Storage) * 8)};
 
-    static constexpr Value value_max = static_cast<Value>((UnsignedValue(1) << (value_bits - 1)) - 1);
-    static constexpr Value value_min = -value_max - 1;// безопасное вычисление
+    static constexpr auto value_max{static_cast<Value>((UnsignedValue{1u} << (value_bits - 1)) - 1)};
+    static constexpr auto value_min{static_cast<Value>(-value_max - 1)};
 
 private:
-    static constexpr Storage event_value_full = ~Storage(0);
-    static constexpr Storage value_mask = (Storage(1) << value_bits) - 1;
-    static constexpr Storage type_mask = event_value_full & ~value_mask;
-    static constexpr Storage sign_bit_mask = Storage(1) << (value_bits - 1);
+    static constexpr auto event_value_full{static_cast<Storage>(~Storage{0})};
+    static constexpr auto value_mask{static_cast<Storage>((Storage{1} << value_bits) - 1)};
+    static constexpr auto type_mask{static_cast<Storage>(event_value_full & ~value_mask)};
+    static constexpr auto sign_bit_mask{static_cast<Storage>(Storage{1} << (value_bits - 1))};
 
     Storage _storage;
 
 public:
-    enum class Type : Storage {
-        Update = Storage(0) << value_bits,
-        PageCursorMove = Storage(1) << value_bits,
-        WidgetClick = Storage(2) << value_bits,
-        WidgetValueChange = Storage(3) << value_bits,
+    enum class Kind : Storage {
+        Update = static_cast<Storage>(Storage{0} << value_bits),
+        PageCursorMove = static_cast<Storage>(Storage{1} << value_bits),
+        WidgetClick = static_cast<Storage>(Storage{2} << value_bits),
+        WidgetValueChange = static_cast<Storage>(Storage{3} << value_bits),
     };
 
-    constexpr explicit Event(Type type, Value value = 0) noexcept
-        : _storage{
-              static_cast<Storage>(
-                  (static_cast<Storage>(type) & type_mask) |
-                  (static_cast<Storage>(clamp(value, value_min, value_max)) & value_mask))} {}
+    constexpr explicit Event(Kind kind, Value value = 0) noexcept
+        : _storage{static_cast<Storage>((static_cast<Storage>(kind) & type_mask) | static_cast<Storage>((clamp(value, value_min, value_max)) & value_mask))} {}
 
-    [[nodiscard]] constexpr Type type() const noexcept {
-        return static_cast<Type>(_storage & type_mask);
+    [[nodiscard]] constexpr Kind kind() const noexcept {
+        return static_cast<Kind>(_storage & type_mask);
     }
 
     [[nodiscard]] Value value() const noexcept {
-        auto raw = static_cast<Value>(_storage & value_mask);
+        const auto raw = static_cast<Value>(_storage & value_mask);
         return (raw & sign_bit_mask) ? static_cast<Value>(raw | ~value_mask) : raw;
     }
 
-    [[nodiscard]] static constexpr Event update() noexcept { return Event{Type::Update}; }
+    [[nodiscard]] static constexpr Event update() noexcept { return Event{Kind::Update}; }
     [[nodiscard]] static constexpr Event pageCursorMove(Value offset) noexcept {
-        return Event{Type::PageCursorMove, offset};
+        return Event{Kind::PageCursorMove, offset};
     }
-    [[nodiscard]] static constexpr Event widgetClick() noexcept { return Event{Type::WidgetClick}; }
+    [[nodiscard]] static constexpr Event widgetClick() noexcept { return Event{Kind::WidgetClick}; }
     [[nodiscard]] static constexpr Event widgetValue(Value value) noexcept {
-        return Event{Type::WidgetValueChange, value};
+        return Event{Kind::WidgetValueChange, value};
     }
 };
 

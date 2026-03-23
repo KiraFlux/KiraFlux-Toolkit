@@ -173,19 +173,19 @@ public:
         /// @brief Process incoming UI event
         /// @return true if redraw required after event processing
         [[nodiscard]] bool onEvent(Event event) noexcept {
-            switch (event.type()) {
-                case Event::Type::Update: {
+            switch (event.kind()) {
+                case Event::Kind::Update: {
                     return true;
                 }
-                case Event::Type::PageCursorMove: {
+                case Event::Kind::PageCursorMove: {
                     return moveCursor(event.value());
                 }
-                case Event::Type::WidgetClick: {
+                case Event::Kind::WidgetClick: {
                     if (widgetsTotal() > 0) {
                         return _widgets[_cursor]->onClick();
                     }
                 }
-                case Event::Type::WidgetValueChange: {
+                case Event::Kind::WidgetValueChange: {
                     if (widgetsTotal() > 0) {
                         return _widgets[_cursor]->onEventValue(event.value());
                     }
