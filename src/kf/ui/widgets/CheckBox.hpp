@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/mixin/Handlerable.hpp"
+#include "kf/mixin/Callbacked.hpp"
 
 #include "kf/ui/widgets/Widget.hpp"
 
@@ -12,7 +12,7 @@ namespace kf::ui::widgets {
 struct CheckBoxTag {};
 
 /// @brief Checkbox widget for boolean input
-template<typename U> struct CheckBox final : CheckBoxTag, Widget<U>, mixin::Handlerable<bool> {
+template<typename U> struct CheckBox final : CheckBoxTag, Widget<U>, mixin::Callbacked<bool> {
     explicit CheckBox(bool default_state = false) noexcept :
         _state{default_state} {}
 
@@ -22,7 +22,7 @@ template<typename U> struct CheckBox final : CheckBoxTag, Widget<U>, mixin::Hand
     void state(bool new_state) noexcept {
         if (new_state != _state) {
             _state = new_state;
-            mixin::Handlerable<bool>::invoke(_state);
+            mixin::Callbacked<bool>::invoke(_state);
         }
     }
 

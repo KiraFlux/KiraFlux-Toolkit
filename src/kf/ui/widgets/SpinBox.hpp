@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/mixin/Handlerable.hpp"
+#include "kf/mixin/Callbacked.hpp"
 
 #include "kf/ui/internal/StepAdjuster.hpp"
 #include "kf/ui/internal/StepMode.hpp"
@@ -16,7 +16,7 @@ struct SpinBoxTag {};
 
 /// @brief Spin box for adjusting numeric values with different modes
 /// @tparam T Numeric type for spin box value (must be arithmetic)
-template<typename U, typename T, internal::StepMode M> struct SpinBox final : SpinBoxTag, Widget<U>, mixin::Handlerable<T> {
+template<typename U, typename T, internal::StepMode M> struct SpinBox final : SpinBoxTag, Widget<U>, mixin::Callbacked<T> {
     using Value = T;                   ///< Numeric value type
     static constexpr auto step_mode{M};///< Specialization step mode
 
@@ -37,7 +37,7 @@ template<typename U, typename T, internal::StepMode M> struct SpinBox final : Sp
     void value(Value value) noexcept {
         if (_value != value) {
             _value = value;
-            mixin::Handlerable<Value>::invoke(_value);
+            mixin::Callbacked<Value>::invoke(_value);
         }
     }
 
@@ -57,7 +57,7 @@ template<typename U, typename T, internal::StepMode M> struct SpinBox final : Sp
             StepAdjuster::adjust(_step, event_value);
         } else {
             ValueAdjuster::adjust(_value, _step, event_value);
-            mixin::Handlerable<Value>::invoke(_value);
+            mixin::Callbacked<Value>::invoke(_value);
         }
         return true;// redraw required after adjustment
     }

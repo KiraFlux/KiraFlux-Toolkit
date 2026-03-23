@@ -7,9 +7,11 @@
 
 namespace kf::mixin {
 
-struct HandlerableTag {};
+struct CallbackedTag {};
 
-template<typename T> struct Handlerable : HandlerableTag {
+/// @brief Adds Callback
+/// @tparam T
+template<typename T> struct Callbacked : CallbackedTag {
     using HandlerType = Function<void(T)>;
 
     void handler(HandlerType &&new_handler) noexcept {
@@ -27,7 +29,7 @@ private:
     HandlerType _handler{nullptr};
 };
 
-template<> struct Handlerable<void> : HandlerableTag {
+template<> struct Callbacked<void> : CallbackedTag {
     using HandlerType = Function<void()>;
 
     void handler(HandlerType &&new_handler) noexcept {

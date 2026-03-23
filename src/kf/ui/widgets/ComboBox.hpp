@@ -5,7 +5,7 @@
 #pragma once
 
 #include "kf/memory/Array.hpp"
-#include "kf/mixin/Handlerable.hpp"
+#include "kf/mixin/Callbacked.hpp"
 
 #include "kf/ui/internal/ComboBoxItem.hpp"
 #include "kf/ui/widgets/Widget.hpp"
@@ -17,7 +17,7 @@ struct ComboBoxTag {};
 /// @brief Combo box for selecting from predefined options
 /// @tparam T Value type for options
 /// @tparam N Number of options (must be >= 1)
-template<typename U, typename T, usize N> struct ComboBox final : ComboBoxTag, Widget<U>, mixin::Handlerable<T> {
+template<typename U, typename T, usize N> struct ComboBox final : ComboBoxTag, Widget<U>, mixin::Callbacked<T> {
     static_assert(N >= 1, "N >= 1");
 
     using Value = T;                             ///< ComboBox value type
@@ -34,7 +34,7 @@ template<typename U, typename T, usize N> struct ComboBox final : ComboBoxTag, W
     /// @param value Navigation direction (positive/negative)
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
         moveCursor(event_value);
-        mixin::Handlerable<Value>::invoke(_items[_cursor].value());
+        mixin::Callbacked<Value>::invoke(_items[_cursor].value());
         return true;// redraw required after selection change
     }
 

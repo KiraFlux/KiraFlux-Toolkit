@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/mixin/Handlerable.hpp"
+#include "kf/mixin/Callbacked.hpp"
 
 #include "kf/ui/internal/StepAdjuster.hpp"
 #include "kf/ui/internal/ValueAdjuster.hpp"
@@ -15,7 +15,7 @@ namespace kf::ui::widgets {
 
 struct SliderTag {};
 
-template<typename U, typename T> struct Slider final : SliderTag, Widget<U>, mixin::Handlerable<T> {
+template<typename U, typename T> struct Slider final : SliderTag, Widget<U>, mixin::Callbacked<T> {
     using Value = T;
     using StepAdjuster = internal::StepAdjuster<Value>;
     using ValueAdjuster = internal::ValueAdjuster<Value, internal::StepMode::Arithmetic>;
@@ -36,7 +36,7 @@ template<typename U, typename T> struct Slider final : SliderTag, Widget<U>, mix
         new_value = kf::clamp(new_value, min_value, max_value);
         if (_value != new_value) {
             _value = new_value;
-            mixin::Handlerable<Value>::invoke(_value);
+            mixin::Callbacked<Value>::invoke(_value);
         }
     }
 
@@ -53,7 +53,7 @@ template<typename U, typename T> struct Slider final : SliderTag, Widget<U>, mix
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
         ValueAdjuster::adjust(_value, _step, event_value);
         _value = kf::clamp(_value, min_value, max_value);
-        mixin::Handlerable<Value>::invoke(_value);
+        mixin::Callbacked<Value>::invoke(_value);
         return true;// redraw required after adjustment
     }
 

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/memory/StringView.hpp"
-#include "kf/mixin/Handlerable.hpp"
+#include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Labeled.hpp"
 
 #include "kf/ui/widgets/Widget.hpp"
@@ -14,13 +14,13 @@ namespace kf::ui::widgets {
 struct ButtonTag {};
 
 /// @brief Button widget for triggering actions on click
-template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Handlerable<void>, mixin::Labeled {
+template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Callbacked<void>, mixin::Labeled {
     explicit Button(typename U::PageImpl &root, memory::StringView label) :
         Widget<U>{root}, mixin::Labeled{label} {}
 
     /// @brief Handle button click event
     [[nodiscard]] bool onClick() noexcept override {
-        mixin::Handlerable<void>::invoke();
+        mixin::Callbacked<void>::invoke();
         return false;// button click typically doesn't require redraw
     }
 
