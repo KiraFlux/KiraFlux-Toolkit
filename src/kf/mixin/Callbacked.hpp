@@ -12,39 +12,39 @@ struct CallbackedTag {};
 /// @brief Adds Callback
 /// @tparam T
 template<typename T> struct Callbacked : CallbackedTag {
-    using HandlerType = Function<void(T)>;
+    using CallbackType = Function<void(T)>;
 
-    void handler(HandlerType &&new_handler) noexcept {
-        _handler = std::move(new_handler);
+    void callback(CallbackType &&function) noexcept {
+        _callback_function = std::move(function);
     }
 
 protected:
     void invoke(T value) noexcept {
-        if (_handler) {
-            _handler(value);
+        if (_callback_function) {
+            _callback_function(value);
         }
     }
 
 private:
-    HandlerType _handler{nullptr};
+    CallbackType _callback_function{nullptr};
 };
 
 template<> struct Callbacked<void> : CallbackedTag {
-    using HandlerType = Function<void()>;
+    using CallbackType = Function<void()>;
 
-    void handler(HandlerType &&new_handler) noexcept {
-        _handler = std::move(new_handler);
+    void callback(CallbackType &&function) noexcept {
+        _callback_function = std::move(function);
     }
 
 protected:
     void invoke() noexcept {
-        if (_handler) {
-            _handler();
+        if (_callback_function) {
+            _callback_function();
         }
     }
 
 private:
-    HandlerType _handler{nullptr};
+    CallbackType _callback_function{nullptr};
 };
 
 }// namespace kf::mixin

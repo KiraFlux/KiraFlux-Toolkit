@@ -38,13 +38,13 @@ struct MainPage : MyUI::Page {
     };
 
     explicit MainPage() : Page{"Main"} {
-        click_button.handler([this]() {
+        click_button.callback([this]() {
             Serial.println("Test button clicked!");
             my_value += 1;
             value_display.value(my_value);
         });
 
-        check_box.handler([this](bool state) {
+        check_box.callback([this](bool state) {
             Serial.print("Checkbox changed to: ");
             Serial.println(state ? "ON" : "OFF");
             my_value *= -1;
@@ -97,17 +97,17 @@ struct SettingsPage : MyUI::Page {
     };
 
     explicit SettingsPage() : Page{"Settings"} {
-        labeled_ints_combo_box.wrapped.handler([](int value) {
+        labeled_ints_combo_box.wrapped.callback([](int value) {
             Serial.print("Int Combo selected: ");
             Serial.println(value);
         });
 
-        strings_combo_box.handler([](kf::memory::StringView value) {
+        strings_combo_box.callback([](kf::memory::StringView value) {
             Serial.print("String Combo selected: ");
             Serial.println(value.data());
         });
 
-        spin_box.handler([](int value) {
+        spin_box.callback([](int value) {
             Serial.print("SpinBox value: ");
             Serial.println(value);
         });
