@@ -41,9 +41,7 @@ template<typename U, typename T> struct Slider final : SliderTag, Widget<U>, mix
     /// @brief Adjust value
     /// @param event_value adjust change scale
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
-        T v{this->value()};
-        ValueAdjuster::adjust(v, _step, event_value);
-        this->value(kf::clamp(v, min_value, max_value));
+        this->value(kf::clamp(ValueAdjuster::adjust(this->value(), _step, event_value), min_value, max_value));
         return true;// redraw required after adjustment
     }
 

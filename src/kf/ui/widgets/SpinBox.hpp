@@ -47,9 +47,7 @@ template<typename U, typename T, internal::StepMode M> struct SpinBox final : Sp
         if (_is_step_setting_mode) {
             StepAdjuster::adjust(_step, event_value);
         } else {
-            auto v{this->value()};
-            ValueAdjuster::adjust(v, _step, event_value);
-            this->value(v);
+            this->value(ValueAdjuster::adjust(this->value(), _step, event_value));
         }
         return true;// redraw required after adjustment
     }
