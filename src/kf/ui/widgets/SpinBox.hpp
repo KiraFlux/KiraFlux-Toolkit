@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/mixin/Callbacked.hpp"
+#include "kf/mixin/ValueCallbacked.hpp"
 
 #include "kf/ui/internal/StepAdjuster.hpp"
 #include "kf/ui/internal/StepMode.hpp"
@@ -16,7 +16,7 @@ struct SpinBoxTag {};
 
 /// @brief Spin box for adjusting numeric values with different modes
 /// @tparam T Numeric type for spin box value (must be arithmetic)
-template<typename U, typename T, internal::StepMode M> struct SpinBox final : SpinBoxTag, Widget<U>, mixin::Callbacked<T> {
+template<typename U, typename T, internal::StepMode M> struct SpinBox final : SpinBoxTag, Widget<U>, mixin::ValueCallbacked<T> {
     using Value = T;                   ///< Numeric value type
     static constexpr auto step_mode{M};///< Specialization step mode
 
@@ -26,22 +26,13 @@ template<typename U, typename T, internal::StepMode M> struct SpinBox final : Sp
     explicit SpinBox(
         Value default_value = Value{},
         Value step = StepAdjuster::default_step) noexcept :
-        _value{default_value}, _step{step} {}
+        mixin::ValueCallbacked<T>{default_value}, _step{step} {}
 
     explicit SpinBox(
         typename U::PageImpl &root,
         Value default_value = Value{},
         Value step = StepAdjuster::default_step) :
-        Widget<U>{root}, _value{default_value}, _step{step} {}
-
-    void value(Value value) noexcept {
-        if (_value != value) {
-            _value = value;
-            mixin::Callbacked<Value>::invoke(_value);
-        }
-    }
-
-    [[nodiscard]] Value value() const noexcept { return _value; }
+        Widget<U>{root}, mixin::ValueCallbacked<T>{default_value}, _step{step} {}
 
     /// @brief Toggle between value adjustment and step adjustment modes
     /// @return true (redraw required after mode change)
@@ -56,8 +47,9 @@ template<typename U, typename T, internal::StepMode M> struct SpinBox final : Sp
         if (_is_step_setting_mode) {
             StepAdjuster::adjust(_step, event_value);
         } else {
-            ValueAdjuster::adjust(_value, _step, event_value);
-            mixin::Callbacked<Value>::invoke(_value);
+            auto v{this->value()};
+            ValueAdjuster::adjust(v, _step, event_value);
+            this->value(v);
         }
         return true;// redraw required after adjustment
     }
@@ -70,16 +62,14 @@ template<typename U, typename T, internal::StepMode M> struct SpinBox final : Sp
             render.arrow();
             render.value(_step);
         } else {
-            render.value(_value);
+            render.value(this->value());
         }
 
         render.endAltBlock();
     }
 
 private:
-    Value _value;///< Reference to value being controlled
-    Value _step; ///< Current step size
-
+    Value _step;                      ///< Current step size
     bool _is_step_setting_mode{false};///< true when adjusting step size, false when adjusting value
 };
 
