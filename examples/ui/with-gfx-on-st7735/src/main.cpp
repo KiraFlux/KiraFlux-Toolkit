@@ -151,7 +151,7 @@ static ArduinoSPI::Node::Config node_config{
 
 // display config
 static MyDisplayDriver::Config display_config{
-    Orientation::ClockWise,
+    .init_orientation = Orientation::ClockWise,
 };
 
 // Driver instance references config and SPI bus.
