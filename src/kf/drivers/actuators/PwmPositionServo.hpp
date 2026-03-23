@@ -8,7 +8,6 @@
 #include "kf/algorithm.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/validation.hpp"
 
 #include "kf/drivers/actuators/Actuator.hpp"
@@ -18,7 +17,7 @@ namespace kf::drivers::actuators {
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
 template<typename I> struct PwmPositionServo final : Actuator<PwmPositionServo<I>, bool> {
-    kf_crtp_check(I, kf::gpio::PwmOutputTag);
+    KF_CHECK_IMPL(I, kf::gpio::PwmOutputTag);
     using PwmPinImpl = I;
 
     static constexpr auto logger{Logger::create("PwmPositionServo")};
@@ -91,7 +90,6 @@ private:
     PwmPinImpl _pin;
 
     // impl
-
     using This = PwmPositionServo<I>;
 
     KF_IMPL_INITABLE(This, bool);

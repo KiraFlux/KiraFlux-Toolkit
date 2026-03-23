@@ -9,7 +9,6 @@
 #include "kf/memory/ArrayList.hpp"
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
@@ -23,7 +22,7 @@ namespace kf::ui {
 /// @tparam R Renderer implementation type (must inherit from kf::ui::Render)
 /// @note Singleton pattern ensures single UI instance with event queue and page management
 template<typename R, typename E> struct UI final : kf::mixin::Singleton<UI<R, E>>, kf::mixin::TimedPollable<UI<R, E>> {
-    kf_crtp_check(R, kf::ui::render::RenderTag);
+    KF_CHECK_IMPL(R, kf::ui::render::RenderTag);
 
     using RenderImpl = R;                            ///< Renderer implementation type
     using RenderConfig = typename RenderImpl::Config;///< Renderer Configuration type

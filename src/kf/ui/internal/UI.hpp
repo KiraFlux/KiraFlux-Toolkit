@@ -12,7 +12,6 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -31,7 +30,7 @@ namespace kf::ui::internal {
 /// @tparam V Event Value Type
 /// @tparam P Page Type
 template<typename R, typename V, typename P> struct UI final {
-    kf_crtp_check(R, kf::ui::render::RenderTag);
+    KF_CHECK_IMPL(R, kf::ui::render::RenderTag);
 
     /// @brief Base widget class for all UI components
     /// @note All interactive UI elements inherit from this class
@@ -87,10 +86,6 @@ template<typename R, typename V, typename P> struct UI final {
     struct Button final : Widget {
         using ClickHandler = Function<void()>;///< Button click handler type
 
-    private:
-        memory::StringView _label;///< Button label text
-
-    public:
         ClickHandler on_click{nullptr};///< Click event handler
 
         explicit Button(P &root, memory::StringView label) :
@@ -111,14 +106,13 @@ template<typename R, typename V, typename P> struct UI final {
             render.value(_label);
             render.endBlock();
         }
+
+    private:
+        memory::StringView _label;///< Button label text
     };
 
     /// @brief Checkbox widget for boolean input
     struct CheckBox final : Widget, HasChangeHandler<bool> {
-    private:
-        bool _state;
-
-    public:
         explicit CheckBox(bool default_state = false) noexcept :
             _state{default_state} {}
 
@@ -150,6 +144,9 @@ template<typename R, typename V, typename P> struct UI final {
         void doRender(R &render) const noexcept override {
             render.checkbox(_state);
         }
+
+    private:
+        bool _state;
     };
 
     /// @brief Combo box for selecting from predefined options
@@ -162,11 +159,6 @@ template<typename R, typename V, typename P> struct UI final {
         using Item = ComboBoxItem<T>;                ///< Item type (in option)
         using ItemContainer = memory::Array<Item, N>;///< Container type for options
 
-    private:
-        const ItemContainer _items;///< Available options
-        isize _cursor{0};          ///< Current selection index
-
-    public:
         explicit ComboBox(ItemContainer items) noexcept :
             _items{items} {}
 
@@ -189,6 +181,9 @@ template<typename R, typename V, typename P> struct UI final {
         }
 
     private:
+        const ItemContainer _items;///< Available options
+        isize _cursor{0};          ///< Current selection index
+
         /// @brief Move selection cursor with circular wrapping
         void moveCursor(isize delta) noexcept {
             _cursor = (_cursor + delta + N) % N;
@@ -198,10 +193,7 @@ template<typename R, typename V, typename P> struct UI final {
     /// @brief Display widget for showing read-only values
     /// @tparam T Type of value to display
     template<typename T> struct Display final : Widget {
-    private:
-        T _value;///< Stored copy of the value
 
-    public:
         explicit Display(P &root, const T &value) : Widget{root}, _value{value} {}
         explicit Display(const T &value) noexcept : _value{value} {}
 
@@ -214,6 +206,9 @@ template<typename R, typename V, typename P> struct UI final {
         void doRender(R &render) const noexcept override {
             render.value(_value);
         }
+
+    private:
+        T _value;///< Stored copy of the value
     };
 
     /// @brief Widget wrapper adding label to another widget
@@ -223,10 +218,6 @@ template<typename R, typename V, typename P> struct UI final {
 
         using WrappedType = W;///< Type of wrapped widget implementation
 
-    private:
-        memory::StringView _label;///< Label text
-
-    public:
         W wrapped;///< Wrapped widget instance
 
         explicit Labeled(P &root, memory::StringView label, W impl) :
@@ -246,6 +237,9 @@ template<typename R, typename V, typename P> struct UI final {
             render.colon();
             wrapped.doRender(render);
         }
+
+    private:
+        memory::StringView _label;///< Label text
     };
 
     /// @brief Spin box for adjusting numeric values with different modes
@@ -254,16 +248,9 @@ template<typename R, typename V, typename P> struct UI final {
         using Value = T;                   ///< Numeric value type
         static constexpr auto step_mode{M};///< Specialization step mode
 
-    private:
         using StepAdjusterType = StepAdjuster<T>;
         using ValueAdjusterType = ValueAdjuster<T, M>;
 
-        T _value;///< Reference to value being controlled
-        T _step; ///< Current step size
-
-        bool _is_step_setting_mode{false};///< true when adjusting step size, false when adjusting value
-
-    public:
         explicit SpinBox(
             T default_value = T{},
             T step = StepAdjusterType::default_step) noexcept :
@@ -314,20 +301,16 @@ template<typename R, typename V, typename P> struct UI final {
 
             render.endAltBlock();
         }
+
+    private:
+        T _value;///< Reference to value being controlled
+        T _step; ///< Current step size
+
+        bool _is_step_setting_mode{false};///< true when adjusting step size, false when adjusting value
     };
 
     template<typename T> struct Slider final : Widget, HasChangeHandler<T> {
         using ValueType = T;
-
-    private:
-        T _value;
-        T _step;
-
-    public:
-        T min_value{ValueLimits<T>::value_min};
-        T max_value{ValueLimits<T>::value_max};
-        bool show_value{false};
-        ValuePlacement placement{ValuePlacement::Inside};
 
         explicit Slider(
             T default_value = T{},
@@ -368,6 +351,16 @@ template<typename R, typename V, typename P> struct UI final {
         void doRender(R &render) const noexcept override {
             render.slider(_value, min_value, max_value, show_value ? placement : ValuePlacement::Hidden);
         }
+
+        T min_value{ValueLimits<T>::value_min};
+        T max_value{ValueLimits<T>::value_max};
+        bool show_value{false};
+        ValuePlacement placement{ValuePlacement::Inside};
+
+    private:
+        T _value;
+        T _step;
     };
 };
+
 }// namespace kf::ui::internal

@@ -6,7 +6,7 @@
 #include "kf/Result.hpp"
 #include "kf/memory/io/Readable.hpp"
 #include "kf/memory/io/Writable.hpp"
-#include "kf/meta/type_check.hpp"
+#include "kf/meta/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
@@ -28,17 +28,13 @@ template<typename BusImpl, typename NodeImpl, typename ErrorImpl>
 struct Bus : BusTag,
              mixin::Initable<BusImpl, Result<void, ErrorImpl>>,
              mixin::NonCopyable,
-             mixin::Quitable<BusImpl> {
-    kf_crtp_check(NodeImpl, kf::bus::BusNodeTag);
+             mixin::Quitable<BusImpl>,
+             meta::CRTP<BusImpl> {
+    KF_CHECK_IMPL(NodeImpl, kf::bus::BusNodeTag);
 
     [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept {
-        return NodeImpl{*static_cast<BusImpl *>(this), config};
+        return NodeImpl{this->impl(), config};
     }
-
-    // methods:
-    // ctor: BusImpl::Node(BusImpl &, Node::Config &)
-    // [[nodiscard]] Result<void, Error> initImpl() noexcept
-    // void quitImpl() noexcept
 };
 
 }// namespace kf::bus

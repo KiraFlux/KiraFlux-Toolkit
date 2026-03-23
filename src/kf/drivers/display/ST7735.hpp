@@ -9,7 +9,6 @@
 #include "kf/bus/spi/SPI.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/image/ViewportImage.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
@@ -29,8 +28,8 @@ struct ST7735_Config final : mixin::NonCopyable {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
 template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, internal::ST7735_ImageImpl>, mixin::Configurable<internal::ST7735_Config> {
-    kf_crtp_check(Ib, kf::bus::spi::SpiNodeTag);
-    kf_crtp_check(Ido, kf::gpio::DigitalOutputTag);
+    KF_CHECK_IMPL(Ib, kf::bus::spi::SpiNodeTag);
+    KF_CHECK_IMPL(Ido, kf::gpio::DigitalOutputTag);
 
     using NodeImpl = Ib;
     using DigitalOutputPinImpl = Ido;
@@ -134,7 +133,6 @@ private:
     }
 
     KF_IMPL(DisplayDriver<This, internal::ST7735_ImageImpl>);
-
     bool sendImpl() noexcept {
         sendCommand(Command::RAMWR);
         sendBuffer({reinterpret_cast<const u8 *>(this->image().buffer().data()), this->image().size()});
@@ -143,7 +141,6 @@ private:
 
     bool setOrientationImpl(Orientation orientation) noexcept {
         // full 6-way support
-
         constexpr u8 orient_to_transform[]{
             0,                                        // Orientation::Normal
             MadCtl::MirrorX,                          // Orientation::MirrorX

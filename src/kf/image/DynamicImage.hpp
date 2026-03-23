@@ -8,7 +8,6 @@
 #include "kf/Result.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
@@ -16,7 +15,7 @@ namespace kf::image {
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam P Pixel implementation
 template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
-    kf_crtp_check(P, pixel::PixelTag);
+    KF_CHECK_IMPL(P, pixel::PixelTag);
 
     using PixelImpl = P;
     using BufferType = typename P::BufferType;
@@ -67,7 +66,7 @@ public:
 
     template<typename I> explicit DynamicImage(I &image) noexcept :
         _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, _offset_x{0}, _offset_y{0} {
-        kf_crtp_check(I, image::ImageTag);
+        KF_CHECK_IMPL(I, image::ImageTag);
     }
 
     /// @brief Creates validated sub-region

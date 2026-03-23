@@ -6,21 +6,21 @@
 #include <cmath>
 
 #include "kf/Result.hpp"
+#include "kf/image/DynamicImage.hpp"
+#include "kf/image/StaticImage.hpp"
 #include "kf/memory/Array.hpp"
+#include "kf/meta/CRTP.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 #include "kf/gfx/Font.hpp"
 #include "kf/gfx/Palette.hpp"
-#include "kf/image/DynamicImage.hpp"
-#include "kf/image/StaticImage.hpp"
-#include "kf/meta/type_check.hpp"
-#include "kf/pixel/Pixel.hpp"
 
 namespace kf::gfx {
 
 /// @brief Drawing context with graphics primitives and text rendering
 /// @tparam P Pixel format for canvas operations
 template<typename P> struct Canvas {
-    kf_crtp_check(P, pixel::PixelTag);
+    KF_CHECK_IMPL(P, pixel::PixelTag);
 
     using PixelImpl = P;
     using ColorType = typename PixelImpl::ColorType;
@@ -115,13 +115,13 @@ public:
     /// @brief Get canvas height in glyphs
     [[nodiscard]] u8 heightInGlyphs() const noexcept { return height() / glyphHeight(); }
 
-    /// Current Foreground color
+    /// @brief Get current Foreground color
     [[nodiscard]] ColorType foreground() const noexcept { return _foreground; }
 
     /// @brief Set foreground color for drawing operations
     void foreground(ColorType color) noexcept { _foreground = color; }
 
-    /// Current Background color
+    /// @brief Get current Background color
     [[nodiscard]] ColorType background() const noexcept { return _background; }
 
     /// @brief Set background color for fill and text operations
