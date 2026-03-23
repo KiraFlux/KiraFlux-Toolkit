@@ -13,63 +13,75 @@
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 
-#include "kf/ui/internal/UI.hpp"
+#include "kf/ui/internal/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
+#include "kf/ui/widgets/Button.hpp"
+#include "kf/ui/widgets/CheckBox.hpp"
+#include "kf/ui/widgets/ComboBox.hpp"
+#include "kf/ui/widgets/Display.hpp"
+#include "kf/ui/widgets/Labeled.hpp"
+#include "kf/ui/widgets/Slider.hpp"
+#include "kf/ui/widgets/SpinBox.hpp"
+#include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::ui {
 
 /// @brief User interface framework with widget-based rendering
-/// @tparam R Renderer implementation type (must inherit from kf::ui::Render)
+/// @tparam R Render impl
+/// @tparam E Event impl
 /// @note Singleton pattern ensures single UI instance with event queue and page management
-template<typename R, typename E> struct UI final : kf::mixin::Singleton<UI<R, E>>, kf::mixin::TimedPollable<UI<R, E>> {
-    KF_CHECK_IMPL(R, kf::ui::render::RenderTag);
+template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, mixin::TimedPollable<UI<R, E>> {
+    struct Page;// forward declaration
 
-    using RenderImpl = R;                            ///< Renderer implementation type
-    using RenderConfig = typename RenderImpl::Config;///< Renderer Configuration type
+    /// @brief Renderer implementation type
+    using RenderImpl = R;
 
-    using Event = E;                         ///< UI Event type
-    using EventValue = typename Event::Value;///< UI Event Value type
+    /// @brief Renderer Configuration type
+    using RenderConfig = typename RenderImpl::Config;
+
+    /// @brief UI Event type
+    using Event = E;
+
+    /// @brief UI Event Value type
+    using EventValue = typename Event::Value;
+
+    using Traits = internal::UiTraits<RenderImpl, Page, Event>;
 
     using StepMode = internal::StepMode;
+
     using ValuePlacement = internal::ValuePlacement;
 
-    struct Page;
-
-private:
-    using InternalUI = internal::UI<R, EventValue, Page>;
-
-public:
     /// @brief Base widget type (provided for inheritance or generic references)
-    using Widget = typename InternalUI::Widget;
+    using Widget = widgets::Widget<Traits>;
 
     /// @brief Button widget with click handler
     /// @note Usage: `Button(page, label)`
-    using Button = typename InternalUI::Button;
+    using Button = widgets::Button<Traits>;
 
     /// @brief Checkbox with boolean state and change handler
-    using CheckBox = typename InternalUI::CheckBox;
+    using CheckBox = widgets::CheckBox<Traits>;
 
     /// @brief Combo box for selecting from a fixed set of options
     /// @tparam T Value type of options
     /// @tparam N Number of options (compile-time)
-    template<typename T, usize N> using ComboBox = typename InternalUI::template ComboBox<T, N>;
+    template<typename T, usize N> using ComboBox = widgets::ComboBox<Traits, T, N>;
 
     /// @brief Read-only display of a value (by reference)
     /// @tparam T Type of displayed value (must outlive the widget)
-    template<typename T> using Display = typename InternalUI::template Display<T>;
+    template<typename T> using Display = widgets::Display<Traits, T>;
 
     /// @brief Wrapper that adds a label to another widget
     /// @tparam W Widget type being labeled (must inherit from Widget)
-    template<typename W> using Labeled = typename InternalUI::template Labeled<W>;
+    template<typename W> using Labeled = widgets::Labeled<Traits, W>;
 
     /// @brief Spin box for numeric adjustment with configurable step mode
     /// @tparam T Arithmetic type (int, float, etc.)
     /// @tparam M Step mode (Arithmetic, ArithmeticPositiveOnly, Geometric)
-    template<typename T, StepMode M> using SpinBox = typename InternalUI::template SpinBox<T, M>;
+    template<typename T, StepMode M> using SpinBox = widgets::SpinBox<Traits, T, M>;
 
     /// @brief Slider for numeric adjustment with constraints
     /// @tparam T Arithmetic type (int, float, etc.)
-    template<typename T> using Slider = typename InternalUI::template Slider<T>;
+    template<typename T> using Slider = widgets::Slider<Traits, T>;
 
     /// @brief Access renderer configuration
     /// @return Reference to renderer config structure

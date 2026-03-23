@@ -34,33 +34,33 @@ struct MainPage : MyUI::Page {
     int my_value{12345};
 
     MyUI::Button click_button{
-        *this,// add to this page
-        "Test"// button label
+        *this, // add to this page
+        "Test",// button label
     };
 
     MyUI::CheckBox check_box{
         *this,// add to this page
-        true  // default: true
+        true, // default: true
     };
 
     MyUI::Display<int> value_display{
-        *this,  // add to this page
-        my_value// initial value
+        *this,   // add to this page
+        my_value,// initial value
     };
 
     explicit MainPage() : Page{"Main"} {
-        click_button.on_click = [this]() {
+        click_button.handler([this]() {
             Serial.println("Test button clicked!");
             my_value += 1;
             value_display.value(my_value);
-        };
+        });
 
-        check_box.change_handler = [this](bool state) {
+        check_box.handler([this](bool state) {
             Serial.print("Checkbox changed to: ");
             Serial.println(state ? "ON" : "OFF");
             my_value *= -1;
             value_display.value(my_value);
-        };
+        });
     }
 
     // Page virtual methods
@@ -87,7 +87,7 @@ struct SettingsPage : MyUI::Page {
     PresetInput labeled_ints_combo_box{
         *this,   // attach to this page
         "Preset",// label
-        PresetInput::WrappedType{
+        PresetInput::Wrapped{
             {{{"Normal", 100}, {"Sport", 200}, {"Quiet", 20}}}// items
         }// spinbox
     };
@@ -100,24 +100,24 @@ struct SettingsPage : MyUI::Page {
     MyUI::SpinBox<int, MyUI::StepMode::Arithmetic> spin_box{
         *this,// attach to this page
         10,   // = default value
-        1     // = step
+        1,    // = step
     };
 
     explicit SettingsPage() : Page{"Settings"} {
-        labeled_ints_combo_box.wrapped.change_handler = [](int value) {
+        labeled_ints_combo_box.wrapped.handler([](int value) {
             Serial.print("Int Combo selected: ");
             Serial.println(value);
-        };
+        });
 
-        strings_combo_box.change_handler = [](kf::memory::StringView value) {
+        strings_combo_box.handler([](kf::memory::StringView value) {
             Serial.print("String Combo selected: ");
             Serial.println(value.data());
-        };
+        });
 
-        spin_box.change_handler = [](int value) {
+        spin_box.handler([](int value) {
             Serial.print("SpinBox value: ");
             Serial.println(value);
-        };
+        });
     }
 } settings_page{};
 
@@ -186,7 +186,7 @@ void setup() {
         root_canvas.fill();
         root_canvas.text(0, 0, text.data());
 
-        (void) display.send();// SPI cannot tell anything about error => always true
+        (void) display.send();// SPI cannot tell anything about error => ignoring
     };
 
     root_canvas.font(kf::gfx::fonts::gyver_5x7_en);
