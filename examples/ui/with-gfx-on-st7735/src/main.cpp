@@ -182,12 +182,12 @@ void setup() {
     static kf::gfx::Canvas<P> root_canvas{kf::image::DynamicImage<P>{display.image()}};
 
     // post-render procedure
-    config.on_render_finish = [](kf::memory::StringView text) {
+    config.callback([](kf::memory::StringView text) {
         root_canvas.fill();
         root_canvas.text(0, 0, text.data());
 
         (void) display.send();// SPI cannot tell anything about error => ignoring
-    };
+    });
 
     root_canvas.font(kf::gfx::fonts::gyver_5x7_en);
 

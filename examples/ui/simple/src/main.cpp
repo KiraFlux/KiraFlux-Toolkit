@@ -135,10 +135,10 @@ void setup() {
     MyUI::RenderConfig &config = ui.renderConfig();
 
     // post-render procedure
-    config.on_render_finish = [](kf::memory::StringView text) {
+    config.callback([](kf::memory::StringView text) {
         Serial.println("---");
         Serial.print(text.data());
-    };
+    });
 
     // misc
     config.float_places = 3;   // float rendering like:  1234.567

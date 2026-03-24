@@ -8,6 +8,7 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
@@ -20,9 +21,7 @@ namespace kf::ui::render {
 namespace internal::ptr {
 using Glyph = u8;///< Text interface measurement unit in glyphs
 
-struct Config final : mixin::NonCopyable {
-    Function<void(memory::StringView)> on_render_finish{nullptr};///< Callback invoked when rendering completes
-
+struct Config final : mixin::NonCopyable, mixin::Callbacked<memory::StringView> {
     Glyph row_max_length{16}; ///< Maximum characters per row
     Glyph rows_total{4};      ///< Total available rows in display
     Glyph float_places{2};    ///< Decimal places for float
@@ -120,9 +119,7 @@ private:
     }
 
     void finishImpl() noexcept {
-        if (this->config().on_render_finish) {
-            this->config().on_render_finish(_buffer.view());
-        }
+        const_cast<Config &>(this->config()).invoke(_buffer.view());
     }
 
     void titleImpl(memory::StringView title) noexcept {
