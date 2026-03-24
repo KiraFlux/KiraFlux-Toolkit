@@ -5,8 +5,8 @@
 
 #include "kf/mixin/ValueCallbacked.hpp"
 
+#include "kf/ui/internal/Adjuster.hpp"
 #include "kf/ui/internal/StepAdjuster.hpp"
-#include "kf/ui/internal/ValueAdjuster.hpp"
 #include "kf/ui/internal/ValueLimits.hpp"
 #include "kf/ui/internal/ValuePlacement.hpp"
 #include "kf/ui/widgets/Widget.hpp"
@@ -17,8 +17,8 @@ struct SliderTag {};
 
 template<typename U, typename T> struct Slider final : SliderTag, Widget<U>, mixin::ValueCallbacked<T> {
     using Value = T;
+    using AdjusterImpl = internal::ArithmeticAdjuster<Value>;
     using StepAdjuster = internal::StepAdjuster<Value>;
-    using ValueAdjuster = internal::ValueAdjuster<Value, internal::StepMode::Arithmetic>;
     using ValueLimits = internal::ValueLimits<Value>;
 
     explicit Slider(
@@ -41,7 +41,7 @@ template<typename U, typename T> struct Slider final : SliderTag, Widget<U>, mix
     /// @brief Adjust value
     /// @param event_value adjust change scale
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
-        this->value(kf::clamp(ValueAdjuster::adjust(this->value(), _step, event_value), min_value, max_value));
+        this->value(kf::clamp(AdjusterImpl::adjust(this->value(), _step, event_value), min_value, max_value));
         return true;// redraw required after adjustment
     }
 

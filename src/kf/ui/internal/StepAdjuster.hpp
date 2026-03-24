@@ -4,7 +4,7 @@
 #pragma once
 
 namespace kf::ui::internal {
-
+// todo use Adjuster
 template<typename T> struct step_adjuster_min_step;
 
 template<> struct step_adjuster_min_step<int> {

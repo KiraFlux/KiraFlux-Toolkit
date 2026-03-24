@@ -97,10 +97,10 @@ struct SettingsPage : MyUI::Page {
         {"Alpha", "Beta", "Gamma"}// items (3)
     };
 
-    MyUI::SpinBox<int, MyUI::StepMode::Arithmetic> spin_box{
+    MyUI::SpinBox<int, MyUI::GeometricAdjuster<int>> spin_box{
         *this,// attach to this page
         10,   // = default value
-        1,    // = step
+        2,    // = step
     };
 
     explicit SettingsPage() : Page{"Settings"} {

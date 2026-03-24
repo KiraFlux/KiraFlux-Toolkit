@@ -14,6 +14,7 @@
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 
+#include "kf/ui/internal/StepAdjuster.hpp"
 #include "kf/ui/internal/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
 #include "kf/ui/widgets/Button.hpp"
@@ -48,7 +49,14 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
 
     using Traits = internal::UiTraits<RenderImpl, Page, Event>;
 
-    using StepMode = internal::StepMode;
+    /// @brief Arithmetic mode: value += direction * step
+    template<typename T> using ArithmeticAdjuster = internal::ArithmeticAdjuster<T>;
+
+    /// @brief ArithmeticPositiveOnly mode: value += direction * step, clamp >= 0
+    template<typename T> using ArithmeticPositiveOnlyAdjuster = internal::ArithmeticPositiveOnlyAdjuster<T>;
+
+    /// @brief Geometric mode: value *= step for positive direction, /= for negative
+    template<typename T> using GeometricAdjuster = internal::GeometricAdjuster<T>;
 
     using ValuePlacement = internal::ValuePlacement;
 
@@ -78,7 +86,7 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     /// @brief Spin box for numeric adjustment with configurable step mode
     /// @tparam T Arithmetic type (int, float, etc.)
     /// @tparam M Step mode (Arithmetic, ArithmeticPositiveOnly, Geometric)
-    template<typename T, StepMode M> using SpinBox = widgets::SpinBox<Traits, T, M>;
+    template<typename T, typename A> using SpinBox = widgets::SpinBox<Traits, T, A>;
 
     /// @brief Slider for numeric adjustment with constraints
     /// @tparam T Arithmetic type (int, float, etc.)
