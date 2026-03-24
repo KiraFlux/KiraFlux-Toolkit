@@ -18,7 +18,6 @@ template<typename T> struct Callbacked : CallbackedTag {
         _callback_function = std::move(function);
     }
 
-protected:
     void invoke(T value) noexcept {
         if (_callback_function) {
             _callback_function(value);
@@ -36,7 +35,6 @@ template<> struct Callbacked<void> : CallbackedTag {
         _callback_function = std::move(function);
     }
 
-protected:
     void invoke() noexcept {
         if (_callback_function) {
             _callback_function();
