@@ -77,17 +77,27 @@ struct SettingsPage : MyUI::Page {
 
     using PresetInput = MyUI::Labeled<MyUI::ComboBox<int, 3>>;
 
+    PresetInput::Wrapped::Config input_config{
+        .items = {{{"Normal", 100}, {"Sport", 200}, {"Quiet", 20}}},
+    };
+
     PresetInput labeled_ints_combo_box{
         *this,   // attach to this page
         "Preset",// label
         PresetInput::Wrapped{
-            {{{"Normal", 100}, {"Sport", 200}, {"Quiet", 20}}}// items
-        },                                                    // spinbox
+            input_config,// captured by ref
+        },
     };
 
-    MyUI::ComboBox<kf::memory::StringView, 3> strings_combo_box{
-        *this,                     // attach to this page
-        {"Alpha", "Beta", "Gamma"},// items (3)
+    using MyCombo = MyUI::ComboBox<kf::memory::StringView, 3>;
+
+    MyCombo::Config my_combo_options{
+        .items = {"Alpha", "Beta", "Gamma"},// items (3)
+    };
+
+    MyCombo strings_combo_box{
+        *this,           // attach to this page
+        my_combo_options,// captured by ref
     };
 
     MyUI::SpinBox<int, MyUI::GeometricAdjuster<int>> spin_box{
