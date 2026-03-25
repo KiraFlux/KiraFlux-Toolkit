@@ -13,7 +13,6 @@
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 
-#include "kf/ui/internal/StepAdjuster.hpp"
 #include "kf/ui/internal/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
 #include "kf/ui/widgets/Button.hpp"

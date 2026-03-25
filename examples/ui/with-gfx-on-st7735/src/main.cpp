@@ -143,9 +143,16 @@ struct SettingsPage : MyUI::Page {
         strings_combo_box_config,// by ref
     };
 
-    MyUI::SpinBox<int, MyUI::GeometricAdjuster<int>> spin_box{
-        10,// = default value
-        2, // = step
+    using MySpinBox = MyUI::SpinBox<int, MyUI::GeometricAdjuster<int>>;
+
+    MySpinBox::Config spin_box_config{
+        .default_step = 2,
+        .step_adjust = 2,
+    };
+
+    MySpinBox spin_box{
+        spin_box_config,// ref
+        10,             // = default value
     };
 
     kf::memory::Array<MyUI::Widget *, 4> widgets_storage{
