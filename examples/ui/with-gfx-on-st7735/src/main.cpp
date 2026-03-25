@@ -82,22 +82,25 @@ struct MainPage : MyUI::Page {
 
 struct SettingsPage : MyUI::Page {
 
-    using PresetInput = MyUI::Labeled<MyUI::ComboBox<int, 3>>;
+    using PresetInput = MyUI::ComboBox<int, 3>;
 
-    PresetInput::Wrapped::Config labeled_ints_combo_box_config{
+    PresetInput::Config labeled_ints_combo_box_config{
         .items = {{{"Normal", 100}, {"Sport", 200}, {"Quiet", 20}}},
     };
 
-    PresetInput labeled_ints_combo_box{
-        *this,   // attach to this page
-        "Preset",// label
-        PresetInput::Wrapped{
-            labeled_ints_combo_box_config,// by ref
-        }};
+    PresetInput ints_combo_box{
+        labeled_ints_combo_box_config,// by ref
+    };
+
+    MyUI::Labeled labeled_ints_combo_box{
+        *this,         // attach to this page
+        "Preset",      // label
+        ints_combo_box,// by ref
+    };
 
     using MyCombo = MyUI::ComboBox<kf::memory::StringView, 3>;
-    
-    // StringView-typed combo item implicit constructs from string literal 
+
+    // StringView-typed combo item implicit constructs from string literal
     MyCombo::Config strings_combo_box_config{
         .items = {"Alpha", "Beta", "Gamma"},
     };
@@ -114,7 +117,7 @@ struct SettingsPage : MyUI::Page {
     };
 
     explicit SettingsPage() : Page{"Settings"} {
-        labeled_ints_combo_box.wrapped.callback([](int value) {
+        ints_combo_box.callback([](int value) {
             Serial.print("Int Combo selected: ");
             Serial.println(value);
         });

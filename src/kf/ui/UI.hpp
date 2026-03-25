@@ -80,8 +80,7 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     template<typename T> using Display = widgets::Display<Traits, T>;
 
     /// @brief Wrapper that adds a label to another widget
-    /// @tparam W Widget type being labeled (must inherit from Widget)
-    template<typename W> using Labeled = widgets::Labeled<Traits, W>;
+    using Labeled = widgets::Labeled<Traits>;
 
     /// @brief Spin box for numeric adjustment with configurable step mode
     /// @tparam T Arithmetic type (int, float, etc.)

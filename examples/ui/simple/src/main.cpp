@@ -75,18 +75,20 @@ struct MainPage : MyUI::Page {
 
 struct SettingsPage : MyUI::Page {
 
-    using PresetInput = MyUI::Labeled<MyUI::ComboBox<int, 3>>;
+    using PresetInput = MyUI::ComboBox<int, 3>;
 
-    PresetInput::Wrapped::Config input_config{
+    PresetInput::Config input_config{
         .items = {{{"Normal", 100}, {"Sport", 200}, {"Quiet", 20}}},
     };
 
-    PresetInput labeled_ints_combo_box{
-        *this,   // attach to this page
-        "Preset",// label
-        PresetInput::Wrapped{
-            input_config,// captured by ref
-        },
+    PresetInput ints_combo_box{
+        input_config,// captured by ref
+    };
+
+    MyUI::Labeled labeled_ints_combo_box{
+        *this,         // attach to this page
+        "Preset",      // label
+        ints_combo_box,// captured by ref
     };
 
     using MyCombo = MyUI::ComboBox<kf::memory::StringView, 3>;
@@ -107,7 +109,7 @@ struct SettingsPage : MyUI::Page {
     };
 
     explicit SettingsPage() : Page{"Settings"} {
-        labeled_ints_combo_box.wrapped.callback([](int value) {
+        ints_combo_box.callback([](int value) {
             Serial.print("Int Combo selected: ");
             Serial.println(value);
         });
