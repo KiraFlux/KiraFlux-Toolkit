@@ -1,19 +1,46 @@
-
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
 #pragma once
 
 #include "kf/memory/Array.hpp"
+#include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-#include "kf/ui/internal/ComboBoxItem.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::ui {
 namespace internal {
+
+template<typename T> struct ComboBoxItem {
+
+    [[nodiscard]] memory::StringView key() const noexcept { return _key; }
+
+    [[nodiscard]] T value() const noexcept { return _value; }
+
+    constexpr ComboBoxItem(memory::StringView key, T value) noexcept :
+        _key{key}, _value{value} {}
+
+private:
+    memory::StringView _key;
+    T _value;
+};
+
+template<> struct ComboBoxItem<memory::StringView> {
+
+    [[nodiscard]] memory::StringView key() const noexcept { return _key; }
+
+    [[nodiscard]] memory::StringView value() const noexcept { return _key; }
+
+    template<usize N> constexpr ComboBoxItem(const char (&str)[N]) noexcept :// NOLINT(*-explicit-constructor)
+        _key{str} {}
+
+private:
+    memory::StringView _key;
+};
+
 template<typename T, usize N> struct ComboBoxConfig final : mixin::NonCopyable {
     static_assert(N >= 1, "N >= 1");
 
@@ -21,9 +48,11 @@ template<typename T, usize N> struct ComboBoxConfig final : mixin::NonCopyable {
 
     ItemContainer items;///< Available options
 };
+
 }// namespace internal
 
 namespace widgets {
+
 struct ComboBoxTag {};
 
 /// @brief Combo box for selecting from predefined options
