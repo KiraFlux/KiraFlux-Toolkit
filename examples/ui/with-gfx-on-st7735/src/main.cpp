@@ -48,8 +48,10 @@ struct MainPage : MyUI::Page {
     using MySlider = MyUI::Slider<int>;
 
     MySlider::Config slider_config{
-        .min_value = 0,
-        .max_value = 1000,
+        .value_range = {
+            .start = 0,
+            .end = 1000,
+        },
         .default_value = 0,
         .step = 25,
         .placement = MyUI::ValuePlacement::Outside,

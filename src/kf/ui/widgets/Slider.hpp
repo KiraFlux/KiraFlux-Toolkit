@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/Range.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
@@ -14,8 +15,7 @@
 namespace kf::ui {
 namespace internal {
 template<typename T> struct SliderConfig final : mixin::NonCopyable {
-    T min_value;             ///< min value (slider value will clamped at this value)
-    T max_value;             ///< max value (slider value will clamped at this value)
+    Range<T> value_range;    ///< value range (slider value will clamped at this value)
     T default_value;         ///< slider value by default
     T step;                  ///< slider value adjust step
     ValuePlacement placement;///< placement of slider value
@@ -31,7 +31,7 @@ struct Slider final : SliderTag, Widget<U>, mixin::ValueCallbacked<T>, mixin::Co
     using Config = internal::SliderConfig<T>;
 
     constexpr explicit Slider(const Config &config) noexcept :
-        mixin::ValueCallbacked<T>{kf::clamp(config.default_value, config.min_value, config.max_value)},
+        mixin::ValueCallbacked<T>{config.value_range.clamped(config.default_value)},
         mixin::Configurable<Config>{config}, show_value{config.init_show_value} {}
 
     /// @brief Toggle slider numeric value display
@@ -43,17 +43,15 @@ struct Slider final : SliderTag, Widget<U>, mixin::ValueCallbacked<T>, mixin::Co
     /// @brief Adjust value
     /// @param event_value adjust change scale
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
-        this->value(kf::clamp(
-            internal::ArithmeticAdjuster<T>::adjust(this->value(), this->config().step, event_value),
-            this->config().min_value,
-            this->config().max_value));
+        this->value(this->config().value_range.clamped(
+            internal::ArithmeticAdjuster<T>::adjust(this->value(), this->config().step, event_value)));
         return true;// redraw required after adjustment
     }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {
         render.slider(
             this->value(),
-            this->config().min_value, this->config().max_value,
+            this->config().value_range,
             show_value ? this->config().placement : internal::ValuePlacement::Hidden);
     }
 

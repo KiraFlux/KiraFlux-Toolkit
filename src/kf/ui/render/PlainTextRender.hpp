@@ -139,11 +139,11 @@ private:
     }
 
     template<typename T> void sliderImpl(
-        T slider_value, T min_value, T max_value,
-        internal::ValuePlacement value_placement) noexcept {
+        T slider_value, Range<T> value_range,
+        internal::ValuePlacement placement) noexcept {
 
         // Textual now supports only show/hide placement
-        if (internal::ValuePlacement::Hidden != value_placement) {
+        if (internal::ValuePlacement::Hidden != placement) {
             this->value(slider_value);
             writeChar(' ');
         }
@@ -151,7 +151,7 @@ private:
         writeChar('[');
         const usize start_col = _cursor.col;
         const usize inner_width = this->config().row_max_length - start_col - 1;// -1 for closing char
-        const usize fill = (slider_value - min_value) * inner_width / (max_value - min_value);
+        const usize fill = (slider_value - value_range.start) * inner_width / (value_range.end - value_range.start);
 
         for (usize i = 0; i < fill; i += 1) {
             writeChar('=');

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/Range.hpp"
 #include "kf/aliases.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
@@ -47,9 +48,9 @@ template<typename Impl> struct Render : RenderTag, mixin::NonCopyable, meta::CRT
 
     /// @brief Render slider
     template<typename T> void slider(
-        T v, T min_value, T max_value,
-        internal::ValuePlacement value_placement) noexcept {
-        this->impl().sliderImpl(v, min_value, max_value, value_placement);
+        T v, Range<T> value_range,
+        internal::ValuePlacement placement) noexcept {
+        this->impl().sliderImpl(v, value_range, placement);
     }
 
     /// @brief Render value
