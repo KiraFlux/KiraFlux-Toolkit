@@ -18,7 +18,7 @@ template<typename T> struct ValueCallbacked : ValueCallbackedTag, Callbacked<T> 
     void value(T new_value) noexcept {
         if (_value != new_value) {
             _value = new_value;
-            Callbacked<T>::invoke(_value);
+            this->invoke(_value);
         }
     }
 
