@@ -3,12 +3,13 @@
 
 #pragma once
 
+#include "kf/Range.hpp"
 #include "kf/aliases.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-#include "kf/ui/internal/ValuePlacement.hpp"
+#include "kf/ui/internal/Placement.hpp"
 
 namespace kf::ui::render {
 
@@ -46,10 +47,8 @@ template<typename Impl> struct Render : RenderTag, mixin::NonCopyable, meta::CRT
     void checkbox(bool enabled) noexcept { this->impl().checkboxImpl(enabled); }
 
     /// @brief Render slider
-    template<typename T> void slider(
-        T v, T min_value, T max_value,
-        internal::ValuePlacement value_placement) noexcept {
-        this->impl().sliderImpl(v, min_value, max_value, value_placement);
+    template<typename T> void slider(T v, Range<T> value_range, internal::Placement placement) noexcept {
+        this->impl().sliderImpl(v, value_range, placement);
     }
 
     /// @brief Render value

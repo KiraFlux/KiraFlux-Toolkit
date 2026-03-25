@@ -7,7 +7,6 @@
 
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
-#include "kf/meta/type_check.hpp"
 
 #include "kf/drivers/sensors/Sensor.hpp"
 
@@ -16,7 +15,7 @@ namespace kf::drivers::sensors {
 /// @brief Sharp infrared distance sensor driver
 /// @note Provides distance measurements in millimeters using analog voltage output
 template<typename I> struct Sharp : Sensor<Sharp<I>, math::Millimeters, void> {
-    kf_crtp_check(I, kf::gpio::AdcInputTag);
+    KF_CHECK_IMPL(I, kf::gpio::AdcInputTag);
     using PinImpl = I;
 
     explicit Sharp(PinImpl &&pin) noexcept : _pin{std::move(pin)} {}

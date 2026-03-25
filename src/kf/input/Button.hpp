@@ -8,7 +8,6 @@
 #include "kf/aliases.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -27,7 +26,7 @@ struct Button : mixin::Initable<Button<I>, void>,
                 mixin::NonCopyable,
                 mixin::TimedPollable<Button<I>>,
                 mixin::Configurable<internal::ButtonConfig> {
-    kf_crtp_check(I, kf::gpio::DigitalInputTag);
+    KF_CHECK_IMPL(I, kf::gpio::DigitalInputTag);
 
     using PinImpl = I;
     using Config = internal::ButtonConfig;

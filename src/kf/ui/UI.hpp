@@ -6,71 +6,87 @@
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
-#include "kf/memory/ArrayList.hpp"
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/meta/type_check.hpp"
+#include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 
-#include "kf/ui/internal/UI.hpp"
+#include "kf/ui/internal/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
+#include "kf/ui/widgets/Button.hpp"
+#include "kf/ui/widgets/CheckBox.hpp"
+#include "kf/ui/widgets/ComboBox.hpp"
+#include "kf/ui/widgets/Display.hpp"
+#include "kf/ui/widgets/Labeled.hpp"
+#include "kf/ui/widgets/Slider.hpp"
+#include "kf/ui/widgets/SpinBox.hpp"
+#include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::ui {
 
 /// @brief User interface framework with widget-based rendering
-/// @tparam R Renderer implementation type (must inherit from kf::ui::Render)
+/// @tparam R Render impl
+/// @tparam E Event impl
 /// @note Singleton pattern ensures single UI instance with event queue and page management
-template<typename R, typename E> struct UI final : kf::mixin::Singleton<UI<R, E>>, kf::mixin::TimedPollable<UI<R, E>> {
-    kf_crtp_check(R, kf::ui::render::RenderTag);
+template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, mixin::TimedPollable<UI<R, E>> {
+    struct Page;// forward declaration
 
-    using RenderImpl = R;                            ///< Renderer implementation type
-    using RenderConfig = typename RenderImpl::Config;///< Renderer Configuration type
+    /// @brief Renderer implementation type
+    using RenderImpl = R;
 
-    using Event = E;                         ///< UI Event type
-    using EventValue = typename Event::Value;///< UI Event Value type
+    /// @brief Renderer Configuration type
+    using RenderConfig = typename RenderImpl::Config;
 
-    using StepMode = internal::StepMode;
-    using ValuePlacement = internal::ValuePlacement;
+    /// @brief UI Event type
+    using Event = E;
 
-    struct Page;
+    /// @brief UI Event Value type
+    using EventValue = typename Event::Value;
 
-private:
-    using InternalUI = internal::UI<R, EventValue, Page>;
+    using Traits = internal::UiTraits<RenderImpl, Event>;
 
-public:
+    /// @brief Arithmetic mode: value += direction * step
+    template<typename T> using ArithmeticAdjuster = internal::ArithmeticAdjuster<T>;
+
+    /// @brief ArithmeticPositiveOnly mode: value += direction * step, clamp >= 0
+    template<typename T> using ArithmeticPositiveOnlyAdjuster = internal::ArithmeticPositiveOnlyAdjuster<T>;
+
+    /// @brief Geometric mode: value *= step for positive direction, /= for negative
+    template<typename T> using GeometricAdjuster = internal::GeometricAdjuster<T>;
+
+    using Placement = internal::Placement;
+
     /// @brief Base widget type (provided for inheritance or generic references)
-    using Widget = typename InternalUI::Widget;
+    using Widget = widgets::Widget<Traits>;
 
     /// @brief Button widget with click handler
     /// @note Usage: `Button(page, label)`
-    using Button = typename InternalUI::Button;
+    using Button = widgets::Button<Traits>;
 
     /// @brief Checkbox with boolean state and change handler
-    using CheckBox = typename InternalUI::CheckBox;
+    using CheckBox = widgets::CheckBox<Traits>;
 
     /// @brief Combo box for selecting from a fixed set of options
     /// @tparam T Value type of options
-    /// @tparam N Number of options (compile-time)
-    template<typename T, usize N> using ComboBox = typename InternalUI::template ComboBox<T, N>;
+    template<typename T> using ComboBox = widgets::ComboBox<Traits, T>;
 
     /// @brief Read-only display of a value (by reference)
     /// @tparam T Type of displayed value (must outlive the widget)
-    template<typename T> using Display = typename InternalUI::template Display<T>;
+    template<typename T> using Display = widgets::Display<Traits, T>;
 
     /// @brief Wrapper that adds a label to another widget
-    /// @tparam W Widget type being labeled (must inherit from Widget)
-    template<typename W> using Labeled = typename InternalUI::template Labeled<W>;
+    using Labeled = widgets::Labeled<Traits>;
 
     /// @brief Spin box for numeric adjustment with configurable step mode
     /// @tparam T Arithmetic type (int, float, etc.)
     /// @tparam M Step mode (Arithmetic, ArithmeticPositiveOnly, Geometric)
-    template<typename T, StepMode M> using SpinBox = typename InternalUI::template SpinBox<T, M>;
+    template<typename T, typename A> using SpinBox = widgets::SpinBox<Traits, T, A>;
 
     /// @brief Slider for numeric adjustment with constraints
     /// @tparam T Arithmetic type (int, float, etc.)
-    template<typename T> using Slider = typename InternalUI::template Slider<T>;
+    template<typename T> using Slider = widgets::Slider<Traits, T>;
 
     /// @brief Access renderer configuration
     /// @return Reference to renderer config structure
@@ -108,7 +124,7 @@ private:
 
         void doRender(RenderImpl &render) const noexcept override {
             render.arrow();
-            render.value(_target.title());
+            render.value(_target.label());
         }
 
     private:
@@ -116,10 +132,10 @@ private:
     };
 
 public:
-    /// @brief UI page containing widgets and title
-    struct Page : mixin::NonCopyable {
-        explicit Page(memory::StringView title) :
-            _title{title} {}
+    /// @brief UI page containing widgets and label
+    struct Page : mixin::NonCopyable, mixin::Labeled {
+
+        using mixin::Labeled::Labeled;
 
         /// @brief Page behavior on entry
         virtual void onEntry() noexcept {}
@@ -130,31 +146,30 @@ public:
         /// @brief Page behavior on UI polling
         virtual void onUpdate(math::Milliseconds now) noexcept {}
 
-        /// @brief Add widget to this page
-        /// @param widget Widget to add (must remain valid for page lifetime)
-        void addWidget(Widget &widget) {
-            _widgets.push_back(&widget);
-        }
-
-        /// @brief Create bidirectional navigation link between pages
-        /// @param other Page to link with (adds navigation widgets to both pages)
-        void link(Page &other) {
-            this->addWidget(other._to_this);
-            other.addWidget(this->_to_this);
-        }
+        /// @brief Get 'go to this page' Widget
+        Widget &link() noexcept { return _to_this; }
 
         /// @brief Render page content to display
         /// @note Handles cursor positioning and widget focus
         void render(RenderImpl &render) noexcept {
-            render.title(_title);
+            render.title(this->label());
+
+            if (nullptr == _widgets.data()) { return; }
 
             const usize available = render.widgetsAvailable();
-            const usize start = (widgetsTotal() > available) ? kf::min(static_cast<usize>(_cursor), widgetsTotal() - available) : 0;
-            const usize end = kf::min(start + available, widgetsTotal());
+            const usize start = (_widgets.size() > available) ? kf::min(static_cast<usize>(_cursor), _widgets.size() - available) : 0;
+            const usize end = kf::min(start + available, _widgets.size());
 
             for (auto i = start; i < end; i += 1) {
+                auto widget = _widgets[i];
+
+                if (nullptr == widget) { continue; }
+
                 render.beginWidget(i);
-                _widgets[i]->render(render, i == _cursor);
+
+                const bool is_selected = (i == _cursor);
+                widget->render(render, is_selected);
+
                 render.endWidget();
             }
         }
@@ -162,20 +177,20 @@ public:
         /// @brief Process incoming UI event
         /// @return true if redraw required after event processing
         [[nodiscard]] bool onEvent(Event event) noexcept {
-            switch (event.type()) {
-                case Event::Type::Update: {
+            switch (event.kind()) {
+                case Event::Kind::Update: {
                     return true;
                 }
-                case Event::Type::PageCursorMove: {
+                case Event::Kind::PageCursorMove: {
                     return moveCursor(event.value());
                 }
-                case Event::Type::WidgetClick: {
-                    if (widgetsTotal() > 0) {
+                case Event::Kind::WidgetClick: {
+                    if (_widgets.size() > 0) {
                         return _widgets[_cursor]->onClick();
                     }
                 }
-                case Event::Type::WidgetValueChange: {
-                    if (widgetsTotal() > 0) {
+                case Event::Kind::WidgetValueChange: {
+                    if (_widgets.size() > 0) {
                         return _widgets[_cursor]->onEventValue(event.value());
                     }
                 }
@@ -183,23 +198,23 @@ public:
             return false;
         }
 
-        /// @brief Get total widget count on page
-        [[nodiscard]] usize widgetsTotal() const noexcept { return _widgets.size(); }
+        /// @brief Get widgets on page
+        [[nodiscard]] memory::Slice<Widget *> widgets() noexcept { return _widgets; }
 
-        /// @brief Get page title
-        [[nodiscard]] memory::StringView title() const noexcept { return _title; }
+    protected:
+        /// @brief Set widgets on page
+        void widgets(memory::Slice<Widget *> new_widgets) noexcept { _widgets = new_widgets; }
 
     private:
-        memory::ArrayList<Widget *> _widgets{};///< List of widgets on this page
-        PageSetter _to_this{*this};            ///< Navigation widget to this page
-        memory::StringView _title;             ///< Page title displayed in header
-        isize _cursor{0};                      ///< Current widget cursor position (focused widget index)
+        memory::Slice<Widget *> _widgets{};///< Widgets on this page
+        PageSetter _to_this{*this};        ///< Navigation widget to this page
+        isize _cursor{0};                  ///< Current widget cursor position (focused widget index)
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
         /// @return true if cursor position changed (redraw required)
         [[nodiscard]] bool moveCursor(isize delta) noexcept {
-            const auto n = widgetsTotal();
+            const auto n = _widgets.size();
             if (n > 1) {
                 _cursor = (_cursor + delta + n) % n;
                 return true;

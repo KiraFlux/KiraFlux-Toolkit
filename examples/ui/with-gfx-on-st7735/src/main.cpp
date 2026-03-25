@@ -27,40 +27,66 @@ using MyUI = kf::ui::UI<
     kf::ui::Event<4>                       // Event type: 4-bit value
     >;
 
-// User-defined page examples
+// User-defined example pages
 
 struct MainPage : MyUI::Page {
 
     int my_value{12345};
 
     MyUI::Button click_button{
-        *this,// add to this page
-        "Test"// button label
+        "Test",// button label
     };
 
     MyUI::CheckBox check_box{
-        *this,// add to this page
-        true  // default: true
+        true,// default: true
     };
 
     MyUI::Display<int> value_display{
-        *this,  // add to this page
-        my_value// initial value
+        my_value,// initial value
+    };
+
+    using MySlider = MyUI::Slider<int>;
+
+    MySlider::Config slider_config{
+        .value_range = {
+            .start = 0,
+            .end = 1000,
+        },
+        .default_value = 0,
+        .step = 25,
+        .placement = MyUI::Placement::Outside,
+        .init_show_value = true,
+    };
+
+    MySlider slider{
+        slider_config,// by ref
+    };
+
+    kf::memory::Array<MyUI::Widget *, 5> widgets_storage{
+        {
+            nullptr,// link widget will be init in setup()
+            &click_button,
+            &check_box,
+            &value_display,
+            &slider,
+        },
     };
 
     explicit MainPage() : Page{"Main"} {
-        click_button.on_click = [this]() {
+        widgets({widgets_storage.data(), widgets_storage.size()});
+
+        click_button.callback([this]() {
             Serial.println("Test button clicked!");
             my_value += 1;
             value_display.value(my_value);
-        };
+        });
 
-        check_box.change_handler = [this](bool state) {
+        check_box.callback([this](bool state) {
             Serial.print("Checkbox changed to: ");
             Serial.println(state ? "ON" : "OFF");
             my_value *= -1;
             value_display.value(my_value);
-        };
+        });
     }
 
     // Page virtual methods
@@ -82,43 +108,83 @@ struct MainPage : MyUI::Page {
 
 struct SettingsPage : MyUI::Page {
 
-    using PresetInput = MyUI::Labeled<MyUI::ComboBox<int, 3>>;
+    using PresetInput = MyUI::ComboBox<int>;
 
-    PresetInput labeled_ints_combo_box{
-        *this,   // attach to this page
-        "Preset",// label
-        PresetInput::WrappedType{
-            {{{"Normal", 100}, {"Sport", 200}, {"Quiet", 20}}}// items
-        }// spinbox
+    kf::memory::Array<PresetInput::Item, 3> ints_combo_box_items{
+        {
+            {/* label: */ "Normal", /* value: int */ 100},
+            {"Sport", 200},
+            {"Quiet", 20},
+        },// initializer list
     };
 
-    MyUI::ComboBox<kf::memory::StringView, 3> strings_combo_box{
-        *this,                    // attach to this page
-        {"Alpha", "Beta", "Gamma"}// items (3)
+    PresetInput::Config ints_combo_box_config{
+        .items = {ints_combo_box_items.data(), ints_combo_box_items.size()},// Slice
     };
 
-    MyUI::SpinBox<int, MyUI::StepMode::Arithmetic> spin_box{
-        *this,// attach to this page
-        10,   // = default value
-        1     // = step
+    PresetInput ints_combo_box{
+        ints_combo_box_config,// by ref
+    };
+
+    MyUI::Labeled labeled_ints_combo_box{
+        "Preset",      // label
+        ints_combo_box,// by ref
+    };
+
+    using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
+
+    kf::memory::Array<MyCombo::Item, 3> strings_combo_box_items{
+        {"Alpha", "Beta", "Gamma"},// StringView-typed combo item implicit constructs from string literal
+    };
+
+    MyCombo::Config strings_combo_box_config{
+        .items = {strings_combo_box_items.data(), strings_combo_box_items.size()},// Slice
+    };
+
+    MyCombo strings_combo_box{
+        strings_combo_box_config,// by ref
+    };
+
+    using MySpinBox = MyUI::SpinBox<int, MyUI::GeometricAdjuster<int>>;
+
+    MySpinBox::Config spin_box_config{
+        .default_step = 2,
+        .step_adjust = 2,
+    };
+
+    MySpinBox spin_box{
+        spin_box_config,// ref
+        10,             // = default value
+    };
+
+    kf::memory::Array<MyUI::Widget *, 4> widgets_storage{
+        {
+            nullptr,// link widget will be init in setup()
+            &labeled_ints_combo_box,
+            &strings_combo_box,
+            &spin_box,
+        },
     };
 
     explicit SettingsPage() : Page{"Settings"} {
-        labeled_ints_combo_box.wrapped.change_handler = [](int value) {
+        widgets({widgets_storage.data(), widgets_storage.size()});
+
+        ints_combo_box.callback([](int value) {
             Serial.print("Int Combo selected: ");
             Serial.println(value);
-        };
+        });
 
-        strings_combo_box.change_handler = [](kf::memory::StringView value) {
+        strings_combo_box.callback([](kf::memory::StringView value) {
             Serial.print("String Combo selected: ");
             Serial.println(value.data());
-        };
+        });
 
-        spin_box.change_handler = [](int value) {
+        spin_box.callback([](int value) {
             Serial.print("SpinBox value: ");
             Serial.println(value);
-        };
+        });
     }
+
 } settings_page{};
 
 // Simple function for convertion from char to event
@@ -151,7 +217,7 @@ static ArduinoSPI::Node::Config node_config{
 
 // display config
 static MyDisplayDriver::Config display_config{
-    Orientation::ClockWise,
+    .init_orientation = Orientation::ClockWise,
 };
 
 // Driver instance references config and SPI bus.
@@ -182,12 +248,12 @@ void setup() {
     static kf::gfx::Canvas<P> root_canvas{kf::image::DynamicImage<P>{display.image()}};
 
     // post-render procedure
-    config.on_render_finish = [](kf::memory::StringView text) {
+    config.callback([](kf::memory::StringView text) {
         root_canvas.fill();
         root_canvas.text(0, 0, text.data());
 
-        (void) display.send();// SPI cannot tell anything about error => always true
-    };
+        (void) display.send();// SPI cannot tell anything about error => ignoring
+    });
 
     root_canvas.font(kf::gfx::fonts::gyver_5x7_en);
 
@@ -197,8 +263,11 @@ void setup() {
     config.rows_total = root_canvas.heightInGlyphs();// all canvas area
     config.row_max_length = root_canvas.widthInGlyphs();
 
-    main_page.link(settings_page);// add special navigation button on both pages
-    ui.bindPage(main_page);       // start ui with main page
+    // insert navigation button on both pages
+    main_page.widgets()[0] = &settings_page.link();
+    settings_page.widgets()[0] = &main_page.link();
+
+    ui.bindPage(main_page);// start ui with main page
 
     ui.addEvent(MyUI::Event::update());// Force update for first ui rendering
 }

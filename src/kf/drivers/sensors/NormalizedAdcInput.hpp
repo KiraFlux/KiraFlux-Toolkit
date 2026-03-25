@@ -9,7 +9,6 @@
 #include "kf/aliases.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/filters/ExponentialFilter.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -18,7 +17,7 @@
 #include "kf/drivers/sensors/Sensor.hpp"
 
 namespace kf::drivers::sensors {
-namespace internal::nai {// // NormalizedAdcInput
+namespace internal::nai {// NormalizedAdcInput
 struct Config final : mixin::NonCopyable {
     using AdcSignedValue = i16;
 
@@ -39,7 +38,7 @@ struct Config final : mixin::NonCopyable {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
 template<typename I> struct NormalizedAdcInput final : Sensor<NormalizedAdcInput<I>, f32, void>, mixin::Configurable<internal::nai::Config> {
-    kf_crtp_check(I, kf::gpio::AdcInputTag);
+    KF_CHECK_IMPL(I, kf::gpio::AdcInputTag);
 
     using AdcPinImpl = I;
     using FilterImpl = math::filters::ExponentialFilter<f32>;
@@ -84,7 +83,6 @@ template<typename I> struct NormalizedAdcInput final : Sensor<NormalizedAdcInput
         }
 
         friend TunerBase;
-
         void calculateImpl(Config &config) const noexcept {
             constexpr auto margin{10};
             constexpr auto zone_percents{10};

@@ -5,7 +5,6 @@
 
 #include "kf/image/Image.hpp"
 #include "kf/meta/CRTP.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
@@ -13,25 +12,21 @@
 #include "kf/drivers/display/Orientation.hpp"
 
 namespace kf::drivers::display {
-
+    
 struct DisplayDriverTag {};
 
 /// @brief CRTP base class for display driver implementations
-/// @tparam Impl Concrete driver implementation type
-/// @tparam I Image buffer type
-template<typename Impl, typename I>
+/// @tparam DriverImpl Concrete driver implementation type
+/// @tparam ImageImpl Image buffer type
+template<typename DriverImpl, typename ImageImpl>
 struct DisplayDriver : DisplayDriverTag,
-                       mixin::Initable<Impl, bool>,
+                       mixin::Initable<DriverImpl, bool>,
                        mixin::NonCopyable,
-                       mixin::Resettable<Impl>,
-                       meta::CRTP<Impl> {
-    kf_crtp_check(I, image::ImageTag);
+                       mixin::Resettable<DriverImpl>,
+                       meta::CRTP<DriverImpl> {
+    KF_CHECK_IMPL(ImageImpl, image::ImageTag);
 
-    using ImageImpl = I;
-    using ColorType = typename I::ColorType;
-    using BufferType = typename I::BufferType;
-
-    /// @brief image buffer
+    /// @brief Mutable access at image buffer
     [[nodiscard]] ImageImpl &image() noexcept { return _screen_image; }
 
     /// @brief Transfer software buffer to display hardware
@@ -44,8 +39,7 @@ struct DisplayDriver : DisplayDriverTag,
     [[nodiscard]] bool orientation(Orientation new_orientation) noexcept { return this->impl().setOrientationImpl(new_orientation); }
 
 private:
-    /// @brief Software frame buffer for display operations
-    ImageImpl _screen_image{};
+    ImageImpl _screen_image{};///<  Software frame buffer for display operations
 };
 
 }// namespace kf::drivers::display

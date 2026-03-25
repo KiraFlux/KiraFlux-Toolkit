@@ -7,7 +7,6 @@
 #include "kf/aliases.hpp"
 #include "kf/bus/iic/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
-#include "kf/meta/type_check.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
 
 #include "kf/drivers/display/DisplayDriver.hpp"
@@ -20,7 +19,7 @@ using SSD1306_ImageImpl = image::StaticImage<pixel::MonochromePixel, 128, 64>;
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
 template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, internal::SSD1306_ImageImpl> {
-    kf_crtp_check(I, kf::bus::iic::IicNodeTag);
+    KF_CHECK_IMPL(I, kf::bus::iic::IicNodeTag);
 
     using NodeImpl = I;
     using PixelImpl = typename internal::SSD1306_ImageImpl::PixelImpl;

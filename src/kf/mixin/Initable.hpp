@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
-
 namespace kf::mixin {
 
 struct InitableTag {};

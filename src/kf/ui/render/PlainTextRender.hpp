@@ -8,21 +8,19 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-#include "kf/ui/internal/ValuePlacement.hpp"
+#include "kf/ui/internal/Placement.hpp"
 #include "kf/ui/render/Render.hpp"
 
-namespace kf::ui::render {
+namespace kf::ui {
 
-// PlainTextRender
-namespace internal::ptr {
+namespace internal {
 using Glyph = u8;///< Text interface measurement unit in glyphs
 
-struct Config final : mixin::NonCopyable {
-    Function<void(memory::StringView)> on_render_finish{nullptr};///< Callback invoked when rendering completes
-
+struct PlainTextRenderConfig final : mixin::NonCopyable, mixin::Callbacked<memory::StringView> {
     Glyph row_max_length{16}; ///< Maximum characters per row
     Glyph rows_total{4};      ///< Total available rows in display
     Glyph float_places{2};    ///< Decimal places for float
@@ -31,7 +29,7 @@ struct Config final : mixin::NonCopyable {
 };
 
 /// @brief Cursor state for tracking rendering position
-struct Cursor {
+struct PlainTextRenderCursor {
     Glyph row{0}, col{0};///< Current position
 
     /// @brief Reset cursor to beginning
@@ -58,15 +56,15 @@ struct Cursor {
     }
 };
 
-}// namespace internal::ptr
-
+}// namespace internal
+namespace render {
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
 /// @note Implements Render CRTP interface for character-based display
-template<usize N> struct PlainTextRender : Render<PlainTextRender<N>>, mixin::Configurable<internal::ptr::Config> {
+template<usize N> struct PlainTextRender : Render<PlainTextRender<N>>, mixin::Configurable<internal::PlainTextRenderConfig> {
 
     /// @brief Text renderer configuration
-    using Config = internal::ptr::Config;
+    using Config = internal::PlainTextRenderConfig;
 
     using mixin::Configurable<Config>::Configurable;
 
@@ -101,7 +99,7 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>>, mixin::Co
 
 private:
     memory::ArrayString<N> _buffer{};///< Output buffer for rendered text
-    internal::ptr::Cursor _cursor{};
+    internal::PlainTextRenderCursor _cursor{};
 
     KF_IMPL(Render<PlainTextRender<N>>);
 
@@ -120,9 +118,7 @@ private:
     }
 
     void finishImpl() noexcept {
-        if (this->config().on_render_finish) {
-            this->config().on_render_finish(_buffer.view());
-        }
+        const_cast<Config &>(this->config()).invoke(_buffer.view());
     }
 
     void titleImpl(memory::StringView title) noexcept {
@@ -143,11 +139,11 @@ private:
     }
 
     template<typename T> void sliderImpl(
-        T slider_value, T min_value, T max_value,
-        ui::internal::ValuePlacement value_placement) noexcept {
+        T slider_value, Range<T> value_range,
+        internal::Placement placement) noexcept {
 
         // Textual now supports only show/hide placement
-        if (ui::internal::ValuePlacement::Hidden != value_placement) {
+        if (internal::Placement::Hidden != placement) {
             this->value(slider_value);
             writeChar(' ');
         }
@@ -155,7 +151,7 @@ private:
         writeChar('[');
         const usize start_col = _cursor.col;
         const usize inner_width = this->config().row_max_length - start_col - 1;// -1 for closing char
-        const usize fill = (slider_value - min_value) * inner_width / (max_value - min_value);
+        const usize fill = (slider_value - value_range.start) * inner_width / (value_range.end - value_range.start);
 
         for (usize i = 0; i < fill; i += 1) {
             writeChar('=');
@@ -217,4 +213,5 @@ private:
     void endWidgetImpl() noexcept { writeChar('\n'); }
 };
 
-}// namespace kf::ui::render
+}// namespace render
+}// namespace kf::ui
