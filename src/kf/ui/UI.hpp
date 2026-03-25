@@ -8,7 +8,7 @@
 #include "kf/math/units.hpp"
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
-#include "kf/meta/type_check.hpp"
+#include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
@@ -30,24 +30,34 @@ namespace kf::ui {
 /// @tparam R Render impl
 /// @tparam E Event impl
 /// @note Singleton pattern ensures single UI instance with event queue and page management
-template<typename R, typename E> struct UI final : kf::mixin::Singleton<UI<R, E>>, kf::mixin::TimedPollable<UI<R, E>> {
-    kf_crtp_check(R, kf::ui::render::RenderTag);
+template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, mixin::TimedPollable<UI<R, E>> {
+    struct Page;// forward declaration
 
-    using RenderImpl = R;                            ///< Renderer implementation type
-    using RenderConfig = typename RenderImpl::Config;///< Renderer Configuration type
+    /// @brief Renderer implementation type
+    using RenderImpl = R;
 
-    using Event = E;                         ///< UI Event type
-    using EventValue = typename Event::Value;///< UI Event Value type
+    /// @brief Renderer Configuration type
+    using RenderConfig = typename RenderImpl::Config;
 
-    using StepMode = internal::StepMode;
-    using ValuePlacement = internal::ValuePlacement;
+    /// @brief UI Event type
+    using Event = E;
 
-    struct Page;
+    /// @brief UI Event Value type
+    using EventValue = typename Event::Value;
 
-private:
-    using InternalUI = internal::UI<R, EventValue, Page>;
+    using Traits = internal::UiTraits<RenderImpl, Event>;
 
-public:
+    /// @brief Arithmetic mode: value += direction * step
+    template<typename T> using ArithmeticAdjuster = internal::ArithmeticAdjuster<T>;
+
+    /// @brief ArithmeticPositiveOnly mode: value += direction * step, clamp >= 0
+    template<typename T> using ArithmeticPositiveOnlyAdjuster = internal::ArithmeticPositiveOnlyAdjuster<T>;
+
+    /// @brief Geometric mode: value *= step for positive direction, /= for negative
+    template<typename T> using GeometricAdjuster = internal::GeometricAdjuster<T>;
+
+    using Placement = internal::Placement;
+
     /// @brief Base widget type (provided for inheritance or generic references)
     using Widget = widgets::Widget<Traits>;
 
