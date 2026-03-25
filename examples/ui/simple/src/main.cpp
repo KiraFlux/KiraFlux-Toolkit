@@ -31,10 +31,20 @@ struct MainPage : MyUI::Page {
         my_value,// initial value
     };
 
-    MyUI::Slider<int> slider{
-        *this,// add to this page
-        50,   // initial value
-        5,    // step
+    using MySlider = MyUI::Slider<int>;
+
+    MySlider::Config slider_config{
+        .min_value = 0,
+        .max_value = 1000,
+        .default_value = 0,
+        .step = 25,
+        .placement = MyUI::ValuePlacement::Outside,
+        .init_show_value = true,
+    };
+
+    MySlider slider{
+        *this,        // add to this page
+        slider_config,// by ref
     };
 
     explicit MainPage() : Page{"Main"} {
@@ -50,10 +60,6 @@ struct MainPage : MyUI::Page {
             my_value *= -1;
             value_display.value(my_value);
         });
-
-        slider.max_value = 100;
-        slider.min_value = 0;
-        slider.placement = MyUI::ValuePlacement::Inside;
     }
 
     // Page virtual methods

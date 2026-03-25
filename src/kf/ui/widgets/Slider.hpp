@@ -3,34 +3,41 @@
 
 #pragma once
 
+#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
 #include "kf/ui/internal/Adjuster.hpp"
-#include "kf/ui/internal/StepAdjuster.hpp"
-#include "kf/ui/internal/ValueLimits.hpp"
 #include "kf/ui/internal/ValuePlacement.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
-namespace kf::ui::widgets {
+namespace kf::ui {
+namespace internal {
+template<typename T> struct SliderConfig final : mixin::NonCopyable {
+    T min_value;             ///< min value (slider value will clamped at this value)
+    T max_value;             ///< max value (slider value will clamped at this value)
+    T default_value;         ///< slider value by default
+    T step;                  ///< slider value adjust step
+    ValuePlacement placement;///< placement of slider value
+    bool init_show_value;    ///< show value by default
+};
+}// namespace internal
 
+namespace widgets {
 struct SliderTag {};
 
-template<typename U, typename T> struct Slider final : SliderTag, Widget<U>, mixin::ValueCallbacked<T> {
-    using Value = T;
-    using AdjusterImpl = internal::ArithmeticAdjuster<Value>;
-    using StepAdjuster = internal::StepAdjuster<Value>;
-    using ValueLimits = internal::ValueLimits<Value>;
+template<typename U, typename T>
+struct Slider final : SliderTag, Widget<U>, mixin::ValueCallbacked<T>, mixin::Configurable<internal::SliderConfig<T>> {
+    using Config = internal::SliderConfig<T>;
 
-    explicit Slider(
-        Value default_value = Value{},
-        Value step = StepAdjuster::default_step) noexcept :
-        mixin::ValueCallbacked<T>{default_value}, _step{step} {}
+    explicit Slider(const Config &config) noexcept :
+        mixin::ValueCallbacked<T>{kf::clamp(config.default_value, config.min_value, config.max_value)},
+        mixin::Configurable<Config>{config}, show_value{config.init_show_value} {}
 
-    explicit Slider(
-        typename U::PageImpl &root,
-        Value default_value = Value{},
-        Value step = StepAdjuster::default_step) :
-        Widget<U>{root}, mixin::ValueCallbacked<T>{default_value}, _step{step} {}
+    explicit Slider(typename U::PageImpl &page, const Config &config) :
+        Widget<U>{page},
+        mixin::ValueCallbacked<T>{kf::clamp(config.default_value, config.min_value, config.max_value)},
+        mixin::Configurable<Config>{config}, show_value{config.init_show_value} {}
 
     /// @brief Toggle slider numeric value display
     [[nodiscard]] bool onClick() noexcept override {
@@ -41,21 +48,23 @@ template<typename U, typename T> struct Slider final : SliderTag, Widget<U>, mix
     /// @brief Adjust value
     /// @param event_value adjust change scale
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
-        this->value(kf::clamp(AdjusterImpl::adjust(this->value(), _step, event_value), min_value, max_value));
+        this->value(kf::clamp(
+            internal::ArithmeticAdjuster<T>::adjust(this->value(), this->config().step, event_value),
+            this->config().min_value,
+            this->config().max_value));
         return true;// redraw required after adjustment
     }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {
-        render.slider(this->value(), min_value, max_value, show_value ? placement : internal::ValuePlacement::Hidden);
+        render.slider(
+            this->value(),
+            this->config().min_value, this->config().max_value,
+            show_value ? this->config().placement : internal::ValuePlacement::Hidden);
     }
 
-    Value min_value{ValueLimits::value_min};
-    Value max_value{ValueLimits::value_max};
-    internal::ValuePlacement placement{internal::ValuePlacement::Inside};
-    bool show_value{false};
-
 private:
-    Value _step;
+    bool show_value;
 };
 
-}// namespace kf::ui::widgets
+}// namespace widgets
+}// namespace kf::ui
