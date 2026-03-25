@@ -17,7 +17,7 @@ namespace internal {
 template<typename T, usize N> struct ComboBoxConfig final : mixin::NonCopyable {
     static_assert(N >= 1, "N >= 1");
 
-    using ItemContainer = memory::Array<internal::ComboBoxItem<T>, N>;///< Container type for options
+    using ItemContainer = memory::Array<ComboBoxItem<T>, N>;///< Container type for options
 
     ItemContainer items;///< Available options
 };
