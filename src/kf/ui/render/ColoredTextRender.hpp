@@ -39,7 +39,7 @@ private:
     template<typename T> void sliderImpl(
         T value, T min_value, T max_value,
         ui::internal::ValuePlacement value_placement) noexcept {
-        _wrapped.splider(value, min_value, max_value, value_placement);
+        _wrapped.slider(value, min_value, max_value, value_placement);
     }
 
     template<typename T> void valueImpl(T v) { _wrapped.value(v); }
