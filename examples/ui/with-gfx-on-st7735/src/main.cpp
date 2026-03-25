@@ -82,14 +82,22 @@ struct MainPage : MyUI::Page {
 
 struct SettingsPage : MyUI::Page {
 
-    using PresetInput = MyUI::ComboBox<int, 3>;
+    using PresetInput = MyUI::ComboBox<int>;
 
-    PresetInput::Config labeled_ints_combo_box_config{
-        .items = {{{"Normal", 100}, {"Sport", 200}, {"Quiet", 20}}},
+    kf::memory::Array<PresetInput::Item, 3> ints_combo_box_items{
+        {
+            {/* label: */ "Normal", /* value: int */ 100},
+            {"Sport", 200},
+            {"Quiet", 20},
+        },// initializer list
+    };
+
+    PresetInput::Config ints_combo_box_config{
+        .items = {ints_combo_box_items.data(), ints_combo_box_items.size()},// Slice
     };
 
     PresetInput ints_combo_box{
-        labeled_ints_combo_box_config,// by ref
+        ints_combo_box_config,// by ref
     };
 
     MyUI::Labeled labeled_ints_combo_box{
@@ -98,11 +106,14 @@ struct SettingsPage : MyUI::Page {
         ints_combo_box,// by ref
     };
 
-    using MyCombo = MyUI::ComboBox<kf::memory::StringView, 3>;
+    using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
 
-    // StringView-typed combo item implicit constructs from string literal
+    kf::memory::Array<MyCombo::Item, 3> strings_combo_box_items{
+        {"Alpha", "Beta", "Gamma"},// StringView-typed combo item implicit constructs from string literal
+    };
+
     MyCombo::Config strings_combo_box_config{
-        .items = {"Alpha", "Beta", "Gamma"},
+        .items = {strings_combo_box_items.data(), strings_combo_box_items.size()},// Slice
     };
 
     MyCombo strings_combo_box{

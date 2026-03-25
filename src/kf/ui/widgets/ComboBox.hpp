@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/memory/Array.hpp"
+#include "kf/memory/Slice.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
@@ -38,12 +38,10 @@ template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled {
     void value(memory::StringView new_value) noexcept { this->label(new_value); }
 };
 
-template<typename T, usize N> struct ComboBoxConfig final : mixin::NonCopyable {
-    static_assert(N >= 1, "N >= 1");
-
+template<typename T> struct ComboBoxConfig final : mixin::NonCopyable {
     using Item = ComboBoxItem<T>;
 
-    memory::Array<Item, N> items;///< Available options
+    memory::Slice<Item> items;///< Available options
 };
 
 }// namespace internal
@@ -54,10 +52,10 @@ struct ComboBoxTag {};
 
 /// @brief Combo box for selecting from predefined options
 /// @tparam T Value type for options
-/// @tparam N Number of options (must be >= 1)
-template<typename U, typename T, usize N>
-struct ComboBox final : ComboBoxTag, Widget<U>, mixin::Callbacked<T>, mixin::Configurable<internal::ComboBoxConfig<T, N>> {
-    using Config = internal::ComboBoxConfig<T, N>;
+template<typename U, typename T>
+struct ComboBox final : ComboBoxTag, Widget<U>, mixin::Callbacked<T>, mixin::Configurable<internal::ComboBoxConfig<T>> {
+    using Config = internal::ComboBoxConfig<T>;
+    using Item = typename Config::Item;
 
     using mixin::Configurable<Config>::Configurable;
 
@@ -75,16 +73,25 @@ struct ComboBox final : ComboBoxTag, Widget<U>, mixin::Callbacked<T>, mixin::Con
     /// @brief Render current selection
     void doRender(typename U::RenderImpl &render) const noexcept override {
         render.beginAltBlock();
-        render.value(this->config().items[_cursor].label());
+        if (_cursor < totalItems()) {
+            render.value(this->config().items[_cursor].label());
+        }
         render.endAltBlock();
     }
 
 private:
-    isize _cursor{0};///< Current selection index
+    isize _cursor{0};
 
     /// @brief Move selection cursor with circular wrapping
     void moveCursor(isize delta) noexcept {
-        _cursor = (_cursor + delta + N) % N;
+        const auto n = totalItems();
+        if (n > 0) {
+            _cursor = (_cursor + delta + n) % n;
+        }
+    }
+
+    usize totalItems() const noexcept {
+        return this->config().items.size();
     }
 };
 

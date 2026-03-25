@@ -72,8 +72,7 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
 
     /// @brief Combo box for selecting from a fixed set of options
     /// @tparam T Value type of options
-    /// @tparam N Number of options (compile-time)
-    template<typename T, usize N> using ComboBox = widgets::ComboBox<Traits, T, N>;
+    template<typename T> using ComboBox = widgets::ComboBox<Traits, T>;
 
     /// @brief Read-only display of a value (by reference)
     /// @tparam T Type of displayed value (must outlive the widget)
