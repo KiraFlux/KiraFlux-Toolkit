@@ -20,7 +20,7 @@ template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Callback
 
     /// @brief Handle button click event
     [[nodiscard]] bool onClick() noexcept override {
-        mixin::Callbacked<void>::invoke();
+        this->invoke();
         return false;// button click typically doesn't require redraw
     }
 
