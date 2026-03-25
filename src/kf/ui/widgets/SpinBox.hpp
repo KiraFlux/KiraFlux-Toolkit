@@ -17,20 +17,13 @@ struct SpinBoxTag {};
 /// @tparam T Numeric type for spin box value (must be arithmetic)
 template<typename U, typename T, typename AdjusterImpl = internal::ArithmeticAdjuster<T>> struct SpinBox final : SpinBoxTag, Widget<U>, mixin::ValueCallbacked<T> {
     KF_CHECK_IMPL(AdjusterImpl, ::kf::ui::internal::AdjusterTag);
-    using Value = T;///< Numeric value type
 
-    using StepAdjuster = internal::StepAdjuster<Value>;
+    using StepAdjuster = internal::StepAdjuster<T>;
 
-    explicit SpinBox(
-        Value default_value = Value{},
-        Value step = StepAdjuster::default_step) noexcept :
-        mixin::ValueCallbacked<Value>{default_value}, _step{step} {}
-
-    explicit SpinBox(
-        typename U::PageImpl &root,
-        Value default_value = Value{},
-        Value step = StepAdjuster::default_step) :
-        Widget<U>{root}, mixin::ValueCallbacked<Value>{default_value}, _step{step} {}
+    constexpr explicit SpinBox(
+        T default_value = T{},
+        T step = StepAdjuster::default_step) noexcept :
+        mixin::ValueCallbacked<T>{default_value}, _step{step} {}
 
     /// @brief Toggle between value adjustment and step adjustment modes
     /// @return true (redraw required after mode change)
@@ -65,7 +58,7 @@ template<typename U, typename T, typename AdjusterImpl = internal::ArithmeticAdj
     }
 
 private:
-    Value _step;                      ///< Current step size
+    T _step;                          ///< Current step size
     bool _is_step_setting_mode{false};///< true when adjusting step size, false when adjusting value
 };
 

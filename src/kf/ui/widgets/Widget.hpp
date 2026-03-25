@@ -14,15 +14,6 @@ struct WidgetTag {};
 template<typename U> struct Widget : WidgetTag, mixin::NonCopyable {
     KF_CHECK_IMPL(U, ::kf::ui::internal::UiTraitsTag);
 
-    /// @brief Construct widget and add to specified page
-    /// @param root Page to add widget to
-    explicit Widget(typename U::PageImpl &root) {
-        root.addWidget(*this);
-    }
-
-    /// @brief Default constructor (widget not attached to any page)
-    explicit Widget() noexcept = default;
-
     /// @brief Render widget content (must be implemented by derived classes)
     virtual void doRender(typename U::RenderImpl &render) const noexcept = 0;
 

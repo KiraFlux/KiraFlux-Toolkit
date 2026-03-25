@@ -9,10 +9,10 @@ namespace kf::ui::internal {
 
 struct UiTraitsTag {};
 
-template<typename R, typename P, typename E> struct UiTraits final : UiTraitsTag {
+template<typename R, typename E> struct UiTraits final : UiTraitsTag {
     KF_CHECK_IMPL(R, ::kf::ui::render::RenderTag);
     using RenderImpl = R;
-    using PageImpl = P;
+    
     using EventImpl = E;
 };
 

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Labeled.hpp"
 
@@ -15,8 +14,7 @@ struct ButtonTag {};
 
 /// @brief Button widget for triggering actions on click
 template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Callbacked<void>, mixin::Labeled {
-    explicit Button(typename U::PageImpl &root, memory::StringView label) :
-        Widget<U>{root}, mixin::Labeled{label} {}
+    using mixin::Labeled::Labeled;
 
     /// @brief Handle button click event
     [[nodiscard]] bool onClick() noexcept override {

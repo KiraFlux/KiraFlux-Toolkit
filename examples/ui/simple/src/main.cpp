@@ -10,24 +10,21 @@ using MyUI = kf::ui::UI<
     kf::ui::Event<4>                     // Event type: 4-bit value
     >;
 
-// User-defined page examples
+// User-defined example pages
 
 struct MainPage : MyUI::Page {
 
     int my_value{12345};
 
     MyUI::Button click_button{
-        *this, // add to this page
         "Test",// button label
     };
 
     MyUI::CheckBox check_box{
-        *this,// add to this page
-        true, // default: true
+        true,// default: true
     };
 
     MyUI::Display<int> value_display{
-        *this,   // add to this page
         my_value,// initial value
     };
 
@@ -43,11 +40,22 @@ struct MainPage : MyUI::Page {
     };
 
     MySlider slider{
-        *this,        // add to this page
         slider_config,// by ref
     };
 
+    kf::memory::Array<MyUI::Widget *, 5> widgets_storage{
+        {
+            nullptr,// link widget will be init in setup()
+            &click_button,
+            &check_box,
+            &value_display,
+            &slider,
+        },
+    };
+
     explicit MainPage() : Page{"Main"} {
+        widgets({widgets_storage.data(), widgets_storage.size()});
+
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
             my_value += 1;
@@ -100,7 +108,6 @@ struct SettingsPage : MyUI::Page {
     };
 
     MyUI::Labeled labeled_ints_combo_box{
-        *this,         // attach to this page
         "Preset",      // label
         ints_combo_box,// by ref
     };
@@ -116,17 +123,26 @@ struct SettingsPage : MyUI::Page {
     };
 
     MyCombo strings_combo_box{
-        *this,                   // attach to this page
         strings_combo_box_config,// by ref
     };
 
     MyUI::SpinBox<int, MyUI::GeometricAdjuster<int>> spin_box{
-        *this,// attach to this page
-        10,   // = default value
-        2,    // = step
+        10,// = default value
+        2, // = step
+    };
+
+    kf::memory::Array<MyUI::Widget *, 4> widgets_storage{
+        {
+            nullptr,// link widget will be init in setup()
+            &labeled_ints_combo_box,
+            &strings_combo_box,
+            &spin_box,
+        },
     };
 
     explicit SettingsPage() : Page{"Settings"} {
+        widgets({widgets_storage.data(), widgets_storage.size()});
+
         ints_combo_box.callback([](int value) {
             Serial.print("Int Combo selected: ");
             Serial.println(value);
@@ -142,6 +158,7 @@ struct SettingsPage : MyUI::Page {
             Serial.println(value);
         });
     }
+
 } settings_page{};
 
 // Simple function for convertion from char to event
@@ -176,8 +193,11 @@ void setup() {
     config.rows_total = 5;     // only 5 rows available (for scrolling)
     config.row_max_length = 50;// console width = 50 chars
 
-    main_page.link(settings_page);// add special navigation button on both pages
-    ui.bindPage(main_page);       // start ui with main page
+    // insert navigation button on both pages
+    main_page.widgets()[0] = &settings_page.link();
+    settings_page.widgets()[0] = &main_page.link();
+
+    ui.bindPage(main_page);// start ui with main page
 
     ui.addEvent(MyUI::Event::update());// Force update for first ui rendering
 }

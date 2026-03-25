@@ -13,11 +13,7 @@ struct CheckBoxTag {};
 
 /// @brief Checkbox widget for boolean input
 template<typename U> struct CheckBox final : CheckBoxTag, Widget<U>, mixin::ValueCallbacked<bool> {
-    explicit CheckBox(bool default_state = false) noexcept :
-        _state{default_state} {}
-
-    explicit CheckBox(typename U::PageImpl &page, bool default_state = false) :
-        Widget<U>{page}, mixin::ValueCallbacked<bool>{default_state} {}
+    using mixin::ValueCallbacked<bool>::ValueCallbacked;
 
     [[nodiscard]] bool onClick() noexcept override {
         this->value(not this->value());
@@ -32,9 +28,6 @@ template<typename U> struct CheckBox final : CheckBoxTag, Widget<U>, mixin::Valu
     void doRender(typename U::RenderImpl &render) const noexcept override {
         render.checkbox(this->value());
     }
-
-private:
-    bool _state;
 };
 
 }// namespace kf::ui::widgets

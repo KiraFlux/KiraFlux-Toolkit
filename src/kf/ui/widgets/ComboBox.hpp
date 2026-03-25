@@ -59,9 +59,6 @@ struct ComboBox final : ComboBoxTag, Widget<U>, mixin::Callbacked<T>, mixin::Con
 
     using mixin::Configurable<Config>::Configurable;
 
-    explicit ComboBox(typename U::PageImpl &page, const Config &config) :
-        Widget<U>{page}, mixin::Configurable<Config>{config} {}
-
     /// @brief Change selection based on direction
     /// @param value Navigation direction (positive/negative)
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
@@ -70,7 +67,6 @@ struct ComboBox final : ComboBoxTag, Widget<U>, mixin::Callbacked<T>, mixin::Con
         return true;// redraw required after selection change
     }
 
-    /// @brief Render current selection
     void doRender(typename U::RenderImpl &render) const noexcept override {
         render.beginAltBlock();
         if (_cursor < totalItems()) {

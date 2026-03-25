@@ -13,13 +13,12 @@ struct DisplayTag {};
 /// @tparam T Type of value to display
 template<typename U, typename T> struct Display final : DisplayTag, Widget<U> {
 
-    explicit Display(typename U::PageImpl &root, const T &value) : Widget<U>{root}, _value{value} {}
-    explicit Display(const T &value) noexcept : _value{value} {}
+    constexpr explicit Display(T value) noexcept : _value{value} {}
 
-    /// Update the displayed value
+    /// @brief Update the displayed value
     void value(T new_value) noexcept { _value = new_value; }
 
-    /// Get the current displayed value
+    /// @brief Get the current displayed value
     [[nodiscard]] T value() const noexcept { return _value; }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {

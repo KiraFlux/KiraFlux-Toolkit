@@ -13,8 +13,8 @@ struct LabeledTag {};
 
 /// @brief Widget wrapper adding label to another widget
 template<typename U> struct Labeled final : LabeledTag, Widget<U>, mixin::Labeled {
-    explicit Labeled(typename U::PageImpl &page, memory::StringView label, Widget<U> &wrapped) :
-        Widget<U>{page}, mixin::Labeled{label}, _wrapped{wrapped} {}
+    constexpr explicit Labeled(memory::StringView label, Widget<U> &wrapped) noexcept :
+        mixin::Labeled{label}, _wrapped{wrapped} {}
 
     /// @brief Forward click event to wrapped widget
     /// @return Result from wrapped widget's onClick()
@@ -24,7 +24,6 @@ template<typename U> struct Labeled final : LabeledTag, Widget<U>, mixin::Labele
     /// @return Result from wrapped widget's onEventValue()
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override { return _wrapped.onEventValue(event_value); }
 
-    /// @brief Render label followed by wrapped widget
     void doRender(typename U::RenderImpl &render) const noexcept override {
         render.value(this->label());
         render.colon();

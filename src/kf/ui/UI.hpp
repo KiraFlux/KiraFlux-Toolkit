@@ -6,7 +6,6 @@
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
-#include "kf/memory/ArrayList.hpp"
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Labeled.hpp"
@@ -47,7 +46,7 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     /// @brief UI Event Value type
     using EventValue = typename Event::Value;
 
-    using Traits = internal::UiTraits<RenderImpl, Page, Event>;
+    using Traits = internal::UiTraits<RenderImpl, Event>;
 
     /// @brief Arithmetic mode: value += direction * step
     template<typename T> using ArithmeticAdjuster = internal::ArithmeticAdjuster<T>;
@@ -148,31 +147,30 @@ public:
         /// @brief Page behavior on UI polling
         virtual void onUpdate(math::Milliseconds now) noexcept {}
 
-        /// @brief Add widget to this page
-        /// @param widget Widget to add (must remain valid for page lifetime)
-        void addWidget(Widget &widget) {
-            _widgets.push_back(&widget);
-        }
-
-        /// @brief Create bidirectional navigation link between pages
-        /// @param other Page to link with (adds navigation widgets to both pages)
-        void link(Page &other) {
-            this->addWidget(other._to_this);
-            other.addWidget(this->_to_this);
-        }
+        /// @brief Get 'go to this page' Widget
+        Widget &link() noexcept { return _to_this; }
 
         /// @brief Render page content to display
         /// @note Handles cursor positioning and widget focus
         void render(RenderImpl &render) noexcept {
             render.title(this->label());
 
+            if (nullptr == _widgets.data()) { return; }
+
             const usize available = render.widgetsAvailable();
-            const usize start = (widgetsTotal() > available) ? kf::min(static_cast<usize>(_cursor), widgetsTotal() - available) : 0;
-            const usize end = kf::min(start + available, widgetsTotal());
+            const usize start = (_widgets.size() > available) ? kf::min(static_cast<usize>(_cursor), _widgets.size() - available) : 0;
+            const usize end = kf::min(start + available, _widgets.size());
 
             for (auto i = start; i < end; i += 1) {
+                auto widget = _widgets[i];
+
+                if (nullptr == widget) { continue; }
+
                 render.beginWidget(i);
-                _widgets[i]->render(render, i == _cursor);
+
+                const bool is_selected = (i == _cursor);
+                widget->render(render, is_selected);
+
                 render.endWidget();
             }
         }
@@ -188,12 +186,12 @@ public:
                     return moveCursor(event.value());
                 }
                 case Event::Kind::WidgetClick: {
-                    if (widgetsTotal() > 0) {
+                    if (_widgets.size() > 0) {
                         return _widgets[_cursor]->onClick();
                     }
                 }
                 case Event::Kind::WidgetValueChange: {
-                    if (widgetsTotal() > 0) {
+                    if (_widgets.size() > 0) {
                         return _widgets[_cursor]->onEventValue(event.value());
                     }
                 }
@@ -201,19 +199,23 @@ public:
             return false;
         }
 
-        /// @brief Get total widget count on page
-        [[nodiscard]] usize widgetsTotal() const noexcept { return _widgets.size(); }
+        /// @brief Get widgets on page
+        [[nodiscard]] memory::Slice<Widget *> widgets() noexcept { return _widgets; }
+
+    protected:
+        /// @brief Set widgets on page
+        void widgets(memory::Slice<Widget *> new_widgets) noexcept { _widgets = new_widgets; }
 
     private:
-        memory::ArrayList<Widget *> _widgets{};///< List of widgets on this page
-        PageSetter _to_this{*this};            ///< Navigation widget to this page
-        isize _cursor{0};                      ///< Current widget cursor position (focused widget index)
+        memory::Slice<Widget *> _widgets{};///< Widgets on this page
+        PageSetter _to_this{*this};        ///< Navigation widget to this page
+        isize _cursor{0};                  ///< Current widget cursor position (focused widget index)
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
         /// @return true if cursor position changed (redraw required)
         [[nodiscard]] bool moveCursor(isize delta) noexcept {
-            const auto n = widgetsTotal();
+            const auto n = _widgets.size();
             if (n > 1) {
                 _cursor = (_cursor + delta + n) % n;
                 return true;

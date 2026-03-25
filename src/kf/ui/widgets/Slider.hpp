@@ -30,12 +30,7 @@ template<typename U, typename T>
 struct Slider final : SliderTag, Widget<U>, mixin::ValueCallbacked<T>, mixin::Configurable<internal::SliderConfig<T>> {
     using Config = internal::SliderConfig<T>;
 
-    explicit Slider(const Config &config) noexcept :
-        mixin::ValueCallbacked<T>{kf::clamp(config.default_value, config.min_value, config.max_value)},
-        mixin::Configurable<Config>{config}, show_value{config.init_show_value} {}
-
-    explicit Slider(typename U::PageImpl &page, const Config &config) :
-        Widget<U>{page},
+    constexpr explicit Slider(const Config &config) noexcept :
         mixin::ValueCallbacked<T>{kf::clamp(config.default_value, config.min_value, config.max_value)},
         mixin::Configurable<Config>{config}, show_value{config.init_show_value} {}
 
