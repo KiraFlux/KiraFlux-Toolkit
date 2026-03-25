@@ -7,6 +7,7 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
 #include "kf/ui/widgets/Widget.hpp"
@@ -14,39 +15,35 @@
 namespace kf::ui {
 namespace internal {
 
-template<typename T> struct ComboBoxItem {
+template<typename T> struct ComboBoxItem final : mixin::Labeled {
 
-    [[nodiscard]] memory::StringView key() const noexcept { return _key; }
+    constexpr ComboBoxItem(memory::StringView label, T value) noexcept :
+        mixin::Labeled{label}, _value{value} {}
 
     [[nodiscard]] T value() const noexcept { return _value; }
 
-    constexpr ComboBoxItem(memory::StringView key, T value) noexcept :
-        _key{key}, _value{value} {}
+    void value(T new_value) noexcept { _value = new_value; }
 
 private:
-    memory::StringView _key;
     T _value;
 };
 
-template<> struct ComboBoxItem<memory::StringView> {
-
-    [[nodiscard]] memory::StringView key() const noexcept { return _key; }
-
-    [[nodiscard]] memory::StringView value() const noexcept { return _key; }
+template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled {
 
     template<usize N> constexpr ComboBoxItem(const char (&str)[N]) noexcept :// NOLINT(*-explicit-constructor)
-        _key{str} {}
+        mixin::Labeled{str} {}
 
-private:
-    memory::StringView _key;
+    [[nodiscard]] memory::StringView value() const noexcept { return this->label(); }
+
+    void value(memory::StringView new_value) noexcept { this->label(new_value); }
 };
 
 template<typename T, usize N> struct ComboBoxConfig final : mixin::NonCopyable {
     static_assert(N >= 1, "N >= 1");
 
-    using ItemContainer = memory::Array<ComboBoxItem<T>, N>;///< Container type for options
+    using Item = ComboBoxItem<T>;
 
-    ItemContainer items;///< Available options
+    memory::Array<Item, N> items;///< Available options
 };
 
 }// namespace internal
@@ -78,7 +75,7 @@ struct ComboBox final : ComboBoxTag, Widget<U>, mixin::Callbacked<T>, mixin::Con
     /// @brief Render current selection
     void doRender(typename U::RenderImpl &render) const noexcept override {
         render.beginAltBlock();
-        render.value(this->config().items[_cursor].key());
+        render.value(this->config().items[_cursor].label());
         render.endAltBlock();
     }
 
