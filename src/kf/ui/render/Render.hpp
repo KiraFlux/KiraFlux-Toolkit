@@ -9,7 +9,7 @@
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-#include "kf/ui/internal/ValuePlacement.hpp"
+#include "kf/ui/internal/Placement.hpp"
 
 namespace kf::ui::render {
 
@@ -47,9 +47,7 @@ template<typename Impl> struct Render : RenderTag, mixin::NonCopyable, meta::CRT
     void checkbox(bool enabled) noexcept { this->impl().checkboxImpl(enabled); }
 
     /// @brief Render slider
-    template<typename T> void slider(
-        T v, Range<T> value_range,
-        internal::ValuePlacement placement) noexcept {
+    template<typename T> void slider(T v, Range<T> value_range, internal::Placement placement) noexcept {
         this->impl().sliderImpl(v, value_range, placement);
     }
 

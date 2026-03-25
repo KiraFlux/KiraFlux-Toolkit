@@ -12,7 +12,7 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-#include "kf/ui/internal/ValuePlacement.hpp"
+#include "kf/ui/internal/Placement.hpp"
 #include "kf/ui/render/Render.hpp"
 
 namespace kf::ui {
@@ -140,10 +140,10 @@ private:
 
     template<typename T> void sliderImpl(
         T slider_value, Range<T> value_range,
-        internal::ValuePlacement placement) noexcept {
+        internal::Placement placement) noexcept {
 
         // Textual now supports only show/hide placement
-        if (internal::ValuePlacement::Hidden != placement) {
+        if (internal::Placement::Hidden != placement) {
             this->value(slider_value);
             writeChar(' ');
         }

@@ -37,7 +37,7 @@ struct MainPage : MyUI::Page {
         },
         .default_value = 0,
         .step = 25,
-        .placement = MyUI::ValuePlacement::Outside,
+        .placement = MyUI::Placement::Outside,
         .init_show_value = true,
     };
 

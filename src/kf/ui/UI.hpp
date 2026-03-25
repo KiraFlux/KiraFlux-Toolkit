@@ -56,7 +56,7 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     /// @brief Geometric mode: value *= step for positive direction, /= for negative
     template<typename T> using GeometricAdjuster = internal::GeometricAdjuster<T>;
 
-    using ValuePlacement = internal::ValuePlacement;
+    using Placement = internal::Placement;
 
     /// @brief Base widget type (provided for inheritance or generic references)
     using Widget = widgets::Widget<Traits>;

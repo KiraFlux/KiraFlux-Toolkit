@@ -1,6 +1,6 @@
 #pragma once
 
-#include "kf/ui/internal/ValuePlacement.hpp"
+#include "kf/ui/internal/Placement.hpp"
 #include "kf/ui/render/PlainTextRender.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -36,9 +36,7 @@ private:
         _wrapped.writeChar('\x80');
     }
 
-    template<typename T> void sliderImpl(
-        T value, Range<T> value_range,
-        ui::internal::ValuePlacement value_placement) noexcept {
+    template<typename T> void sliderImpl(T value, Range<T> value_range, internal::Placement value_placement) noexcept {
         _wrapped.slider(value, value_range, value_placement);
     }
 

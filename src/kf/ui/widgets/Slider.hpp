@@ -9,17 +9,18 @@
 #include "kf/mixin/ValueCallbacked.hpp"
 
 #include "kf/ui/internal/Adjuster.hpp"
-#include "kf/ui/internal/ValuePlacement.hpp"
+#include "kf/ui/internal/Placement.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::ui {
 namespace internal {
+
 template<typename T> struct SliderConfig final : mixin::NonCopyable {
-    Range<T> value_range;    ///< value range (slider value will clamped at this value)
-    T default_value;         ///< slider value by default
-    T step;                  ///< slider value adjust step
-    ValuePlacement placement;///< placement of slider value
-    bool init_show_value;    ///< show value by default
+    Range<T> value_range;///< value range (slider value will clamped at this value)
+    T default_value;     ///< slider value by default
+    T step;              ///< slider value adjust step
+    Placement placement; ///< placement of slider value
+    bool init_show_value;///< show value by default
 };
 }// namespace internal
 
@@ -52,7 +53,7 @@ struct Slider final : SliderTag, Widget<U>, mixin::ValueCallbacked<T>, mixin::Co
         render.slider(
             this->value(),
             this->config().value_range,
-            show_value ? this->config().placement : internal::ValuePlacement::Hidden);
+            show_value ? this->config().placement : internal::Placement::Hidden);
     }
 
 private:
