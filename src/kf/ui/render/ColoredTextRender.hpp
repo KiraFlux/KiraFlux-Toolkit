@@ -36,7 +36,7 @@ private:
         _wrapped.writeChar('\x80');
     }
 
-    template<typename T> void sliderImlpl(
+    template<typename T> void sliderImpl(
         T value, T min_value, T max_value,
         ui::internal::ValuePlacement value_placement) noexcept {
         _wrapped.splider(value, min_value, max_value, value_placement);
