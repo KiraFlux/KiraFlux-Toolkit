@@ -17,7 +17,7 @@ struct SpinBoxTag {};
 /// @tparam T Numeric type for spin box value (must be arithmetic)
 template<typename U, typename T, typename AdjusterImpl = internal::ArithmeticAdjuster<T>> struct SpinBox final : SpinBoxTag, Widget<U>, mixin::ValueCallbacked<T> {
     KF_CHECK_IMPL(AdjusterImpl, ::kf::ui::internal::AdjusterTag);
-    using Value = T;                   ///< Numeric value type
+    using Value = T;///< Numeric value type
 
     using StepAdjuster = internal::StepAdjuster<Value>;
 
