@@ -19,13 +19,13 @@ struct WritableTag {};
 /// @tparam ErrorImpl Error type used by the implementation.
 /// @note Derived classes must implement:
 ///
-///       - `Result<void, Error> writeBufferImpl(memory::Slice<const u8>)`
+///       - `Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept`
 ///         Write a contiguous buffer of bytes.
 ///
-///       - `template<typename T> Result<void, Error> writePacketImpl(T &&packet)`
+///       - `template<typename T> Result<void, Error> writePacketImpl(T &&packet) noexcept`
 ///         Write a trivially copyable object.
 ///
-///       - `template<typename T> Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer)`
+///       - `template<typename T> Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept`
 ///         Write a small header followed by a buffer (e.g. command + data) in one transaction.
 template<typename Impl, typename ErrorImpl> struct Writable : WritableTag {
 

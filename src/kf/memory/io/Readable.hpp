@@ -18,10 +18,10 @@ struct ReadableTag {};
 /// @tparam ErrorImpl Error type used by the implementation.
 /// @note Derived classes must implement:
 ///
-///       - `Result<memory::Slice<const u8>, Error> readBufferImpl(memory::Slice<u8>)`
+///       - `Result<memory::Slice<const u8>, Error> readBufferImpl(memory::Slice<u8> buffer) noexcept`
 ///         Read up to buffer.size() bytes into the given buffer. Returns a slice of actually read data.
 ///
-///       - `template<typename T> Result<T, Error> readPacketImpl()`
+///       - `template<typename T> Result<T, Error> readPacketImpl() noexcept`
 ///         Read a trivially copyable object of type T (size fixed at compile time).
 template<typename Impl, typename ErrorImpl> struct Readable : ReadableTag {
 
