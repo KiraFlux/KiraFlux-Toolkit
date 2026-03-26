@@ -8,9 +8,9 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
+#include "kf/io/Readable.hpp"
+#include "kf/io/Writable.hpp"
 #include "kf/math/units.hpp"
-#include "kf/memory/io/Readable.hpp"
-#include "kf/memory/io/Writable.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 

@@ -17,11 +17,11 @@
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
 #include "kf/aliases.hpp"
+#include "kf/io/Writable.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/Map.hpp"
 #include "kf/memory/Slice.hpp"
-#include "kf/memory/io/Writable.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
@@ -64,7 +64,7 @@ struct EspNow final : kf::mixin::Singleton<EspNow>,
     using Error = internal::EspNowError;
 
     /// @brief ESP-NOW peer representation with communication capabilities
-    struct Peer final : memory::io::Writable<Peer, Error>, mixin::NonCopyable {
+    struct Peer final : io::Writable<Peer, Error>, mixin::NonCopyable {
         /// @brief Handler type for receiving data from this specific peer
         using ReceiveHandler = Function<void(memory::Slice<const u8>)>;
 

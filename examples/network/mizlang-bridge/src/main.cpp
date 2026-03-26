@@ -1,24 +1,31 @@
 #include <Arduino.h>
+
+#include <kf/io/ArduinoStream.hpp>
+#include <kf/memory/Array.hpp>
 #include <kf/network/MizLangBridge.hpp>
 
-using kf::memory::io::InputStream;
-using kf::memory::io::OutputStream;
+using kf::io::ArduinoStream;
 
-using Bridge = kf::network::MizLangBridge<1, kf::u8, kf::u8>;// < handlers_total, local_code, [remote_code = local_code] >
-Bridge bridge{
-    InputStream{Serial},
-    OutputStream{Serial},
+using Bridge = kf::network::MizLangBridge<ArduinoStream, ArduinoStream, kf::u8, kf::u8>;// < Input, Output, local_code, [remote_code = local_code] >
 
+// may be shared with some amount of bridge instances
+kf::memory::Array<Bridge::ReceiveFunctionType, 1> receiver_table{
     // instruction table with (1) handler
     {
         // #0
-        [](InputStream &) -> kf::Result<void, Bridge::Error> {
+        [](ArduinoStream &) -> kf::Result<void, Bridge::Error> {
             return {};
         },
     },
 };
 
-auto ins_0 = bridge.createInstruction([](OutputStream &, void *) -> kf::Result<void, Bridge::Error> {
+Bridge my_bridge{
+    ArduinoStream{Serial},
+    ArduinoStream{Serial},
+    {receiver_table.data(), receiver_table.size()},
+};
+
+auto ins_0 = my_bridge.createInstruction([](ArduinoStream &, void *) -> kf::Result<void, Bridge::Error> {
     // do something ...
 
     return {};// OK
@@ -28,7 +35,7 @@ struct MyArgs {
     int a, b;
 };
 
-auto ins_1 = bridge.createInstruction([](OutputStream &, void *args) -> kf::Result<void, Bridge::Error> {
+auto ins_1 = my_bridge.createInstruction([](ArduinoStream &, void *args) -> kf::Result<void, Bridge::Error> {
     if (nullptr == args) {
         return Bridge::Error::Sender_ArgumentWriteFail;
     }
@@ -60,4 +67,6 @@ void setup() {
     }
 }
 
-void loop() {}
+void loop() {
+    const auto result = my_bridge.poll();// polling: handle remote insturctions
+}

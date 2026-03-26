@@ -4,8 +4,8 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/memory/io/Readable.hpp"
-#include "kf/memory/io/Writable.hpp"
+#include "kf/io/Readable.hpp"
+#include "kf/io/Writable.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -14,7 +14,7 @@
 namespace kf::bus {
 
 struct BusNodeTag {};
-template<typename Impl, typename ErrorImpl> struct BusNode : BusNodeTag, mixin::NonCopyable, memory::io::Readable<Impl, ErrorImpl>, memory::io::Writable<Impl, ErrorImpl> {};
+template<typename Impl, typename ErrorImpl> struct BusNode : BusNodeTag, mixin::NonCopyable, io::Readable<Impl, ErrorImpl>, io::Writable<Impl, ErrorImpl> {};
 
 struct BusTag {};
 
