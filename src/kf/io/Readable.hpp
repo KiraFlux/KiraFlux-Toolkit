@@ -9,7 +9,7 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/Slice.hpp"
 
-namespace kf::memory::io {
+namespace kf::io {
 
 struct ReadableTag {};
 
@@ -51,6 +51,6 @@ private:
     const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
-}// namespace kf::memory::io
+}// namespace kf::io
 
-#define KF_IMPL_READABLE(__impl__, __error_type__) friend struct kf::memory::io::Readable<__impl__, __error_type__>
+#define KF_IMPL_READABLE(__impl__, __error_type__) friend struct kf::io::Readable<__impl__, __error_type__>

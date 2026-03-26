@@ -8,9 +8,9 @@
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
 #include "kf/aliases.hpp"
+#include "kf/io/Readable.hpp"
+#include "kf/io/Writable.hpp"
 #include "kf/memory/Slice.hpp"
-#include "kf/memory/io/Readable.hpp"
-#include "kf/memory/io/Writable.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
@@ -20,8 +20,8 @@ namespace kf::network {
 /// @tparam Tlc Type of local instruction code
 /// @tparam Trc Type of remote instruction code
 template<typename R, typename W, typename Tlc, typename Trc = Tlc> struct MizLangBridge final : mixin::NonCopyable {
-    KF_CHECK_IMPL(R, ::kf::memory::io::ReadableTag);
-    KF_CHECK_IMPL(W, ::kf::memory::io::WritableTag);
+    KF_CHECK_IMPL(R, ::kf::io::ReadableTag);
+    KF_CHECK_IMPL(W, ::kf::io::WritableTag);
 
     using ReadableImpl = R;
     using WritableImpl = W;

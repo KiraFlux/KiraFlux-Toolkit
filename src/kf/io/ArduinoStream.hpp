@@ -8,11 +8,11 @@
 #include <Stream.h>
 
 #include "kf/aliases.hpp"
-#include "kf/memory/io/Readable.hpp"
-#include "kf/memory/io/Writable.hpp"
+#include "kf/io/Readable.hpp"
+#include "kf/io/Writable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-namespace kf::memory::io {
+namespace kf::io {
 
 namespace internal {
 
@@ -25,8 +25,8 @@ enum class ArduinoStreamError : u8 {
 }
 
 struct ArduinoStream final : mixin::NonCopyable,
-                             memory::io::Readable<ArduinoStream, internal::ArduinoStreamError>,
-                             memory::io::Writable<ArduinoStream, internal::ArduinoStreamError> {
+                             io::Readable<ArduinoStream, internal::ArduinoStreamError>,
+                             io::Writable<ArduinoStream, internal::ArduinoStreamError> {
 
     using Error = internal::ArduinoStreamError;
 
@@ -106,4 +106,4 @@ private:
     }
 };
 
-}// namespace kf::memory::io
+}// namespace kf::io

@@ -10,7 +10,7 @@
 #include "kf/aliases.hpp"
 #include "kf/memory/Slice.hpp"
 
-namespace kf::memory::io {
+namespace kf::io {
 
 struct WritableTag {};
 
@@ -66,6 +66,6 @@ private:
     const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
-}// namespace kf::memory::io
+}// namespace kf::io
 
-#define KF_IMPL_WRITABLE(__impl__, __error_type__) friend struct kf::memory::io::Writable<__impl__, __error_type__>
+#define KF_IMPL_WRITABLE(__impl__, __error_type__) friend struct kf::io::Writable<__impl__, __error_type__>

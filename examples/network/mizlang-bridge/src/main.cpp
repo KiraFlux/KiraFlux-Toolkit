@@ -1,10 +1,10 @@
 #include <Arduino.h>
 
+#include <kf/io/ArduinoStream.hpp>
 #include <kf/memory/Array.hpp>
-#include <kf/memory/io/ArduinoStream.hpp>
 #include <kf/network/MizLangBridge.hpp>
 
-using kf::memory::io::ArduinoStream;
+using kf::io::ArduinoStream;
 
 using Bridge = kf::network::MizLangBridge<ArduinoStream, ArduinoStream, kf::u8, kf::u8>;// < Input, Output, local_code, [remote_code = local_code] >
 
@@ -68,5 +68,5 @@ void setup() {
 }
 
 void loop() {
-    const auto result = my_bridge.poll(); // polling: handle remote insturctions
+    const auto result = my_bridge.poll();// polling: handle remote insturctions
 }
