@@ -14,6 +14,9 @@ target_dirs = (
 )
 
 def _write(f: Path):
+    if f.stem == "compile_commands":
+        return
+    
     try:
         print(f"{file.relative_to(REPO_DIR)}")
         print(f"```{f.suffix}")
