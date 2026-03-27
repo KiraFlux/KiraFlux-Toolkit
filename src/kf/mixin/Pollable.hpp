@@ -8,10 +8,10 @@ namespace kf::mixin {
 struct PollableTag {};
 
 /// @brief CRTP mixin poll (Periodic polling)
-/// @tparam Impl Derived class (must provide `pollImpl()`).
+/// @tparam Impl The derived class that must implement `pollImpl()`.
 template<typename Impl> struct Pollable : PollableTag {
 
-    /// @brief Poll
+    /// @brief Performs periodic polling.
     void poll() noexcept { static_cast<Impl *>(this)->pollImpl(); }
 };
 

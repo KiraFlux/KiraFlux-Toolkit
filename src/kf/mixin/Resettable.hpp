@@ -8,7 +8,7 @@ namespace kf::mixin {
 struct ResettableTag {};
 
 /// @brief CRTP mixin reset.
-/// @tparam Impl Derived class (must provide `resetImpl()`).
+/// @tparam Impl The derived class that must implement `resetImpl()`.
 template<typename Impl> struct Resettable : ResettableTag {
 
     /// @brief Reset: full state-reset

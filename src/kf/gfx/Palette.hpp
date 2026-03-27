@@ -8,6 +8,8 @@
 
 namespace kf::gfx {
 
+/// @brief Predefined colour palette for a given pixel format.
+/// @tparam P Pixel format type (must satisfy pixel::PixelTag).
 template<typename P> struct Palette final {
     KF_CHECK_IMPL(P, pixel::PixelTag);
 
@@ -53,6 +55,9 @@ private:
     };
 
 public:
+    /// @brief Get a colour from the ANSI colour index (0‑15).
+    /// @param ansi_color_index Index of the desired colour (only lower 4 bits used).
+    /// @return Colour value in the target pixel format.
     [[nodiscard]] static constexpr ColorType ansiColor(u8 ansi_color_index) noexcept {
         return ansi_colors[ansi_color_index & 0xf];
     }

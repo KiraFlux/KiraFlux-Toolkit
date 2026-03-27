@@ -149,8 +149,9 @@ public:
         /// @brief Get 'go to this page' Widget
         Widget &link() noexcept { return _to_this; }
 
-        /// @brief Render page content to display
-        /// @note Handles cursor positioning and widget focus
+        /// @brief Render page content to display.
+        /// @param render Renderer instance.
+        /// @note Handles cursor positioning and widget focus.
         void render(RenderImpl &render) noexcept {
             render.title(this->label());
 
@@ -174,8 +175,8 @@ public:
             }
         }
 
-        /// @brief Process incoming UI event
-        /// @return true if redraw required after event processing
+        /// @brief Add event to processing queue.
+        /// @param event The event to be processed.
         [[nodiscard]] bool onEvent(Event event) noexcept {
             switch (event.kind()) {
                 case Event::Kind::Update: {

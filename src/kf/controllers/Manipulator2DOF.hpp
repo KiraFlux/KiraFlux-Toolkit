@@ -9,12 +9,15 @@
 
 namespace kf::controllers {
 
-/// @brief Two-degree-of-freedom robotic manipulator with servo control
-/// @note Controls arm and claw axes using PWM-position servo drivers
+/// @brief Two-degree-of-freedom robotic manipulator
+/// @tparam I Actuator implementation type (must satisfy Actuator interface).
+/// @note Controls arm and claw axes servo drivers
 template<typename I> struct Manipulator2DOF final : mixin::NonCopyable, mixin::Initable<Manipulator2DOF, bool> {
     using ActuatorImpl = I;
 
-    /// @brief Construct manipulator instance
+    /// @brief Construct manipulator instance.
+    /// @param arm  Actuator for the arm axis (will be moved).
+    /// @param claw Actuator for the claw axis (will be moved).
     explicit Manipulator2DOF(ActuatorImpl &&arm, ActuatorImpl &&claw) noexcept : _arm{arm}, _claw{claw} {}
 
     /// @brief Set arm axis angle

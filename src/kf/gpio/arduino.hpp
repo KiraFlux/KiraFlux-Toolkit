@@ -12,12 +12,13 @@
 
 namespace kf::gpio::arduino {
 
-/// Digital input with configurable pull‑up/pull‑down.
-/// @note Pull mode is set during init(); after that the pin stays configured.
+/// @brief Arduino digital input with configurable pull-up/down.
+/// @note Pull mode is set during `init()`; after that the pin stays configured.
 struct DigitalInput : gpio::DigitalInput<DigitalInput, void> {
 
-    /// @param pin      GPIO number (e.g. GPIO_NUM_4)
-    /// @param pull_mode pull configuration
+    /// @brief Constructor.
+    /// @param pin       GPIO number (e.g., `GPIO_NUM_4`).
+    /// @param pull_type Pull configuration (internal/external, up/down).
     explicit DigitalInput(gpio_num_t pin, Pull pull_type) noexcept :
         _pin{static_cast<u8>(pin)}, _state{static_cast<u8>(pull_type)} {}
 
@@ -56,13 +57,13 @@ private:
     }
 };
 
-/// 12‑bit ADC input (ESP32 typical).
-/// @note AnalogReadResolution should be set globally (default 12 bits).
+/// @brief Arduino ADC input (typically 12‑bit on ESP32).
+/// @note Global resolution is set via `resolution()`.
 struct AdcInput : gpio::AdcInput<AdcInput, void> {
 
-    /// @param pin GPIO number with ADC capability (e.g. GPIO_NUM_34)
-    explicit AdcInput(gpio_num_t pin) noexcept :
-        _pin{static_cast<u8>(pin)} {}
+    /// @brief Constructor.
+    /// @param pin GPIO number with ADC capability (e.g., `GPIO_NUM_34`)
+    explicit AdcInput(gpio_num_t pin) noexcept : _pin{static_cast<u8>(pin)} {}
 
 private:
     static u8 resolution_bits;
@@ -96,10 +97,11 @@ private:
 
 u8 AdcInput::resolution_bits{12};// Arduino default resolution on ESP32 is 12-bits
 
-/// Digital output
+/// @brief Arduino digital output.
 struct DigitalOutput : gpio::DigitalOutput<DigitalOutput, void> {
 
-    /// @param pin GPIO number (e.g. GPIO_NUM_2)
+    /// @brief Constructor.
+    /// @param pin GPIO number (e.g., `GPIO_NUM_2`).
     explicit DigitalOutput(gpio_num_t pin) noexcept :
         _pin{static_cast<u8>(pin)} {}
 
@@ -135,9 +137,11 @@ struct Config final : mixin::NonCopyable {
 };
 }// namespace internal::pwm
 
-/// PWM output using ESP32 LEDC hardware.
-/// @note One LEDC channel can control multiple pins (same frequency/resolution).
+/// @brief Arduino PWM output using ESP32 LEDC hardware.
+/// @note One LEDC channel can drive multiple pins (same frequency/resolution).
 struct PwmOutput : gpio::PwmOutput<PwmOutput, bool>, mixin::Configurable<internal::pwm::Config> {
+
+    /// @brief Configuration for an ESP32 LEDC PWM channel.
     using Config = internal::pwm::Config;
 
     using mixin::Configurable<Config>::Configurable;

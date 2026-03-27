@@ -18,9 +18,11 @@ struct Config final : mixin::NonCopyable {
 };
 }// namespace internal::lff
 
-/// @brief Low-frequency filter (first-order low-pass)
-/// @tparam T Scalar type (typically float or integer)
-/// @note Uses exponential smoothing to attenuate high-frequency noise
+/// @brief First-order low-pass filter (exponential smoothing).
+/// @tparam T Scalar type (e.g., float, double).
+/// @note Attenuates high-frequency noise. The `factor` determines smoothing:
+///       factor = 1.0 -> no filtering (output = input)
+///       factor = 0.0 -> output stays constant (infinite smoothing)
 template<typename T> struct LowFrequencyFilter : Filter<LowFrequencyFilter<T>, T>, mixin::Configurable<internal::lff::Config> {
     using ValueType = T;
     using Config = internal::lff::Config;

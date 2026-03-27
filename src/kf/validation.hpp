@@ -12,7 +12,10 @@ namespace kf {
 /// @note Used to validate configuration and object states
 struct Validator final : mixin::NonCopyable {
 
-    /// @brief Check a validation condition and log result
+    /// @brief Check a validation condition and log result.
+    /// @param logger          The logger instance to use for output.
+    /// @param condition_ok    True if condition passes, false otherwise.
+    /// @param condition_string String representation of the condition (used in logs).
     void check(const Logger &logger, bool condition_ok, memory::StringView condition_string) noexcept {
         if (condition_ok) {
             logger.info(condition_string);

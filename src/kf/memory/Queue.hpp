@@ -9,10 +9,9 @@
 
 namespace kf::memory {
 
-/// @brief FIFO (first-in, first-out) queue adapter
-/// @tparam T Element type
-/// @tparam Container Underlying container type (default: kf::Deque<T>)
-/// @note Wrapper around std::queue for platforms with standard library support
+/// @brief FIFO (first‑in, first‑out) queue adapter.
+/// @tparam T        Element type.
+/// @tparam Container Underlying container type (default: kf::memory::Deque<T>).
 template<typename T, typename Container = kf::memory::Deque<T>> using Queue = std::queue<T, Container>;
 
 }// namespace kf

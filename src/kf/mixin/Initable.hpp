@@ -8,9 +8,11 @@ namespace kf::mixin {
 struct InitableTag {};
 
 /// @brief CRTP mixin initialisation.
-/// @tparam Impl Derived class (must provide `initImpl()`).
-/// @tparam T    Return type of init() (void or any).
+/// @tparam Impl The derived class that must implement `initImpl()`.
+/// @tparam T   Return type of the initialization (void or some Result/error type).
 template<typename Impl, typename T> struct Initable : InitableTag {
+
+    /// @tparam T   Return type of the initialization (void or some Result/error type).
     [[nodiscard]] T init() noexcept {
         return static_cast<Impl *>(this)->initImpl();
     }
@@ -18,6 +20,8 @@ template<typename Impl, typename T> struct Initable : InitableTag {
 
 /// @brief Void specialisation.
 template<typename Impl> struct Initable<Impl, void> : InitableTag {
+
+    /// @brief Initializes the object.
     void init() noexcept {
         static_cast<Impl *>(this)->initImpl();
     }

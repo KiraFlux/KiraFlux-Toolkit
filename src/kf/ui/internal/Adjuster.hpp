@@ -10,8 +10,16 @@ namespace kf::ui::internal {
 
 struct AdjusterTag {};
 
-/// @brief Generic spin box value adjustment
+/// @brief CRTP base for value adjustment strategies used by SpinBox.
+/// @tparam Impl The derived adjustment class.
+/// @tparam T   The numeric type to adjust.
 template<typename Impl, typename T> struct Adjuster : AdjusterTag {
+
+    /// @brief Applies an adjustment to a value.
+    /// @param value    The current value.
+    /// @param step     The step size.
+    /// @param direction Direction: -1 (decrease), 0 (no change), +1 (increase).
+    /// @return The adjusted value.
     [[nodiscard]] static constexpr T adjust(T value, T step, int direction) noexcept {
         return Impl::adjustImpl(value, step, direction);
     }
