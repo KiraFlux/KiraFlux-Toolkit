@@ -22,4 +22,4 @@ template<typename Impl> struct CRTP {
 
 #define KF_IMPL(...) friend struct __VA_ARGS__
 
-#define KF_CHECK_IMPL(__impl__, __base__) static_assert(std::is_base_of_v<__base__, __impl__>, "'" #__impl__ "' must be implementation of '" #__base__ "'")
+#define KF_CHECK_IMPL(__impl__, ...) static_assert(std::is_base_of_v<__VA_ARGS__, __impl__>, "'" #__impl__ "' must be implementation of '" #__VA_ARGS__ "'")

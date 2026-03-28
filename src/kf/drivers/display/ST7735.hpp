@@ -17,26 +17,28 @@
 #include "kf/drivers/display/Orientation.hpp"
 
 namespace kf::drivers::display {
-namespace internal {
-using ST7735_ImageImpl = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
 
-struct ST7735_Config final : mixin::NonCopyable {
+namespace internal {
+
+using ST7735Image = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
+
+struct ST7735Config final : mixin::NonCopyable {
     Orientation init_orientation;
 };
 
 }// namespace internal
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, internal::ST7735_ImageImpl>, mixin::Configurable<internal::ST7735_Config> {
+template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, internal::ST7735Image>, mixin::Configurable<internal::ST7735Config> {
     KF_CHECK_IMPL(Ib, kf::bus::spi::SpiNodeTag);
     KF_CHECK_IMPL(Ido, kf::gpio::DigitalOutputTag);
 
     using NodeImpl = Ib;
     using DigitalOutputPinImpl = Ido;
-    using PixelImpl = typename internal::ST7735_ImageImpl::PixelImpl;
+    using PixelImpl = typename internal::ST7735Image::PixelImpl;
 
     /// @brief Hardware configuration for ST7735
-    using Config = internal::ST7735_Config;
+    using Config = internal::ST7735Config;
 
     /// @brief Memory Access Control (MADCTL) register bits
     enum MadCtl : u8 {
@@ -68,7 +70,7 @@ template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<I
     };
 
     explicit ST7735(const Config &config, NodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
-        mixin::Configurable<internal::ST7735_Config>{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
+        mixin::Configurable<internal::ST7735Config>{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
 
 private:
     NodeImpl _node;
@@ -132,7 +134,7 @@ private:
         delay(120);
     }
 
-    KF_IMPL(DisplayDriver<This, internal::ST7735_ImageImpl>);
+    KF_IMPL(DisplayDriver<This, internal::ST7735Image>);
     bool sendImpl() noexcept {
         sendCommand(Command::RAMWR);
         sendBuffer({reinterpret_cast<const u8 *>(this->image().buffer().data()), this->image().size()});

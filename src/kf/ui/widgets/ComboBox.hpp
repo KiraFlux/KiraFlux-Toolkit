@@ -13,6 +13,7 @@
 #include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::ui {
+
 namespace internal {
 
 template<typename T> struct ComboBoxItem final : mixin::Labeled {
