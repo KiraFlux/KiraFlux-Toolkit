@@ -1,13 +1,33 @@
 name: Unit Tests
 
-on: [push, pull_request]
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  push:
+  pull_request:
+    branches: [main]
 
 jobs:
-  test:
+  gather-test-suites:
     runs-on: ubuntu-latest
+    outputs:
+      suites: ${{ steps.find.outputs.suites }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install PlatformIO
-        run: pip install platformio
-      - name: Run native tests
-        run: pio test -e native
+      - name: Find test suites
+        id: find
+        run: chmod +x ./find-test-suites.sh && echo "suites=$(bash ./find-test-suites.sh)" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: gather-test-suites
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: ${{ fromJson(needs.gather-test-suites.outputs.suites) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-platformio
+      - name: Run test suite ${{ matrix.suite }}
+        run: pio test -e native --filter "${{ matrix.suite }}"

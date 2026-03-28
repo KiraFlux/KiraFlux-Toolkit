@@ -5,33 +5,37 @@
 
 #include "kf/math/units.hpp"
 #include "kf/memory/Slice.hpp"
+#include "kf/meta/CRTP.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
+
+struct ImageTag {};
 
 /// @brief Image
 /// @tparam Impl Image implementation
 /// @tparam P Pixel implementation
-template<typename Impl, typename P> struct Image {
-    using PixelImpl = P;
+template<typename Impl, typename P> struct Image : ImageTag, meta::CRTP<Impl> {
+    KF_CHECK_IMPL(P, pixel::PixelTag);
+
     using BufferType = typename P::BufferType;
-    using ColorType = typename P::ColorType;
 
     // Abstract properties
 
     /// @brief Get current width in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] Pixels width() const noexcept { return c_impl().getWidthImpl(); }
+    [[nodiscard]] math::Pixels width() const noexcept { return this->impl().getWidthImpl(); }
 
     /// @brief Get current height in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] Pixels height() const noexcept { return c_impl().getHeightImpl(); }
+    [[nodiscard]] math::Pixels height() const noexcept { return this->impl().getHeightImpl(); }
 
     /// @brief Get current full width in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] Pixels stride() const noexcept { return c_impl().getStrideImpl(); }
+    [[nodiscard]] math::Pixels stride() const noexcept { return this->impl().getStrideImpl(); }
 
     /// @brief Get writable frame buffer
-    [[nodiscard]] Slice<BufferType> buffer() noexcept { return impl().getBufferImpl(); }
+    [[nodiscard]] memory::Slice<BufferType> buffer() noexcept { return this->impl().getBufferImpl(); }
 
     /// @brief Get readonly frame buffer
-    [[nodiscard]] Slice<const BufferType> buffer() const noexcept { return c_impl().getBufferImpl(); }
+    [[nodiscard]] memory::Slice<const BufferType> buffer() const noexcept { return this->impl().getBufferImpl(); }
 
     // properties
 
@@ -41,13 +45,8 @@ template<typename Impl, typename P> struct Image {
     /// @brief Get maximum valid Y coordinate
     [[nodiscard]] u8 maxY() const noexcept { return height() - 1; }
 
-    // CRTP
-    friend Impl;
-
-private:
-    inline Impl &impl() noexcept { return *static_cast<Impl *>(this); }
-
-    inline const Impl &c_impl() const noexcept { return *static_cast<const Impl *>(this); }
+    /// @brief Get image size in bytes
+    [[nodiscard]] usize size() const noexcept { return buffer().size() * sizeof(BufferType); }
 };
 
 }// namespace kf::image

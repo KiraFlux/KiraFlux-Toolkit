@@ -7,50 +7,53 @@
 #include "kf/math/units.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/Slice.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
 
 /// @brief Predefined bitmap image with compile-time dimensions
-/// @tparam F Pixel format for the image
+/// @tparam P Pixel format for the image
 /// @tparam W Image width in pixels (compile-time constant)
 /// @tparam H Image height in pixels (compile-time constant)
 /// @details Represents a static image with fixed dimensions stored in memory.
 /// The image buffer is embedded directly in the object and cannot be resized.
 /// Useful for storing icons, logos, and other predefined graphics.
-template<typename F, Pixels W, Pixels H> struct StaticImage final : Image<StaticImage<F, W, H>, F> {
-    using PixelImpl = F;
-    using BufferType = typename F::BufferType;
-    using ColorType = typename F::ColorType;
+template<typename P, math::Pixels W, math::Pixels H> struct StaticImage final : Image<StaticImage<P, W, H>, P> {
+    KF_CHECK_IMPL(P, pixel::PixelTag);
 
-    using BufferStorage = Array<BufferType, F::template buffer_size<W, H>>;
+    using PixelImpl = P;
+    using BufferType = typename PixelImpl::BufferType;
+    using ColorType = typename PixelImpl::ColorType;
 
-private:
-    /// @brief Raw image buffer data
-    /// @details Contains the pixel data for the entire image.
-    BufferStorage _buffer;
+    using BufferStorage = memory::Array<BufferType, PixelImpl::template buffer_size<W, H>>;
 
-public:
     explicit StaticImage(const BufferStorage &buffer) noexcept :
         _buffer{buffer} {}
 
     StaticImage() noexcept :
         _buffer{} {}
 
-    // CRTP
 private:
-    friend Image<StaticImage<F, W, H>, F>;
+    /// @brief Raw image buffer data
+    /// @details Contains the pixel data for the entire image.
+    BufferStorage _buffer;
 
-    [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return W; }
+    // impl
+    using This = StaticImage<P, W, H>;
 
-    [[nodiscard]] constexpr Pixels getHeightImpl() const noexcept { return H; }
+    KF_IMPL(Image<This, P>);
 
-    [[nodiscard]] constexpr Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
+    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return W; }
 
-    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
+    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept { return H; }
+
+    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
+
+    [[nodiscard]] constexpr memory::Slice<BufferType> getBufferImpl() noexcept {
         return {_buffer.data(), _buffer.size()};
     }
 
-    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept {
+    [[nodiscard]] constexpr memory::Slice<const BufferType> getBufferImpl() const noexcept {
         return {_buffer.data(), _buffer.size()};
     }
 };

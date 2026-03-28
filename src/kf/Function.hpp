@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "kf/mixin/NonCopyable.hpp"
 
 namespace kf {
 
@@ -23,13 +24,13 @@ class Function;
  * @tparam Alignment Alignment requirement for internal storage
  */
 template<typename R, typename... Args, size_t BufferSize, size_t Alignment>
-class Function<R(Args...), BufferSize, Alignment> {
+class Function<R(Args...), BufferSize, Alignment> : mixin::NonCopyable {
 private:
     struct Base {
         virtual ~Base() noexcept = default;
         virtual R invoke(Args... args) = 0;
-        virtual void move_to(void *dest) noexcept = 0;
-        virtual Base *clone_to(void *dest) const noexcept = 0;
+        virtual void moveTo(void *dest) noexcept = 0;
+        virtual Base *cloneTo(void *dest) const noexcept = 0;
     };
 
     template<typename F>
@@ -39,7 +40,7 @@ private:
         // Construct from any callable
         explicit Impl(F &&func) noexcept : f(std::forward<F>(func)) {}
 
-        // Copy/move constructors needed for clone_to and move_to
+        // Copy/move constructors needed for cloneTo and moveTo
         Impl(const Impl &other) : f(other.f) {}
         Impl(Impl &&other) : f(std::move(other.f)) {}
 
@@ -47,32 +48,32 @@ private:
             return std::invoke(f, std::forward<Args>(args)...);
         }
 
-        void move_to(void *dest) noexcept override {
+        void moveTo(void *dest) noexcept override {
             new (dest) Impl(std::move(f));
         }
 
-        Base *clone_to(void *dest) const noexcept override {
+        Base *cloneTo(void *dest) const noexcept override {
             new (dest) Impl(*this);
             return reinterpret_cast<Base *>(dest);
         }
     };
 
-    alignas(Alignment) std::byte storage_[BufferSize]{};
-    Base *func_ = nullptr;
+    alignas(Alignment) std::byte _storage[BufferSize]{};
+    Base *_func = nullptr;
 
     void destroy() noexcept {
-        if (func_) {
-            func_->~Base();
-            func_ = nullptr;
+        if (_func) {
+            _func->~Base();
+            _func = nullptr;
         }
     }
 
-    void move_from(Function &&other) noexcept {
-        if (other.func_) {
-            other.func_->move_to(storage_);
-            func_ = reinterpret_cast<Base *>(storage_);
-            other.func_->~Base();
-            other.func_ = nullptr;
+    void moveFrom(Function &&other) noexcept {
+        if (other._func) {
+            other._func->moveTo(_storage);
+            _func = reinterpret_cast<Base *>(_storage);
+            other._func->~Base();
+            other._func = nullptr;
         }
     }
 
@@ -85,7 +86,7 @@ private:
         static_assert(std::is_invocable_r<R, F, Args...>::value,
                       "Callable object is not invocable with given arguments");
 
-        func_ = new (storage_) Impl<std::decay_t<F>>(std::forward<F>(f));
+        _func = new (_storage) Impl<std::decay_t<F>>(std::forward<F>(f));
     }
 
 public:
@@ -103,19 +104,15 @@ public:
         construct(std::forward<F>(f));
     }
 
-    // Non-copyable
-    Function(const Function &) = delete;
-    Function &operator=(const Function &) = delete;
-
     // Movable
     Function(Function &&other) noexcept {
-        move_from(std::move(other));
+        moveFrom(std::move(other));
     }
 
     Function &operator=(Function &&other) noexcept {
         if (this != &other) {
             destroy();
-            move_from(std::move(other));
+            moveFrom(std::move(other));
         }
         return *this;
     }
@@ -134,12 +131,12 @@ public:
     template<typename... CallArgs>
     R operator()(CallArgs &&...args) const {
         if constexpr (std::is_void<R>::value) {
-            if (func_) {
-                func_->invoke(std::forward<CallArgs>(args)...);
+            if (_func) {
+                _func->invoke(std::forward<CallArgs>(args)...);
             }
         } else {
-            if (func_) {
-                return func_->invoke(std::forward<CallArgs>(args)...);
+            if (_func) {
+                return _func->invoke(std::forward<CallArgs>(args)...);
             } else {
                 return R{};
             }
@@ -148,7 +145,7 @@ public:
 
     /// Check if the function holds a callable.
     explicit operator bool() const noexcept {
-        return func_ != nullptr;
+        return _func != nullptr;
     }
 
     /// Reset to empty state.
@@ -172,26 +169,26 @@ public:
         alignas(Alignment) std::byte temp[BufferSize];
         Base *temp_func = nullptr;
 
-        if (other.func_) {
-            other.func_->move_to(temp);
+        if (other._func) {
+            other._func->moveTo(temp);
             temp_func = reinterpret_cast<Base *>(temp);
-            other.func_->~Base();
+            other._func->~Base();
         }
 
-        if (func_) {
-            func_->move_to(other.storage_);
-            other.func_ = reinterpret_cast<Base *>(other.storage_);
-            func_->~Base();
+        if (_func) {
+            _func->moveTo(other._storage);
+            other._func = reinterpret_cast<Base *>(other._storage);
+            _func->~Base();
         } else {
-            other.func_ = nullptr;
+            other._func = nullptr;
         }
 
         if (temp_func) {
-            temp_func->move_to(storage_);
-            func_ = reinterpret_cast<Base *>(storage_);
+            temp_func->moveTo(_storage);
+            _func = reinterpret_cast<Base *>(_storage);
             temp_func->~Base();
         } else {
-            func_ = nullptr;
+            _func = nullptr;
         }
     }
 

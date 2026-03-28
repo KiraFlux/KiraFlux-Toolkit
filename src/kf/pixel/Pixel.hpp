@@ -3,13 +3,15 @@
 
 #pragma once
 
+#include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
 #include "kf/memory/Slice.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces) //c++11 capability
-namespace pixel {
+namespace kf::pixel {
 
-template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel {
+struct PixelTag {};
+
+template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelTag {
     // types
 
     using PositionType = i16;
@@ -33,7 +35,7 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel {
 
     /// @brief set pixel color
     static void setPixel(
-        Slice<BufferType> buffer,
+        memory::Slice<BufferType> buffer,
         PositionType stride,
         PositionType abs_x,
         PositionType abs_y,
@@ -46,7 +48,7 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel {
 
     /// @brief Effective fill rectangular region with specified color
     static void fill(
-        Slice<BufferType> buffer,
+        memory::Slice<BufferType> buffer,
         PositionType stride,
         PositionType offset_x,
         PositionType offset_y,
@@ -62,10 +64,10 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel {
 
     /// @brief Copy rectangular region from source to destination buffer
     static void copy(
-        Slice<const BufferType> src,
+        memory::Slice<const BufferType> src,
         PositionType src_w,
         PositionType src_h,
-        Slice<BufferType> dst,
+        memory::Slice<BufferType> dst,
         PositionType dst_stride,
         PositionType dst_x,
         PositionType dst_y) noexcept {
@@ -109,5 +111,4 @@ protected:
     using Base = Pixel;
 };
 
-}// namespace pixel
-}// namespace kf
+}// namespace kf::pixel

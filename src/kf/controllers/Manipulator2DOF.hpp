@@ -3,75 +3,53 @@
 
 #pragma once
 
-#include "kf/drivers/zms/PwmPositionServo.hpp"
+#include <utility>
+
+#include "kf/drivers/actuators/Actuator.hpp"
 #include "kf/math/units.hpp"
-#include "kf/validation.hpp"
+#include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
-namespace kf {
+namespace kf::controllers {
 
-/// @brief Two-degree-of-freedom robotic manipulator with servo control
-/// @note Controls arm and claw axes using PWM-position servo drivers
-struct Manipulator2DOF {
+/// @brief Two-degree-of-freedom robotic manipulator
+/// @tparam I Actuator implementation type (must satisfy Actuator interface).
+/// @note Controls arm and claw axes servo drivers
+template<typename I> struct Manipulator2DOF final : mixin::NonCopyable, mixin::Initable<Manipulator2DOF, bool> {
+    KF_CHECK_IMPL(I, ::kf::drivers::actuators::ActuatorTag);
 
-    /// @brief Configuration settings for 2DOF manipulator
-    struct Settings : Validable<Settings> {
-        PwmPositionServo::PwmSettings servo_pwm;                     ///< PWM signal configuration
-        PwmPositionServo::PulseSettings servo_generic_pulse_settings;///< Pulse timing settings
-        PwmPositionServo::DriverSettings claw_axis;                  ///< Claw axis servo configuration
-        PwmPositionServo::DriverSettings arm_axis;                   ///< Arm axis servo configuration
+    using ActuatorImpl = I;
 
-        /// @brief Validate all configuration parameters
-        void check(Validator &validator) const noexcept {
-            kf_Validator_check(validator, arm_axis.isValid());
-            kf_Validator_check(validator, claw_axis.isValid());
-            kf_Validator_check(validator, servo_pwm.isValid());
-            kf_Validator_check(validator, servo_generic_pulse_settings.isValid());
-        }
-    };
-
-private:
-    const Settings &settings;  ///< Reference to configuration settings
-    PwmPositionServo arm_axis; ///< Arm axis servo driver
-    PwmPositionServo claw_axis;///< Claw axis servo driver
-
-public:
-    /// @brief Construct manipulator instance
-    /// @param settings Configuration settings for both axes
-    explicit Manipulator2DOF(const Settings &settings) noexcept:
-        settings{settings},
-        arm_axis{settings.servo_pwm, settings.arm_axis, settings.servo_generic_pulse_settings},
-        claw_axis{settings.servo_pwm, settings.claw_axis, settings.servo_generic_pulse_settings} {}
-
-    /// @brief Initialize both servo axes
-    /// @return true if both servos initialized successfully
-    /// @note Logs error message if initialization fails
-    [[nodiscard]] bool init() noexcept {
-        if (not arm_axis.init()) {
-            kf_Logger_error("arm axis fail");
-            return false;
-        }
-
-        if (not claw_axis.init()) {
-            kf_Logger_error("claw axis fail");
-            return false;
-        }
-
-        return true;
-    }
+    /// @brief Construct manipulator instance.
+    /// @param arm  Actuator for the arm axis (will be moved).
+    /// @param claw Actuator for the claw axis (will be moved).
+    explicit Manipulator2DOF(ActuatorImpl &&arm, ActuatorImpl &&claw) noexcept :
+        _arm{std::move(arm)}, _claw{std::move(claw)} {}
 
     /// @brief Set arm axis angle
-    /// @param angle Target angle in degrees
-    inline void setArm(Degrees angle)  noexcept { arm_axis.set(angle); }
+    void arm(math::Degrees angle) noexcept { _arm.write(angle); }
 
     /// @brief Set claw axis angle
-    /// @param angle Target angle in degrees
-    inline void setClaw(Degrees angle) noexcept { claw_axis.set(angle); }
+    void claw(math::Degrees angle) noexcept { _claw.write(angle); }
 
     /// @brief Disable arm axis servo (stop PWM)
-    inline void disableArm() noexcept { arm_axis.disable(); }
+    void disableArm() noexcept { _arm.disable(); }
 
     /// @brief Disable claw axis servo (stop PWM)
-    inline void disableClaw() noexcept { claw_axis.disable(); }
+    void disableClaw() noexcept { _claw.disable(); }
+
+private:
+    ActuatorImpl _arm, _claw;
+
+    // impl
+    using This = Manipulator2DOF;
+
+    KF_IMPL_INITABLE(This, bool);
+    bool initImpl() noexcept {
+        if (not _arm.init()) { return false; }
+        if (not _claw.init()) { return false; }
+        return true;
+    }
 };
 
-}// namespace kf
+}// namespace kf::controllers

@@ -3,147 +3,26 @@
 
 #pragma once
 
-#include <Wire.h>
-
+#include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/drivers/display/DisplayDriver.hpp"
+#include "kf/bus/iic/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
 
-namespace kf {
+#include "kf/drivers/display/DisplayDriver.hpp"
+#include "kf/drivers/display/Orientation.hpp"
+
+namespace kf::drivers::display {
+namespace internal {
+using SSD1306_ImageImpl = image::StaticImage<pixel::MonochromePixel, 128, 64>;
+}
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-struct SSD1306 final : DisplayDriver<SSD1306, image::StaticImage<pixel::MonochromePixel, 128, 64>> {
-    using PixelImpl = pixel::MonochromePixel;
+template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, internal::SSD1306_ImageImpl> {
+    KF_CHECK_IMPL(I, kf::bus::iic::IicNodeTag);
 
-    struct Config {
-        u32 i2c_clock_frequency;
-        u8 address;
-
-        explicit Config(u32 clock_frequency, u8 address = 0x3C) noexcept :
-            i2c_clock_frequency{clock_frequency}, address{address} {}
-    };
-
-private:
-    const Config &config;
-    TwoWire &wire;
-
-public:
-    /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(const Config &config, TwoWire &wire) noexcept :
-        config{config}, wire{wire} {}
-
-    /// @brief Set display contrast level (0..255)
-    void setContrast(u8 value) const {
-        wire.beginTransmission(config.address);
-        (void) wire.write(CommandMode);
-        (void) wire.write(Contrast);
-        (void) wire.write(value);
-        (void) wire.endTransmission();
-    }
-
-    /// @brief Enable or disable display power
-    void setPower(bool on) noexcept {
-        sendCommand(on ? DisplayOn : DisplayOff);
-    }
-
-    /// @brief Invert display colors
-    void invert(bool invert) noexcept {
-        sendCommand(invert ? InvertDisplay : NormalDisplay);
-    }
-
-private:
-    // DisplayDriver interface implementation
-
-    /// @brief Initialize display hardware via I2C
-    [[nodiscard]] bool initImpl() const noexcept {
-        static constexpr u8 init_commands[] = {
-            CommandMode,
-
-            // Turn off for safe configuration
-            DisplayOff,
-
-            // Clock divider
-            ClockDiv, 0x80,
-
-            // Enable internal charge pump
-            ChargePump, 0x14,
-
-            // Horizontal addressing mode
-            AddressingMode, Horizontal,
-
-            // Default contrast 127
-            Contrast, 0x7F,
-
-            // VCOM voltage
-            SetVcomDetect, 0x40,
-
-            // Normal orientation
-            NormalH, NormalV,
-
-            // Turn display on
-            DisplayOn,
-
-            // Pin configuration (128x64)
-            SetComPins, 0x12,
-
-            // Multiplex (64 lines)
-            SetMultiplex, 0x3F};
-
-        if (not wire.begin()) { return false; }
-
-        if (not wire.setClock(config.i2c_clock_frequency)) { return false; }
-
-        wire.beginTransmission(config.address);
-
-        const auto written = wire.write(init_commands, sizeof(init_commands));
-        if (sizeof(init_commands) != written) { return false; }
-
-        const u8 end_transmission_code = wire.endTransmission();
-        return 0 == end_transmission_code;
-    }
-
-    /// @brief Transfer software buffer to display via I2C
-    void sendImpl() const noexcept {
-        static constexpr auto packet_size = 64;// Optimal for ESP32 performance
-
-        static constexpr u8 set_area_commands[] = {
-            CommandMode,
-            // Set full display window
-            ColumnAddr,
-            0,
-            127,
-            PageAddr,
-            0,
-            PixelImpl::template pages<64> - 1,
-        };
-
-        wire.beginTransmission(config.address);
-        (void) wire.write(set_area_commands, sizeof(set_area_commands));
-        (void) wire.endTransmission();
-
-        auto p = screen_image.buffer().data();
-        const auto *end = screen_image.buffer().end();
-
-        while (p < end) {
-            wire.beginTransmission(config.address);
-            (void) wire.write(Command::DataMode);
-            (void) wire.write(p, packet_size);
-            (void) wire.endTransmission();
-
-            p += packet_size;
-        }
-    }
-
-    /// @brief Apply orientation transformation (only flip operations supported)
-    void setOrientationImpl(Orientation orientation) noexcept {
-        constexpr auto flip_x = 0b01;
-        constexpr auto flip_y = 0b10;
-
-        const u8 flags = static_cast<u8>(orientation) & (flip_x | flip_y);
-        sendCommand((flags & flip_x) ? FlipH : NormalH);
-        sendCommand((flags & flip_y) ? FlipV : NormalV);
-    }
+    using NodeImpl = I;
+    using PixelImpl = typename internal::SSD1306_ImageImpl::PixelImpl;
 
     /// @brief SSD1306 command set
     enum Command : u8 {
@@ -176,15 +55,147 @@ private:
         InvertDisplay = 0xA7 ///< Inverted pixel color (white on black)
     };
 
-    /// @brief Send single command to display
-    void sendCommand(Command command) const noexcept {
-        wire.beginTransmission(config.address);
-        (void) wire.write(OneCommandMode);
-        (void) wire.write(static_cast<u8>(command));
-        (void) wire.endTransmission();
+    static constexpr u8 default_address = {0x3C};
+
+    /// @brief Construct SSD1306 driver instance
+    explicit SSD1306(NodeImpl &&node) noexcept : _node{std::move(node)} {}
+
+    /// @brief Set display contrast level (0..255)
+    /// @returns true - operation success
+    [[nodiscard]] bool setContrast(u8 value) noexcept {
+        const u8 packet[]{CommandMode, Contrast, value};
+        return _node.writePacket(packet).isOk();
     }
 
-    friend Base;// CRTP
+    /// @brief Enable or disable display power
+    /// @returns true - operation success
+    [[nodiscard]] bool setPower(bool on) noexcept {
+        return sendCommand(on ? DisplayOn : DisplayOff);
+    }
+
+    /// @brief Invert display colors
+    /// @returns true - operation success
+    [[nodiscard]] bool invert(bool invert) noexcept {
+        return sendCommand(invert ? InvertDisplay : NormalDisplay);
+    }
+
+    [[nodiscard]] constexpr static bool supportOrientation(Orientation orientation) noexcept {
+        return orientation == Orientation::Normal or orientation == Orientation::MirrorX or orientation == Orientation::MirrorY;
+    }
+
+private:
+    NodeImpl _node;
+
+    /// @brief Send single command to display
+    [[nodiscard]] bool sendCommand(Command c) noexcept {
+        const u8 packet[]{OneCommandMode, static_cast<u8>(c)};
+        return _node.writePacket(packet).isOk();
+    }
+
+    // impl
+    using This = SSD1306<I>;
+
+    KF_IMPL_INITABLE(This, bool);
+    /// @brief Initialize display hardware via I2C
+    bool initImpl() noexcept {
+        static constexpr u8 init_commands[] = {
+            CommandMode,
+
+            // Turn off for safe configuration
+            DisplayOff,
+
+            // Clock divider
+            ClockDiv,
+            0x80,
+
+            // Enable internal charge pump
+            ChargePump,
+            0x14,
+
+            // Horizontal addressing mode
+            AddressingMode,
+            Horizontal,
+
+            // Default contrast 127
+            Contrast,
+            0x7F,
+
+            // VCOM voltage
+            SetVcomDetect,
+            0x40,
+
+            // Normal orientation
+            NormalH,
+            NormalV,
+
+            // Turn display on
+            DisplayOn,
+
+            // Pin configuration (128x64)
+            SetComPins,
+            0x12,
+
+            // Multiplex (64 lines)
+            SetMultiplex,
+            0x3F,
+        };
+
+        return _node.writePacket(init_commands).isOk();
+    }
+
+    KF_IMPL_RESETTABLE(This);
+    void resetImpl() const noexcept {}
+
+    KF_IMPL(DisplayDriver<This, internal::SSD1306_ImageImpl>);
+    bool sendImpl() noexcept {
+        // Transfer software buffer to display via I2C
+
+        static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
+
+        static constexpr u8 set_area_commands[] = {
+            CommandMode,
+            // Set full display window
+            ColumnAddr,
+            0,
+            127,
+            PageAddr,
+            0,
+            PixelImpl::template pages<64> - 1,
+        };
+
+        auto p = this->image().buffer().data();
+        auto remaining = this->image().buffer().size();
+
+        if (_node.writePacket(set_area_commands).isError()) { goto fail; }
+
+        while (remaining > 0) {
+            const auto chunk = min(packet_size, remaining);
+
+            if (_node.writeMixed(Command::DataMode, {p, chunk}).isError()) { goto fail; }
+
+            p += chunk;
+            remaining -= chunk;
+        }
+
+        return true;
+    fail:
+        return false;
+    }
+
+    bool setOrientationImpl(Orientation orientation) noexcept {
+        if (not supportOrientation(orientation)) { return false; }
+
+        constexpr auto flip_x = 0b01;
+        constexpr auto flip_y = 0b10;
+        const auto flags = static_cast<u8>(orientation);
+
+        if (not sendCommand((flags & flip_x) ? FlipH : NormalH)) { goto fail; }
+        if (not sendCommand((flags & flip_y) ? FlipV : NormalV)) { goto fail; }
+
+        return true;
+    fail:
+        return false;
+    }
 };
 
-}// namespace kf
+}// namespace kf::drivers::display

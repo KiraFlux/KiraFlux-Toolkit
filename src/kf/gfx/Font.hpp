@@ -63,13 +63,13 @@ struct Font final {
     /// @return Total advance width in pixels (glyph_width + 1)
     /// @details Includes 1 pixel of spacing between characters.
     /// Use this for cursor positioning and text layout calculations.
-    [[nodiscard]] inline u8 widthTotal() const noexcept { return glyph_width + 1; }
+    [[nodiscard]] constexpr u8 widthTotal() const noexcept { return glyph_width + 1; }
 
     /// @brief Get total height including inter-line spacing
     /// @return Total line height in pixels (glyph_height + 1)
     /// @details Includes 1 pixel of spacing between lines.
     /// Use this for multi-line text layout calculations.
-    [[nodiscard]] inline u8 heightTotal() const noexcept { return glyph_height + 1; }
+    [[nodiscard]] constexpr u8 heightTotal() const noexcept { return glyph_height + 1; }
 
     /// @brief Get pointer to glyph data for a character
     /// @param c Character code (ASCII)

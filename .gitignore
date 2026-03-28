@@ -3,3 +3,11 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+shapshot.txt
+lint.txt
+diff.txt
+log.txt
+
+compile_commands.json
+check_report.json

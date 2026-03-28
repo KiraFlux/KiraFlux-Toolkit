@@ -1,23 +1,34 @@
 name: Build Examples
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
-    branches: [ "main" ]
+    branches: [dev, main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
 
 jobs:
-  build:
+  gather-examples:
     runs-on: ubuntu-latest
+    outputs:
+      examples: ${{ steps.find.outputs.examples }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install PlatformIO
-        run: pip install platformio
-      - name: Build all examples
-        run: |
-          for example in examples/*; do
-            if [ -d "$example" ]; then
-              echo "Building $example"
-              pio run -d "$example"
-            fi
-          done
+      - name: Find example directories
+        id: find
+        run: chmod +x ./find-examples.sh && echo "examples=$(bash ./find-examples.sh)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: gather-examples
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        example: ${{ fromJson(needs.gather-examples.outputs.examples) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-platformio
+      - name: Build ${{ matrix.example }}
+        run: pio run -d "${{ matrix.example }}"

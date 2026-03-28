@@ -25,14 +25,14 @@ private:
         return static_cast<ColorType>(((color & 0xFF) << 8) | (color >> 8));
     }
 
-    static void setPixelImpl(Slice<BufferType> buffer, PositionType stride, PositionType abs_x, PositionType abs_y, ColorType color) noexcept {
+    static void setPixelImpl(memory::Slice<BufferType> buffer, PositionType stride, PositionType abs_x, PositionType abs_y, ColorType color) noexcept {
         const auto target = buffer.data() + (abs_y * stride + abs_x);
         if (target < buffer.end()) {
             *target = color;
         }
     }
 
-    static void fillImpl(Slice<BufferType> buffer, PositionType stride, PositionType offset_x, PositionType offset_y, PositionType width, PositionType height, ColorType color) noexcept {
+    static void fillImpl(memory::Slice<BufferType> buffer, PositionType stride, PositionType offset_x, PositionType offset_y, PositionType width, PositionType height, ColorType color) noexcept {
         const auto total_height = int(buffer.size()) / stride;
         const auto end_y = kf::min(offset_y + height, total_height);
         const auto end_x = kf::min(offset_x + width, int(stride));
@@ -45,10 +45,10 @@ private:
     }
 
     static void copyImpl(
-        Slice<const BufferType> src,
+        memory::Slice<const BufferType> src,
         PositionType src_w,
         PositionType src_h,
-        Slice<BufferType> dst,
+        memory::Slice<BufferType> dst,
         PositionType dst_stride,
         PositionType dst_x,
         PositionType dst_y,

@@ -8,17 +8,26 @@
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
 #include "kf/aliases.hpp"
-#include "kf/memory/Array.hpp"
-#include "kf/memory/io/InputStream.hpp"
-#include "kf/memory/io/OutputStream.hpp"
+#include "kf/io/Readable.hpp"
+#include "kf/io/Writable.hpp"
+#include "kf/memory/Slice.hpp"
+#include "kf/meta/CRTP.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
-namespace kf {
+namespace kf::network {
 
 /// @brief Structural Serial P2P byte-packet protocol
-/// @tparam N Exact count of local instructions
 /// @tparam Tlc Type of local instruction code
 /// @tparam Trc Type of remote instruction code
-template<usize N, typename Tlc, typename Trc = Tlc> struct MizLangBridge {
+template<typename R, typename W, typename Tlc, typename Trc = Tlc> struct MizLangBridge final : mixin::NonCopyable {
+    KF_CHECK_IMPL(R, ::kf::io::ReadableTag);
+    KF_CHECK_IMPL(W, ::kf::io::WritableTag);
+
+    using ReadableImpl = R;
+    using WritableImpl = W;
+    using LocalCodeType = Tlc;
+    using RemoteCodeType = Trc;
+
     enum class Error : u8 {
         Receiver_CodeNotExists,
         Receiver_CodeReadFail,
@@ -29,72 +38,55 @@ template<usize N, typename Tlc, typename Trc = Tlc> struct MizLangBridge {
         Sender_ArgumentWriteFail
     };
 
-    using LocalCodeType = Tlc;
-    using RemoteCodeType = Trc;
-    using SendFunctionType = Function<Result<void, Error>(io::OutputStream &, void *)>;
-    using ReceiveFunctionType = Function<Result<void, Error>(io::InputStream &)>;
-    using InstructionTableType = Array<ReceiveFunctionType, N>;
+    using SendFunctionType = Function<Result<void, Error>(WritableImpl &, void *)>;
+    using ReceiveFunctionType = Function<Result<void, Error>(ReadableImpl &)>;
+    using InstructionTableType = memory::Slice<ReceiveFunctionType>;
 
-private:
-    InstructionTableType instructions;
-    io::InputStream in;
-    io::OutputStream out;
-    RemoteCodeType next_code{0};
+    explicit MizLangBridge(ReadableImpl &&input_stream, WritableImpl &&output_stream, InstructionTableType instructions) noexcept :
+        _input_stream{std::move(input_stream)}, _output_stream{std::move(output_stream)}, _instructions{instructions} {}
 
-public:
-    explicit MizLangBridge(
-        io::InputStream input_stream,
-        io::OutputStream output_stream,
-        InstructionTableType instructions) noexcept :
-        in{std::move(input_stream)},
-        out{std::move(output_stream)},
-        instructions{std::move(instructions)} {}
+    struct Instruction final : mixin::NonCopyable {
 
-    struct Instruction {
-    private:
-        const SendFunctionType sender;
-        io::OutputStream &out;
-        const RemoteCodeType code;
-
-    public:
-        explicit Instruction(io::OutputStream &output_stream, RemoteCodeType code, SendFunctionType sender) noexcept :
-            out{output_stream}, sender{std::move(sender)}, code{code} {}
+        explicit Instruction(WritableImpl &output_stream, RemoteCodeType code, SendFunctionType &&sender) noexcept :
+            _output_stream{output_stream}, _sender{std::move(sender)}, _code{code} {}
 
         Instruction(Instruction &&other) noexcept :
-            out{other.out}, sender{std::move(other.sender)}, code{other.code} {}
+            _output_stream{other._output_stream}, _sender{std::move(other._sender)}, _code{other._code} {}
 
         [[nodiscard]] Result<void, Error> send(void *args) noexcept {
-            if (not sender) {
-                return {Error::Sender_FunctionNotReady};
-            }
-            if (not out.write(code)) {
-                return {Error::Sender_CodeWriteFail};
-            }
-            return sender(out, args);
+            if (not _sender) { return {Error::Sender_FunctionNotReady}; }
+            if (_output_stream.writePacket(_code).isError()) { return {Error::Sender_CodeWriteFail}; }
+            return _sender(_output_stream, args);
         }
+
+    private:
+        const SendFunctionType _sender;
+        WritableImpl &_output_stream;
+        const RemoteCodeType _code;
     };
 
-    [[nodiscard]] Instruction createInstruction(SendFunctionType sender_function) noexcept {
-        return Instruction{out, next_code++, std::move(sender_function)};
+    [[nodiscard]] Instruction createInstruction(SendFunctionType &&sender_function) noexcept {
+        return Instruction{_output_stream, _next_code++, std::move(sender_function)};
     }
 
+    /// @brief Poll for incoming instructions and process them.
+    /// @return Result<void, Error>:
+    ///   - Error if reading the instruction code fails, the code is unknown, or argument reading fails.
     [[nodiscard]] Result<void, Error> poll() noexcept {
-        if (in.available() < sizeof(LocalCodeType)) { return {}; }
+        const auto code_result = _input_stream.template readPacket<LocalCodeType>();
+        if (not code_result.isError()) { return {Error::Receiver_CodeReadFail}; }
 
-        auto code_option = in.read<LocalCodeType>();
+        const auto code = code_result.value();
+        if (code >= _instructions.size()) { return {Error::Receiver_CodeNotExists}; }
 
-        if (not code_option.hasValue()) {
-            return {Error::Receiver_CodeReadFail};
-        }
-
-        const auto code = code_option.value();
-        if (code >= instructions.size()) {
-            in.clean();
-            return {Error::Receiver_CodeNotExists};
-        }
-
-        return instructions[code](in);
+        return _instructions[code](_input_stream);
     }
+
+private:
+    InstructionTableType _instructions;
+    ReadableImpl _input_stream;
+    WritableImpl _output_stream;
+    RemoteCodeType _next_code{0};
 };
 
-}// namespace kf
+}// namespace kf::network

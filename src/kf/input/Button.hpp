@@ -3,89 +3,42 @@
 
 #pragma once
 
-#include <Arduino.h>
+#include <utility>
 
 #include "kf/aliases.hpp"
+#include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
+#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/TimedPollable.hpp"
 
-namespace kf {
+namespace kf::input {
+namespace internal {
+struct ButtonConfig final : mixin::NonCopyable {
+    math::Milliseconds debounce;
+};
+}// namespace internal
 
 /// @brief Minimal button with press detection only
-struct Button {
+template<typename I>
+struct Button : mixin::Initable<Button<I>, void>,
+                mixin::NonCopyable,
+                mixin::TimedPollable<Button<I>>,
+                mixin::Configurable<internal::ButtonConfig> {
+    KF_CHECK_IMPL(I, kf::gpio::DigitalInputTag);
 
-    struct Config {
-        Milliseconds debounce;
-        u8 pin;
+    using PinImpl = I;
+    using Config = internal::ButtonConfig;
 
-        enum class Mode : u8 {
-            PullUp,
-            PullDown
-        } mode;
-
-        enum class PullType : u8 {
-            External,
-            Internal
-        } pull_type;
-
-        explicit Config(
-            gpio_num_t pin,
-            Mode mode,
-            PullType pull_type,
-            Milliseconds debounce = 30) noexcept :
-            pin{static_cast<u8>(pin)}, mode{mode}, pull_type{pull_type}, debounce{debounce} {}
-
-        [[nodiscard]] bool normalize(bool state) const noexcept {
-            return mode == Mode::PullDown == state;
-        }
-
-        [[nodiscard]] u8 matchMode() const noexcept {
-            if (pull_type == PullType::External) {
-                return INPUT;
-            }
-            return (mode == Mode::PullUp) ? INPUT_PULLUP : INPUT_PULLDOWN;
-        }
-    };
-
-private:
-    const Config &config;
-    Milliseconds next{0};
-    bool last_stable{false};
-    bool last_raw{false};
-    bool click_ready{false};
-
-public:
-    explicit Button(const Config &config) noexcept :
-        config{config} {}
-
-    void init() const noexcept {
-        pinMode(config.pin, config.matchMode());
-    }
-
-    /// @brief Poll button state - must be called regularly
-    void poll(Milliseconds now) noexcept {
-        const bool state = config.normalize(digitalRead(config.pin));
-
-        if (state != last_raw) {
-            last_raw = state;
-            next = now + config.debounce;
-        }
-
-        if (now >= next) {
-            if (last_stable != state) {
-                last_stable = state;
-
-                if (last_stable) {
-                    click_ready = true;
-                }
-            }
-        }
-    }
+    explicit Button(const Config &config, PinImpl &&pin) noexcept :
+        mixin::Configurable<Config>{config}, _pin{std::move(pin)} {}
 
     /// @brief Check if button was clicked (consumes the click)
     /// @return true if button was pressed since last call
     [[nodiscard]] bool clicked() noexcept {
-        if (click_ready) {
-            click_ready = false;
+        if (_click_ready) {
+            _click_ready = false;
             return true;
         }
         return false;
@@ -93,9 +46,42 @@ public:
 
     /// @brief Check current button state
     /// @return true if button is currently pressed (after debounce)
-    [[nodiscard]] bool pressed() const noexcept {
-        return last_stable;
+    [[nodiscard]] bool pressed() const noexcept { return _last_stable; }
+
+private:
+    math::Milliseconds _next{0};
+    PinImpl _pin;
+    bool _last_stable{false};
+    bool _last_raw{false};
+    bool _click_ready{false};
+
+    // impl
+    using This = Button<I>;
+
+    KF_IMPL_INITABLE(This, void);
+    void initImpl() noexcept { _pin.init(); }
+
+    KF_IMPL_TIMED_POLLABLE(This);
+    void pollImpl(math::Milliseconds now) noexcept {
+        const bool state = _pin.read();
+
+        // todo use Timer here
+
+        if (state != _last_raw) {
+            _last_raw = state;
+            _next = now + this->config().debounce;
+        }
+
+        if (now >= _next) {
+            if (_last_stable != state) {
+                _last_stable = state;
+
+                if (_last_stable) {
+                    _click_ready = true;
+                }
+            }
+        }
     }
 };
 
-}// namespace kf
+}// namespace kf::input

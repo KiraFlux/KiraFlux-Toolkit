@@ -3,113 +3,121 @@
 
 #pragma once
 
+#include "kf/algorithm.hpp"
 #include "kf/aliases.hpp"
-#include "kf/input/Joystick.hpp"
-#include "kf/math/time/TimeoutManager.hpp"
-#include "kf/math/time/Timer.hpp"
+#include "kf/math/Timer.hpp"
+#include "kf/math/units.hpp"
+#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Resettable.hpp"
+#include "kf/mixin/TimedPollable.hpp"
 
-namespace kf {
+namespace kf::input {
+namespace internal::jl {
 
-/// @brief Monitors joystick for discrete directional changes with autorepeat
-struct JoystickListener {
-    /// @brief Joystick direction event types
-    enum class Direction : u8 {
-        Up = 0,   ///< Joystick moved upward
-        Down = 1, ///< Joystick moved downward
-        Left = 2, ///< Joystick moved left
-        Right = 3,///< Joystick moved right
-        Home,     ///< Joystick returned to center position
-    };
+enum class Direction : u8 {
+    Up = 0,
+    Down = 1,
+    Left = 2,
+    Right = 3,
+    Home
+};
 
-private:
-    Joystick &joystick;   ///< Reference to monitored joystick
-    const float threshold;///< Activation threshold (0.0 to 1.0)
+struct Config final : mixin::NonCopyable {
+    f32 threshold;///< 0..1
+    kf::math::Milliseconds repeat_timeout, delay;
 
-    // Autorepeat state
-    Timer repeat_timer{static_cast<kf::Milliseconds>(100)};///< Timer for repeat events (100ms interval)
-    TimeoutManager initial_delay{400};                     ///< Initial delay before repeat (500ms)
-    bool in_repeat_mode{false};                            ///< Whether we're in repeat mode
-    bool has_changed{false};                               ///< Flag indicating direction change since last poll
-    Direction current_direction{Direction::Home};          ///< Current logical direction
-
-public:
-    /// @brief Construct listener for specific joystick
-    explicit JoystickListener(Joystick &joy, float threshold = 0.6f) noexcept :
-        joystick{joy}, threshold{threshold} {}
-
-    /// @brief Poll joystick state and update internal direction with autorepeat
-    void poll(Milliseconds now) noexcept {
-        const Direction new_direction = calculateDirection();
-
-        // Check for real direction change
-        if (new_direction != current_direction) {
-            current_direction = new_direction;
-            has_changed = true;
-            in_repeat_mode = false;
-
-            // Reset timers on direction change
-            if (current_direction != Direction::Home) {
-                initial_delay.update(now);                // Reset initial delay
-                repeat_timer = Timer{repeat_timer.period};// Reset repeat timer
-            }
-        }
-        // Same direction, check for autorepeat
-        else if (current_direction != Direction::Home) {
-            if (not in_repeat_mode) {
-                // Waiting for initial delay (500ms)
-                if (initial_delay.expired(now)) {
-                    in_repeat_mode = true;
-                    has_changed = true;// First repeat after delay
-                }
-            } else {
-                // In repeat mode, check for repeat interval (100ms)
-                if (repeat_timer.ready(now)) {
-                    has_changed = true;// Subsequent repeats
-                }
-            }
-        } else {
-            // Home direction - no autorepeat
-            in_repeat_mode = false;
-        }
-    }
-
-    /// @brief Get current logical direction based on threshold
-    [[nodiscard]] Direction direction() const noexcept { return current_direction; }
-
-    /// @brief Check if currently in autorepeat mode
-    [[nodiscard]] bool repeating() const noexcept { return in_repeat_mode; }
-
-    /// @brief Check if direction has changed since last poll()
-    [[nodiscard]] bool changed() noexcept {
-        const bool changed = has_changed;
-        has_changed = false;
-        return changed;
-    }
-
-    /// @brief Calculate raw direction without updating internal state
-    [[nodiscard]] Direction calculateDirection() const noexcept {
-        const auto x = joystick.axis_x.read();
-        const auto y = joystick.axis_y.read();
-        const auto abs_x = std::abs(x);
-        const auto abs_y = std::abs(y);
-
-        if (abs_x < threshold && abs_y < threshold) {
+    [[nodiscard]] Direction calculateDirection(f32 x, f32 y) const noexcept {
+        const auto ax = kf::abs(x);
+        const auto ay = kf::abs(y);
+        // todo array-map
+        if (ax < threshold and ay < threshold) {
             return Direction::Home;
         }
-
-        if (abs_x > abs_y) {
+        if (ax > ay) {
             return x > 0 ? Direction::Right : Direction::Left;
         } else {
             return y > 0 ? Direction::Up : Direction::Down;
         }
     }
+};
+}// namespace internal::jl
 
-    /// @brief Reset internal state to Home direction
-    void reset() noexcept {
-        current_direction = Direction::Home;
-        has_changed = false;
-        in_repeat_mode = false;
+template<typename I>
+struct JoystickListener final : mixin::Configurable<internal::jl::Config>,
+                                mixin::NonCopyable,
+                                mixin::Resettable<JoystickListener<I>>,
+                                mixin::TimedPollable<JoystickListener<I>> {
+    using JoystickImpl = I;
+    using Config = internal::jl::Config;
+    using Direction = internal::jl::Direction;
+
+    explicit JoystickListener(JoystickImpl &joystick, const Config &config) noexcept :
+        _joystick{joystick}, mixin::Configurable<Config>{config}, _repeat_timer{config.repeat_timeout}, _initial_delay{config.delay} {}
+
+    [[nodiscard]] Direction direction() const noexcept { return _current_direction; }
+
+    [[nodiscard]] bool repeating() const noexcept { return _in_repeat_mode; }
+
+    /// @note Resets has_changeda
+    [[nodiscard]] bool changed() noexcept {
+        const bool ret = _has_changed;
+        _has_changed = false;
+        return ret;
+    }
+
+private:
+    JoystickImpl &_joystick;
+    math::Timer _repeat_timer;
+    math::Timer _initial_delay;
+
+    Direction _current_direction{Direction::Home};
+    bool _in_repeat_mode{false};
+    bool _has_changed{false};
+
+    //impl
+    using This = JoystickListener<I>;
+
+    KF_IMPL_RESETTABLE(This);
+    void resetImpl() noexcept {
+        _current_direction = Direction::Home;
+        _has_changed = false;
+        _in_repeat_mode = false;
+    }
+
+    KF_IMPL_TIMED_POLLABLE(This);
+    void pollImpl(math::Milliseconds now) noexcept {
+        const auto x = _joystick.axis_x.read();
+        const auto y = _joystick.axis_y.read();
+
+        const auto new_direction = this->config().calculateDirection(x, y);
+
+        if (new_direction != _current_direction) {
+            _current_direction = new_direction;
+            _has_changed = true;
+            _in_repeat_mode = false;
+
+            if (_current_direction != Direction::Home) {
+                _initial_delay.start(now);
+                _repeat_timer.start(now);
+            }
+        } else if (_current_direction != Direction::Home) {
+            if (_in_repeat_mode) {
+                if (_repeat_timer.expired(now)) {
+                    _has_changed = true;
+                    _repeat_timer.start(now);
+                }
+            } else {
+                if (_initial_delay.expired(now)) {
+                    _in_repeat_mode = true;
+                    _has_changed = true;
+                    _repeat_timer.start(now);// restart repeat timer for subsequent repeats
+                }
+            }
+        } else {
+            _in_repeat_mode = false;
+        }
     }
 };
 
-}// namespace kf
+}// namespace kf::input

@@ -3,14 +3,17 @@
 
 #pragma once
 
+#include <cmath>
 #include <cstdarg>
+#include <cstdio>
 
+#include "kf/Result.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/Slice.hpp"
 #include "kf/memory/StringView.hpp"
 
-namespace kf {
+namespace kf::memory {
 
 /// @brief Fixed-size string buffer with compile-time capacity
 /// @tparam N Maximum string capacity (excluding null terminator)
@@ -18,14 +21,19 @@ namespace kf {
 template<usize N> class ArrayString {
     static_assert(N > 0, "ArrayString capacity must be positive");
 
+    enum class Error {
+        Truncated,
+        FormatFailed
+    };
+
 private:
-    Array<char, N + 1> buffer_;// +1 for null terminator
-    usize size_{0};            // Current length (excluding null terminator)
+    Array<char, N + 1> _buffer;// +1 for null terminator
+    usize _size{0};            // Current length (excluding null terminator)
 
 public:
     /// @brief Default constructor (empty string)
     constexpr ArrayString() noexcept {
-        buffer_[0] = '\0';
+        _buffer[0] = '\0';
     }
 
     /// @brief Construct from string literal
@@ -37,7 +45,6 @@ public:
 
     template<usize M, typename... Args> constexpr static ArrayString formatted(const char (&fmt)[M], Args... args) noexcept {
         static_assert(M > 0, "String literal must not be empty");
-        static_assert(N >= M, "String capacity must be greater than format string");
         ArrayString ret{};
         (void) ret.format(fmt, args...);
         return ret;
@@ -55,32 +62,32 @@ public:
 
     /// @brief Get string data pointer
     [[nodiscard]] constexpr char *data() noexcept {
-        return buffer_.data();
+        return _buffer.data();
     }
 
     /// @brief Get const string data pointer
     [[nodiscard]] constexpr const char *data() const noexcept {
-        return buffer_.data();
+        return _buffer.data();
     }
 
     /// @brief Get string as StringView
     [[nodiscard]] constexpr StringView view() const noexcept {
-        return StringView(buffer_.data(), size_);
+        return StringView(_buffer.data(), _size);
     }
 
     /// @brief Get string as Slice
     [[nodiscard]] constexpr Slice<const char> slice() const noexcept {
-        return Slice<const char>{buffer_.data(), size_};
+        return Slice<const char>{_buffer.data(), _size};
     }
 
     /// @brief Get mutable Slice (use with caution)
-    [[nodiscard]] constexpr Slice<char> slice_mut() noexcept {
-        return Slice<char>{buffer_.data(), size_};
+    [[nodiscard]] constexpr Slice<char> slice() noexcept {
+        return Slice<char>{_buffer.data(), _size};
     }
 
     /// @brief Get current string length
     [[nodiscard]] constexpr usize size() const noexcept {
-        return size_;
+        return _size;
     }
 
     /// @brief Get maximum capacity (excluding null terminator)
@@ -90,27 +97,27 @@ public:
 
     /// @brief Check if string is empty
     [[nodiscard]] constexpr bool empty() const noexcept {
-        return size_ == 0;
+        return _size == 0;
     }
 
     /// @brief Check if string is full (no more characters can be added)
     [[nodiscard]] constexpr bool full() const noexcept {
-        return size_ == N;
+        return _size == N;
     }
 
     /// @brief Clear string contents
     constexpr void clear() noexcept {
-        size_ = 0;
-        buffer_[0] = '\0';
+        _size = 0;
+        _buffer[0] = '\0';
     }
 
     /// @brief Assign string from StringView
     constexpr ArrayString &assign(StringView view) noexcept {
-        size_ = min(view.size(), N);
-        for (usize i = 0; i < size_; ++i) {
-            buffer_[i] = view[i];
+        _size = min(view.size(), N);
+        for (usize i = 0; i < _size; ++i) {
+            _buffer[i] = view[i];
         }
-        buffer_[size_] = '\0';
+        _buffer[_size] = '\0';
         return *this;
     }
 
@@ -118,19 +125,19 @@ public:
     /// @param ch Character to append
     /// @return true if character was appended, false if buffer full
     [[nodiscard]] constexpr bool push(char ch) noexcept {
-        if (size_ >= N) { return false; }
-        buffer_[size_] = ch;
-        ++size_;
-        buffer_[size_] = '\0';
+        if (_size >= N) { return false; }
+        _buffer[_size] = ch;
+        ++_size;
+        _buffer[_size] = '\0';
         return true;
     }
 
     /// @brief Remove last character
     /// @return true if character was removed, false if string empty
     [[nodiscard]] constexpr bool pop() noexcept {
-        if (size_ == 0) { return false; }
-        --size_;
-        buffer_[size_] = '\0';
+        if (_size == 0) { return false; }
+        --_size;
+        _buffer[_size] = '\0';
         return true;
     }
 
@@ -138,15 +145,15 @@ public:
     /// @param view String to append
     /// @return Number of characters actually appended
     [[nodiscard]] constexpr usize append(StringView view) noexcept {
-        const usize available = N - size_;
+        const usize available = N - _size;
         const usize to_append = min(view.size(), available);
 
         for (usize i = 0; i < to_append; ++i) {
-            buffer_[size_ + i] = view[i];
+            _buffer[_size + i] = view[i];
         }
 
-        size_ += to_append;
-        buffer_[size_] = '\0';
+        _size += to_append;
+        _buffer[_size] = '\0';
         return to_append;
     }
 
@@ -161,75 +168,86 @@ public:
     /// @param value Integer value to append
     /// @return Number of characters appended
     [[nodiscard]] usize append(i32 value) noexcept {
-        if (value == 0) {
-            return push('0') ? 1 : 0;
+        usize start = _size;
+        if (value == 0) { return push('0') ? 1 : 0; }
+
+        bool negative = value < 0;
+        u32 abs_val = negative ? -static_cast<u32>(value) : static_cast<u32>(value);
+
+        int digits = 0;
+        for (u32 v = abs_val; v; v /= 10) {
+            digits += 1;
         }
 
-        usize start_size = size_;
+        if (_size + (negative ? 1 : 0) + digits > N) { return 0; }
 
-        // Handle negative numbers
-        if (value < 0) {
+        if (negative) {
             (void) push('-');
-            value = -value;
         }
 
-        // Convert to string in reverse order
-        char digits[12];
-        int digit_count = 0;
+        char buf[12];
+        int i = 0;
 
-        while (value > 0) {
-            digits[digit_count] = char('0' + (value % 10));
-            digit_count += 1;
-            value /= 10;
+        for (u32 v = abs_val; v; v /= 10) {
+            buf[i++] = char('0' + (v % 10));
         }
 
-        // Append in correct order
-        for (auto i = digit_count - 1; i >= 0; --i) {
-            if (not push(digits[i])) { break; }
+        while (i--) {
+            (void) push(buf[i]);
         }
 
-        return size_ - start_size;
+        return _size - start;
     }
 
     /// @brief Append floating-point number to string
     /// @param value Floating-point value
     /// @param decimal_places Number of decimal places to show
     /// @return Number of characters appended
-    [[nodiscard]] usize append(f64 value, u8 decimal_places) noexcept {
-        usize start_size = size_;
+    [[nodiscard]] usize append(f64 value, u8 prec) noexcept {
+        usize start = _size;
 
-        // Handle special cases
-        if (isnan(value)) { return append("nan"); }
-        if (isinf(value)) { return append(value > 0 ? "inf" : "-inf"); }
+        if (std::isnan(value)) { return append("nan"); }
 
-        // Handle negative numbers
-        if (value < 0) {
-            (void) push('-');
-            value = -value;
+        if (std::isinf(value)) { return append(value > 0 ? "inf" : "-inf"); }
+
+        bool negative = value < 0;
+        if (negative) value = -value;
+
+        i32 int_part = static_cast<i32>(value);
+        f64 fraction = value - int_part;
+
+        int int_digits = 0;
+        for (u32 v = static_cast<u32>(int_part); v; v /= 10) { int_digits += 1; }
+        if (int_digits == 0) { int_digits = 1; }
+
+        usize needed = (negative ? 1 : 0) + int_digits;
+
+        if (prec > 0) {
+            needed += 1 + prec;
         }
 
-        // Integer part
-        const auto int_part = static_cast<i32>(value);
+        if (_size + needed > N) { return 0; }
+
+        if (negative) {
+            (void) push('-');
+        }
+
         (void) append(int_part);
 
-        // Decimal part
-        if (decimal_places > 0) {
+        if (prec > 0) {
             (void) push('.');
+            f64 frac = fraction;
 
-            f64 fraction = value - int_part;
-            for (auto i = 0; i < decimal_places; i += 1) {
-                fraction *= 10.0;
-                auto digit = static_cast<u8>(fraction);
-                (void) push('0' + digit);
-                fraction -= digit;
+            for (u8 i = 0; i < prec; ++i) {
+                frac *= 10.0;
+                u8 d = static_cast<u8>(frac);
+                (void) push('0' + d);
+                frac -= d;
 
-                if (fraction < 1e-12) {// Avoid floating point issues
-                    break;
-                }
+                if (frac < 1e-12) { break; }
             }
         }
-
-        return size_ - start_size;
+        return _size - start;
     }
 
     /// @brief Insert string at position
@@ -237,23 +255,23 @@ public:
     /// @param view String to insert
     /// @return Number of characters inserted
     [[nodiscard]] constexpr usize insert(usize pos, StringView view) noexcept {
-        if (pos > size_) { pos = size_; }
+        if (pos > _size) { pos = _size; }
 
-        const usize available = N - size_;
+        const usize available = N - _size;
         const usize to_insert = min(view.size(), available);
 
         // Make space for inserted characters
-        for (usize i = size_; i > pos; --i) {
-            buffer_[i + to_insert - 1] = buffer_[i - 1];
+        for (usize i = _size; i > pos; --i) {
+            _buffer[i + to_insert - 1] = _buffer[i - 1];
         }
 
         // Insert new characters
         for (usize i = 0; i < to_insert; ++i) {
-            buffer_[pos + i] = view[i];
+            _buffer[pos + i] = view[i];
         }
 
-        size_ += to_insert;
-        buffer_[size_] = '\0';
+        _size += to_insert;
+        _buffer[_size] = '\0';
         return to_insert;
     }
 
@@ -262,67 +280,59 @@ public:
     /// @param count Number of characters to erase
     /// @return Number of characters erased
     [[nodiscard]] constexpr usize erase(usize pos, usize count = 1) noexcept {
-        if (pos >= size_) { return 0; }
+        if (pos >= _size) { return 0; }
 
-        const usize remaining = size_ - pos;
+        const usize remaining = _size - pos;
         const usize to_erase = min(count, remaining);
 
         // Shift characters left
-        for (usize i = pos; i < size_ - to_erase; ++i) {
-            buffer_[i] = buffer_[i + to_erase];
+        for (usize i = pos; i < _size - to_erase; ++i) {
+            _buffer[i] = _buffer[i + to_erase];
         }
 
-        size_ -= to_erase;
-        buffer_[size_] = '\0';
+        _size -= to_erase;
+        _buffer[_size] = '\0';
         return to_erase;
     }
 
     /// @brief Format string using printf-style syntax
-    /// @param format Format string
-    /// @param ... Variable arguments matching format specifiers
-    /// @return Number of characters written (excluding null terminator)
     /// @note Always null-terminates the result
-    [[nodiscard]] usize format(const char *format, ...) noexcept {
-        if (N == 0) {
-            buffer_[0] = '\0';
-            return 0;
-        }
-
+    [[nodiscard]] Result<usize, Error> format(const char *format, ...) noexcept {
         va_list args;
         va_start(args, format);
-
-        // Use vsnprintf for safe formatting
-        const int result = vsnprintf(buffer_.data(), N + 1, format, args);
-
+        const int result = vsnprintf(_buffer.data(), N + 1, format, args);
         va_end(args);
 
         if (result < 0) {
-            // Formatting error
-            size_ = 0;
-            buffer_[0] = '\0';
-            return 0;
+            _size = 0;
+            _buffer[0] = '\0';
+            return {Error::FormatFailed};
         }
 
-        size_ = min(static_cast<usize>(result), N);
-        buffer_[size_] = '\0';// vsnprintf already null-terminates, but be safe
-        return size_;
+        _size = min(static_cast<usize>(result), N);
+        _buffer[_size] = '\0';
+
+        if (static_cast<usize>(result) > N) {
+            return {Error::Truncated};
+        }
+        return {_size};
     }
 
     /// @brief Trim whitespace from beginning
     /// @return Reference to this string
     constexpr ArrayString &trimStart() noexcept {
         usize i = 0;
-        while (i < size_ and isWhitespace(buffer_[i])) {
+        while (i < _size and isWhitespace(_buffer[i])) {
             ++i;
         }
 
         if (i > 0) {
             // Shift characters left
-            for (usize j = 0; j < size_ - i; ++j) {
-                buffer_[j] = buffer_[j + i];
+            for (usize j = 0; j < _size - i; ++j) {
+                _buffer[j] = _buffer[j + i];
             }
-            size_ -= i;
-            buffer_[size_] = '\0';
+            _size -= i;
+            _buffer[_size] = '\0';
         }
 
         return *this;
@@ -331,17 +341,17 @@ public:
     /// @brief Trim whitespace from end
     /// @return Reference to this string
     constexpr ArrayString &trimEnd() noexcept {
-        while (size_ > 0 and isWhitespace(buffer_[size_ - 1])) {
-            --size_;
+        while (_size > 0 and isWhitespace(_buffer[_size - 1])) {
+            --_size;
         }
-        buffer_[size_] = '\0';
+        _buffer[_size] = '\0';
         return *this;
     }
 
     /// @brief Trim whitespace from both ends
     /// @return Reference to this string
     constexpr ArrayString &trim() noexcept {
-        return trimStart().trimStart();
+        return trimStart().trimEnd();
     }
 
     /// @brief Find character in string
@@ -349,8 +359,8 @@ public:
     /// @param pos Starting position
     /// @return Option containing position of character if found
     [[nodiscard]] constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
-        for (usize i = pos; i < size_; ++i) {
-            if (buffer_[i] == ch) {
+        for (usize i = pos; i < _size; ++i) {
+            if (_buffer[i] == ch) {
                 return i;
             }
         }
@@ -362,14 +372,14 @@ public:
     /// @param pos Starting position
     /// @return Option containing position of substring if found
     [[nodiscard]] constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
-        if (str.size() > size_ or pos > size_ - str.size()) {
+        if (str.size() > _size or pos > _size - str.size()) {
             return {};
         }
 
-        for (usize i = pos; i <= size_ - str.size(); ++i) {
+        for (usize i = pos; i <= _size - str.size(); ++i) {
             bool found = true;
             for (usize j = 0; j < str.size(); ++j) {
-                if (buffer_[i + j] != str[j]) {
+                if (_buffer[i + j] != str[j]) {
                     found = false;
                     break;
                 }
@@ -397,12 +407,12 @@ public:
 
     /// @brief Get character at index (no bounds checking)
     [[nodiscard]] constexpr char operator[](usize index) const noexcept {
-        return buffer_[index];
+        return _buffer[index];
     }
 
     /// @brief Get mutable character at index (no bounds checking)
     [[nodiscard]] constexpr char &operator[](usize index) noexcept {
-        return buffer_[index];
+        return _buffer[index];
     }
 
     /// @brief Assignment from StringView
@@ -436,7 +446,7 @@ public:
     }
 
     /// @brief Implicit conversion to const char*
-    [[nodiscard]] constexpr operator const char *() const noexcept {
+    [[nodiscard]] constexpr explicit operator const char *() const noexcept {
         return data();
     }
 
@@ -446,6 +456,14 @@ private:
         return ch == ' ' or ch == '\t' or ch == '\n' or ch == '\r' or ch == '\v' or ch == '\f';
     }
 };
+
+template<usize N> constexpr bool operator==(const ArrayString<N> &lhs, const ArrayString<N> &rhs) noexcept {
+    return lhs.view() == rhs.view();
+}
+
+template<usize N> constexpr bool operator!=(const ArrayString<N> &lhs, const ArrayString<N> &rhs) noexcept {
+    return !(lhs == rhs);
+}
 
 /// @brief Compare FixedString with StringView for equality
 template<usize N> constexpr bool operator==(const ArrayString<N> &lhs, StringView rhs) noexcept {

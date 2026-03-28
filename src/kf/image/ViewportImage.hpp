@@ -7,41 +7,48 @@
 #include "kf/image/Image.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/math/units.hpp"
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
 
-template<typename F, usize W, usize H> struct ViewportImage final : Image<ViewportImage<F, W, H>, F> {
-    using PixelImpl = F;
-    using BufferType = typename F::BufferType;
-    using ColorType = typename F::ColorType;
+template<typename P, usize W, usize H> struct ViewportImage final : Image<ViewportImage<P, W, H>, P> {
+    KF_CHECK_IMPL(P, pixel::PixelTag);
 
-private:
-    /// @brief Raw image buffer data
-    StaticImage<F, W, H> image{};
-    Pixels logical_width{W}, logical_height{H};
+    using PixelImpl = P;
+    using BufferType = typename PixelImpl::BufferType;
+    using ColorType = typename PixelImpl::ColorType;
 
-public:
-    void setTransposed(bool transposed) {
-        logical_width = transposed ? H : W;
-        logical_height = transposed ? W : H;
+    /// @brief Set transpose status for image
+    /// @note Swaps logical width <-> logical height
+    void transposed(bool is_transposed) {
+        _logical_width = is_transposed ? H : W;
+        _logical_height = is_transposed ? W : H;
     }
 
-    // CRTP
+    /// @brief Is image is actually transposed?
+    [[nodiscard]] constexpr bool transposed() const noexcept { return W == _logical_width; }
+
 private:
-    friend Image<ViewportImage<F, W, H>, F>;
+    StaticImage<PixelImpl, W, H> _image{};///< Raw image buffer data
+    math::Pixels _logical_width{W}, _logical_height{H};
 
-    [[nodiscard]] constexpr Pixels getWidthImpl() const noexcept { return logical_width; }
+    // impl
+    using This = ViewportImage<P, W, H>;
 
-    [[nodiscard]] constexpr Pixels getHeightImpl() const noexcept { return logical_height; }
+    KF_IMPL(Image<This, P>);
 
-    [[nodiscard]] constexpr Pixels getStrideImpl() const noexcept { return logical_width; }
+    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return _logical_width; }
 
-    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
-        return image.buffer().first(logical_width * logical_height);
+    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept { return _logical_height; }
+
+    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return _logical_width; }
+
+    [[nodiscard]] constexpr memory::Slice<BufferType> getBufferImpl() noexcept {
+        return _image.buffer().first(_logical_width * _logical_height);
     }
 
-    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept {
-        return image.buffer().first(logical_width * logical_height);
+    [[nodiscard]] constexpr memory::Slice<const BufferType> getBufferImpl() const noexcept {
+        return _image.buffer().first(_logical_width * _logical_height);
     }
 };
 

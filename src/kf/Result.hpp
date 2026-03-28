@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include "kf/Option.hpp"
+#include <cstdlib>
+#include <type_traits>
+#include <utility>
 
 namespace kf {
 
@@ -12,91 +14,101 @@ namespace kf {
 /// @tparam E Type of error value
 /// @note Embedded-friendly alternative to exceptions for error handling
 template<typename T, typename E> struct Result {
+    static_assert(not std::is_same_v<T, E>, "T and E must be different types");
+    static_assert(std::is_trivially_destructible_v<T>, "T must be trivially destructible");
+    static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+    static_assert(std::is_trivially_destructible_v<E>, "E must be trivially destructible");
+    static_assert(std::is_trivially_copyable_v<E>, "E must be trivially copyable");
 
-private:
-    bool is_ok;///< Flag indicating success (true) or error (false)
+    /// @brief Construct successful result with value (move)
+    constexpr Result(T &&value) noexcept :
+        _is_ok{true}, _value{std::move(value)} {}
 
-    union {
-        T value;///< Storage for successful result (active when is_ok == true)
-        E err;  ///< Storage for error result (active when is_ok == false)
-    };
+    /// @brief Construct successful result with value (copy)
+    constexpr Result(const T &value) noexcept :
+        _is_ok{true}, _value{value} {}
 
-public:
-    /// @brief Construct successful result with value
-    /// @param val Value to store as successful result
-    constexpr Result(T val) noexcept :// NOLINT(*-explicit-constructor)
-        is_ok{true}, value{val} {}
+    /// @brief Construct error result with error (move)
+    constexpr Result(E &&error) noexcept :
+        _is_ok{false}, _error{std::move(error)} {}
 
-    /// @brief Construct error result with error
-    /// @param error Error value to store
-    constexpr Result(E error) noexcept :// NOLINT(*-explicit-constructor)
-        is_ok{false}, err{error} {}
+    /// @brief Construct error result with error (copy)
+    constexpr Result(const E &error) noexcept :
+        _is_ok{false}, _error{error} {}
 
     /// @brief Check if result contains a value (success)
-    /// @return true if result is successful (contains value)
-    [[nodiscard]] bool isOk() const noexcept { return is_ok; }
+    [[nodiscard]] constexpr bool isOk() const noexcept { return _is_ok; }
 
     /// @brief Check if result contains an error
-    /// @return true if result contains an error
-    [[nodiscard]] bool isError() const noexcept { return not is_ok; }
+    [[nodiscard]] constexpr bool isError() const noexcept { return not _is_ok; }
 
-    /// @brief Get successful value as Option
-    /// @return Option containing value if successful, empty Option otherwise
-    Option<T> ok() const noexcept {
-        if (is_ok) {
-            return {value};
-        } else {
-            return {};
-        }
+    [[nodiscard]] T &value() noexcept {
+        if (isOk()) { return _value; }
+        abort();
     }
 
-    /// @brief Get error value as Option
-    /// @return Option containing error if failed, empty Option otherwise
-    Option<E> error() const noexcept {
-        if (is_ok) {
-            return {};
-        } else {
-            return {err};
-        }
+    [[nodiscard]] const T &value() const noexcept {
+        if (isOk()) { return _value; }
+        abort();
     }
+
+    [[nodiscard]] E &error() noexcept {
+        if (isError()) { return _error; }
+        abort();
+    }
+
+    [[nodiscard]] const E &error() const noexcept {
+        if (isError()) { return _error; }
+        abort();
+    }
+
+private:
+    bool _is_ok;///< Flag indicating success (true) or error (false)
+
+    union {
+        T _value;///< Storage for successful result (active when is_ok == true)
+        E _error;///< Storage for error result (active when is_ok == false)
+    };
 };
 
 /// @brief Result specialization for void (success-only) operations
 /// @tparam E Type of error value
 /// @note Used for operations that don't return a value on success
 template<typename E> struct Result<void, E> {
+    static_assert(std::is_trivially_destructible_v<E>, "E must be trivially destructible");
+    static_assert(std::is_trivially_copyable_v<E>, "E must be trivially copyable");
 
-private:
-    bool is_ok;///< Flag indicating success (true) or error (false)
-    E err;     ///< Storage for error result (active when is_ok == false)
-
-public:
     /// @brief Construct successful void result
     constexpr Result() noexcept :
-        is_ok{true} {}
+        _is_ok{true} {}
 
-    /// @brief Construct error result with error
-    /// @param error Error value to store
-    constexpr Result(E error) noexcept :// NOLINT(*-explicit-constructor)
-        is_ok{false}, err{error} {}
+    /// @brief Construct error result with error (move)
+    constexpr Result(E &&error) noexcept :
+        _is_ok{false}, _error{std::move(error)} {}
+
+    /// @brief Construct error result with error (copy)
+    constexpr Result(const E &error) noexcept :
+        _is_ok{false}, _error{error} {}
 
     /// @brief Check if result is successful
-    /// @return true if operation succeeded (no error)
-    [[nodiscard]] bool isOk() const noexcept { return is_ok; }
+    [[nodiscard]] constexpr bool isOk() const noexcept { return _is_ok; }
 
     /// @brief Check if result contains an error
-    /// @return true if operation failed (contains error)
-    [[nodiscard]] bool isError() const noexcept { return not is_ok; }
+    [[nodiscard]] constexpr bool isError() const noexcept { return not _is_ok; }
 
-    /// @brief Get error value as Option
-    /// @return Option containing error if failed, empty Option otherwise
-    Option<E> error() const noexcept {
-        if (is_ok) {
-            return {};
-        } else {
-            return {err};
-        }
+    [[nodiscard]] E &error() noexcept {
+        if (isError()) { return _error; }
+        abort();
     }
+
+    [[nodiscard]] const E &error() const noexcept {
+        if (isError()) { return _error; }
+        abort();
+    }
+
+private:
+    bool _is_ok;///< Flag indicating success (true) or error (false)
+    E _error;   ///< Storage for error result (active when is_ok == false)
 };
 
 }// namespace kf

@@ -3,82 +3,38 @@
 
 #pragma once
 
-#include <Arduino.h>
+#include <utility>
 
+#include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
-#include "kf/validation.hpp"
 
-namespace kf {
+#include "kf/drivers/sensors/Sensor.hpp"
+
+namespace kf::drivers::sensors {
 
 /// @brief Sharp infrared distance sensor driver
 /// @note Provides distance measurements in millimeters using analog voltage output
-struct Sharp {
+template<typename I> struct Sharp : Sensor<Sharp<I>, math::Millimeters, void> {
+    KF_CHECK_IMPL(I, kf::gpio::AdcInputTag);
+    using PinImpl = I;
 
-    /// @brief Raw ADC value type
-    using AnalogValue = u16;
-
-    /// @brief Sensor configuration settings
-    struct Settings : Validable<Settings> {
-        u8 pin;       ///< Analog input GPIO pin
-        u8 resolution;///< ADC resolution in bits (1-16)
-
-        /// @brief Calculate maximum ADC value based on resolution
-        /// @return Maximum possible ADC value (2^resolution - 1)
-        [[nodiscard]] constexpr AnalogValue maxValue() const noexcept {
-            return static_cast<AnalogValue>((1u << resolution) - 1u);
-        }
-
-        /// @brief Validate sensor configuration parameters
-        /// @param validator Validation context
-        void check(Validator &validator) const noexcept {
-            kf_Validator_check(validator, resolution > 0);
-            kf_Validator_check(validator, resolution <= 16);
-        }
-    };
-
-    const Settings &settings;///< Reference to configuration settings
+    explicit Sharp(PinImpl &&pin) noexcept : _pin{std::move(pin)} {}
 
 private:
-    AnalogValue max_value{0};///< Cached maximum ADC value
+    PinImpl _pin;
 
-public:
-    explicit Sharp(const Settings &settings) noexcept:
-        settings{settings} {}
+    // impl
+    using This = Sharp<I>;
 
-    /// @brief Initialize sensor hardware
-    /// @return Always returns true (initialization cannot fail)
-    /// @note Sets pin mode and configures ADC resolution
-    [[nodiscard]] bool init() noexcept {
-        max_value = settings.maxValue();
+    KF_IMPL_INITABLE(This, void);
+    void initImpl() noexcept { _pin.init(); }
 
-        pinMode(settings.pin, INPUT);
-        analogReadResolution(settings.resolution);
-
-        return true;
-    }
-
-    /// @brief Read raw ADC value from sensor
-    /// @return Raw ADC reading (0 to maxValue)
-    [[nodiscard]] inline AnalogValue readRaw() const noexcept {
-        return analogRead(settings.pin);
-    }
-
-    /// @brief Read distance in millimeters
-    /// @return Distance in millimeters (inverse of voltage)
-    /// @note Takes multiple samples for noise reduction
-    [[nodiscard]] Millimeters read() const noexcept {
-        // 65535 / analogRead(a)
-        long sum = 0;
-
-        const auto n = 4;
-
-        for (int i = 0; i < n; i += 1) {
-            sum += readRaw();
-            delay(1);
-        }
-
-        return (65535.0F * n) / Millimeters(sum);
+    KF_IMPL(Sensor<This, math::Millimeters, void>);
+    [[nodiscard]] math::Millimeters readImpl() noexcept {
+        // correct calculus only with 10-bit ADC resolution
+        // todo generalize formula
+        return 65535.0F / math::Millimeters(_pin.read());
     }
 };
 
-}// namespace kf
+}// namespace kf::drivers::sensors

@@ -4,29 +4,45 @@
 #pragma once
 
 #include "kf/aliases.hpp"
+#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
-namespace kf {
+#include "kf/math/filters/Filter.hpp"
+
+namespace kf::math::filters {
+
+// ExponentialFilter
+namespace internal::ef {
+struct Config final : mixin::NonCopyable {
+    f32 factor;///< Smoothing factor (0.0 to 1.0, higher = faster response)
+};
+}// namespace internal::ef
 
 /// @brief Exponential moving average filter (EMA)
 /// @tparam T Data type (typically float or integer)
 /// @note Simple first-order IIR filter for smoothing noisy signals
-template<typename T> struct ExponentialFilter {
-    f32 k;     ///< Smoothing factor (0.0 to 1.0, higher = faster response)
-    T filtered;///< Current filtered value
+template<typename T> struct ExponentialFilter : Filter<ExponentialFilter<T>, T>, mixin::Configurable<internal::ef::Config> {
+    using ValueType = T;
+    using Config = internal::ef::Config;
 
-    /// @brief Construct exponential filter instance
-    /// @param k Smoothing factor (0.0 to 1.0)
-    /// @param init_value Initial filter state (default: zero-initialized)
-    constexpr explicit ExponentialFilter(f32 k, T init_value = T{}) noexcept:
-        k{k}, filtered{init_value} {}
+    using mixin::Configurable<Config>::Configurable;
 
-    /// @brief Update filter with new sample
-    /// @param value New input value
-    /// @return Current filtered value after update
-    [[nodiscard]] const T &calc(const T &value) noexcept {
-        filtered += (value - filtered) * k;
-        return filtered;
+private:
+    ValueType _current_filtered{};
+
+    // impl
+    using This = ExponentialFilter<ValueType>;
+
+    KF_IMPL(Filter<This, ValueType>);
+    ValueType calcImpl(const ValueType &value) noexcept {
+        _current_filtered += (value - _current_filtered) * this->config().factor;
+        return _current_filtered;
+    }
+
+    KF_IMPL_RESETTABLE(This);
+    void resetImpl() noexcept {
+        _current_filtered = ValueType{};
     }
 };
 
-}// namespace kf
+}// namespace kf::math::filters

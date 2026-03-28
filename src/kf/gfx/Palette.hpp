@@ -3,61 +3,64 @@
 
 #pragma once
 
+#include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
 
-namespace kf {// NOLINT(*-concat-nested-namespaces)
-namespace gfx {
+namespace kf::gfx {
 
-template<typename F> struct Palette final {
-    using PixelImpl = F;
-    using ColorType = typename F::ColorType;
+/// @brief Predefined colour palette for a given pixel format.
+/// @tparam P Pixel format type (must satisfy pixel::PixelTag).
+template<typename P> struct Palette final {
+    KF_CHECK_IMPL(P, pixel::PixelTag);
 
-    enum class Ansi : u8 {
-        Black = 0x0,
-        Red = 0x1,
-        Green = 0x2,
-        Yellow = 0x3,
-        Blue = 0x4,
-        Purple = 0x5,
-        Cyan = 0x6,
-        White = 0x7,
-        BlackBright = 0x8,
-        RedBright = 0x9,
-        GreenBright = 0xA,
-        YellowBright = 0xB,
-        BlueBright = 0xC,
-        PurpleBright = 0xD,
-        CyanBright = 0xE,
-        WhiteBright = 0xF,
-    };
+    using PixelImpl = P;
+    using ColorType = typename PixelImpl::ColorType;
+
+    static constexpr ColorType
+        black{PixelImpl::fromRgb(0x00, 0x00, 0x00)},
+        red{PixelImpl::fromRgb(0x80, 0x00, 0x00)},
+        green{PixelImpl::fromRgb(0x00, 0x80, 0x00)},
+        yellow{PixelImpl::fromRgb(0x80, 0x80, 0x00)},
+        blue{PixelImpl::fromRgb(0x00, 0x00, 0x80)},
+        purple{PixelImpl::fromRgb(0x80, 0x00, 0x80)},
+        cyan{PixelImpl::fromRgb(0x00, 0x60, 0x60)},
+        white{PixelImpl::fromRgb(0x80, 0x80, 0x80)},
+        bright_black{PixelImpl::fromRgb(0x30, 0x30, 0x30)},
+        bright_red{PixelImpl::fromRgb(0xFF, 0x20, 0x20)},
+        bright_green{PixelImpl::fromRgb(0x20, 0xCF, 0x20)},
+        bright_yellow{PixelImpl::fromRgb(0xFF, 0xFF, 0x00)},
+        bright_blue{PixelImpl::fromRgb(0x20, 0x20, 0xFF)},
+        bright_purple{PixelImpl::fromRgb(0xFF, 0x20, 0xFF)},
+        bright_cyan{PixelImpl::fromRgb(0x00, 0xDF, 0xCF)},
+        bright_white{PixelImpl::fromRgb(0xFF, 0xFF, 0xFF)};
 
 private:
     static constexpr ColorType ansi_colors[16]{
-        // standard
-        PixelImpl::fromRgb(0x00, 0x00, 0x00),// black
-        PixelImpl::fromRgb(0x80, 0x00, 0x00),// red
-        PixelImpl::fromRgb(0x00, 0x80, 0x00),// green
-        PixelImpl::fromRgb(0x80, 0x80, 0x00),// yellow
-        PixelImpl::fromRgb(0x00, 0x00, 0x80),// blue
-        PixelImpl::fromRgb(0x80, 0x00, 0x80),// purple
-        PixelImpl::fromRgb(0x00, 0x60, 0x60),// cyan
-        PixelImpl::fromRgb(0x80, 0x80, 0x80),// white
-        // intense
-        PixelImpl::fromRgb(0x30, 0x30, 0x30),// bright black
-        PixelImpl::fromRgb(0xFF, 0x20, 0x20),// bright red
-        PixelImpl::fromRgb(0x20, 0xCF, 0x20),// bright green
-        PixelImpl::fromRgb(0xFF, 0xFF, 0x00),// bright yellow
-        PixelImpl::fromRgb(0x20, 0x20, 0xFF),// bright blue
-        PixelImpl::fromRgb(0xFF, 0x20, 0xFF),// bright purple
-        PixelImpl::fromRgb(0x00, 0xDF, 0xCF),// bright cyan
-        PixelImpl::fromRgb(0xFF, 0xFF, 0xFF),// bright white
+        black,
+        red,
+        green,
+        yellow,
+        blue,
+        purple,
+        cyan,
+        white,
+        bright_black,
+        bright_red,
+        bright_green,
+        bright_yellow,
+        bright_blue,
+        bright_purple,
+        bright_cyan,
+        bright_white,
     };
 
 public:
-    [[nodiscard]] static constexpr ColorType getAnsiColor(Ansi ansi_color_index) noexcept {
-        return ansi_colors[static_cast<u8>(ansi_color_index) & 0xf];
+    /// @brief Get a colour from the ANSI colour index (0‑15).
+    /// @param ansi_color_index Index of the desired colour (only lower 4 bits used).
+    /// @return Colour value in the target pixel format.
+    [[nodiscard]] static constexpr ColorType ansiColor(u8 ansi_color_index) noexcept {
+        return ansi_colors[ansi_color_index & 0xf];
     }
 };
 
-}// namespace gfx
-}// namespace kf
+}// namespace kf::gfx
