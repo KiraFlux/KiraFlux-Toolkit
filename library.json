@@ -1,14 +1,15 @@
 {
   "name": "KiraFlux-Toolkit",
-  "version": "0.2.0",
-  "description": "ESP32 C++ utilities library",
+  "version": "0.3.0",
+  "description": "an experimental header-only C++17 framework for ESP32 that explores zero-overhead static polymorphism through CRTP, mixins, and type-safe error handling",
   "keywords": [
     "embedded",
+    "crtp",
     "c++17",
     "arduino",
     "esp32",
-    "avr",
     "graphics",
+    "gfx",
     "ui",
     "drivers"
   ],
