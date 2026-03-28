@@ -17,7 +17,7 @@ public:
     constexpr static TestConfig bad() noexcept { return TestConfig{false}; }
 
     void checkImpl(Validator &v) const noexcept {
-        kf_Validator_check(v, logger, ok_is_true);
+        KF_VALIDATOR_CHECK(v, logger, ok_is_true);
     }
 };
 
@@ -50,10 +50,10 @@ void multiple() {
 
 void macro() {
     Validator v{};
-    kf_Validator_check(v, logger, true);
+    KF_VALIDATOR_CHECK(v, logger, true);
     TEST_ASSERT_TRUE(v.passed());
 
-    kf_Validator_check(v, logger, false);
+    KF_VALIDATOR_CHECK(v, logger, false);
     TEST_ASSERT_FALSE(v.passed());
 }
 
@@ -63,12 +63,16 @@ namespace test_validatable {
 
 void good() {
     constexpr auto cfg{TestConfig::good()};
-    TEST_ASSERT_TRUE(cfg.check());
+    Validator v{};
+    cfg.check(v);
+    TEST_ASSERT_TRUE(v.passed());
 }
 
 void bad() {
     constexpr auto cfg{TestConfig::bad()};
-    TEST_ASSERT_FALSE(cfg.check());
+    Validator v{};
+    cfg.check(v);
+    TEST_ASSERT_FALSE(v.passed());
 }
 
 }// namespace test_validatable

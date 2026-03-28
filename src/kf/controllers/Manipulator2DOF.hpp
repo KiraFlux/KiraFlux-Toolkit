@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <utility>
+
+#include "kf/drivers/actuators/Actuator.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -13,12 +16,15 @@ namespace kf::controllers {
 /// @tparam I Actuator implementation type (must satisfy Actuator interface).
 /// @note Controls arm and claw axes servo drivers
 template<typename I> struct Manipulator2DOF final : mixin::NonCopyable, mixin::Initable<Manipulator2DOF, bool> {
+    KF_CHECK_IMPL(I, ::kf::drivers::actuators::ActuatorTag);
+
     using ActuatorImpl = I;
 
     /// @brief Construct manipulator instance.
     /// @param arm  Actuator for the arm axis (will be moved).
     /// @param claw Actuator for the claw axis (will be moved).
-    explicit Manipulator2DOF(ActuatorImpl &&arm, ActuatorImpl &&claw) noexcept : _arm{arm}, _claw{claw} {}
+    explicit Manipulator2DOF(ActuatorImpl &&arm, ActuatorImpl &&claw) noexcept :
+        _arm{std::move(arm)}, _claw{std::move(claw)} {}
 
     /// @brief Set arm axis angle
     void arm(math::Degrees angle) noexcept { _arm.write(angle); }

@@ -12,17 +12,13 @@ struct MotorConfig : kf::Validatable<MotorConfig> {
     // Each Validatable class should have its own logger for validation messages.
     static constexpr auto logger = kf::Logger::create("MotorCfg");
 
-    // Constructor to allow easy initialization.
-    MotorConfig(int speed, float limit, bool en) noexcept :
-        max_speed{speed}, current_limit{limit}, enabled{en} {}
-
     // This method is called by `check()`.
     // It receives a Validator object that collects the results.
     void checkImpl(kf::Validator &v) const noexcept {
         // The macro logs the condition string and the result (info on success, error on failure)
         // and increments the error counter if the condition is false.
-        kf_Validator_check(v, logger, max_speed > 0);
-        kf_Validator_check(v, logger, current_limit >= 0.1f and current_limit <= 5.0f);
+        KF_VALIDATOR_CHECK(v, logger, max_speed > 0);
+        KF_VALIDATOR_CHECK(v, logger, current_limit >= 0.1f and current_limit <= 5.0f);
     }
 };
 
@@ -35,16 +31,26 @@ void setup() {
     };
 
     // Create two configuration objects: one valid, one invalid.
-    MotorConfig valid{100, 2.5f, true};
-    MotorConfig invalid{0, -99.0f, true};
+    MotorConfig valid{
+        .max_speed = 100,
+        .current_limit = 2.5f,
+        .enabled = true,
+    };
 
-    // The `check()` method runs all checks and returns true if no errors occurred.
+    MotorConfig invalid{
+        .max_speed = 0,
+        .current_limit = -99.0f,
+        .enabled = true,
+    };
+
     // All validation messages are automatically printed via the logger.
-    Serial.print("valid config: ");
-    Serial.println(valid.check() ? "PASS" : "FAIL");
+    kf::Validator validator{};
 
-    Serial.print("invalid config: ");
-    Serial.println(invalid.check() ? "PASS" : "FAIL");
+    Serial.print("valid config");
+    valid.check(validator);
+
+    Serial.print("invalid config");
+    invalid.check(validator);
 }
 
 void loop() {}

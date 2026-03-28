@@ -27,9 +27,10 @@ template<typename I> struct PwmPositionServo final : Actuator<PwmPositionServo<I
         math::Degrees min_angle;///< Minimum servo rotation angle
         math::Degrees max_angle;///< Maximum servo rotation angle
 
-        /// @brief Validate driver configuration parameters
+    private:
+        KF_IMPL_VALIDATABLE(Validatable<DriverConfig>);
         void checkImpl(Validator &validator) const noexcept {
-            kf_Validator_check(validator, logger, min_angle < max_angle);
+            KF_VALIDATOR_CHECK(validator, logger, min_angle < max_angle);
         }
     };
 
@@ -55,10 +56,11 @@ template<typename I> struct PwmPositionServo final : Actuator<PwmPositionServo<I
                 max_pulse.pulse);
         }
 
-        /// @brief Validate pulse mapping configuration
+    private:
+        KF_IMPL_VALIDATABLE(Validatable<DriverConfig>);
         void checkImpl(Validator &validator) const noexcept {
-            kf_Validator_check(validator, logger, min_pulse.pulse < max_pulse.pulse);
-            kf_Validator_check(validator, logger, min_pulse.angle < max_pulse.angle);
+            KF_VALIDATOR_CHECK(validator, logger, min_pulse.pulse < max_pulse.pulse);
+            KF_VALIDATOR_CHECK(validator, logger, min_pulse.angle < max_pulse.angle);
         }
     };
 

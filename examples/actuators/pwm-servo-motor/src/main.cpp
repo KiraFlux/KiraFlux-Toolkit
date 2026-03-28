@@ -38,9 +38,10 @@ void setup() {
     kf::Logger::writer = [](kf::memory::StringView s) { Serial.write(s.data(), s.size()); };
 
     // check configs
-    bool failed = not driver_config.check();
-    failed |= not pulse_config.check();
-    if (failed) {
+    kf::Validator validator{};
+    driver_config.check(validator);
+    pulse_config.check(validator);
+    if (not validator.passed()) {
         Serial.println("Servo config check failed");
         return;
     }

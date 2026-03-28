@@ -35,9 +35,10 @@ struct Encoder : mixin::Initable<Encoder, void>, mixin::NonCopyable {
             return Ticks{mm * ticks_in_one_mm};
         }
 
-        /// @brief Validate conversion config
+    private:
+        KF_IMPL_VALIDATABLE(ConversionConfig);
         void checkImpl(Validator &validator) const noexcept {
-            kf_Validator_check(validator, logger, ticks_in_one_mm > 0);
+            KF_VALIDATOR_CHECK(validator, logger, ticks_in_one_mm > 0);
         }
     };
 

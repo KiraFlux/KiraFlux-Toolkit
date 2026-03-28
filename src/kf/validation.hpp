@@ -37,18 +37,18 @@ private:
 
 /// @brief CRTP base class for objects that can validate themselves
 /// @tparam Impl Concrete type implementing validation
-/// @note Derived classes must implement check(Validator&) method
+/// @note Derived classes must implement `void checkImpl(Validator &) const noexcept` method
 template<typename Impl> struct Validatable {
-    /// @brief Perform validation and return result
-    /// @return true if object passed all validation checks
-    [[nodiscard]] bool check() const noexcept {
-        Validator validator{};
+
+    /// @brief Perform validation
+    void check(Validator &validator) const noexcept {
         static_cast<const Impl *>(this)->checkImpl(validator);
-        return validator.passed();
     }
 };
 
 }// namespace kf
 
+#define KF_IMPL_VALIDATABLE(...) friend struct __VA_ARGS__
+
 /// @brief Macro to simplify validation check calls
-#define kf_Validator_check(validator_instance, logger_instance, condition) validator_instance.check(logger_instance, condition, #condition)
+#define KF_VALIDATOR_CHECK(validator_instance, logger_instance, condition) validator_instance.check(logger_instance, condition, #condition)
