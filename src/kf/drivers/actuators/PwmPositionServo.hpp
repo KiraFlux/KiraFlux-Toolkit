@@ -5,97 +5,90 @@
 
 #include <utility>
 
+#include "kf/Range.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
+#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 #include "kf/validation.hpp"
 
 #include "kf/drivers/actuators/Actuator.hpp"
 
 namespace kf::drivers::actuators {
 
-/// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
-/// @note Converts angular positions to PWM pulse widths for standard RC servos
-template<typename I> struct PwmPositionServo final : Actuator<PwmPositionServo<I>, bool> {
-    KF_CHECK_IMPL(I, kf::gpio::PwmOutputTag);
-    using PwmPinImpl = I;
+namespace internal {
 
-    static constexpr auto logger{Logger::create("PwmPositionServo")};
+struct PwmPositionServoConfig final : mixin::NonCopyable, Validatable<PwmPositionServoConfig> {
+    using AngleRange = Range<math::Degrees>;
+    using PulseRange = Range<math::Microseconds>;
 
-    /// @brief Servo driver hardware configuration
-    struct DriverConfig : Validatable<DriverConfig> {
-        math::Degrees min_angle;///< Minimum servo rotation angle
-        math::Degrees max_angle;///< Maximum servo rotation angle
+    AngleRange angle_range;
+    PulseRange pulse_range;
 
-    private:
-        KF_IMPL_VALIDATABLE(Validatable<DriverConfig>);
-        void checkImpl(Validator &validator) const noexcept {
-            KF_VALIDATOR_CHECK(validator, logger, min_angle < max_angle);
-        }
-    };
-
-    /// @brief Pulse width mapping configuration for servo angles
-    struct PulseConfig : Validatable<PulseConfig> {
-        /// @brief Angle-to-pulse width mapping point
-        struct Pulse {
-            math::Microseconds pulse;///< Pulse width in microseconds
-            math::Degrees angle;     ///< Corresponding servo angle
-        };
-
-        Pulse min_pulse, max_pulse;///< Position mapping (angle <-> pulse width)
-
-        /// @brief Convert angle to pulse width using linear interpolation
-        /// @param angle Target servo angle
-        /// @return Required pulse width in microseconds
-        [[nodiscard]] math::Microseconds pulseWidthFromAngle(math::Degrees angle) const noexcept {
-            return linearMap<i32>(
-                kf::clamp(angle, min_pulse.angle, max_pulse.angle),
-                min_pulse.angle,
-                max_pulse.angle,
-                min_pulse.pulse,
-                max_pulse.pulse);
-        }
-
-    private:
-        KF_IMPL_VALIDATABLE(Validatable<DriverConfig>);
-        void checkImpl(Validator &validator) const noexcept {
-            KF_VALIDATOR_CHECK(validator, logger, min_pulse.pulse < max_pulse.pulse);
-            KF_VALIDATOR_CHECK(validator, logger, min_pulse.angle < max_pulse.angle);
-        }
-    };
-
-    /// @brief Construct servo driver instance
-    /// @param pwm_settings PWM signal configuration
-    /// @param driver_settings Servo hardware configuration
-    /// @param pulse_settings Angle-pulse mapping configuration
-    explicit constexpr PwmPositionServo(
-        const DriverConfig &driver_settings,
-        const PulseConfig &pulse_settings,
-        PwmPinImpl &&pin) noexcept :
-        _driver_settings{driver_settings}, _pulse_settings(pulse_settings), _pin{std::move(pin)} {}
-
-    /// @brief Set servo to target angle
-    /// @param angle Target angle in degrees
-    /// @note Automatically converts angle to PWM duty cycle
-    void write(math::Degrees angle) noexcept {
-        _pin.write(_pin.dutyFromPulseWidth(_pulse_settings.pulseWidthFromAngle(angle)));
-    }
-
-    /// @brief Disable servo (stop PWM signal)
-    void disable() noexcept {
-        _pin.write(0);
+    /// @brief Convert angle to pulse width using linear interpolation
+    /// @param angle Target servo angle
+    /// @return Required pulse width in microseconds
+    [[nodiscard]] math::Microseconds pulseWidthFromAngle(math::Degrees angle) const noexcept {
+        return linearMap<i32>(angle, angle_range.start, angle_range.end, pulse_range.start, pulse_range.end);
     }
 
 private:
-    const DriverConfig &_driver_settings;///< Servo hardware configuration
-    const PulseConfig &_pulse_settings;  ///< Angle-pulse mapping configuration
-    PwmPinImpl _pin;
+    KF_IMPL_VALIDATABLE(Validatable<PwmPositionServoConfig>);
+    void checkImpl(Validator &validator) const noexcept {
+        angle_range.check(validator);
+        pulse_range.check(validator);
+    }
+};
+
+}// namespace internal
+
+/// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
+/// @note Converts angular positions to PWM pulse widths for standard RC servos
+template<typename I>
+struct PwmPositionServo final : Actuator<PwmPositionServo<I>, bool>,
+                                mixin::Configurable<internal::PwmPositionServoConfig> {
+    KF_CHECK_IMPL(I, kf::gpio::PwmOutputTag);
+    using PwmPinImpl = I;
+
+    /// @brief Configuration for PWM position servo (angle <-> pulse width mapping).
+    /// @note Contains hardware‑independent mapping and is self‑validating.
+    using Config = internal::PwmPositionServoConfig;
+
+    /// @brief Construct servo with the same angle range for both mapping and safe operation.
+    /// @param config Mapping between angle and pulse width.
+    /// @param pin    PWM output pin.
+    explicit constexpr PwmPositionServo(const Config &config, PwmPinImpl &&pin) noexcept :
+        mixin::Configurable<Config>{config}, _angle_safe_range{config.angle_range}, _pin{std::move(pin)} {}
+
+    /// @brief Construct servo with separate safe angle range (may be narrower than config range).
+    /// @param config            Mapping between angle and pulse width.
+    /// @param pin               PWM output pin.
+    /// @param angle_safe_range  Additional clamping range for safety (e.g., to avoid mechanical limits).
+    explicit constexpr PwmPositionServo(const Config &config, PwmPinImpl &&pin, Config::AngleRange angle_safe_range) noexcept :
+        mixin::Configurable<Config>{config}, _angle_safe_range{angle_safe_range}, _pin{std::move(pin)} {}
+
+    /// @brief Set servo to target angle.
+    /// @param angle Target angle in degrees (will be clamped to safe range).
+    /// @note Converts angle to pulse width using the configuration and writes the corresponding PWM duty cycle.
+    void write(math::Degrees angle) noexcept {
+        _pin.write(_pin.dutyFromPulseWidth(this->config().pulseWidthFromAngle(_angle_safe_range.clamped(angle))));
+    }
+
+    /// @brief Disable servo (stop PWM signal)
+    void disable() noexcept { _pin.write(0); }
+
+private:
+    Config::AngleRange _angle_safe_range;///< Safe operating angle range (clamped before mapping).
+    PwmPinImpl _pin;                     ///< PWM output pin.
 
     // impl
     using This = PwmPositionServo<I>;
 
     KF_IMPL_INITABLE(This, bool);
-    bool initImpl() noexcept { return _pin.init(); }
+    bool initImpl() noexcept {
+        return _pin.init();
+    }
 
     KF_IMPL(Actuator<This, bool>);
 };

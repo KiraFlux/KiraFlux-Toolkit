@@ -7,19 +7,13 @@
 using kf::gpio::arduino::PwmOutput;
 using PwmPositionServo = kf::drivers::actuators::PwmPositionServo<PwmOutput>;
 
-// GPIO13, channel 0; 0..180 deg range
-static const PwmPositionServo::DriverConfig driver_config{
-    .min_angle = 0,
-    .max_angle = 180,
+// Angle -> pulse width mapping (0° = 500 µs, 180° = 2500 µs)
+PwmPositionServo::Config servo_config{
+    .angle_range = {.start = 0, .end = 180},
+    .pulse_range = {.start = 500, .end = 2500},
 };
 
-// Typical 500‑2500 us pulse width for 0‑180 deg
-static const PwmPositionServo::PulseConfig pulse_config{
-    .min_pulse = {500, 0},
-    .max_pulse = {2500, 180},
-};
-
-// 50 Hz, 12-bit resolution works for most RC servos
+// PWM: 50 Hz, 12-bit resolution
 PwmOutput::Config pwm_config{
     .frequency_hz = 50,
     .resolution_bits = 12,
@@ -27,20 +21,19 @@ PwmOutput::Config pwm_config{
     .channel = 0,
 };
 
-static PwmPositionServo servo{
-    driver_config,
-    pulse_config,
+// Servo with additional safe angle limit (0‑90 instead of 0‑180)
+PwmPositionServo servo{
+    servo_config,
     PwmOutput{pwm_config},
+    PwmPositionServo::Config::AngleRange{.start = 0, .end = 90},// safe range
 };
 
 void setup() {
     Serial.begin(115200);
     kf::Logger::writer = [](kf::memory::StringView s) { Serial.write(s.data(), s.size()); };
 
-    // check configs
     kf::Validator validator{};
-    driver_config.check(validator);
-    pulse_config.check(validator);
+    servo_config.check(validator);
     if (not validator.passed()) {
         Serial.println("Servo config check failed");
         return;
@@ -51,7 +44,7 @@ void setup() {
         return;
     }
 
-    // sweep 0 -> 180 -> 0
+    // Sweep 0 -> 180 -> 0
     for (int angle = -180; angle <= 180; angle += 1) {
         servo.write(abs(180 - angle));
         delay(20);
