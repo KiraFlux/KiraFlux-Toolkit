@@ -114,7 +114,7 @@ private:
         delay(255);
 
         sendCommand(Command::COLMOD);
-        const u8 color_mode{0x05};// 16-bit color (RGB565)
+        constexpr u8 color_mode{0x05};// 16-bit color (RGB565)
         sendPacket(color_mode);
 
         (void) this->orientation(this->config().init_orientation);// Ignored becauce always true
