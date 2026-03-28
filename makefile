@@ -1,4 +1,4 @@
-.PHONY: all monitor test build-examples be shapshot ss lint new-example ne new-test nt
+.PHONY: all monitor test build-examples be shapshot ss lint new-example ne new-test nt changelog
 
 name ?= unnamed # target example/test name
 group ?= common # target example/test group
@@ -33,3 +33,6 @@ new-test:
 	python new-template.py test $(group) $(name)
 
 nt: new-test
+
+changelog:
+	git log main..dev > log.txt && git diff main..dev > diff.txt
