@@ -62,7 +62,7 @@ Public APIs are documented with **Doxygen comments** directly in the header file
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please see [CONTRIBUTING.MD](CONTRIBUTING.MD) for guidelines.
 
 ## License
 
