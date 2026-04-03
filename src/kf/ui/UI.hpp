@@ -147,7 +147,7 @@ public:
         virtual void onUpdate(math::Milliseconds now) noexcept {}
 
         /// @brief Get 'go to this page' Widget
-        Widget &link() noexcept { return _to_this; }
+        [[nodiscard]] constexpr Widget &link() noexcept { return _to_this; }
 
         /// @brief Render page content to display.
         /// @param render Renderer instance.

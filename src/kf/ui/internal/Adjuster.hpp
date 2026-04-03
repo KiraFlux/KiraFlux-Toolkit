@@ -37,7 +37,7 @@ template<typename T> struct ArithmeticPositiveOnlyAdjuster final : Adjuster<Arit
 private:
     KF_IMPL(Adjuster<ArithmeticPositiveOnlyAdjuster<T>, T>);
     static constexpr T adjustImpl(T value, T step, int direction) noexcept {
-        max(0, ArithmeticAdjuster<T>::adjust(value, step, direction));
+        return max(0, ArithmeticAdjuster<T>::adjust(value, step, direction));
     }
 };
 

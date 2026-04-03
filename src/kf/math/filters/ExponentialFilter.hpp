@@ -29,19 +29,24 @@ template<typename T> struct ExponentialFilter : Filter<ExponentialFilter<T>, T>,
 
 private:
     ValueType _current_filtered{};
+    bool _first_step{true};
 
     // impl
     using This = ExponentialFilter<ValueType>;
 
     KF_IMPL(Filter<This, ValueType>);
     ValueType calcImpl(const ValueType &value) noexcept {
-        _current_filtered += (value - _current_filtered) * this->config().factor;
+        if (_first_step) {
+            _current_filtered = value;
+        } else {
+            _current_filtered += (value - _current_filtered) * this->config().factor;
+        }
         return _current_filtered;
     }
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
-        _current_filtered = ValueType{};
+        _first_step = true;
     }
 };
 
