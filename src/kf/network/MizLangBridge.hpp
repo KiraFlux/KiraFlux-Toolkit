@@ -74,7 +74,7 @@ template<typename R, typename W, typename Tlc, typename Trc = Tlc> struct MizLan
     ///   - Error if reading the instruction code fails, the code is unknown, or argument reading fails.
     [[nodiscard]] Result<void, Error> poll() noexcept {
         const auto code_result = _input_stream.template readPacket<LocalCodeType>();
-        if (not code_result.isError()) { return {Error::Receiver_CodeReadFail}; }
+        if (code_result.isError()) { return {Error::Receiver_CodeReadFail}; }
 
         const auto code = code_result.value();
         if (code >= _instructions.size()) { return {Error::Receiver_CodeNotExists}; }
