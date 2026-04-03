@@ -201,18 +201,18 @@ MyUI::Event eventFromChar(char c) {
 
 static auto &ui = MyUI::instance();
 
-static ArduinoSPI::Config bus_config{
-    // use defauls
-};
+static auto bus_config{ArduinoSPI::Config::create()};// use defauls
 
 static ArduinoSPI bus{
     bus_config,
     SPI,
 };
 
-static ArduinoSPI::Node::Config node_config{
-    GPIO_NUM_5,// CS
-    27'000'000,// SPI frequency
+static auto node_config{
+    ArduinoSPI::Node::Config::create(
+        GPIO_NUM_5,// CS
+        27'000'000 // SPI frequency
+        ),
 };
 
 // display config

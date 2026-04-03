@@ -77,7 +77,15 @@ void setup() {
     Serial.println("SSD1306 Driver Demo");
 
     static ArduinoIIC::Config bus_config{
-        400'000,// I2C clock frequency (400 kHz typical)
+        ArduinoIIC::Config::create(
+            // 0 means Wire's default value
+            400'000,// I2C clock frequency (400 kHz typical)
+            0,      // timeout
+            0,      // buffer size
+
+            // GPIO_NUM_NC or -1 means Wire's default pins
+            -1,
+            -1),
     };
 
     ArduinoIIC bus{bus_config, Wire};

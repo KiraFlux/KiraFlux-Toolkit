@@ -26,7 +26,7 @@ struct NodeConfig final : mixin::NonCopyable {
 };
 
 struct BusConfig final : mixin::NonCopyable {
-    static constexpr u8 pin_default{0xff};
+    static constexpr u8 pin_default{static_cast<u8>(GPIO_NUM_NC)};
     static constexpr math::Milliseconds max_timeout{60'000};
 
     u32 clock_hz;
@@ -35,12 +35,20 @@ struct BusConfig final : mixin::NonCopyable {
     u8 pin_sda;
     u8 pin_scl;
 
-    explicit constexpr BusConfig(
+    [[nodiscard]] static constexpr BusConfig create(
         u32 clock_hz = 0,              // 0: use Wire defaults
         math::Milliseconds timeout = 0,// 0: use Wire defaults
         usize buffer_size = 0,         // 0: use Wire defaults
         u8 sda = pin_default,
-        u8 scl = pin_default) noexcept : clock_hz{clock_hz}, timeout{kf::min(timeout, max_timeout)}, buffer_size{buffer_size}, pin_sda{sda}, pin_scl{scl} {}
+        u8 scl = pin_default) noexcept {
+        return BusConfig{
+            .clock_hz = clock_hz,
+            .timeout = kf::min(timeout, max_timeout),
+            .buffer_size = buffer_size,
+            .pin_sda = sda,
+            .pin_scl = scl,
+        };
+    }
 
     constexpr bool hasDefaultPins() const noexcept { return pin_sda == pin_default and pin_scl == pin_default; }
     constexpr bool hasDefaultClock() const noexcept { return clock_hz == 0; }

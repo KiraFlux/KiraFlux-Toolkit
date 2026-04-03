@@ -7,7 +7,17 @@
 using kf::bus::iic::ArduinoIIC;
 
 // Configuration for the IIC bus (uses default Wire)
-ArduinoIIC::Config bus_config{};
+auto bus_config{
+    ArduinoIIC::Config::create(
+        // 0 means Wire's default value
+        0,// clock
+        0,// timeout
+        0,// buffer size
+
+        // GPIO_NUM_NC or -1 means Wire's default pins
+        -1,
+        -1),
+};
 
 // Bus instance (must outlive nodes)
 ArduinoIIC bus{bus_config, Wire};
@@ -49,7 +59,7 @@ void setup() {
         };
 
         auto node = bus.createNode(node_config);
-        
+
         // Try to read a single byte (most devices will NACK if no response)
         auto result = node.readByte();
         if (result.isOk()) {

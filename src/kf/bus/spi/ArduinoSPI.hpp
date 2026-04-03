@@ -55,14 +55,21 @@ struct NodeConfig final : mixin::NonCopyable {
     BitOrder bit_order;
     ClockBits clock_bits;
 
-    constexpr explicit NodeConfig(
+    [[nodiscard]] static constexpr NodeConfig create(
         gpio_num_t chip_select_pin,
         u32 clock_hz,
         BitOrder bit_order = BitOrder::MostSignificant,
-        ClockBits clock_bits = ClockBits::None) noexcept :
-        clock_hz{clock_hz}, pin_cs{static_cast<u8>(chip_select_pin)}, bit_order{bit_order}, clock_bits{clock_bits} {}
+        ClockBits clock_bits = ClockBits::None) noexcept {
 
-    SPISettings toArduinoSPISettings() const noexcept {
+        return NodeConfig{
+            .clock_hz = clock_hz,
+            .pin_cs = static_cast<u8>(chip_select_pin),
+            .bit_order = bit_order,
+            .clock_bits = clock_bits,
+        };
+    }
+
+    [[nodiscard]] SPISettings toArduinoSPISettings() const noexcept {
         return SPISettings{clock_hz, static_cast<u8>(bit_order), static_cast<u8>(clock_bits)};
     }
 };
@@ -74,13 +81,13 @@ struct BusConfig final : mixin::NonCopyable {
 
     PinIndex pin_mosi, pin_miso, pin_sck;
 
-    constexpr explicit BusConfig(
-        gpio_num_t mosi = GPIO_NUM_NC,
-        gpio_num_t miso = GPIO_NUM_NC,
-        gpio_num_t sck = GPIO_NUM_NC) noexcept :
-        pin_mosi{static_cast<PinIndex>(mosi)},
-        pin_miso{static_cast<PinIndex>(miso)},
-        pin_sck{static_cast<PinIndex>(sck)} {}
+    static constexpr BusConfig create(gpio_num_t mosi = GPIO_NUM_NC, gpio_num_t miso = GPIO_NUM_NC, gpio_num_t sck = GPIO_NUM_NC) noexcept {
+        return BusConfig{
+            .pin_mosi = static_cast<PinIndex>(mosi),
+            .pin_miso = static_cast<PinIndex>(miso),
+            .pin_sck = static_cast<PinIndex>(sck),
+        };
+    }
 
     constexpr bool hasDefaultPins() const noexcept {
         return pin_mosi == default_pin and pin_miso == default_pin and pin_sck == default_pin;
