@@ -14,10 +14,10 @@ namespace kf::memory {
 /// @tparam T Data type to store
 /// @note Uses ESP32's Preferences library for non-volatile storage
 template<typename T> struct Storage final : mixin::NonCopyable {
-    static_assert(std::is_trivial_v<T>, "T must be trivially copyable");
+    static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
 
 private:
-    static constexpr const char *preferences_namespace = "kf-cfg";///< Preferences namespace for all KiraFlux configurations
+    static constexpr auto preferences_namespace{"kf-cfg"};///< Preferences namespace for all KiraFlux configurations
 
 public:
     const char *key;///< Unique key for this storage instance
