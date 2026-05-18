@@ -14,6 +14,7 @@
 
 #include <kf/gfx/Canvas.hpp>
 #include <kf/gfx/Palette.hpp>
+#include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/image/DynamicImage.hpp>
 
 #include <Arduino.h>
@@ -87,7 +88,7 @@ void setup() {
     Serial.begin(115200);
     delay(1000);
     Serial.println("ST7735 Driver Demo");
-    
+
     // use defauls
     static auto bus_config{ArduinoSPI::Config::create()};
 

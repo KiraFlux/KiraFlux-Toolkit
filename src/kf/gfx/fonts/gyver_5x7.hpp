@@ -1,10 +1,13 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+#include "kf/aliases.hpp"
 #include "kf/gfx/Font.hpp"
 
-// https://github.com/GyverLibs/GyverOLED/blob/main/src/charMap.h
-static constexpr kf::u8 gyver_5x7_en_data[] = {
+namespace kf::gfx::fonts {
+
+// Char map from: https://github.com/GyverLibs/GyverOLED/blob/main/src/charMap.h
+static constexpr u8 gyver_5x7_en_data[] = {
     0x00, 0x00, 0x00, 0x00, 0x00,//   0x20 32
     0x00, 0x00, 0x6f, 0x00, 0x00,// ! 0x21 33
     0x00, 0x07, 0x00, 0x07, 0x00,// " 0x22 34
@@ -102,8 +105,16 @@ static constexpr kf::u8 gyver_5x7_en_data[] = {
     0x04, 0x02, 0x04, 0x08, 0x04,// ~ 0x7e 126
 };
 
-constexpr kf::gfx::Font kf::gfx::fonts::gyver_5x7_en{
+/// @brief GyverOLED 5×7 English font
+/// @details Optimized for 128×64 OLED displays. Contains ASCII characters
+/// from space (0x20) to tilde (0x7E). Each glyph is 5 pixels wide and 7 pixels high.
+/// Font data format: 5 bytes per glyph, each byte = 1 vertical column (8 bits, bits 0-6 used).
+/// Total glyphs: 126 - 32 + 1 = 95 characters.
+/// @note This font does not include Cyrillic or other non-ASCII characters
+constexpr Font gyver_5x7_en{
     gyver_5x7_en_data,
     5,
     7,
 };
+
+} // namespace kf::gfx::fonts

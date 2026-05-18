@@ -14,6 +14,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <kf/gfx/Canvas.hpp>
+#include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/image/DynamicImage.hpp>
 
 // Actually uses in this demo

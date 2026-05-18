@@ -7,6 +7,7 @@
 #include <kf/drivers/display/Orientation.hpp>
 #include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
+#include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/gpio/arduino.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/ui/Event.hpp>
