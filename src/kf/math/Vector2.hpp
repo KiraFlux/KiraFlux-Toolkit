@@ -18,21 +18,20 @@ template<typename T> struct Vector2 final {
 
     Scalar x, y;
 
-    /// @brief Default constructor (initializes to zero)
-    constexpr Vector2() noexcept :
-        x{0}, y{0} {}
-
-    /// @brief Construct from x and y components
-    constexpr Vector2(Scalar x, Scalar y) noexcept :
-        x{x}, y{y} {}
+    [[nodiscard]] static constexpr Vector2 zero() noexcept {
+        return {
+            .x = 0,
+            .y = 0,
+        };
+    }
 
     /// @brief Vector addition
     /// @param other Vector to add
     /// @return Sum vector
     [[nodiscard]] constexpr Vector2 operator+(const Vector2 &other) const noexcept {
         return {
-            static_cast<Scalar>(x + other.x),
-            static_cast<Scalar>(y + other.y),
+            .x = static_cast<Scalar>(x + other.x),
+            .y = static_cast<Scalar>(y + other.y),
         };
     }
 
@@ -41,8 +40,8 @@ template<typename T> struct Vector2 final {
     /// @return Difference vector
     [[nodiscard]] constexpr Vector2 operator-(const Vector2 &other) const noexcept {
         return {
-            static_cast<Scalar>(x - other.x),
-            static_cast<Scalar>(y - other.y),
+            .x = static_cast<Scalar>(x - other.x),
+            .y = static_cast<Scalar>(y - other.y),
         };
     }
 
@@ -51,8 +50,8 @@ template<typename T> struct Vector2 final {
     /// @return Scaled vector
     [[nodiscard]] constexpr Vector2 operator*(Scalar scalar) const noexcept {
         return {
-            static_cast<Scalar>(x * scalar),
-            static_cast<Scalar>(y * scalar),
+            .x = static_cast<Scalar>(x * scalar),
+            .y = static_cast<Scalar>(y * scalar),
         };
     }
 
@@ -63,8 +62,8 @@ template<typename T> struct Vector2 final {
         if (scalar == 0) { return {}; }
 
         return {Vector2{
-            static_cast<Scalar>(x / scalar),
-            static_cast<Scalar>(y / scalar),
+            .x = static_cast<Scalar>(x / scalar),
+            .y = static_cast<Scalar>(y / scalar),
         }};
     }
 
@@ -74,8 +73,8 @@ template<typename T> struct Vector2 final {
     /// @warning No zero-check (use divChecked for safe division)
     [[nodiscard]] constexpr Vector2 operator/(Scalar scalar) const noexcept {
         return {
-            static_cast<Scalar>(x / scalar),
-            static_cast<Scalar>(y / scalar),
+            .x = static_cast<Scalar>(x / scalar),
+            .y = static_cast<Scalar>(y / scalar),
         };
     }
 
@@ -111,8 +110,8 @@ template<typename T> struct Vector2 final {
         if (len == 0) { return {}; }
 
         return {Vector2{
-            static_cast<Scalar>(x / len),
-            static_cast<Scalar>(y / len),
+            .x = static_cast<Scalar>(x / len),
+            .y = static_cast<Scalar>(y / len),
         }};
     }
 
