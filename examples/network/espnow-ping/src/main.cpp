@@ -1,6 +1,6 @@
 // KiraFlux-Toolkit Demo 'espnow'
 #include <Arduino.h>
-#include <kf/aliases.hpp>
+#include <kf/primitives.hpp>
 #include <kf/memory/Slice.hpp>
 
 #include <kf/network/EspNow.hpp>

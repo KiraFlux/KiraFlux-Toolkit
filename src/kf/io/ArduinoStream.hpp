@@ -7,7 +7,7 @@
 
 #include <Stream.h>
 
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/mixin/NonCopyable.hpp"

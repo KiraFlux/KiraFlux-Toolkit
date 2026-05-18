@@ -7,7 +7,7 @@
 
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/memory/Slice.hpp"

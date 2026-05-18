@@ -5,7 +5,7 @@
 
 #include <Arduino.h>// for delay
 
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 #include "kf/bus/spi/SPI.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/image/ViewportImage.hpp"

@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"

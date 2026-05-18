@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 #include "kf/memory/Slice.hpp"
 
 namespace kf::pixel {

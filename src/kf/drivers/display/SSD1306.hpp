@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 #include "kf/bus/iic/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/pixel/MonochromePixel.hpp"

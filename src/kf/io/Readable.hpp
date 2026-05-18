@@ -6,7 +6,7 @@
 #include <type_traits>
 
 #include "kf/Result.hpp"
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 #include "kf/memory/Slice.hpp"
 
 namespace kf::io {

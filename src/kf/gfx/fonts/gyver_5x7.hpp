@@ -1,7 +1,7 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 #include "kf/gfx/Font.hpp"
 
 namespace kf::gfx::fonts {

@@ -6,7 +6,7 @@
 #include <utility>
 
 #include "kf/algorithm.hpp"
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/filters/ExponentialFilter.hpp"
 #include "kf/mixin/Configurable.hpp"
