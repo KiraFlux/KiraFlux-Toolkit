@@ -193,7 +193,7 @@ private:
         return {value};
     }
 
-    KF_IMPL_WRITABLE(This, Error);
+    KF_IMPL_WRITABLE(This, Result<void, Error>);
 
     /// @brief Write raw bytes to the device (simplex).
     void writeBytes(const u8 *buffer, usize length) noexcept {

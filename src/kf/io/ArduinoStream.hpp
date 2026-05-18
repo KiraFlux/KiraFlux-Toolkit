@@ -7,10 +7,11 @@
 
 #include <Stream.h>
 
-#include "kf/primitives.hpp"
+#include "kf/Result.hpp"
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::io {
 
@@ -24,10 +25,13 @@ enum class ArduinoStreamError : u8 {
 
 }
 
-struct ArduinoStream final : mixin::NonCopyable,
-                             io::Readable<ArduinoStream, internal::ArduinoStreamError>,
-                             io::Writable<ArduinoStream, internal::ArduinoStreamError> {
+struct ArduinoStream final :
 
+    mixin::NonCopyable,
+    io::Readable<ArduinoStream, internal::ArduinoStreamError>,
+    io::Writable<ArduinoStream, kf::Result<void, internal::ArduinoStreamError>>
+
+{
     using Error = internal::ArduinoStreamError;
 
     constexpr explicit ArduinoStream(Stream &stream) noexcept : _stream{stream} {}
@@ -73,7 +77,7 @@ private:
         }
     }
 
-    KF_IMPL_WRITABLE(This, Error);
+    KF_IMPL_WRITABLE(This, Result<void, Error>);
 
     Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept {
         const auto to_write = buffer.size();

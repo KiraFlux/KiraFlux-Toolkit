@@ -14,7 +14,13 @@
 namespace kf::bus {
 
 struct BusNodeTag {};
-template<typename Impl, typename ErrorImpl> struct BusNode : BusNodeTag, mixin::NonCopyable, io::Readable<Impl, ErrorImpl>, io::Writable<Impl, ErrorImpl> {};
+
+template<typename Impl, typename ErrorImpl> struct BusNode :
+
+    BusNodeTag,
+    mixin::NonCopyable,
+    io::Readable<Impl, ErrorImpl>,
+    io::Writable<Impl, Result<void, ErrorImpl>> {};
 
 struct BusTag {};
 
@@ -24,12 +30,15 @@ struct BusTag {};
 /// @tparam ErrorImpl Error type used by bus operations.
 /// @note The bus implementation must provide methods `initImpl()` and `quitImpl()`.
 ///       Nodes are created via `createNode` and are expected to be movable.
-template<typename BusImpl, typename NodeImpl, typename ErrorImpl>
-struct Bus : BusTag,
-             mixin::Initable<BusImpl, Result<void, ErrorImpl>>,
-             mixin::NonCopyable,
-             mixin::Quitable<BusImpl>,
-             meta::CRTP<BusImpl> {
+template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus :
+
+    BusTag,
+    mixin::NonCopyable,
+    mixin::Initable<BusImpl, Result<void, ErrorImpl>>,
+    mixin::Quitable<BusImpl>,
+    meta::CRTP<BusImpl>
+
+{
     KF_CHECK_IMPL(NodeImpl, kf::bus::BusNodeTag);
 
     [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept {

@@ -150,7 +150,7 @@ private:
 
     //
 
-    KF_IMPL_WRITABLE(This, Error);
+    KF_IMPL_WRITABLE(This, Result<void, Error>);
 
     /// @brief Begin an I2C transmission (send START condition).
     /// @note Must be called before writing any data.

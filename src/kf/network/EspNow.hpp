@@ -16,7 +16,6 @@
 // lib
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
-#include "kf/primitives.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/ArrayString.hpp"
@@ -26,6 +25,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Singleton.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::network {
 
@@ -50,27 +50,31 @@ enum class EspNowError : u8 {
 
 /// @brief Encapsulates ESP-NOW protocol in safe C++ abstractions
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks
-struct EspNow final : kf::mixin::Singleton<EspNow>,
-                      kf::mixin::Initable<EspNow, Result<void, internal::EspNowError>>,
-                      kf::mixin::Quitable<EspNow> {
+struct EspNow final :
+
+    kf::mixin::Singleton<EspNow>,
+    kf::mixin::Initable<EspNow, Result<void, internal::EspNowError>>,
+    kf::mixin::Quitable<EspNow>
+
+{
 
     /// @brief MAC address type (6 bytes)
     using Mac = memory::Array<u8, ESP_NOW_ETH_ALEN>;
 
     /// @brief Handler type for receiving data from unknown peers
-    using ReceiveFromUnknownHandler = Function<void(const Mac &, memory::Slice<const u8>)>;
+    using ReceiveFromUnknownCallback = Function<void(const Mac &, memory::Slice<const u8>)>;
 
     /// @brief ESP-NOW operation error codes
     using Error = internal::EspNowError;
 
     /// @brief ESP-NOW peer representation with communication capabilities
-    struct Peer final : io::Writable<Peer, Error>, mixin::NonCopyable {
+    struct Peer final : io::Writable<Peer, kf::Result<void, Error>>, mixin::NonCopyable {
         /// @brief Handler type for receiving data from this specific peer
-        using ReceiveHandler = Function<void(memory::Slice<const u8>)>;
+        using ReceiveCallback = Function<void(memory::Slice<const u8>)>;
 
         /// @brief Peer context storing handler and state
         struct Context {
-            ReceiveHandler on_receive{nullptr};///< Callback for received data
+            ReceiveCallback on_receive{nullptr};///< Callback for received data
         };
 
         /// @brief Add new peer to ESP-NOW network
@@ -101,16 +105,16 @@ struct EspNow final : kf::mixin::Singleton<EspNow>,
         /// @brief Set receive handler for this peer
         /// @param handler Callback function for incoming data
         /// @return Success or Error (PeerNotFound if peer doesn't exist)
-        [[nodiscard]] Result<void, Error> onReceive(ReceiveHandler &&handler) noexcept {
+        [[nodiscard]] Result<void, Error> onReceive(ReceiveCallback &&callback) noexcept {
             if (not exist()) { return {Error::PeerNotFound}; }
 
             auto &espnow = EspNow::instance();
             auto context = espnow.getPeerContext(_mac);
 
             if (nullptr == context) {
-                espnow._peer_contexts.insert({_mac, Context{std::move(handler)}});
+                espnow._peer_contexts.insert({_mac, Context{std::move(callback)}});
             } else {
-                context->on_receive = std::move(handler);
+                context->on_receive = std::move(callback);
             }
 
             return {};
@@ -145,14 +149,12 @@ struct EspNow final : kf::mixin::Singleton<EspNow>,
         Mac _mac;///< Peer MAC address
 
         /// @brief Private constructor (use Peer::add)
-        explicit Peer(const Mac &mac) noexcept :
-            _mac{mac} {}
+        explicit Peer(const Mac &mac) noexcept : _mac{mac} {}
 
         // impl
-
         using This = Peer;
 
-        KF_IMPL_WRITABLE(This, Error);
+        KF_IMPL_WRITABLE(This, Result<void, Error>);
 
         /// @brief Internal send implementation
         /// @return Success or translated ESP-NOW error
@@ -194,13 +196,13 @@ struct EspNow final : kf::mixin::Singleton<EspNow>,
 
     /// @brief Set handler for receiving data from unknown peers
     /// @param handler Callback function for unknown peer data
-    void onReceiveFromUnknown(ReceiveFromUnknownHandler &&handler) noexcept {
-        _on_receive_from_unknown = std::move(handler);
+    void onReceiveFromUnknown(ReceiveFromUnknownCallback &&callback) noexcept {
+        _on_receive_from_unknown = std::move(callback);
     }
 
 private:
     memory::Map<Mac, Peer::Context> _peer_contexts{};           ///< Map of known peers and their contexts
-    ReceiveFromUnknownHandler _on_receive_from_unknown{nullptr};///< Handler for unknown peers
+    ReceiveFromUnknownCallback _on_receive_from_unknown{nullptr};///< Handler for unknown peers
 
     /// @brief Local device MAC address (cached)
     const Mac _local_mac{
