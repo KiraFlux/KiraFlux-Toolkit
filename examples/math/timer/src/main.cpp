@@ -1,9 +1,15 @@
 #include <Arduino.h>
 #include <kf/math/Timer.hpp>
 
-kf::math::Timer one_shot{kf::math::Milliseconds(2000)};// will fire once after 2s and then be stopped
-kf::math::Timer periodic{kf::math::Hertz(10)};         // fires at 10 Hz, restart ensures continuous rhythm
-kf::math::Timer stopwatch{};                           // just measures elapsed time, period is irrelevant
+kf::math::Timer::Config one_shot_config{.period = 2000};
+kf::math::Timer::Config periodic_config{.period = 100}; // 100 ms = 10 Hz
+kf::math::Timer::Config stopwatch_config{.period = 0};
+
+kf::math::Timer one_shot{one_shot_config};
+kf::math::Timer periodic{periodic_config};
+kf::math::Timer stopwatch{stopwatch_config};
+
+bool one_shot_armed{true};
 
 void setup() {
     Serial.begin(115200);
@@ -19,19 +25,18 @@ void setup() {
 void loop() {
     const auto now = millis();
 
-    // remaining shows time left before expiration (0 when expired/stopped)
     Serial.print("One-shot remaining: ");
     Serial.println(one_shot.remaining(now));
 
-    if (one_shot.expired(now)) {
+    if (one_shot_armed and one_shot.expired(now)) {
+        one_shot_armed = false;
         Serial.println("One-shot expired");
-        one_shot.stop();// prevent further firing
     }
 
     if (periodic.expired(now)) {
         Serial.print("Periodic tick at ");
         Serial.println(now);
-        periodic.start(now);// re‑arm for next period
+        periodic.start(now); // re-arm for next period
     }
 
     Serial.print("Stopwatch: ");

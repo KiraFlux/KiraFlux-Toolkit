@@ -43,9 +43,13 @@ Joystick my_joystick{
 };
 
 JoystickListener::Config my_listener_config{
-    .threshold = 0.5f,    // neutral zone threshold (normalized value)
-    .repeat_timeout = 100,// ms
-    .delay = 400,         // ms
+    .repeat_timer = {
+        .period = 100,// ms
+    },
+    .delay_timer = {
+        .period = 100,// ms
+    },
+    .threshold = 0.5f,// neutral zone threshold (normalized value)
 };
 
 JoystickListener my_listener{
@@ -82,7 +86,11 @@ void tune(Joystick::Config &config) {
     }
 }
 
-static kf::math::Timer log_timer{kf::math::Milliseconds(500)};// print every 500 ms
+static kf::math::Timer::Config log_timer_config{
+    .period = 500,// print every 500 ms
+};
+
+static kf::math::Timer log_timer{log_timer_config};
 
 void setup() {
     Serial.begin(115200);

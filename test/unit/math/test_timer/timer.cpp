@@ -1,10 +1,13 @@
-#include <kf/math/Timer.hpp>
+// Copyright (c) 2026 KiraFlux
+// SPDX-License-Identifier: MIT
 
+#include <kf/math/Timer.hpp>
 #include <unity.h>
 
+using kf::math::Milliseconds;
 using kf::math::Timer;
 
-constexpr kf::math::Milliseconds
+constexpr Milliseconds
     t_0 = 0,
     t_50 = 50,
     t_100 = 100,
@@ -19,122 +22,105 @@ constexpr kf::math::Milliseconds
     small_inc = 30,
     large_inc = 150;
 
-void test_default_ctor() {
-    Timer t{};
-    TEST_ASSERT_EQUAL(period_0, t.period());
-    TEST_ASSERT_FALSE(t.expired(t_0));
-    TEST_ASSERT_EQUAL(period_0, t.elapsed(t_0));
-    TEST_ASSERT_EQUAL(period_0, t.remaining(t_0));
+void test_config_ctor() {
+    Timer::Config config{.period = period_100};
+    Timer timer{config};
+    TEST_ASSERT_EQUAL(period_100, timer.config().period);
 }
 
-void test_period_ctor() {
-    Timer t{period_100};
-    TEST_ASSERT_EQUAL(period_100, t.period());
+void test_config_reference() {
+    Timer::Config config{.period = period_50};
+    Timer timer{config};
+    TEST_ASSERT_EQUAL(period_50, timer.config().period);
+
+    config.period = period_200;
+    TEST_ASSERT_EQUAL(period_200, timer.config().period);
 }
 
-void test_frequency_ctor() {
-    Timer t{kf::math::Hertz(10)};
-    TEST_ASSERT_EQUAL(period_100, t.period());
-}
+void test_restart() {
+    Timer::Config config{.period = period_100};
+    Timer timer{config};
 
-void test_period_property() {
-    Timer t{period_50};
-    TEST_ASSERT_EQUAL(period_50, t.period());
-    t.period(period_200);
-    TEST_ASSERT_EQUAL(period_200, t.period());
-}
+    timer.start(t_0);
+    TEST_ASSERT_FALSE(timer.expired(t_50));
+    TEST_ASSERT_EQUAL(t_50, timer.elapsed(t_50));
+    TEST_ASSERT_EQUAL(period_100 - t_50, timer.remaining(t_50));
 
-void test_start_stop() {
-    Timer t{period_100};
-    t.start(t_0);
-
-    TEST_ASSERT_FALSE(t.expired(t_50));
-    TEST_ASSERT_EQUAL(t_50, t.elapsed(t_50));
-    TEST_ASSERT_EQUAL(period_100 - t_50, t.remaining(t_50));
-
-    t.stop();
-
-    TEST_ASSERT_FALSE(t.expired(t_100));
-    TEST_ASSERT_EQUAL(t_100, t.elapsed(t_100));
-    TEST_ASSERT_EQUAL(period_0, t.remaining(t_100));
+    timer.start(t_50);
+    TEST_ASSERT_EQUAL(t_0, timer.elapsed(t_50));
+    TEST_ASSERT_FALSE(timer.expired(t_100));
+    TEST_ASSERT_EQUAL(t_50, timer.elapsed(t_100));
 }
 
 void test_expired() {
-    Timer t{period_100};
-    t.start(t_0);
-    TEST_ASSERT_FALSE(t.expired(t_50));
-    TEST_ASSERT_TRUE(t.expired(t_100));
-    TEST_ASSERT_TRUE(t.expired(t_150));
+    Timer::Config config{.period = period_100};
+    Timer timer{config};
+    timer.start(t_0);
+    TEST_ASSERT_FALSE(timer.expired(t_50));
+    TEST_ASSERT_TRUE(timer.expired(t_100));
+    TEST_ASSERT_TRUE(timer.expired(t_150));
 }
 
 void test_elapsed() {
-    Timer t{period_100};
-    t.start(t_50);
-    TEST_ASSERT_EQUAL(t_0, t.elapsed(t_50));
-    TEST_ASSERT_EQUAL(t_50, t.elapsed(t_100));
-    TEST_ASSERT_EQUAL(t_100, t.elapsed(t_150));
+    Timer::Config config{.period = period_100};
+    Timer timer{config};
+    timer.start(t_50);
+    TEST_ASSERT_EQUAL(t_0, timer.elapsed(t_50));
+    TEST_ASSERT_EQUAL(t_50, timer.elapsed(t_100));
+    TEST_ASSERT_EQUAL(t_100, timer.elapsed(t_150));
 }
 
 void test_remaining() {
-    Timer t{period_100};
-    t.start(t_0);
-    TEST_ASSERT_EQUAL(period_100, t.remaining(t_0));
-    TEST_ASSERT_EQUAL(period_100 - t_50, t.remaining(t_50));
-    TEST_ASSERT_EQUAL(period_0, t.remaining(t_100));
-    TEST_ASSERT_EQUAL(period_0, t.remaining(t_150));
-}
-
-void test_after_stop() {
-    Timer t{period_100};
-    t.start(t_0);
-    t.stop();
-
-    TEST_ASSERT_FALSE(t.expired(t_50));
-    TEST_ASSERT_EQUAL(t_50, t.elapsed(t_50));
-    TEST_ASSERT_EQUAL(period_0, t.remaining(t_50));
+    Timer::Config config{.period = period_100};
+    Timer timer{config};
+    timer.start(t_0);
+    TEST_ASSERT_EQUAL(period_100, timer.remaining(t_0));
+    TEST_ASSERT_EQUAL(period_100 - t_50, timer.remaining(t_50));
+    TEST_ASSERT_EQUAL(period_0, timer.remaining(t_100));
+    TEST_ASSERT_EQUAL(period_0, timer.remaining(t_150));
 }
 
 void test_zero_period() {
-    Timer t{period_0};
-    t.start(t_50);
-    TEST_ASSERT_TRUE(t.expired(t_50));
-    TEST_ASSERT_EQUAL(period_0, t.elapsed(t_50));
-    TEST_ASSERT_EQUAL(period_0, t.remaining(t_50));
+    Timer::Config config{.period = period_0};
+    Timer timer{config};
 
-    t.start(t_100);
-    TEST_ASSERT_TRUE(t.expired(t_100));
+    timer.start(t_50);
+    TEST_ASSERT_TRUE(timer.expired(t_50));
+    TEST_ASSERT_EQUAL(period_0, timer.elapsed(t_50));
+    TEST_ASSERT_EQUAL(period_0, timer.remaining(t_50));
+
+    timer.start(t_100);
+    TEST_ASSERT_TRUE(timer.expired(t_100));
 }
 
 void test_unsigned_wrap() {
-    Timer t{period_100};
-    t.start(near_max);
+    Timer::Config config{.period = period_100};
+    Timer timer{config};
+    timer.start(near_max);
 
-    TEST_ASSERT_FALSE(t.expired(near_max));
-    TEST_ASSERT_EQUAL(period_0, t.elapsed(near_max));
-    TEST_ASSERT_EQUAL(period_100, t.remaining(near_max));
+    TEST_ASSERT_FALSE(timer.expired(near_max));
+    TEST_ASSERT_EQUAL(period_0, timer.elapsed(near_max));
+    TEST_ASSERT_EQUAL(period_100, timer.remaining(near_max));
 
     const auto later_a = near_max + small_inc;
-    TEST_ASSERT_EQUAL(small_inc, t.elapsed(later_a));
-    TEST_ASSERT_FALSE(t.expired(later_a));
-    TEST_ASSERT_EQUAL(period_100 - small_inc, t.remaining(later_a));
+    TEST_ASSERT_EQUAL(small_inc, timer.elapsed(later_a));
+    TEST_ASSERT_FALSE(timer.expired(later_a));
+    TEST_ASSERT_EQUAL(period_100 - small_inc, timer.remaining(later_a));
 
     const auto later_b = near_max + large_inc;
-    TEST_ASSERT_EQUAL(large_inc, t.elapsed(later_b));
-    TEST_ASSERT_TRUE(t.expired(later_b));
-    TEST_ASSERT_EQUAL(period_0, t.remaining(later_b));
+    TEST_ASSERT_EQUAL(large_inc, timer.elapsed(later_b));
+    TEST_ASSERT_TRUE(timer.expired(later_b));
+    TEST_ASSERT_EQUAL(period_0, timer.remaining(later_b));
 }
 
 int main() {
     UNITY_BEGIN();
-    RUN_TEST(test_default_ctor);
-    RUN_TEST(test_period_ctor);
-    RUN_TEST(test_frequency_ctor);
-    RUN_TEST(test_period_property);
-    RUN_TEST(test_start_stop);
+    RUN_TEST(test_config_ctor);
+    RUN_TEST(test_config_reference);
+    RUN_TEST(test_restart);
     RUN_TEST(test_expired);
     RUN_TEST(test_elapsed);
     RUN_TEST(test_remaining);
-    RUN_TEST(test_after_stop);
     RUN_TEST(test_zero_period);
     RUN_TEST(test_unsigned_wrap);
     return UNITY_END();

@@ -4,16 +4,17 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/primitives.hpp"
 #include "kf/math/Timer.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/mixin/TimedPollable.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::input {
-namespace internal::jl {
+
+namespace internal {
 
 enum class Direction : u8 {
     Up = 0,
@@ -23,9 +24,9 @@ enum class Direction : u8 {
     Home
 };
 
-struct Config final : mixin::NonCopyable {
+struct JoystickListenerConfig final : mixin::NonCopyable {
+    math::Timer::Config repeat_timer, delay_timer;
     f32 threshold;///< 0..1
-    kf::math::Milliseconds repeat_timeout, delay;
 
     [[nodiscard]] Direction calculateDirection(f32 x, f32 y) const noexcept {
         const auto ax = kf::abs(x);
@@ -41,19 +42,23 @@ struct Config final : mixin::NonCopyable {
         }
     }
 };
-}// namespace internal::jl
 
-template<typename I>
-struct JoystickListener final : mixin::Configurable<internal::jl::Config>,
-                                mixin::NonCopyable,
-                                mixin::Resettable<JoystickListener<I>>,
-                                mixin::TimedPollable<JoystickListener<I>> {
+}// namespace internal
+
+template<typename I> struct JoystickListener final :
+
+    mixin::NonCopyable,
+    mixin::Configurable<internal::JoystickListenerConfig>,
+    mixin::Resettable<JoystickListener<I>>,
+    mixin::TimedPollable<JoystickListener<I>>
+
+{
     using JoystickImpl = I;
-    using Config = internal::jl::Config;
-    using Direction = internal::jl::Direction;
+    using Config = internal::JoystickListenerConfig;
+    using Direction = internal::Direction;
 
     explicit JoystickListener(JoystickImpl &joystick, const Config &config) noexcept :
-        _joystick{joystick}, mixin::Configurable<Config>{config}, _repeat_timer{config.repeat_timeout}, _initial_delay{config.delay} {}
+        _joystick{joystick}, mixin::Configurable<Config>{config} {}
 
     [[nodiscard]] Direction direction() const noexcept { return _current_direction; }
 
@@ -68,8 +73,8 @@ struct JoystickListener final : mixin::Configurable<internal::jl::Config>,
 
 private:
     JoystickImpl &_joystick;
-    math::Timer _repeat_timer;
-    math::Timer _initial_delay;
+    math::Timer _repeat_timer{this->config().repeat_timer};
+    math::Timer _initial_delay{this->config().delay_timer};
 
     Direction _current_direction{Direction::Home};
     bool _in_repeat_mode{false};

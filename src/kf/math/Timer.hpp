@@ -4,46 +4,31 @@
 #pragma once
 
 #include "kf/math/units.hpp"
+#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 namespace kf::math {
 
-struct Timer final {
+namespace internal {
 
-private:
-    Milliseconds _period, _last{0};
-    bool _enabled{false};
+struct TimerConfig final : mixin::NonCopyable {
+    Milliseconds period;
+};
 
-public:
-    constexpr explicit Timer() noexcept : _period{0} {}
+}// namespace internal
 
-    constexpr explicit Timer(Milliseconds period) noexcept : _period{period} {}
+struct Timer final : mixin::NonCopyable, mixin::Configurable<internal::TimerConfig> {
 
-    constexpr explicit Timer(Hertz frequency) noexcept : _period{static_cast<Milliseconds>(1000u / frequency)} {}
+    using Config = internal::TimerConfig;
 
-    // propetries
-
-    /// @brief Set new timer period
-    void period(Milliseconds new_period) noexcept { _period = new_period; }
-
-    /// @brief Get current timer period
-    [[nodiscard]] Milliseconds period() const noexcept { return _period; }
-
-    // control
+    using ::kf::mixin::Configurable<Config>::Configurable;
 
     /// @brief Start (restart) timer
-    void start(Milliseconds now) noexcept {
-        _enabled = true;
-        _last = now;
-    }
-
-    /// @brief Stop (Disable) timer
-    void stop() noexcept {
-        _enabled = false;
-    }
+    void start(Milliseconds now) noexcept { _last = now; }
 
     /// @brief Expired check
     /// @note Do not automaticly reset
-    [[nodiscard]] bool expired(Milliseconds now) noexcept { return _enabled and elapsed(now) >= _period; }
+    [[nodiscard]] bool expired(Milliseconds now) noexcept { return elapsed(now) >= this->config().period; }
 
     /// @brief Get Time since last start()
     [[nodiscard]] Milliseconds elapsed(Milliseconds now) noexcept { return now - _last; }
@@ -51,12 +36,15 @@ public:
     /// @brief Get Time before Timer expire
     [[nodiscard]] Milliseconds remaining(Milliseconds now) noexcept {
         const auto e = elapsed(now);
-        if (_enabled and e < _period) {// because of unsigned arithmetic
-            return _period - e;
+        if (e < this->config().period) {// because of unsigned arithmetic
+            return this->config().period - e;
         } else {
             return 0;
         }
     }
+
+private:
+    Milliseconds _last{0};
 };
 
 }// namespace kf::math
