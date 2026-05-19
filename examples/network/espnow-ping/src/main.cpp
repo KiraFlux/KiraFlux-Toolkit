@@ -68,13 +68,13 @@ void setup() {
 }
 
 void loop() {
-    if (broadcast_peer.hasValue()) {
+    if (broadcast_peer.isSome()) {
         Serial.println("Sending: broadcast");
         const auto result = broadcast_peer.value().writePacket("[broadcast]: ping");
         if (result.isError()) { Serial.println("[broadcast]: Failed to send"); }
     }
 
-    if (target_peer.hasValue()) {
+    if (target_peer.isSome()) {
         Serial.println("Sending: target");
         const auto result = target_peer.value().writePacket("ping");
         if (result.isError()) { Serial.println("Failed to send"); }

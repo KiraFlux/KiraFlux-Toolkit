@@ -186,14 +186,14 @@ namespace search {
 void find_char() {
     ArrayString<20> s("hello world");
     auto p = s.find('o');
-    TEST_ASSERT_TRUE(p.hasValue() && p.value() == 4);
+    TEST_ASSERT_TRUE(p.isSome() && p.value() == 4);
     p = s.find('x');
-    TEST_ASSERT_FALSE(p.hasValue());
+    TEST_ASSERT_FALSE(p.isSome());
 }
 void find_str() {
     ArrayString<20> s("hello world");
     auto p = s.find("world");
-    TEST_ASSERT_TRUE(p.hasValue() && p.value() == 6);
+    TEST_ASSERT_TRUE(p.isSome() && p.value() == 6);
 }
 void starts_ends() {
     ArrayString<20> s("hello.txt");

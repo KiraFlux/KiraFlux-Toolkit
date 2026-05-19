@@ -107,33 +107,33 @@ namespace find {
 void character() {
     StringView sv("hello world");
     auto p = sv.find('o');
-    TEST_ASSERT_TRUE(p.hasValue() && p.value() == 4);
+    TEST_ASSERT_TRUE(p.isSome() && p.value() == 4);
     p = sv.find('o', 5);
-    TEST_ASSERT_TRUE(p.hasValue() && p.value() == 7);
+    TEST_ASSERT_TRUE(p.isSome() && p.value() == 7);
     p = sv.find('x');
-    TEST_ASSERT_FALSE(p.hasValue());
+    TEST_ASSERT_FALSE(p.isSome());
 }
 
 void substring() {
     StringView sv("the quick brown fox");
     auto p = sv.find("quick");
-    TEST_ASSERT_TRUE(p.hasValue() && p.value() == 4);
+    TEST_ASSERT_TRUE(p.isSome() && p.value() == 4);
     p = sv.find("brown", 10);
-    TEST_ASSERT_TRUE(p.hasValue() && p.value() == 10);
+    TEST_ASSERT_TRUE(p.isSome() && p.value() == 10);
     p = sv.find("cat");
-    TEST_ASSERT_FALSE(p.hasValue());
+    TEST_ASSERT_FALSE(p.isSome());
     p = sv.find("");
-    TEST_ASSERT_TRUE(p.hasValue() && p.value() == 0);
+    TEST_ASSERT_TRUE(p.isSome() && p.value() == 0);
 }
 
 void rfind() {
     StringView sv("abracadabra");
     auto p = sv.rfind('a');
-    TEST_ASSERT_TRUE(p.hasValue() && p.value() == 10);
+    TEST_ASSERT_TRUE(p.isSome() && p.value() == 10);
     p = sv.rfind('a', 5);
-    TEST_ASSERT_TRUE(p.hasValue() && p.value() == 5);
+    TEST_ASSERT_TRUE(p.isSome() && p.value() == 5);
     p = sv.rfind('z');
-    TEST_ASSERT_FALSE(p.hasValue());
+    TEST_ASSERT_FALSE(p.isSome());
 }
 }// namespace find
 

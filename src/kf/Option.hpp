@@ -37,12 +37,16 @@ public:
 
     /// @brief Check if Option contains a value
     /// @return true if value is present, false otherwise
-    [[nodiscard]] constexpr bool hasValue() const noexcept { return _engaged; }
+    [[nodiscard]] constexpr bool isSome() const noexcept { return _engaged; }
+
+    /// @brief Check if Option does not contains a value
+    /// @return true if no value is present, false otherwise
+    [[nodiscard]] constexpr bool isNone() const noexcept { return not _engaged; }
 
     /// @brief Get stored value (unsafe)
     /// @return Reference to stored value
     /// @warning Causes abort() if Option is empty
-    /// @note Use hasValue() to check before calling
+    /// @note Use isSome() to check before calling
     [[nodiscard]] T &value() noexcept {
         if (_engaged) {
             return _value;
