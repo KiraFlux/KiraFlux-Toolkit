@@ -293,6 +293,11 @@ public:
         }
     }
 
+    /// @brief Draw glyph at specified position
+    void glyph(math::Pixels x, math::Pixels y, char c) noexcept {
+        drawGlyph(x, y, _active_font->getGlyph(c), _foreground, _background);
+    }
+
     /// @brief Draw text at specified position
     /// @details Supports formatting codes:
     ///   \x80 - Normal color mode (text - fg, bg)
