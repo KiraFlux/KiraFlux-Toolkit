@@ -76,7 +76,7 @@ template<typename R, typename W, typename Tlc, typename Trc = Tlc> struct MizLan
         const auto code_result = _input_stream.template readPacket<LocalCodeType>();
         if (code_result.isError()) { return {Error::Receiver_CodeReadFail}; }
 
-        const auto code = code_result.value();
+        const auto code = code_result.ok();
         if (code >= _instructions.size()) { return {Error::Receiver_CodeNotExists}; }
 
         return _instructions[code](_input_stream);

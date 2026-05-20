@@ -25,7 +25,7 @@ void setupBroadcastPeer() {
     }
 
     if (result.isOk()) {
-        broadcast_peer.value(std::move(result.value()));
+        broadcast_peer.value(std::move(result.ok()));
     }
 }
 
@@ -42,14 +42,14 @@ void setupTargetPeer() {
     } else {
         // ok => attach handler
 
-        const auto result = peer_add_result.value().onReceive(onTarget);
+        const auto result = peer_add_result.ok().onReceive(onTarget);
         if (result.isError()) {
             Serial.printf("Failed to attach receive callback: %s\n", EspNow::stringFromError(result.error()));
         }
     }
 
     if (peer_add_result.isOk()) {
-        target_peer.value(std::move(peer_add_result.value()));
+        target_peer.value(std::move(peer_add_result.ok()));
     }
 }
 

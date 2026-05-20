@@ -56,12 +56,12 @@ template<typename T, typename E> struct Result final : internal::ResultErrorCont
     static_assert(std::is_trivially_copyable_v<T>);
 
     /// @brief Construct successful result with value (move)
-    constexpr Result(T &&value) noexcept :
-        _is_ok{true}, _value{std::move(value)} {}
+    constexpr Result(T &&ok) noexcept :
+        _is_ok{true}, _ok{std::move(ok)} {}
 
     /// @brief Construct successful result with value (copy)
-    constexpr Result(const T &value) noexcept :
-        _is_ok{true}, _value{value} {}
+    constexpr Result(const T &ok) noexcept :
+        _is_ok{true}, _ok{ok} {}
 
     /// @brief Construct error result with error (move)
     constexpr Result(E &&error) noexcept :
@@ -75,26 +75,50 @@ template<typename T, typename E> struct Result final : internal::ResultErrorCont
     [[nodiscard]] constexpr bool isOk() const noexcept { return _is_ok; }
 
     /// @brief Get Result value
-    [[nodiscard]] T &value() noexcept {
-        if (isOk()) { return _value; }
+    [[nodiscard]] T &ok() noexcept {
+        if (isOk()) { return _ok; }
         abort();
     }
 
-    [[nodiscard]] const T &value() const noexcept { return const_cast<Result *>(this)->value(); }
+    [[nodiscard]] const T &ok() const noexcept { return const_cast<Result *>(this)->ok(); }
 
-    void value(T &&new_value) noexcept {
+    void ok(T &&new_value) noexcept {
         _is_ok = true;
-        _value = std::move(new_value);
+        _ok = std::move(new_value);
     }
 
-    void value(const T &new_value) noexcept {
+    void ok(const T &new_value) noexcept {
         _is_ok = true;
-        _value = new_value;
+        _ok = new_value;
+    }
+
+    /// @brief Transform Result ok
+    /// @tparam _F auto-deducted mapping function type
+    /// @param f mapping function
+    /// @return A new Result<U, E> with mapped value if ok or new result with same Error
+    template<typename _F> [[nodiscard]] auto map(_F &&f) const noexcept -> Result<decltype(f(std::declval<T>())), E> {
+        if (_is_ok) {
+            return {f(_ok)};
+        } else {
+            return {_error};
+        }
+    }
+
+    /// @brief Transform Result error
+    /// @tparam _F auto-deducted mapping function type
+    /// @param f mapping function
+    /// @return A new Result<T, W> with mapped error if is error or new result with same value
+    template<typename _F> [[nodiscard]] auto mapError(_F &&f) const noexcept -> Result<T, decltype(f(std::declval<E>()))> {
+        if (_is_ok) {
+            return {_ok};
+        } else {
+            return {f(_error)};
+        }
     }
 
 private:
     union {
-        T _value;///< Storage for successful result (active when is_ok == true)
+        T _ok;   ///< Storage for successful result (active when is_ok == true)
         E _error;///< Storage for error result (active when is_ok == false)
     };
     bool _is_ok;///< Flag indicating success (true) or error (false)
@@ -137,6 +161,18 @@ template<typename E> struct Result<void, E> final : internal::ResultErrorControl
     }
 
     [[nodiscard]] const E &error() const noexcept { return const_cast<Result<void, E> *>(this)->error(); }
+
+    /// @brief Transform Result error
+    /// @tparam _F auto-deducted mapping function type
+    /// @param f mapping function
+    /// @return A new Result<void, W> with mapped error if is error or new result
+    template<typename _F> [[nodiscard]] auto mapError(_F &&f) const noexcept -> Result<void, decltype(f(std::declval<E>()))> {
+        if (_is_error) {
+            return {f(_error)};
+        } else {
+            return {};
+        }
+    }
 
 private:
     E _error;      ///< Storage for error result
