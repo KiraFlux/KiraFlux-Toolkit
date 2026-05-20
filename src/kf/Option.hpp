@@ -15,14 +15,6 @@ template<typename T> struct Option {
     static_assert(std::is_trivially_destructible_v<T>, "T must be trivially destructible");
     static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
 
-private:
-    union {
-        T _value;   ///< Storage for value when engaged
-        char _dummy;///< Dummy member for empty state
-    };
-    bool _engaged;///< Flag indicating whether value is present
-
-public:
     /// @brief Construct Option with value (copy)
     constexpr Option(const T &value) noexcept :// NOLINT(*-explicit-constructor)
         _engaged{true}, _value{value} {}
@@ -55,13 +47,7 @@ public:
         }
     }
 
-    [[nodiscard]] const T &value() const noexcept {
-        if (_engaged) {
-            return _value;
-        } else {
-            abort();
-        }
-    }
+    [[nodiscard]] const T &value() const noexcept { return const_cast<Option<T> *>(this)->value(); }
 
     void value(T &&new_value) noexcept {
         _engaged = true;
@@ -84,6 +70,13 @@ public:
     [[nodiscard]] constexpr T valueOr(const T &default_value) const noexcept {
         return _engaged ? _value : default_value;
     }
+
+private:
+    union {
+        T _value;   ///< Storage for value when engaged
+        char _dummy;///< Dummy member for empty state
+    };
+    bool _engaged;///< Flag indicating whether value is present
 };
 
 }// namespace kf
