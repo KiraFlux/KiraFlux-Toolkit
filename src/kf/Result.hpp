@@ -11,6 +11,7 @@ namespace kf {
 
 namespace internal {
 
+/// @brief Base class for result error handling logic (CRTP)
 template<typename Impl, typename E> struct ResultErrorController {
     static_assert(std::is_trivially_destructible_v<E>);
     static_assert(std::is_trivially_copyable_v<E>);
@@ -20,11 +21,24 @@ template<typename Impl, typename E> struct ResultErrorController {
         return static_cast<const Impl *>(this)->isErrorImpl();
     }
 
-    /// @brief Get Result error
+    /// @brief Get the stored error (panic if not error)
     [[nodiscard]] const E &error() const noexcept {
         if (isError()) { return static_cast<const Impl *>(this)->getErrorImpl(); }
         abort();
     }
+};
+
+/// @brief Internal wrapper for a success value (used with kf::ok)
+template<typename T> struct OkWrapper {
+    T value;
+};
+
+/// @brief Specialisation of OkWrapper for void
+template<> struct OkWrapper<void> {};
+
+/// @brief Internal wrapper for an error value (used with kf::error)
+template<typename E> struct ErrorWrapper {
+    E value;
 };
 
 }// namespace internal
@@ -32,68 +46,65 @@ template<typename Impl, typename E> struct ResultErrorController {
 /// @brief Result type that can hold either a value or an error
 /// @tparam T Type of successful result value
 /// @tparam E Type of error value
-/// @note Embedded-friendly alternative to exceptions for error handling
+/// @note Embedded‑friendly alternative to exceptions.
+///       Use kf::ok() and kf::error() to create instances.
+/// @see kf::ok, kf::error
 template<typename T, typename E> struct Result final : internal::ResultErrorController<Result<T, E>, E> {
     static_assert(std::is_trivially_destructible_v<T>);
     static_assert(std::is_trivially_copyable_v<T>);
 
-    /// @brief Construct successful result with value (move)
-    constexpr Result(T &&ok) noexcept :
-        _is_ok{true}, _ok{std::move(ok)} {}
+    /// @brief Construct from OkWrapper (internal - use kf::ok)
+    constexpr Result(internal::OkWrapper<T> ok) noexcept :
+        _is_ok{true}, _ok{std::move(ok.value)} {}
 
-    /// @brief Construct successful result with value (copy)
-    constexpr Result(const T &ok) noexcept :
-        _is_ok{true}, _ok{ok} {}
-
-    /// @brief Construct error result with error (move)
-    constexpr Result(E &&error) noexcept :
-        _is_ok{false}, _error{std::move(error)} {}
-
-    /// @brief Construct error result with error (copy)
-    constexpr Result(const E &error) noexcept :
-        _is_ok{false}, _error{error} {}
+    /// @brief Construct from ErrorWrapper (internal - use kf::error)
+    constexpr Result(internal::ErrorWrapper<E> error) noexcept :
+        _is_ok{false}, _error{std::move(error.value)} {}
 
     /// @brief Check if result contains a value (success)
     [[nodiscard]] constexpr bool isOk() const noexcept { return _is_ok; }
 
-    /// @brief Get Result value
+    /// @brief Get the stored value (undefined behaviour if not ok)
     [[nodiscard]] T &ok() noexcept {
         if (isOk()) { return _ok; }
         abort();
     }
 
+    /// @brief Get the stored value (const overload)
     [[nodiscard]] const T &ok() const noexcept { return const_cast<Result *>(this)->ok(); }
 
-    /// @brief Transform Result ok
-    /// @tparam _F auto-deducted mapping function type
-    /// @param f mapping function
-    /// @return A new Result<U, E> with mapped value if ok or new result with same Error
-    template<typename _F> [[nodiscard]] auto map(_F &&f) const noexcept -> Result<decltype(f(std::declval<T>())), E> {
+    /// @brief Transform the success value using a function
+    /// @tparam F Callable type (auto‑deduced)
+    /// @param f Mapping function: T -> U
+    /// @return Result<U, E> containing the mapped value on success,
+    ///         otherwise the original error.
+    template<typename F> [[nodiscard]] auto map(F &&f) const noexcept -> Result<decltype(f(std::declval<T>())), E> {
         if (_is_ok) {
-            return {f(_ok)};
+            return {internal::OkWrapper<decltype(f(std::declval<T>()))>{f(_ok)}};
         } else {
-            return {_error};
+            return {internal::ErrorWrapper<E>{_error}};
         }
     }
 
-    /// @brief Transform Result error
-    /// @tparam _F auto-deducted mapping function type
-    /// @param f mapping function
-    /// @return A new Result<T, W> with mapped error if is error or new result with same value
-    template<typename _F> [[nodiscard]] auto mapError(_F &&f) const noexcept -> Result<T, decltype(f(std::declval<E>()))> {
+    /// @brief Transform the error value using a function
+    /// @tparam F Callable type (auto‑deduced)
+    /// @param f Mapping function: E -> W
+    /// @return Result<T, W> containing the mapped error on failure,
+    ///         otherwise the original success value.
+    template<typename F> [[nodiscard]] auto mapError(F &&f) const noexcept -> Result<T, decltype(f(std::declval<E>()))> {
         if (_is_ok) {
-            return {_ok};
+            return {internal::OkWrapper<T>{_ok}};
         } else {
-            return {f(_error)};
+            return {internal::ErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
         }
     }
 
 private:
     union {
-        T _ok;   ///< Storage for successful result (active when is_ok == true)
-        E _error;///< Storage for error result (active when is_ok == false)
+        T _ok;
+        E _error;
     };
-    bool _is_ok;///< Flag indicating success (true) or error (false)
+    bool _is_ok;
 
     friend struct ::kf::internal::ResultErrorController<Result<T, E>, E>;
 
@@ -102,41 +113,37 @@ private:
     [[nodiscard]] const E &getErrorImpl() const noexcept { return _error; }
 };
 
-/// @brief Result specialization for void (success-only) operations
+/// @brief Specialisation of Result for void success value
 /// @tparam E Type of error value
-/// @note Used for operations that don't return a value on success
 template<typename E> struct Result<void, E> final : internal::ResultErrorController<Result<void, E>, E> {
 
-    /// @brief Construct successful void result
-    constexpr Result() noexcept :
+    /// @brief Construct from OkWrapper<void> (internal - use kf::ok())
+    constexpr Result(internal::OkWrapper<void>) noexcept :
         _is_error{false} {}
 
-    /// @brief Construct error result with error (move)
-    constexpr Result(E &&error) noexcept :
-        _is_error{true}, _error{std::move(error)} {}
-
-    /// @brief Construct error result with error (copy)
-    constexpr Result(const E &error) noexcept :
-        _is_error{true}, _error{error} {}
+    /// @brief Construct from ErrorWrapper (internal - use kf::error)
+    constexpr Result(internal::ErrorWrapper<E> error) noexcept :
+        _is_error{true}, _error{std::move(error.value)} {}
 
     /// @brief Check if result is successful
     [[nodiscard]] constexpr bool isOk() const noexcept { return not _is_error; }
 
-    /// @brief Transform Result error
-    /// @tparam _F auto-deducted mapping function type
-    /// @param f mapping function
-    /// @return A new Result<void, W> with mapped error if is error or new result
-    template<typename _F> [[nodiscard]] auto mapError(_F &&f) const noexcept -> Result<void, decltype(f(std::declval<E>()))> {
+    /// @brief Transform the error value using a function
+    /// @tparam F Callable type (auto‑deduced)
+    /// @param f Mapping function: E -> W
+    /// @return Result<T, W> containing the mapped error on failure,
+    ///         otherwise the original success value.
+    template<typename F> [[nodiscard]] auto mapError(F &&f) const noexcept -> Result<void, decltype(f(std::declval<E>()))> {
         if (_is_error) {
-            return {f(_error)};
+            return {internal::ErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
         } else {
-            return {};
+            return {internal::OkWrapper<void>{}};
         }
     }
 
 private:
-    E _error;      ///< Storage for error result
-    bool _is_error;///< Flag indicating success error (true) or (false)
+    E _error;
+    bool _is_error;
 
     friend struct ::kf::internal::ResultErrorController<Result<void, E>, E>;
 
@@ -144,5 +151,27 @@ private:
 
     [[nodiscard]] const E &getErrorImpl() const noexcept { return _error; }
 };
+
+/// @brief Create a successful Result (value)
+/// @tparam T Type of the value (auto‑deduced)
+/// @param value The success value
+/// @return internal::OkWrapper<T> for implicit conversion to Result<T, E>
+template<typename T> constexpr auto ok(T &&value) noexcept -> internal::OkWrapper<std::decay_t<T>> {
+    return {std::forward<T>(value)};
+}
+
+/// @brief Create a successful Result<void,  E>
+/// @return internal::OkWrapper<void> for implicit conversion to Result<void, E>
+constexpr auto ok() noexcept -> internal::OkWrapper<void> {
+    return {};
+}
+
+/// @brief Create an error Result
+/// @tparam E Type of the error (auto‑deduced)
+/// @param error The error value
+/// @return internal::ErrorWrapper<E> for implicit conversion to Result<T, E>
+template<typename E> constexpr auto error(E &&error) noexcept -> internal::ErrorWrapper<std::decay_t<E>> {
+    return {std::forward<E>(error)};
+}
 
 }// namespace kf

@@ -306,16 +306,16 @@ public:
         if (result < 0) {
             _size = 0;
             _buffer[0] = '\0';
-            return {Error::FormatFailed};
+            return error(Error::FormatFailed);
         }
 
         _size = min(static_cast<usize>(result), N);
         _buffer[_size] = '\0';
 
         if (static_cast<usize>(result) > N) {
-            return {Error::Truncated};
+            return error(Error::Truncated);
         }
-        return {_size};
+        return ok(_size);
     }
 
     /// @brief Trim whitespace from beginning
