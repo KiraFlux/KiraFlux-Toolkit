@@ -152,16 +152,6 @@ template<typename E> struct Result<void, E> final : internal::ResultErrorControl
     /// @brief Check if result is successful
     [[nodiscard]] constexpr bool isOk() const noexcept { return not _is_error; }
 
-    /// @brief Check if result contains an error
-    [[nodiscard]] constexpr bool isError() const noexcept { return _is_error; }
-
-    [[nodiscard]] E &error() noexcept {
-        if (isError()) { return _error; }
-        abort();
-    }
-
-    [[nodiscard]] const E &error() const noexcept { return const_cast<Result<void, E> *>(this)->error(); }
-
     /// @brief Transform Result error
     /// @tparam _F auto-deducted mapping function type
     /// @param f mapping function
