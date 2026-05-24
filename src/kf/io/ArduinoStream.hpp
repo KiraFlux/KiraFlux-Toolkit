@@ -47,32 +47,32 @@ private:
     Result<memory::Slice<const u8>, Error> readBufferImpl(memory::Slice<u8> dest) noexcept {
         constexpr auto min_available{1u};
 
-        if (_stream.available() < min_available) { return {Error::ReadNotAvailable}; }
+        if (_stream.available() < min_available) { return error(Error::ReadNotAvailable); }
 
         const auto readed = _stream.readBytes(dest.data(), dest.size());
-        if (readed < min_available) { return {Error::ReadFalied}; }
+        if (readed < min_available) { return error(Error::ReadFalied); }
 
-        return {memory::Slice<const u8>{dest.data(), readed}};
+        return ok(memory::Slice<const u8>{dest.data(), readed});
     }
 
     template<typename T> Result<T, Error> readPacketImpl() noexcept {
         constexpr auto to_read{sizeof(T)};
-        if (_stream.available() < to_read) { return {Error::ReadNotAvailable}; }
+        if (_stream.available() < to_read) { return error(Error::ReadNotAvailable); }
 
         if constexpr (to_read == sizeof(u8)) {
             const auto read_result = _stream.read();
             if (-1 == read_result) {
-                return {Error::ReadFalied};
+                return error(Error::ReadFalied);
             } else {
-                return {static_cast<T>(read_result)};
+                return ok(static_cast<T>(read_result));
             }
         } else {
             T dest;
             const auto readed = _stream.readBytes(reinterpret_cast<u8 *>(&dest), to_read);
             if (to_read == readed) {
-                return {dest};
+                return ok(dest);
             } else {
-                return {Error::ReadFalied};
+                return error(Error::ReadFalied);
             }
         }
     }
@@ -82,9 +82,9 @@ private:
     Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept {
         const auto to_write = buffer.size();
         // _stream.availableForWrite() ?
-        if (_stream.write(buffer.data(), to_write) != to_write) { return {Error::WriteFailed}; }
+        if (_stream.write(buffer.data(), to_write) != to_write) { return error(Error::WriteFailed); }
 
-        return {};
+        return ok();
     }
 
     template<typename T> Result<void, Error> writePacketImpl(T &&packet) noexcept {
@@ -97,9 +97,9 @@ private:
             written = _stream.write(reinterpret_cast<const u8 *>(&packet), to_write);
         }
 
-        if (to_write != written) { return {Error::WriteFailed}; }
+        if (to_write != written) { return error(Error::WriteFailed); }
 
-        return {};
+        return ok();
     }
 
     template<typename T> Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept {

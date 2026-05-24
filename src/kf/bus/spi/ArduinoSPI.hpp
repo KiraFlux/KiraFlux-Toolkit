@@ -9,11 +9,11 @@
 #include <utility>
 
 #include "kf/Result.hpp"
-#include "kf/primitives.hpp"
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/bus/spi/SPI.hpp"
 
@@ -172,7 +172,7 @@ private:
         beginTransaction();
         readBytes(buffer.data(), buffer.size());
         endTransaction();
-        return {buffer};
+        return ok(memory::Slice<const u8>{const_cast<const u8 *>(buffer.data()), buffer.size()});
     }
 
     template<typename T> Result<T, Error> readPacketImpl() noexcept {
@@ -190,7 +190,7 @@ private:
 
         endTransaction();
 
-        return {value};
+        return ok(value);
     }
 
     KF_IMPL_WRITABLE(This, Result<void, Error>);
@@ -218,14 +218,14 @@ private:
         beginTransaction();
         writeBytes(buffer.data(), buffer.size());
         endTransaction();
-        return {};
+        return ok();
     }
 
     template<typename T> [[nodiscard]] Result<void, Error> writePacketImpl(T &&packet) noexcept {
         beginTransaction();
         writePacketUnchecked(std::forward<T>(packet));
         endTransaction();
-        return {};
+        return ok();
     }
 
     template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept {
@@ -233,7 +233,7 @@ private:
         writePacketUnchecked(std::forward<T>(header));
         writeBytes(buffer.data(), buffer.size());
         endTransaction();
-        return {};
+        return ok();
     }
 };
 
@@ -262,7 +262,7 @@ private:
         } else {
             _spi.begin(this->config().pin_sck, this->config().pin_miso, this->config().pin_mosi);
         }
-        return {};
+        return ok();
     }
 
     KF_IMPL_QUITABLE(This);

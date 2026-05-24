@@ -92,9 +92,9 @@ struct EspNow final :
             const auto result = esp_now_add_peer(&peer);
 
             if (ESP_OK == result) {
-                return {std::move(Peer{mac})};
+                return ok(std::move(Peer{mac}));
             } else {
-                return {translateEspnowError(result)};
+                return error(translateEspnowError(result));
             }
         }
 
@@ -106,7 +106,7 @@ struct EspNow final :
         /// @param handler Callback function for incoming data
         /// @return Success or Error (PeerNotFound if peer doesn't exist)
         [[nodiscard]] Result<void, Error> onReceive(ReceiveCallback &&callback) noexcept {
-            if (not exist()) { return {Error::PeerNotFound}; }
+            if (not exist()) { return error(Error::PeerNotFound); }
 
             auto &espnow = EspNow::instance();
             auto context = espnow.getPeerContext(_mac);
@@ -117,7 +117,7 @@ struct EspNow final :
                 context->on_receive = std::move(callback);
             }
 
-            return {};
+            return ok();
         }
 
         /// @brief Remove peer from ESP-NOW network
@@ -133,9 +133,9 @@ struct EspNow final :
             const auto result = esp_now_del_peer(_mac.data());
 
             if (ESP_OK == result) {
-                return {};
+                return ok();
             } else {
-                return {translateEspnowError(result)};
+                return error(translateEspnowError(result));
             }
         }
 
@@ -162,14 +162,14 @@ struct EspNow final :
             const auto result = esp_now_send(_mac.data(), static_cast<const u8 *>(data), len);
 
             if (ESP_OK == result) {
-                return {};
+                return ok();
             } else {
-                return {translateEspnowError(result)};
+                return error(translateEspnowError(result));
             }
         }
 
         [[nodiscard]] Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) {
-            if (buffer.size() > ESP_NOW_MAX_DATA_LEN) { return {Error::TooBigMessage}; }
+            if (buffer.size() > ESP_NOW_MAX_DATA_LEN) { return error(Error::TooBigMessage); }
             return processSend(buffer.data(), buffer.size());
         }
 
@@ -258,15 +258,15 @@ private:
     /// @note Sets WiFi to station mode and registers receive callback
     InitResult initImpl() noexcept {
         const auto wifi_ok = WiFiClass::mode(WIFI_MODE_STA);
-        if (not wifi_ok) { return {Error::InternalError}; }
+        if (not wifi_ok) { return error(Error::InternalError); }
 
         const auto init_result = esp_now_init();
-        if (ESP_OK != init_result) { return {translateEspnowError(init_result)}; }
+        if (ESP_OK != init_result) { return error(translateEspnowError(init_result)); }
 
         const auto handler_result = esp_now_register_recv_cb(onReceive);
-        if (ESP_OK != handler_result) { return {translateEspnowError(handler_result)}; }
+        if (ESP_OK != handler_result) { return error(translateEspnowError(handler_result)); }
 
-        return {};
+        return ok();
     }
 
     KF_IMPL_QUITABLE(This);

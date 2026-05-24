@@ -59,12 +59,12 @@ template<typename T> struct Vector2 final {
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
     [[nodiscard]] Option<Vector2> divChecked(Scalar scalar) const noexcept {
-        if (scalar == 0) { return {}; }
+        if (scalar == 0) { return none; }
 
-        return {Vector2{
+        return some(Vector2{
             .x = static_cast<Scalar>(x / scalar),
             .y = static_cast<Scalar>(y / scalar),
-        }};
+        });
     }
 
     /// @brief Scalar division
@@ -107,12 +107,12 @@ template<typename T> struct Vector2 final {
     [[nodiscard]] Option<Vector2> normalized() const noexcept {
         const Scalar len = length();
 
-        if (len == 0) { return {}; }
+        if (len == 0) { return none; }
 
-        return {Vector2{
+        return some(Vector2{
             .x = static_cast<Scalar>(x / len),
             .y = static_cast<Scalar>(y / len),
-        }};
+        });
     }
 
     /// @brief Calculate dot product with another vector

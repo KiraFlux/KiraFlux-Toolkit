@@ -3,8 +3,9 @@
 
 #pragma once
 
+#include <cstdlib>
 #include <cstddef>
-#include <functional>// для std::invoke (C++17)
+#include <functional>
 #include <type_traits>
 #include <utility>
 
@@ -138,7 +139,7 @@ public:
             if (_func) {
                 return _func->invoke(std::forward<CallArgs>(args)...);
             } else {
-                return R{};
+                abort();
             }
         }
     }

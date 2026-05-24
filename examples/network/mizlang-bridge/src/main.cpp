@@ -14,7 +14,7 @@ kf::memory::Array<Bridge::ReceiveFunctionType, 1> receiver_table{
     {
         // #0
         [](ArduinoStream &) -> kf::Result<void, Bridge::Error> {
-            return {};
+            return kf::ok();
         },
     },
 };
@@ -28,7 +28,7 @@ Bridge my_bridge{
 auto ins_0 = my_bridge.createInstruction([](ArduinoStream &, void *) -> kf::Result<void, Bridge::Error> {
     // do something ...
 
-    return {};// OK
+    return kf::ok();
 });
 
 struct MyArgs {
@@ -37,12 +37,12 @@ struct MyArgs {
 
 auto ins_1 = my_bridge.createInstruction([](ArduinoStream &, void *args) -> kf::Result<void, Bridge::Error> {
     if (nullptr == args) {
-        return Bridge::Error::Sender_ArgumentWriteFail;
+        return kf::error(Bridge::Error::Sender_ArgumentWriteFail);
     }
 
     // do something ...
 
-    return {};
+    return kf::ok();
 });
 
 void setup() {

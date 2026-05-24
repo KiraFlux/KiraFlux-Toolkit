@@ -10,7 +10,7 @@ using kf::network::EspNow;
 constexpr EspNow::Mac broadcast_address{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 constexpr EspNow::Mac target_peer_address{0x01, 0x02, 0x03, 0x04, 0x05, 0x06};// replace with real peer MAC address
 
-kf::Option<EspNow::Peer> broadcast_peer{}, target_peer{};
+kf::Option<EspNow::Peer> broadcast_peer{kf::none}, target_peer{kf::none};
 
 void onUnknown(const EspNow::Mac &mac, kf::memory::Slice<const kf::u8> data) {
     Serial.printf("(unknown): from [%s] got %d bytes\n", EspNow::stringFromMac(mac).data(), data.size());
@@ -25,7 +25,7 @@ void setupBroadcastPeer() {
     }
 
     if (result.isOk()) {
-        broadcast_peer.value(std::move(result.ok()));
+        broadcast_peer = kf::some(std::move(result.ok()));
     }
 }
 
@@ -49,7 +49,7 @@ void setupTargetPeer() {
     }
 
     if (peer_add_result.isOk()) {
-        target_peer.value(std::move(peer_add_result.ok()));
+        target_peer = kf::some(std::move(peer_add_result.ok()));
     }
 }
 

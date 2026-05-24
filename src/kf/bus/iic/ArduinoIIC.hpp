@@ -7,12 +7,12 @@
 #include <type_traits>
 
 #include "kf/algorithm.hpp"
-#include "kf/primitives.hpp"
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/bus/iic/IIC.hpp"
 
@@ -123,28 +123,28 @@ private:
 
     Result<memory::Slice<const u8>, Error> readBufferImpl(memory::Slice<u8> buffer) noexcept {
         const usize received = request(buffer.size());
-        if (received == 0) { return {Error::Timeout}; }
+        if (received == 0) { return error(Error::Timeout); }
 
         readBytesUnchecked(buffer.data(), received);
-        return {memory::Slice<const u8>{buffer.data(), received}};
+        return ok(memory::Slice<const u8>{buffer.data(), received});
     }
 
     template<typename T> [[nodiscard]] Result<T, Error> readPacketImpl() noexcept {
         constexpr usize requested = sizeof(T);
         const usize received = request(requested);
-        if (received == 0) { return {Error::Timeout}; }
+        if (received == 0) { return error(Error::Timeout); }
 
         if (received != requested) {
             discardReceiveBuffer();
-            return {Error::IncompletePacket};
+            return error(Error::IncompletePacket);
         }
 
         if constexpr (requested == sizeof(u8)) {
-            return {static_cast<T>(_wire.read())};
+            return ok(static_cast<T>(_wire.read()));
         } else {
             T packet;
             readBytesUnchecked(reinterpret_cast<u8 *>(&packet), requested);
-            return {packet};
+            return ok(packet);
         }
     }
 
@@ -170,16 +170,16 @@ private:
     [[nodiscard]] Result<void, Error> endTransmission(usize written, usize to_write) noexcept {
         const u8 code = _wire.endTransmission();
 
-        if (written != to_write) { return {Error::BufferTooLong}; }
+        if (written != to_write) { return error(Error::BufferTooLong); }
 
         switch (code) {
-            case 0: return {};
-            case 1: return {Error::BufferTooLong};
-            case 2: return {Error::AddressNack};
-            case 3: return {Error::DataNack};
-            case 4: return {Error::Unknown};
-            case 5: return {Error::Timeout};
-            default: return {Error::Unknown};
+            case 0: return ok();
+            case 1: return error(Error::BufferTooLong);
+            case 2: return error(Error::AddressNack);
+            case 3: return error(Error::DataNack);
+            case 4: return error(Error::Unknown);
+            case 5: return error(Error::Timeout);
+            default: return error(Error::Unknown);
         }
     }
 
@@ -217,8 +217,12 @@ private:
 
 };// namespace internal::arduino
 
-struct ArduinoIIC : IIC<ArduinoIIC, internal::arduino::ArduinoIicNode<ArduinoIIC>, internal::arduino::Error>,
-                    mixin::Configurable<internal::arduino::BusConfig> {
+struct ArduinoIIC :
+
+    mixin::Configurable<internal::arduino::BusConfig>,
+    IIC<ArduinoIIC, internal::arduino::ArduinoIicNode<ArduinoIIC>, internal::arduino::Error>
+
+{
     using Config = internal::arduino::BusConfig;
     using Error = internal::arduino::Error;
     using Node = internal::arduino::ArduinoIicNode<ArduinoIIC>;
@@ -237,10 +241,10 @@ private:
     using InitResult = kf::Result<void, Error>;
     KF_IMPL_INITABLE(This, InitResult);
     InitResult initImpl() noexcept {
-        if (not _wire.begin()) { return Error::BeginFailed; }
+        if (not _wire.begin()) { return error(Error::BeginFailed); }
 
         if (not this->config().hasDefaultClock()) {
-            if (not _wire.setClock(this->config().clock_hz)) { return Error::ClockConfigFailed; }
+            if (not _wire.setClock(this->config().clock_hz)) { return error(Error::ClockConfigFailed); }
         }
 
         if (not this->config().hasDefaultTimeout()) {
@@ -248,14 +252,14 @@ private:
         }
 
         if (not this->config().hasDefaultBufferSize()) {
-            if (_wire.setBufferSize(this->config().buffer_size) != this->config().buffer_size) { return Error::BufferSizeConfigFailed; }
+            if (_wire.setBufferSize(this->config().buffer_size) != this->config().buffer_size) { return error(Error::BufferSizeConfigFailed); }
         }
 
         if (not this->config().hasDefaultPins()) {
-            if (not _wire.setPins(static_cast<int>(this->config().pin_sda), static_cast<int>(this->config().pin_scl))) { return Error::PinConfigFailed; }
+            if (not _wire.setPins(static_cast<int>(this->config().pin_sda), static_cast<int>(this->config().pin_scl))) { return error(Error::PinConfigFailed); }
         }
 
-        return {};
+        return ok();
     }
 
     KF_IMPL_QUITABLE(This);

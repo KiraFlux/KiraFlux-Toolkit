@@ -26,7 +26,7 @@ template<typename T> struct OptionTester {
     static constexpr auto mapper{[](const T &) { return map_result; }};
 
     static void some() noexcept {
-        Option<T> option_some{value};
+        auto option_some = kf::some(value);
         TEST_ASSERT_TRUE(option_some.isSome());
         TEST_ASSERT_FALSE(option_some.isNone());
         TEST_ASSERT_TRUE(value == option_some.value());
@@ -34,15 +34,15 @@ template<typename T> struct OptionTester {
     }
 
     static void none() noexcept {
-        Option<T> option_none{};
+        Option<T> option_none = kf::none;
         TEST_ASSERT_TRUE(option_none.isNone());
         TEST_ASSERT_FALSE(option_none.isSome());
         TEST_ASSERT_TRUE(default_value == option_none.valueOr(default_value));
     }
 
     static void copy() noexcept {
-        Option<T> original{value};
-        Option<T> copy{original};
+        auto original = kf::some(value);
+        auto copy = original;
         TEST_ASSERT_TRUE(original.isSome());
         TEST_ASSERT_TRUE(copy.isSome());
         TEST_ASSERT_TRUE(value == original.value());
@@ -51,8 +51,8 @@ template<typename T> struct OptionTester {
     }
 
     static void copy_assignment() noexcept {
-        Option<T> original{value};
-        Option<T> copy;
+        auto original = kf::some(value);
+        Option<T> copy = kf::none;
         copy = original;
         TEST_ASSERT_TRUE(original.isSome());
         TEST_ASSERT_TRUE(copy.isSome());
@@ -61,17 +61,17 @@ template<typename T> struct OptionTester {
     }
 
     static void move() noexcept {
-        Option<T> original{value};
-        Option<T> moved{std::move(original)};
-        TEST_ASSERT_TRUE(original.isSome());
+        auto original = kf::some(value);
+        auto moved = std::move(original);
+        TEST_ASSERT_TRUE(original.isSome());// moved-from is still some (trivial)
         TEST_ASSERT_TRUE(moved.isSome());
         TEST_ASSERT_TRUE(value == original.value());
         TEST_ASSERT_TRUE(value == moved.value());
     }
 
     static void move_assignment() noexcept {
-        Option<T> original{value};
-        Option<T> moved{};
+        auto original = kf::some(value);
+        Option<T> moved = kf::none;
         moved = std::move(original);
         TEST_ASSERT_TRUE(original.isSome());
         TEST_ASSERT_TRUE(moved.isSome());
@@ -80,51 +80,47 @@ template<typename T> struct OptionTester {
     }
 
     static void const_instance() noexcept {
-        const Option<T> option{value};
+        const auto option = kf::some(value);
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_TRUE(value == option.value());
     }
 
     static void value_get() noexcept {
-        Option<T> option{value};
+        auto option = kf::some(value);
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_TRUE(value == option.value());
     }
 
     static void value_get_const() noexcept {
-        const Option<T> option{value};
+        const auto option = kf::some(value);
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_TRUE(value == option.value());
     }
 
-    static void value_set_copy() noexcept {
-        Option<T> option{default_value};
-        option.value(value);
+    static void reassign() noexcept {
+        auto option = kf::some(default_value);
+        option = kf::some(value);
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_TRUE(value == option.value());
-    }
 
-    static void value_set_move() noexcept {
-        Option<T> option{default_value};
-        option.value(std::move(value));
-        TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_TRUE(value == option.value());
+        option = kf::none;
+        TEST_ASSERT_TRUE(option.isNone());
     }
 
     static void reset() noexcept {
-        Option<T> option{value};
+        auto option = kf::some(value);
         option.reset();
         TEST_ASSERT_TRUE(option.isNone());
     }
 
     static void map_some() noexcept {
-        const auto mapped_some = Option<T>{value}.map(mapper);
+        auto mapped_some = kf::some(value).map(mapper);
         TEST_ASSERT_TRUE(mapped_some.isSome());
         TEST_ASSERT_TRUE(mapped_some.value() == map_result);
     }
 
     static void map_none() noexcept {
-        const auto mapped_none = Option<T>{}.map(mapper);
+        auto mapped_none = Option<T>(kf::none).map(mapper);
         TEST_ASSERT_TRUE(mapped_none.isNone());
     }
 };
@@ -140,8 +136,7 @@ template<typename T> struct OptionTester {
     RUN_TEST(OptionTester<__type__>::const_instance);  \
     RUN_TEST(OptionTester<__type__>::value_get);       \
     RUN_TEST(OptionTester<__type__>::value_get_const); \
-    RUN_TEST(OptionTester<__type__>::value_set_copy);  \
-    RUN_TEST(OptionTester<__type__>::value_set_move);  \
+    RUN_TEST(OptionTester<__type__>::reassign);        \
     RUN_TEST(OptionTester<__type__>::reset);           \
     RUN_TEST(OptionTester<__type__>::map_some);        \
     RUN_TEST(OptionTester<__type__>::map_none);

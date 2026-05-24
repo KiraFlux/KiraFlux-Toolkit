@@ -361,10 +361,10 @@ public:
     [[nodiscard]] constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
         for (usize i = pos; i < _size; ++i) {
             if (_buffer[i] == ch) {
-                return i;
+                return some(i);
             }
         }
-        return {};
+        return none;
     }
 
     /// @brief Find substring in string
@@ -373,7 +373,7 @@ public:
     /// @return Option containing position of substring if found
     [[nodiscard]] constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
         if (str.size() > _size or pos > _size - str.size()) {
-            return {};
+            return none;
         }
 
         for (usize i = pos; i <= _size - str.size(); ++i) {
@@ -385,10 +385,10 @@ public:
                 }
             }
             if (found) {
-                return i;
+                return some(i);
             }
         }
-        return {};
+        return none;
     }
 
     /// @brief Check if string starts with prefix
