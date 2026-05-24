@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "kf/Option.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/primitives.hpp"
 #include "kf/math/units.hpp"
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
@@ -12,6 +12,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/ui/internal/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
@@ -95,12 +96,12 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
     void bindPage(Page &page) noexcept {
-        if (nullptr != _active_page) {
-            _active_page->onExit();
+        if (_active_page.isSome()) {
+            _active_page.value().onExit();
         }
 
-        _active_page = &page;
-        _active_page->onEntry();
+        _active_page = someRef(page);
+        _active_page.value().onEntry();
     }
 
     /// @brief Add event to processing queue
@@ -229,7 +230,7 @@ private:
     memory::Queue<Event> _events{};           ///< Event queue for pending UI events
     RenderConfig _render_config{};            ///< Render Configuration
     RenderImpl _render_system{_render_config};///< Renderer system implementation instance
-    Page *_active_page{nullptr};              ///< Currently active page for rendering
+    Option<Page &> _active_page{none};        ///< Currently active page for rendering
 
     // impl
     using This = UI<R, E>;
@@ -238,9 +239,9 @@ private:
     void pollImpl(math::Milliseconds now) noexcept {
         // Process active page update, pending events and render if needed
 
-        if (nullptr == _active_page) { return; }
+        if (_active_page.isNone()) { return; }
 
-        _active_page->onUpdate(now);
+        _active_page.value().onUpdate(now);
 
         if (_events.empty()) { return; }
 
@@ -250,14 +251,14 @@ private:
         bool render_required{false};
 
         while (not _events.empty() and events_processed < max_events_per_poll) {
-            render_required |= _active_page->onEvent(_events.front());
+            render_required |= _active_page.value().onEvent(_events.front());
             events_processed += 1;
             _events.pop();
         }
 
         if (render_required) {
             _render_system.prepare();
-            _active_page->render(_render_system);
+            _active_page.value().render(_render_system);
             _render_system.finish();
         }
     }

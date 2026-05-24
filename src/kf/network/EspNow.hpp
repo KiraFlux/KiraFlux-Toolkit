@@ -15,6 +15,7 @@
 
 // lib
 #include "kf/Function.hpp"
+#include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/memory/Array.hpp"
@@ -111,10 +112,10 @@ struct EspNow final :
             auto &espnow = EspNow::instance();
             auto context = espnow.getPeerContext(_mac);
 
-            if (nullptr == context) {
+            if (context.isNone()) {
                 espnow._peer_contexts.insert({_mac, Context{std::move(callback)}});
             } else {
-                context->on_receive = std::move(callback);
+                context.value().on_receive = std::move(callback);
             }
 
             return ok();
@@ -126,7 +127,7 @@ struct EspNow final :
         [[nodiscard]] Result<void, Error> del() noexcept {
             auto &espnow = EspNow::instance();
 
-            if (nullptr != espnow.getPeerContext(_mac)) {
+            if (espnow.getPeerContext(_mac).isSome()) {
                 espnow._peer_contexts.erase(_mac);
             }
 
@@ -201,7 +202,7 @@ struct EspNow final :
     }
 
 private:
-    memory::Map<Mac, Peer::Context> _peer_contexts{};           ///< Map of known peers and their contexts
+    memory::Map<Mac, Peer::Context> _peer_contexts{};            ///< Map of known peers and their contexts
     ReceiveFromUnknownCallback _on_receive_from_unknown{nullptr};///< Handler for unknown peers
 
     /// @brief Local device MAC address (cached)
@@ -226,26 +227,25 @@ private:
 
         const auto peer_context = self.getPeerContext(source_mac);
 
-        if (nullptr == peer_context) {
+        if (peer_context.isNone()) {
             if (self._on_receive_from_unknown) {
                 self._on_receive_from_unknown(source_mac, buffer);
             }
         } else {
-            if (peer_context->on_receive) {
-                peer_context->on_receive(buffer);
+            if (peer_context.value().on_receive) {
+                peer_context.value().on_receive(buffer);
             }
         }
     }
 
     /// @brief Get peer context by MAC address
     /// @param peer_mac MAC address to look up
-    /// @return Pointer to peer context or nullptr if not found
-    [[nodiscard]] Peer::Context *getPeerContext(const Mac &peer_mac) noexcept {
+    [[nodiscard]] Option<Peer::Context &> getPeerContext(const Mac &peer_mac) noexcept {
         auto it = _peer_contexts.find(peer_mac);
         if (it == _peer_contexts.end()) {
-            return nullptr;
+            return none;
         } else {
-            return &it->second;
+            return someRef(it->second);
         }
     };
 

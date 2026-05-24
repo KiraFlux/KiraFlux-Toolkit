@@ -5,6 +5,7 @@
 
 #include <cmath>
 
+#include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/image/DynamicImage.hpp"
 #include "kf/image/StaticImage.hpp"
@@ -31,7 +32,7 @@ private:
     static constexpr ColorType default_background_color{PaletteType::black};
 
     image::DynamicImage<P> _frame;///< Target drawing surface
-    const Font *_active_font;     ///< Currently selected font (not nullptr)
+    Option<const Font &> _active_font;  ///< Currently selected font
     ColorType _foreground;        ///< Drawing color
     ColorType _background;        ///< Background/fill color
     bool _auto_next_line;         ///< Automatically wrap text to next line
@@ -43,7 +44,7 @@ public:
         ColorType foreground = default_foreground_color,
         ColorType background = default_background_color) noexcept :
         _frame{frame},
-        _active_font{&font},
+        _active_font{someRef(font)},
         _foreground{foreground},
         _background{background},
         _auto_next_line{false} {}
@@ -51,7 +52,7 @@ public:
     /// @brief Default constructor - creates invalid canvas
     explicit Canvas() noexcept :
         _frame{},
-        _active_font{&Font::blank()},
+        _active_font{someRef(Font::blank())},
         _foreground{default_foreground_color},
         _background{default_background_color},
         _auto_next_line{false} {}
@@ -62,7 +63,7 @@ public:
         math::Pixels sub_offset_x, math::Pixels sub_offset_y) noexcept {
         const auto frame_result = _frame.sub(sub_width, sub_height, sub_offset_x, sub_offset_y);
         return frame_result.map([this](auto frame) {
-            return Canvas{frame, *_active_font, _foreground, _background};
+            return Canvas{frame, _active_font.value(), _foreground, _background};
         });
     }
 
@@ -73,7 +74,7 @@ public:
         math::Pixels offset_x, math::Pixels offset_y) noexcept {
         return Canvas{
             _frame.subUnchecked(width, height, offset_x, offset_y),
-            *_active_font,
+            _active_font.value(),
             _foreground,
             _background};
     }
@@ -99,13 +100,13 @@ public:
     [[nodiscard]] math::Pixels centerY() const noexcept { return static_cast<math::Pixels>(maxY() / 2); }
 
     /// @brief Get tab width based on current font (4 character widths)
-    [[nodiscard]] math::Pixels tabWidth() const noexcept { return static_cast<math::Pixels>(_active_font->widthTotal() * 4); }
+    [[nodiscard]] math::Pixels tabWidth() const noexcept { return static_cast<math::Pixels>(_active_font.value().widthTotal() * 4); }
 
     /// @brief Get current font glyph width
-    [[nodiscard]] math::Pixels glyphWidth() const noexcept { return _active_font->widthTotal(); }
+    [[nodiscard]] math::Pixels glyphWidth() const noexcept { return _active_font.value().widthTotal(); }
 
     /// @brief Get current font glyph height
-    [[nodiscard]] math::Pixels glyphHeight() const noexcept { return _active_font->heightTotal(); }
+    [[nodiscard]] math::Pixels glyphHeight() const noexcept { return _active_font.value().heightTotal(); }
 
     /// @brief Get canvas width in glyphs
     [[nodiscard]] u8 widthInGlyphs() const noexcept { return width() / glyphWidth(); }
@@ -126,7 +127,7 @@ public:
     void background(ColorType color) noexcept { _background = color; }
 
     /// @brief Set current font for text rendering
-    void font(const Font &new_font) noexcept { _active_font = &new_font; }
+    void font(const Font &new_font) noexcept { _active_font = someRef(new_font); }
 
     /// @brief Enable/disable automatic text wrapping to next line
     void autoNextLine(bool enable) noexcept { _auto_next_line = enable; }
@@ -293,7 +294,7 @@ public:
 
     /// @brief Draw glyph at specified position
     void glyph(math::Pixels x, math::Pixels y, char c) noexcept {
-        drawGlyph(x, y, _active_font->getGlyph(c), _foreground, _background);
+        drawGlyph(x, y, _active_font.value().getGlyph(c), _foreground, _background);
     }
 
     /// @brief Draw text at specified position
@@ -308,9 +309,9 @@ public:
     void text(math::Pixels start_x, math::Pixels start_y, const char *text) noexcept {
         math::Pixels cursor_x = start_x;
         math::Pixels cursor_y = start_y;
-        const u8 font_width = _active_font->glyph_width;
-        const u8 font_height = _active_font->glyph_height;
-        const u8 font_total_height = _active_font->heightTotal();
+        const u8 font_width = _active_font.value().glyph_width;
+        const u8 font_height = _active_font.value().glyph_height;
+        const u8 font_total_height = _active_font.value().heightTotal();
         ColorType current_foreground_color = _foreground;
         ColorType current_background_color = _background;
 
@@ -401,7 +402,7 @@ public:
 
             if (cursor_y > static_cast<math::Pixels>(height() - font_height)) { return; }
 
-            drawGlyph(cursor_x, cursor_y, _active_font->getGlyph(*text), current_foreground_color, current_background_color);
+            drawGlyph(cursor_x, cursor_y, _active_font.value().getGlyph(*text), current_foreground_color, current_background_color);
 
             cursor_x = static_cast<math::Pixels>(cursor_x + font_width);
             if (cursor_x < width()) {
@@ -423,7 +424,7 @@ private:
         if (cursor_x < end_x) {
             _frame.fill(
                 cursor_x, cursor_y,
-                end_x, _active_font->heightTotal() + cursor_y,
+                end_x, _active_font.value().heightTotal() + cursor_y,
                 color);
         }
     }
@@ -461,8 +462,8 @@ private:
     void drawGlyph(math::Pixels x, math::Pixels y, const u8 *glyph, ColorType color_on, ColorType color_off) noexcept {
         if (nullptr == glyph) {
             // Draw box for unknown character
-            const auto x1 = static_cast<math::Pixels>(x + _active_font->glyph_width - 1);
-            const auto y1 = static_cast<math::Pixels>(y + _active_font->glyph_height - 1);
+            const auto x1 = static_cast<math::Pixels>(x + _active_font.value().glyph_width - 1);
+            const auto y1 = static_cast<math::Pixels>(y + _active_font.value().glyph_height - 1);
 
             drawLineHorizontal(x, y, x1, color_on);
             drawLineHorizontal(x, y1, x1, color_on);
@@ -471,8 +472,8 @@ private:
             return;
         }
 
-        const u8 font_width = _active_font->glyph_width;
-        const u8 font_height = _active_font->glyph_height;
+        const u8 font_width = _active_font.value().glyph_width;
+        const u8 font_height = _active_font.value().glyph_height;
 
         for (u8 col = 0; col < font_width; ++col) {
             const auto pixel_x = static_cast<math::Pixels>(x + col);
