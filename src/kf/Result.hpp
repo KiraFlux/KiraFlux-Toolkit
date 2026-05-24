@@ -22,26 +22,9 @@ template<typename Impl, typename E> struct ResultErrorController {
 
     /// @brief Get Result error
     [[nodiscard]] const E &error() const noexcept {
-        if (isError()) { return const_cast<ResultErrorController *>(this)->getError(); }
+        if (isError()) { return static_cast<const Impl *>(this)->getErrorImpl(); }
         abort();
     }
-
-    /// @brief Set error value via Copy
-    void error(const E &new_error) noexcept {
-        isError(true);
-        getError() = new_error;
-    }
-
-    /// @brief Set error value via Move
-    void error(E &&new_error) noexcept {
-        isError(true);
-        getError() = std::move(new_error);
-    }
-
-protected:
-    void isError(bool is_error) noexcept { return static_cast<Impl *>(this)->isErrorImpl(is_error); }
-
-    E &getError() noexcept { return static_cast<Impl *>(this)->getErrorImpl(); }
 };
 
 }// namespace internal
@@ -51,7 +34,6 @@ protected:
 /// @tparam E Type of error value
 /// @note Embedded-friendly alternative to exceptions for error handling
 template<typename T, typename E> struct Result final : internal::ResultErrorController<Result<T, E>, E> {
-    static_assert(not std::is_same_v<T, E>);
     static_assert(std::is_trivially_destructible_v<T>);
     static_assert(std::is_trivially_copyable_v<T>);
 
@@ -81,16 +63,6 @@ template<typename T, typename E> struct Result final : internal::ResultErrorCont
     }
 
     [[nodiscard]] const T &ok() const noexcept { return const_cast<Result *>(this)->ok(); }
-
-    void ok(T &&new_value) noexcept {
-        _is_ok = true;
-        _ok = std::move(new_value);
-    }
-
-    void ok(const T &new_value) noexcept {
-        _is_ok = true;
-        _ok = new_value;
-    }
 
     /// @brief Transform Result ok
     /// @tparam _F auto-deducted mapping function type
@@ -127,9 +99,7 @@ private:
 
     [[nodiscard]] bool isErrorImpl() const noexcept { return not _is_ok; }
 
-    void isErrorImpl(bool is_error) noexcept { _is_ok = not is_error; }
-
-    [[nodiscard]] E &getErrorImpl() noexcept { return _error; }
+    [[nodiscard]] const E &getErrorImpl() const noexcept { return _error; }
 };
 
 /// @brief Result specialization for void (success-only) operations
@@ -172,9 +142,7 @@ private:
 
     [[nodiscard]] bool isErrorImpl() const noexcept { return _is_error; }
 
-    void isErrorImpl(bool is_error) noexcept { _is_error = is_error; }
-
-    [[nodiscard]] E &getErrorImpl() noexcept { return _error; }
+    [[nodiscard]] const E &getErrorImpl() const noexcept { return _error; }
 };
 
 }// namespace kf

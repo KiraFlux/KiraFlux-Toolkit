@@ -80,18 +80,6 @@ template<typename T> struct ResultTester {
         TEST_ASSERT_TRUE(value == r.ok());
     }
 
-    static void value_set_copy() {
-        Result<T, Error> r{T{}};
-        r.ok(value);
-        TEST_ASSERT_TRUE(value == r.ok());
-    }
-
-    static void value_set_move() {
-        Result<T, Error> r{T{}};
-        r.ok(std::move(value));
-        TEST_ASSERT_TRUE(value == r.ok());
-    }
-
     static constexpr auto map_result {"test"};
 
     static void ok_map_ok() {
@@ -165,8 +153,6 @@ void test_void_const() {
     RUN_TEST(ResultTester<T>::const_instance);  \
     RUN_TEST(ResultTester<T>::value_get);       \
     RUN_TEST(ResultTester<T>::value_get_const); \
-    RUN_TEST(ResultTester<T>::value_set_copy);  \
-    RUN_TEST(ResultTester<T>::value_set_move);  \
     RUN_TEST(ResultTester<T>::ok_map_ok);       \
     RUN_TEST(ResultTester<T>::error_map_ok);    \
     RUN_TEST(ResultTester<T>::ok_map_error);    \
