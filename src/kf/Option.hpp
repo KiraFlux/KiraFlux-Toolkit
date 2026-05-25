@@ -18,11 +18,11 @@ namespace internal {
 /// @brief Helper for constructing Option with a value
 /// @details Provides a static method `create` that bypasses the private constructor.
 struct SomeCreator final {
-    template<typename U> [[nodiscard]] static constexpr Option<std::decay_t<U>> create(U &&value) noexcept {
-        return {std::forward<U>(value)};
+    template<typename T> [[nodiscard]] static constexpr Option<std::decay_t<T>> create(T &&value) noexcept {
+        return {std::forward<T>(value)};
     }
 
-    template<typename U> [[nodiscard]] static constexpr Option<U &> createRef(U &ref) noexcept {
+    template<typename T> [[nodiscard]] static constexpr Option<T &> createRef(T &ref) noexcept {
         return {ref};
     }
 };
@@ -36,18 +36,18 @@ struct NoneType final {
 }// namespace internal
 
 /// @brief Create an Option containing a value (Some)
-/// @tparam U Type of the value (auto‑deduced)
+/// @tparam T Type of the value (auto‑deduced)
 /// @param value The value to store
-/// @return Option<U> containing the value.
-template<typename U> [[nodiscard]] constexpr Option<std::decay_t<U>> some(U &&value) noexcept {
-    return internal::SomeCreator::create(std::forward<U>(value));
+/// @return Option<T> containing the value.
+template<typename T> [[nodiscard]] constexpr Option<std::decay_t<T>> some(T &&value) noexcept {
+    return internal::SomeCreator::create(std::forward<T>(value));
 }
 
 /// @brief Create an Option containing a reference (Some_ref)
-/// @tparam U Type of the referenced value
+/// @tparam T Type of the referenced value
 /// @param ref Reference to store
-/// @return Option<U&> containing the reference.
-template<typename U> [[nodiscard]] constexpr Option<U &> someRef(U &ref) noexcept {
+/// @return Option<T&> containing the reference.
+template<typename T> [[nodiscard]] constexpr Option<T &> someRef(T &ref) noexcept {
     return internal::SomeCreator::createRef(ref);
 }
 
@@ -76,7 +76,7 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
 
     /// @brief Get the stored value (undefined behaviour if not some)
     [[nodiscard]] T &value() noexcept {
-        if (_is_some) return _value;
+        if (isSome()) { return _value; }
         abort();
     }
 
@@ -89,7 +89,7 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     /// @param default_value Value to return if Option is empty
     /// @note Safe alternative to value()
     [[nodiscard]] constexpr T valueOr(T default_value) const noexcept {
-        return _is_some ? _value : std::move(default_value);
+        return isSome() ? _value : std::move(default_value);
     }
 
     /// @brief Transform the stored value using a function
@@ -98,11 +98,7 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     /// @return Option<U> containing the mapped value if some,
     ///         otherwise an empty Option
     template<typename F> [[nodiscard]] auto map(F &&f) const noexcept -> Option<decltype(f(std::declval<T>()))> {
-        if (isSome()) {
-            return some(f(_value));
-        } else {
-            return {none};
-        }
+        return isSome() ? some(f(_value)) : none;
     }
 
 private:
@@ -126,10 +122,7 @@ template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
-    constexpr Option(internal::NoneType) noexcept : _ptr(nullptr) {}
-
-    /// @brief Construct an Option storing a reference to `ref`
-    constexpr Option(T &ref) noexcept : _ptr(&ref) {}
+    constexpr Option(internal::NoneType) noexcept : _ptr{nullptr} {}
 
     /// @brief Deleted constructor for rvalue references – cannot store temporaries
     Option(T &&) = delete;
@@ -142,7 +135,7 @@ template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
 
     /// @brief Get the stored reference (undefined behaviour if not some)
     [[nodiscard]] T &value() noexcept {
-        if (_ptr) return *_ptr;
+        if (isSome()) { return *_ptr; }
         abort();
     }
 
@@ -155,14 +148,14 @@ template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
     /// @param default_ref Reference to return if Option is empty
     /// @return Reference to the stored object or default_ref
     [[nodiscard]] constexpr T &valueOr(T &default_ref) const noexcept {
-        return _ptr ? *_ptr : default_ref;
+        return isSome() ? *_ptr : default_ref;
     }
-
-    /// @brief Reset the Option to empty state (None)
-    void reset() noexcept { _ptr = nullptr; }
 
 private:
     T *_ptr;///< Pointer to the referenced object (nullptr indicates None)
+
+    /// @note called by someRef()
+    constexpr Option(T &ref) noexcept : _ptr{&ref} {}
 
     KF_IMPL_RESETTABLE(Option<T &>);
     void resetImpl() noexcept { _ptr = nullptr; }
