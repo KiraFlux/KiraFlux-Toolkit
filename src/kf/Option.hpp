@@ -66,7 +66,10 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
-    constexpr Option(internal::NoneType) noexcept : _is_some{false}, _dummy{0} {}
+    constexpr Option(internal::NoneType) noexcept : _is_some{false}, _dummy{} {}
+
+    /// @brief Default contructor
+    constexpr Option() noexcept : _is_some{false}, _dummy{} {}
 
     /// @brief Check if Option contains a value
     [[nodiscard]] constexpr bool isSome() const noexcept { return _is_some; }
@@ -123,6 +126,9 @@ template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
 
     /// @brief Construct an empty Option (None)
     constexpr Option(internal::NoneType) noexcept : _ptr{nullptr} {}
+
+    /// @brief Default contructor
+    constexpr Option() noexcept : _ptr{nullptr} {}
 
     /// @brief Deleted constructor for rvalue references – cannot store temporaries
     Option(T &&) = delete;
