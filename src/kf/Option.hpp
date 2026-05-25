@@ -18,8 +18,8 @@ namespace internal {
 /// @brief Helper for constructing Option with a value
 /// @details Provides a static method `create` that bypasses the private constructor.
 struct SomeCreator final {
-    template<typename T> [[nodiscard]] static constexpr Option<std::decay_t<T>> create(T &&value) noexcept {
-        return {std::forward<T>(value)};
+    template<typename T> [[nodiscard]] static constexpr Option<T> create(T value) noexcept {
+        return {std::move(value)};
     }
 
     template<typename T> [[nodiscard]] static constexpr Option<T &> createRef(T &ref) noexcept {
@@ -39,8 +39,8 @@ struct NoneType final {
 /// @tparam T Type of the value (auto‑deduced)
 /// @param value The value to store
 /// @return Option<T> containing the value.
-template<typename T> [[nodiscard]] constexpr Option<std::decay_t<T>> some(T &&value) noexcept {
-    return internal::SomeCreator::create(std::forward<T>(value));
+template<typename T> [[nodiscard]] constexpr Option<T> some(T value) noexcept {
+    return internal::SomeCreator::create(std::move(value));
 }
 
 /// @brief Create an Option containing a reference (Some_ref)
