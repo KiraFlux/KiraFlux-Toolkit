@@ -1,9 +1,12 @@
 #include <unity.h>
 
-#include <kf/Option.hpp>
-#include <kf/Slice.hpp>
 #include <type_traits>
 
+#include <kf/Function.hpp>
+#include <kf/Option.hpp>
+#include <kf/Slice.hpp>
+
+using kf::Function;
 using kf::Option;
 using kf::Slice;
 
@@ -346,6 +349,71 @@ template<typename T> struct TestSliceOption {
     RUN_TEST(TestSliceOption<T>::reassign);        \
     RUN_TEST(TestSliceOption<T>::reset)
 
+static int add(int a, int b) { return a + b; }
+
+template<typename T> struct TestFunctionOption {
+    using FunctionType = Function<T(T)>;
+
+    static inline int counter = 0;
+    static int normal(int x) { return x; }
+    static int plus_one(int x) { return x + 1; }
+
+    static void some() {
+        FunctionType func = plus_one;
+        auto option = kf::some(std::move(func));
+        TEST_ASSERT_TRUE(option.isSome());
+        TEST_ASSERT_FALSE(option.isNone());
+        TEST_ASSERT_EQUAL(42, option.value()(41));// plus_one(41)
+    }
+
+    static void none() {
+        Option<FunctionType> option = kf::none;
+        TEST_ASSERT_TRUE(option.isNone());
+        TEST_ASSERT_FALSE(option.isSome());
+    }
+
+    static void move_construction() {
+        FunctionType func = normal;
+        auto option_1 = kf::some(std::move(func));
+        auto option_2 = std::move(option_1);
+        TEST_ASSERT_TRUE(option_2.isSome());
+        TEST_ASSERT_EQUAL(100, option_2.value()(100));
+        TEST_ASSERT_TRUE(option_1.isNone());// moved-from becomes None
+    }
+
+    static void move_assignment() {
+        FunctionType f1 = plus_one;
+        FunctionType f2 = normal;
+        auto option_1 = kf::some(std::move(f1));
+        auto option_2 = kf::some(std::move(f2));
+        option_2 = std::move(option_1);
+        TEST_ASSERT_TRUE(option_2.isSome());
+        TEST_ASSERT_EQUAL(43, option_2.value()(42));
+        TEST_ASSERT_TRUE(option_1.isNone());
+    }
+
+    static void reset() {
+        FunctionType func = normal;
+        auto option = kf::some(std::move(func));
+        option.reset();
+        TEST_ASSERT_TRUE(option.isNone());
+    }
+
+    static void value_invocation() {
+        FunctionType func = [](int x) { return x * 2; };
+        auto option = kf::some(std::move(func));
+        TEST_ASSERT_EQUAL(20, option.value()(10));
+    }
+};
+
+#define RUN_FUNCTION_OPTION_TESTS(__type__)                    \
+    RUN_TEST(TestFunctionOption<__type__>::some);              \
+    RUN_TEST(TestFunctionOption<__type__>::none);              \
+    RUN_TEST(TestFunctionOption<__type__>::move_construction); \
+    RUN_TEST(TestFunctionOption<__type__>::move_assignment);   \
+    RUN_TEST(TestFunctionOption<__type__>::reset);             \
+    RUN_TEST(TestFunctionOption<__type__>::value_invocation)
+
 int main() {
     UNITY_BEGIN();
 
@@ -356,6 +424,8 @@ int main() {
     RUN_REFERENCE_OPTION_TESTS(Point, Point::create());
 
     RUN_SLICE_OPTION_TESTS(int);
+
+    RUN_FUNCTION_OPTION_TESTS(int);
 
     return UNITY_END();
 }

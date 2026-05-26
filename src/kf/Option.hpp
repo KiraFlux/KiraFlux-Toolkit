@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "kf/Function.hpp"
 #include "kf/Slice.hpp"
 #include "kf/mixin/Resettable.hpp"
 
@@ -29,6 +30,10 @@ struct SomeCreator final {
 
     template<typename T> [[nodiscard]] static constexpr Option<Slice<T>> create(Slice<T> slice) noexcept {
         return {slice};
+    }
+
+    template<typename R, typename... Args> [[nodiscard]] static constexpr Option<Function<R(Args...)>> create(Function<R(Args...)> func) noexcept {
+        return {std::move(func)};
     }
 };
 
@@ -61,6 +66,12 @@ template<typename T> [[nodiscard]] constexpr Option<T &> someRef(T &ref) noexcep
 /// @return Option<Slice<T>> containing the slice.
 template<typename T> [[nodiscard]] constexpr Option<Slice<T>> some(Slice<T> slice) noexcept {
     return internal::SomeCreator::create(slice);
+}
+
+/// @brief Create an Option containing a function (Some)
+/// @return Option<Function<R(Args...)>> containing the function object
+template<typename R, typename... Args> [[nodiscard]] constexpr Option<Function<R(Args...)>> some(Function<R(Args...)> func) noexcept {
+    return internal::SomeCreator::create(std::move(func));
 }
 
 /// @brief Global constant for constructing an empty Option (None).
@@ -149,7 +160,7 @@ template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
     [[nodiscard]] constexpr bool isSome() const noexcept { return _ptr != nullptr; }
 
     /// @brief Check if Option does not contain a reference
-    [[nodiscard]] constexpr bool isNone() const noexcept { return _ptr == nullptr; }
+    [[nodiscard]] constexpr bool isNone() const noexcept { return nullptr == _ptr; }
 
     /// @brief Get the stored reference (undefined behaviour if not some)
     [[nodiscard]] T &value() noexcept {
@@ -219,7 +230,91 @@ private:
     constexpr Option(Slice<T> slice) noexcept : _ptr{slice.data()}, _size{slice.size()} {}
 
     KF_IMPL_RESETTABLE(Option<Slice<T>>);
-    void resetImpl() noexcept { _size = is_none_mark; }
+    void resetImpl() noexcept {
+        _size = is_none_mark;
+        _ptr = nullptr;
+    }
+};
+
+/// @brief Optional value container for function
+/// @tparam R Function's return value type
+/// @tparam Args Function's argument types
+template<typename R, typename... Args> struct Option<Function<R(Args...)>> final : mixin::Resettable<Option<Function<R(Args...)>>> {
+    friend struct internal::SomeCreator;
+
+    using FunctionType = Function<R(Args...)>;
+
+    /// @brief Default constructor – creates empty Option (None)
+    constexpr Option() noexcept : _is_some{false} {}
+
+    /// @brief Construct empty Option from NoneType (used with kf::none)
+    constexpr Option(internal::NoneType) noexcept : _is_some{false} {}
+
+    /// @brief Move constructor
+    /// @param other Source Option (becomes None after move)
+    Option(Option &&other) noexcept : _is_some{other._is_some} {
+        if (_is_some) {
+            new (&_storage) FunctionType{std::move(*reinterpret_cast<FunctionType *>(&other._storage))};
+            other._is_some = false;
+        }
+    }
+
+    /// @brief Destructor – destroys stored function if present
+    ~Option() { this->reset(); }
+
+    /// @brief Move assignment operator
+    /// @param other Source Option (becomes None after move)
+    Option &operator=(Option &&other) noexcept {
+        if (this != &other) {
+            this->reset();
+            _is_some = other._is_some;
+            if (_is_some) {
+                new (&_storage) FunctionType{std::move(*reinterpret_cast<FunctionType *>(&other._storage))};
+                other._is_some = false;
+            }
+        }
+        return *this;
+    }
+
+    /// @brief Check if Option contains a function
+    [[nodiscard]] constexpr bool isSome() const noexcept { return _is_some; }
+
+    /// @brief Check if Option is empty
+    [[nodiscard]] constexpr bool isNone() const noexcept { return not _is_some; }
+
+    /// @brief Get stored function (const lvalue reference). Panics if None
+    [[nodiscard]] const FunctionType &value() const & {
+        if (not _is_some) { abort(); }
+        return *reinterpret_cast<const FunctionType *>(&_storage);
+    }
+
+    /// @brief Extract stored function (rvalue). Panics if None
+    [[nodiscard]] FunctionType value() && {
+        if (not _is_some) { abort(); }
+        auto ret = std::move(*reinterpret_cast<FunctionType *>(&_storage));
+        this->reset();
+        return ret;
+    }
+
+    /// @brief Reset Option to empty state (None)
+    void reset() noexcept {
+        if (_is_some) {
+            reinterpret_cast<FunctionType *>(&_storage)->~FunctionType();
+            _is_some = false;
+        }
+    }
+
+private:
+    alignas(alignof(FunctionType)) u8 _storage[sizeof(FunctionType)];///< Storage for the function object
+    bool _is_some;                                                   ///< Flag: true = Some, false = None
+
+    /// @brief Private constructor for Some (called by kf::some)
+    Option(FunctionType func) noexcept : _is_some{true} {
+        new (&_storage) FunctionType(std::move(func));
+    }
+
+    KF_IMPL_RESETTABLE(Option<FunctionType>);
+    void resetImpl() noexcept { this->reset(); }
 };
 
 }// namespace kf
