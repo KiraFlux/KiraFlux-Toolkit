@@ -264,6 +264,15 @@ template<typename T> struct TestSliceOption {
         TEST_ASSERT_EQUAL(data_b_size, value.size());
     }
 
+    static void empty_slice() {
+        T dummy{};
+        Slice<T> empty_slice{&dummy, 0};
+        auto option = kf::some(empty_slice);
+        TEST_ASSERT_TRUE(option.isSome());
+        TEST_ASSERT_EQUAL_PTR(&dummy, option.value().data());
+        TEST_ASSERT_EQUAL(0u, option.value().size());
+    }
+
     static void copy() {
         const auto original = kf::some(slice_a);
         const auto copy = original;
@@ -327,6 +336,7 @@ template<typename T> struct TestSliceOption {
 #define RUN_SLICE_OPTION_TESTS(T)                  \
     RUN_TEST(TestSliceOption<T>::some);            \
     RUN_TEST(TestSliceOption<T>::none);            \
+    RUN_TEST(TestSliceOption<T>::empty_slice);     \
     RUN_TEST(TestSliceOption<T>::copy);            \
     RUN_TEST(TestSliceOption<T>::copy_assignment); \
     RUN_TEST(TestSliceOption<T>::move);            \
