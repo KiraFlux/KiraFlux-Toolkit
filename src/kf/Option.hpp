@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "kf/Slice.hpp"
 #include "kf/mixin/Resettable.hpp"
 
 namespace kf {
@@ -24,6 +25,10 @@ struct SomeCreator final {
 
     template<typename T> [[nodiscard]] static constexpr Option<T &> createRef(T &ref) noexcept {
         return {ref};
+    }
+
+    template<typename T> [[nodiscard]] static constexpr Option<Slice<T>> create(Slice<T> slice) noexcept {
+        return {slice};
     }
 };
 
@@ -49,6 +54,13 @@ template<typename T> [[nodiscard]] constexpr Option<T> some(T value) noexcept {
 /// @return Option<T&> containing the reference.
 template<typename T> [[nodiscard]] constexpr Option<T &> someRef(T &ref) noexcept {
     return internal::SomeCreator::createRef(ref);
+}
+
+/// @brief Create an Option containing a slice (Some)
+/// @tparam T Type of an slice item (auto‑deduced)
+/// @return Option<Slice<T>> containing the slice.
+template<typename T> [[nodiscard]] constexpr Option<Slice<T>> some(Slice<T> slice) noexcept {
+    return internal::SomeCreator::create(slice);
 }
 
 /// @brief Global constant for constructing an empty Option (None).
@@ -165,6 +177,49 @@ private:
 
     KF_IMPL_RESETTABLE(Option<T &>);
     void resetImpl() noexcept { _ptr = nullptr; }
+};
+
+/// @brief Optional value container for slice
+/// @tparam T Slice item type
+template<typename T> struct Option<Slice<T>> final : mixin::Resettable<Option<Slice<T>>> {
+    friend struct internal::SomeCreator;
+
+    /// @brief Construct an empty Option (None)
+    constexpr Option(internal::NoneType) noexcept : _ptr{nullptr}, _size{is_none_mark} {}
+
+    /// @brief Default contructor
+    constexpr Option() noexcept : _ptr{nullptr}, _size{is_none_mark} {}
+
+    /// @brief Check if Option contains a reference
+    [[nodiscard]] constexpr bool isSome() const noexcept { return _size != is_none_mark; }
+
+    /// @brief Check if Option does not contain a reference
+    [[nodiscard]] constexpr bool isNone() const noexcept { return _size == is_none_mark; }
+
+    /// @brief Get the stored slice
+    [[nodiscard]] Slice<T> value() const noexcept {
+        if (isSome()) { return {_ptr, _size}; }
+        abort();
+    }
+
+    /// @brief Get the stored slice or a default
+    /// @param default_slice Slice to return if Option is empty
+    /// @return The stored slice if Some, otherwise `default_slice`
+    [[nodiscard]] constexpr Slice<T> valueOr(Slice<T> default_slice) const noexcept {
+        return isSome() ? Slice<T>{_ptr, _size} : default_slice;
+    }
+
+private:
+    static constexpr auto is_none_mark{static_cast<usize>(-1)};
+
+    T *_ptr;
+    usize _size;
+
+    /// @note called by some()
+    constexpr Option(Slice<T> slice) noexcept : _ptr{slice.data()}, _size{slice.size()} {}
+
+    KF_IMPL_RESETTABLE(Option<Slice<T>>);
+    void resetImpl() noexcept { _size = is_none_mark; }
 };
 
 }// namespace kf
