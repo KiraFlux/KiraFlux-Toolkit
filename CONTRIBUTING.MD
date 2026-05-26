@@ -239,7 +239,7 @@ The repository includes several helper scripts in the root directory.
 | `make test`                        | Runs all unit tests (native).                                                               |
 | `make build-examples` or `make be` | Builds all example projects.                                                                |
 | `make lint`                        | Runs clang‑tidy style checks on the entire codebase.                                        |
-| `make shapshot` or `make ss`       | Generates a `shapshot.txt` with a full code dump (used for debugging or external analysis). |
+| `make snapshot` or `make s`       | Generates a `snapshot.txt` with a full code dump (used for debugging or external analysis). |
 | `make new-example` or `make ne`    | Creates a new example skeleton. Requires `group` and `name` variables.                      |
 | `make new-test` or `make nt`       | Creates a new unit test skeleton. Requires `group` and `name` variables.                    |
 | `make monitor`                     | Opens the PlatformIO serial monitor (default baud: 115200).                                 |

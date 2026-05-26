@@ -2,7 +2,7 @@
 #include <kf/math/Timer.hpp>
 
 kf::math::Timer::Config one_shot_config{.period = 2000};
-kf::math::Timer::Config periodic_config{.period = 100}; // 100 ms = 10 Hz
+kf::math::Timer::Config periodic_config{.period = 100};// 100 ms = 10 Hz
 kf::math::Timer::Config stopwatch_config{.period = 0};
 
 kf::math::Timer one_shot{one_shot_config};
@@ -36,7 +36,7 @@ void loop() {
     if (periodic.expired(now)) {
         Serial.print("Periodic tick at ");
         Serial.println(now);
-        periodic.start(now); // re-arm for next period
+        periodic.start(now);// re-arm for next period
     }
 
     Serial.print("Stopwatch: ");

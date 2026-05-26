@@ -1,8 +1,8 @@
 #include <kf/memory/StringView.hpp>
 #include <unity.h>
 
-using kf::memory::StringView;
 using kf::Slice;
+using kf::memory::StringView;
 
 // StringView equal helper
 static void assertStringViewEqual(StringView actual, const char *expected, size_t len) {

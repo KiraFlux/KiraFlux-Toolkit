@@ -1,7 +1,7 @@
 // KiraFlux-Toolkit Demo 'espnow'
 #include <Arduino.h>
-#include <kf/primitives.hpp>
 #include <kf/Slice.hpp>
+#include <kf/primitives.hpp>
 
 #include <kf/network/EspNow.hpp>
 

@@ -68,5 +68,5 @@ void setup() {
 }
 
 void loop() {
-    const auto result = my_bridge.poll();// polling: handle remote insturctions
+    const auto result = my_bridge.poll();// polling: handle remote instructions
 }
