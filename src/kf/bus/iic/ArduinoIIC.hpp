@@ -121,12 +121,12 @@ private:
 
     // interface impl
 
-    Result<memory::Slice<const u8>, Error> readBufferImpl(memory::Slice<u8> buffer) noexcept {
+    Result<Slice<const u8>, Error> readBufferImpl(Slice<u8> buffer) noexcept {
         const usize received = request(buffer.size());
         if (received == 0) { return error(Error::Timeout); }
 
         readBytesUnchecked(buffer.data(), received);
-        return ok(memory::Slice<const u8>{buffer.data(), received});
+        return ok(Slice<const u8>{buffer.data(), received});
     }
 
     template<typename T> [[nodiscard]] Result<T, Error> readPacketImpl() noexcept {
@@ -183,7 +183,7 @@ private:
         }
     }
 
-    [[nodiscard]] Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept {
+    [[nodiscard]] Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept {
         beginTransmission();
         const usize written = writeBytes(buffer.data(), buffer.size());
         return endTransmission(written, buffer.size());
@@ -207,7 +207,7 @@ private:
         return endTransmission(written, sizeof(T));
     }
 
-    template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept {
+    template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
         beginTransmission();
         const usize header_written = writePacketUnchecked(std::forward<T>(header));
         const usize buffer_written = writeBytes(buffer.data(), buffer.size());

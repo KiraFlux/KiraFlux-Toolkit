@@ -5,13 +5,13 @@
 
 #include <utility>
 
-#include "kf/primitives.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/TimedPollable.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::input {
 namespace internal {

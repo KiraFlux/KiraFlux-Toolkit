@@ -31,11 +31,11 @@ private:
     static constexpr ColorType default_foreground_color{PaletteType::bright_white};
     static constexpr ColorType default_background_color{PaletteType::black};
 
-    image::DynamicImage<P> _frame;///< Target drawing surface
-    Option<const Font &> _active_font;  ///< Currently selected font
-    ColorType _foreground;        ///< Drawing color
-    ColorType _background;        ///< Background/fill color
-    bool _auto_next_line;         ///< Automatically wrap text to next line
+    image::DynamicImage<P> _frame;    ///< Target drawing surface
+    Option<const Font &> _active_font;///< Currently selected font
+    ColorType _foreground;            ///< Drawing color
+    ColorType _background;            ///< Background/fill color
+    bool _auto_next_line;             ///< Automatically wrap text to next line
 
 public:
     explicit Canvas(

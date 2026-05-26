@@ -8,9 +8,9 @@
 #include <cstdio>
 
 #include "kf/Result.hpp"
+#include "kf/Slice.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/memory/Array.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/memory/StringView.hpp"
 
 namespace kf::memory {
@@ -494,4 +494,4 @@ template<usize N, typename T> constexpr bool operator!=(const T &lhs, const Arra
     return !(lhs == rhs);
 }
 
-}// namespace kf
+}// namespace kf::memory

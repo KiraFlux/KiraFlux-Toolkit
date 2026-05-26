@@ -5,10 +5,10 @@
 
 #include <Arduino.h>
 
-#include "kf/primitives.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::gpio::arduino {
 

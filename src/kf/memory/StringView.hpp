@@ -6,8 +6,8 @@
 #include <type_traits>
 
 #include "kf/Option.hpp"
+#include "kf/Slice.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/memory/Slice.hpp"
 
 namespace kf::memory {
 

@@ -4,10 +4,10 @@
 #pragma once
 
 #include "kf/Range.hpp"
-#include "kf/primitives.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/ui/internal/Placement.hpp"
 

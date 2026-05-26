@@ -2,7 +2,7 @@
 #include <unity.h>
 
 using kf::memory::StringView;
-using kf::memory::Slice;
+using kf::Slice;
 
 // StringView equal helper
 static void assertStringViewEqual(StringView actual, const char *expected, size_t len) {

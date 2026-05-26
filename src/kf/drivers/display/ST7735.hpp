@@ -5,13 +5,13 @@
 
 #include <Arduino.h>// for delay
 
-#include "kf/primitives.hpp"
 #include "kf/bus/spi/SPI.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/image/ViewportImage.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/drivers/display/Orientation.hpp"
@@ -81,7 +81,7 @@ private:
 
     // Low-level communication
 
-    void sendBuffer(memory::Slice<const u8> buffer) noexcept {
+    void sendBuffer(Slice<const u8> buffer) noexcept {
         _pin_data_command.write(true);
         (void) _node.writeBuffer(buffer);
     }

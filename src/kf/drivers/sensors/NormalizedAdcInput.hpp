@@ -6,12 +6,12 @@
 #include <utility>
 
 #include "kf/algorithm.hpp"
-#include "kf/primitives.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/filters/ExponentialFilter.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 #include "kf/tuner/SampleCollectingTuner.hpp"
 
 #include "kf/drivers/sensors/Sensor.hpp"

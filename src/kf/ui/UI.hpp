@@ -201,16 +201,16 @@ public:
         }
 
         /// @brief Get widgets on page
-        [[nodiscard]] memory::Slice<Widget *> widgets() noexcept { return _widgets; }
+        [[nodiscard]] Slice<Widget *> widgets() noexcept { return _widgets; }
 
     protected:
         /// @brief Set widgets on page
-        void widgets(memory::Slice<Widget *> new_widgets) noexcept { _widgets = new_widgets; }
+        void widgets(Slice<Widget *> new_widgets) noexcept { _widgets = new_widgets; }
 
     private:
-        memory::Slice<Widget *> _widgets{};///< Widgets on this page
-        PageSetter _to_this{*this};        ///< Navigation widget to this page
-        isize _cursor{0};                  ///< Current widget cursor position (focused widget index)
+        Slice<Widget *> _widgets{};///< Widgets on this page
+        PageSetter _to_this{*this};///< Navigation widget to this page
+        isize _cursor{0};          ///< Current widget cursor position (focused widget index)
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)

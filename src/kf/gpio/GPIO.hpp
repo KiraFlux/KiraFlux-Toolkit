@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "kf/primitives.hpp"
 #include "kf/math/units.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::gpio {
 

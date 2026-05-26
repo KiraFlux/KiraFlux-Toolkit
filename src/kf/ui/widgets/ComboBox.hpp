@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/memory/Slice.hpp"
+#include "kf/Slice.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
@@ -42,7 +42,7 @@ template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled {
 template<typename T> struct ComboBoxConfig final : mixin::NonCopyable {
     using Item = ComboBoxItem<T>;
 
-    memory::Slice<Item> items;///< Available options
+    Slice<Item> items;///< Available options
 };
 
 }// namespace internal

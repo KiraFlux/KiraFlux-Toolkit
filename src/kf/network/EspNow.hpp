@@ -17,11 +17,11 @@
 #include "kf/Function.hpp"
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
+#include "kf/Slice.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/memory/Array.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/Map.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
@@ -63,7 +63,7 @@ struct EspNow final :
     using Mac = memory::Array<u8, ESP_NOW_ETH_ALEN>;
 
     /// @brief Handler type for receiving data from unknown peers
-    using ReceiveFromUnknownCallback = Function<void(const Mac &, memory::Slice<const u8>)>;
+    using ReceiveFromUnknownCallback = Function<void(const Mac &, Slice<const u8>)>;
 
     /// @brief ESP-NOW operation error codes
     using Error = internal::EspNowError;
@@ -71,7 +71,7 @@ struct EspNow final :
     /// @brief ESP-NOW peer representation with communication capabilities
     struct Peer final : io::Writable<Peer, kf::Result<void, Error>>, mixin::NonCopyable {
         /// @brief Handler type for receiving data from this specific peer
-        using ReceiveCallback = Function<void(memory::Slice<const u8>)>;
+        using ReceiveCallback = Function<void(Slice<const u8>)>;
 
         /// @brief Peer context storing handler and state
         struct Context {
@@ -169,7 +169,7 @@ struct EspNow final :
             }
         }
 
-        [[nodiscard]] Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) {
+        [[nodiscard]] Result<void, Error> writeBufferImpl(Slice<const u8> buffer) {
             if (buffer.size() > ESP_NOW_MAX_DATA_LEN) { return error(Error::TooBigMessage); }
             return processSend(buffer.data(), buffer.size());
         }
@@ -179,7 +179,7 @@ struct EspNow final :
             return processSend(static_cast<const void *>(&packet), sizeof(T));
         }
 
-        template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) {
+        template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, Slice<const u8> buffer) {
             const auto mixed_size = sizeof(T) + buffer.size();
             u8 mixed[mixed_size];
 
@@ -223,7 +223,7 @@ private:
         Mac source_mac;
         std::copy(raw_mac_address, raw_mac_address + ESP_NOW_ETH_ALEN, source_mac.begin());
 
-        const memory::Slice<const u8> buffer{data, static_cast<usize>(size)};
+        const Slice<const u8> buffer{data, static_cast<usize>(size)};
 
         const auto peer_context = self.getPeerContext(source_mac);
 

@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "kf/Slice.hpp"
 #include "kf/math/units.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
 
@@ -32,10 +32,10 @@ template<typename Impl, typename P> struct Image : ImageTag, meta::CRTP<Impl> {
     [[nodiscard]] math::Pixels stride() const noexcept { return this->impl().getStrideImpl(); }
 
     /// @brief Get writable frame buffer
-    [[nodiscard]] memory::Slice<BufferType> buffer() noexcept { return this->impl().getBufferImpl(); }
+    [[nodiscard]] Slice<BufferType> buffer() noexcept { return this->impl().getBufferImpl(); }
 
     /// @brief Get readonly frame buffer
-    [[nodiscard]] memory::Slice<const BufferType> buffer() const noexcept { return this->impl().getBufferImpl(); }
+    [[nodiscard]] Slice<const BufferType> buffer() const noexcept { return this->impl().getBufferImpl(); }
 
     // properties
 

@@ -4,8 +4,8 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/primitives.hpp"
 #include "kf/meta/BitTraits.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::ui {
 

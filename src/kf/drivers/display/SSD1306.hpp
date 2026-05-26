@@ -4,10 +4,10 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/primitives.hpp"
 #include "kf/bus/iic/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/drivers/display/Orientation.hpp"

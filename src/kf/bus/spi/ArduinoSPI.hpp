@@ -168,11 +168,11 @@ private:
 
     // impl
 
-    Result<memory::Slice<const u8>, Error> readBufferImpl(memory::Slice<u8> buffer) noexcept {
+    Result<Slice<const u8>, Error> readBufferImpl(Slice<u8> buffer) noexcept {
         beginTransaction();
         readBytes(buffer.data(), buffer.size());
         endTransaction();
-        return ok(memory::Slice<const u8>{const_cast<const u8 *>(buffer.data()), buffer.size()});
+        return ok(Slice<const u8>{const_cast<const u8 *>(buffer.data()), buffer.size()});
     }
 
     template<typename T> Result<T, Error> readPacketImpl() noexcept {
@@ -214,7 +214,7 @@ private:
 
     // impl
 
-    [[nodiscard]] Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept {
+    [[nodiscard]] Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept {
         beginTransaction();
         writeBytes(buffer.data(), buffer.size());
         endTransaction();
@@ -228,7 +228,7 @@ private:
         return ok();
     }
 
-    template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept {
+    template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
         beginTransaction();
         writePacketUnchecked(std::forward<T>(header));
         writeBytes(buffer.data(), buffer.size());

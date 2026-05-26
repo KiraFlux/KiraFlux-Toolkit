@@ -1,7 +1,7 @@
 // KiraFlux-Toolkit Demo 'espnow'
 #include <Arduino.h>
 #include <kf/primitives.hpp>
-#include <kf/memory/Slice.hpp>
+#include <kf/Slice.hpp>
 
 #include <kf/network/EspNow.hpp>
 
@@ -12,7 +12,7 @@ constexpr EspNow::Mac target_peer_address{0x01, 0x02, 0x03, 0x04, 0x05, 0x06};//
 
 kf::Option<EspNow::Peer> broadcast_peer{kf::none}, target_peer{kf::none};
 
-void onUnknown(const EspNow::Mac &mac, kf::memory::Slice<const kf::u8> data) {
+void onUnknown(const EspNow::Mac &mac, kf::Slice<const kf::u8> data) {
     Serial.printf("(unknown): from [%s] got %d bytes\n", EspNow::stringFromMac(mac).data(), data.size());
 }
 
@@ -29,7 +29,7 @@ void setupBroadcastPeer() {
     }
 }
 
-void onTarget(kf::memory::Slice<const kf::u8> data) {
+void onTarget(kf::Slice<const kf::u8> data) {
     Serial.printf("from [%s] got %d bytes\n", EspNow::stringFromMac(target_peer_address).data(), data.size());
 }
 

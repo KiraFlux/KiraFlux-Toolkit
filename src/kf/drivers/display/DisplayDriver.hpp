@@ -12,7 +12,7 @@
 #include "kf/drivers/display/Orientation.hpp"
 
 namespace kf::drivers::display {
-    
+
 struct DisplayDriverTag {};
 
 /// @brief CRTP base class for display driver implementations

@@ -44,7 +44,7 @@ private:
 
     KF_IMPL_READABLE(This, Error);
 
-    Result<memory::Slice<const u8>, Error> readBufferImpl(memory::Slice<u8> dest) noexcept {
+    Result<Slice<const u8>, Error> readBufferImpl(Slice<u8> dest) noexcept {
         constexpr auto min_available{1u};
 
         if (_stream.available() < min_available) { return error(Error::ReadNotAvailable); }
@@ -52,7 +52,7 @@ private:
         const auto readed = _stream.readBytes(dest.data(), dest.size());
         if (readed < min_available) { return error(Error::ReadFalied); }
 
-        return ok(memory::Slice<const u8>{dest.data(), readed});
+        return ok(Slice<const u8>{dest.data(), readed});
     }
 
     template<typename T> Result<T, Error> readPacketImpl() noexcept {
@@ -79,7 +79,7 @@ private:
 
     KF_IMPL_WRITABLE(This, Result<void, Error>);
 
-    Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept {
+    Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept {
         const auto to_write = buffer.size();
         // _stream.availableForWrite() ?
         if (_stream.write(buffer.data(), to_write) != to_write) { return error(Error::WriteFailed); }
@@ -102,7 +102,7 @@ private:
         return ok();
     }
 
-    template<typename T> Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept {
+    template<typename T> Result<void, Error> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
         const auto header_result = this->writePacket(std::forward<T>(header));
         if (header_result.isError()) { return header_result; }
 

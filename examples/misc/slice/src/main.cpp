@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include <kf/memory/Slice.hpp>
+#include <kf/Slice.hpp>
 
-using kf::memory::Slice;
+using kf::Slice;
 
 void setup() {
     Serial.begin(115200);

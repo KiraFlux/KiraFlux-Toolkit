@@ -7,8 +7,8 @@
 #include <utility>
 
 #include "kf/Result.hpp"
+#include "kf/Slice.hpp"
 #include "kf/primitives.hpp"
-#include "kf/memory/Slice.hpp"
 
 namespace kf::io {
 
@@ -19,13 +19,13 @@ struct WritableTag {};
 /// @tparam ErrorImpl Error type used by the implementation.
 /// @note Derived classes must implement:
 ///
-///       - `Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept`
+///       - `Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept`
 ///         Write a contiguous buffer of bytes.
 ///
 ///       - `template<typename T> Result<void, Error> writePacketImpl(T &&packet) noexcept`
 ///         Write a trivially copyable object.
 ///
-///       - `template<typename T> Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept`
+///       - `template<typename T> Result<void, Error> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept`
 ///         Write a small header followed by a buffer (e.g. command + data) in one transaction.
 template<typename Impl, typename ResultType> struct Writable : WritableTag {
 
@@ -38,7 +38,7 @@ template<typename Impl, typename ResultType> struct Writable : WritableTag {
     /// @brief Write arbitrary data from buffer
     /// @param buffer Source data
     /// @return Result indicating success or error
-    [[nodiscard]] ResultType writeBuffer(memory::Slice<const u8> buffer) noexcept {
+    [[nodiscard]] ResultType writeBuffer(Slice<const u8> buffer) noexcept {
         return impl().writeBufferImpl(buffer);
     }
 
@@ -56,7 +56,7 @@ template<typename Impl, typename ResultType> struct Writable : WritableTag {
     /// @param header Header to write
     /// @param buffer Source buffer
     /// @return Result indicating success or error
-    template<typename T> [[nodiscard]] ResultType writeMixed(T &&header, memory::Slice<const u8> buffer) noexcept {
+    template<typename T> [[nodiscard]] ResultType writeMixed(T &&header, Slice<const u8> buffer) noexcept {
         static_assert(std::is_trivially_copyable_v<std::decay_t<T>>, "T must be trivially copyable");
         return impl().writeMixedImpl(std::forward<T>(header), buffer);
     }

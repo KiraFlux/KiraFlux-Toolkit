@@ -5,12 +5,12 @@
 
 #include "kf/Function.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/primitives.hpp"
 #include "kf/memory/ArrayString.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/ui/internal/Placement.hpp"
 #include "kf/ui/render/Render.hpp"

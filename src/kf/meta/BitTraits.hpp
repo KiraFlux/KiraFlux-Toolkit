@@ -39,4 +39,4 @@ template<> struct ByteTraits<8> : ByteTraits<5> {};
 
 template<u8 bits> struct BitTraits : ByteTraits<(bits + 7) / 8> {};
 
-}// namespace kf
+}// namespace kf::meta

@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "kf/Slice.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
 #include "kf/memory/Array.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
@@ -49,11 +49,11 @@ private:
 
     [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
 
-    [[nodiscard]] constexpr memory::Slice<BufferType> getBufferImpl() noexcept {
+    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
         return {_buffer.data(), _buffer.size()};
     }
 
-    [[nodiscard]] constexpr memory::Slice<const BufferType> getBufferImpl() const noexcept {
+    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept {
         return {_buffer.data(), _buffer.size()};
     }
 };

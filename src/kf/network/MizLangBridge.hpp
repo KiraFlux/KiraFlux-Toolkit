@@ -7,12 +7,12 @@
 
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
-#include "kf/primitives.hpp"
+#include "kf/Slice.hpp"
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::network {
 
@@ -40,7 +40,7 @@ template<typename R, typename W, typename Tlc, typename Trc = Tlc> struct MizLan
 
     using SendFunctionType = Function<Result<void, Error>(WritableImpl &, void *)>;
     using ReceiveFunctionType = Function<Result<void, Error>(ReadableImpl &)>;
-    using InstructionTableType = memory::Slice<ReceiveFunctionType>;
+    using InstructionTableType = Slice<ReceiveFunctionType>;
 
     explicit MizLangBridge(ReadableImpl &&input_stream, WritableImpl &&output_stream, InstructionTableType instructions) noexcept :
         _input_stream{std::move(input_stream)}, _output_stream{std::move(output_stream)}, _instructions{instructions} {}

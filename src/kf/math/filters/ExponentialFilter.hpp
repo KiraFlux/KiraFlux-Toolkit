@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "kf/primitives.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/math/filters/Filter.hpp"
 

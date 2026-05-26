@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "kf/primitives.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::math::filters {
 

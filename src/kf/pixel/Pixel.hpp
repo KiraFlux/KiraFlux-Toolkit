@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include "kf/Slice.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/primitives.hpp"
-#include "kf/memory/Slice.hpp"
 
 namespace kf::pixel {
 
@@ -35,7 +35,7 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelT
 
     /// @brief set pixel color
     static void setPixel(
-        memory::Slice<BufferType> buffer,
+        Slice<BufferType> buffer,
         PositionType stride,
         PositionType abs_x,
         PositionType abs_y,
@@ -48,7 +48,7 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelT
 
     /// @brief Effective fill rectangular region with specified color
     static void fill(
-        memory::Slice<BufferType> buffer,
+        Slice<BufferType> buffer,
         PositionType stride,
         PositionType offset_x,
         PositionType offset_y,
@@ -64,10 +64,10 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelT
 
     /// @brief Copy rectangular region from source to destination buffer
     static void copy(
-        memory::Slice<const BufferType> src,
+        Slice<const BufferType> src,
         PositionType src_w,
         PositionType src_h,
-        memory::Slice<BufferType> dst,
+        Slice<BufferType> dst,
         PositionType dst_stride,
         PositionType dst_x,
         PositionType dst_y) noexcept {

@@ -6,10 +6,10 @@
 #include <utility>
 
 #include "kf/algorithm.hpp"
-#include "kf/primitives.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/drivers/actuators/Actuator.hpp"
 
