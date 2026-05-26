@@ -5,7 +5,7 @@
 
 #include "kf/Function.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/memory/ArrayString.hpp"
+#include "kf/memory/StaticString.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
@@ -92,13 +92,13 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>>, mixin::Co
     }
 
     void writeReal(f64 real, u8 rounding) noexcept {
-        memory::ArrayString<24> temp;// Enough for double with precision
+        memory::StaticString<24> temp;// Enough for double with precision
         (void) temp.append(real, rounding);
         writeString(temp.view());
     }
 
 private:
-    memory::ArrayString<N> _buffer{};///< Output buffer for rendered text
+    memory::StaticString<N> _buffer{};///< Output buffer for rendered text
     internal::PlainTextRenderCursor _cursor{};
 
     KF_IMPL(Render<PlainTextRender<N>>);
@@ -177,7 +177,7 @@ private:
     }
 
     void valueImpl(i32 integer) noexcept {
-        memory::ArrayString<12> temp;// Enough for 32-bit int
+        memory::StaticString<12> temp;// Enough for 32-bit int
         (void) temp.append(integer);
         writeString(temp.view());
     }

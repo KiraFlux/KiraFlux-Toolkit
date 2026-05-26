@@ -20,8 +20,8 @@
 #include "kf/Slice.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/memory/Array.hpp"
-#include "kf/memory/ArrayString.hpp"
 #include "kf/memory/Map.hpp"
+#include "kf/memory/StaticString.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
@@ -300,9 +300,9 @@ private:
 public:
     /// @brief Convert MAC address to human-readable string
     /// @param mac MAC address to convert
-    /// @return ArrayString with formatted MAC address (XX:XX:XX:XX:XX:XX format)
-    [[nodiscard]] static memory::ArrayString<mac_string_size> stringFromMac(const Mac &mac) noexcept {
-        return memory::ArrayString<mac_string_size>::formatted("%02x%02x-%02x%02x-%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    /// @return StaticString with formatted MAC address (XX:XX:XX:XX:XX:XX format)
+    [[nodiscard]] static memory::StaticString<mac_string_size> stringFromMac(const Mac &mac) noexcept {
+        return memory::StaticString<mac_string_size>::formatted("%02x%02x-%02x%02x-%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     }
 
 #define return_case(__v) \

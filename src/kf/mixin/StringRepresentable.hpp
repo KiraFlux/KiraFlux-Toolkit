@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/memory/ArrayString.hpp"
+#include "kf/memory/StaticString.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::mixin {
@@ -13,7 +13,7 @@ struct StringRepresentableTag {};
 template<typename Impl, kf::usize> struct StringRepresentable : StringRepresentableTag {
     static constexpr auto repr_string_capacity{N};
 
-    [[nodiscard]] memory::ArrayString<N> toString() const noexcept {
+    [[nodiscard]] memory::StaticString<N> toString() const noexcept {
         return static_cast<const Impl *>(this)->toStringImpl();
     }
 };

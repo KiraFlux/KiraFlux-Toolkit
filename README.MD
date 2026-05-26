@@ -39,7 +39,7 @@ The library is **header‑only**, written in **C++17**, and currently targets th
 | Pixel formats    | `kf/pixel`         | Pixel format definitions (monochrome, RGB565) and operations.                                                   |
 | UI               | `kf/ui`            | Widget‑based user interface with text renderers.                                                                |
 | Math             | `kf/math`          | Vectors, timers, filters (EMA, low‑pass, complementary), PID controller.                                        |
-| Memory           | `kf/memory`        | Lightweight containers (`Slice`, `ArrayString`, `Storage`) and STL container aliases.                           |
+| Memory           | `kf/memory`        | Lightweight containers (`Slice`, `StaticString`, `Storage`) and STL container aliases.                           |
 | Mixins           | `kf/mixin`         | Reusable CRTP mixins (`Resettable`, `Pollable`, `Initable`, `Configurable`, etc.).                              |
 | Tuners           | `kf/tuner`         | Sensor calibration via sample collection and state machines.                                                    |
 | Metaprogramming  | `kf/meta`          | CRTP base, bit/byte traits, function traits.                                                                    |
