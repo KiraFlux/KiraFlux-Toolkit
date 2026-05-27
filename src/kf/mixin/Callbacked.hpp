@@ -4,45 +4,62 @@
 #pragma once
 
 #include "kf/Function.hpp"
+#include "kf/Option.hpp"
 
 namespace kf::mixin {
 
+/// @brief Tag specifies that target struct support Callbacked mixin
 struct CallbackedTag {};
 
 /// @brief Adds Callback
 /// @tparam T
-template<typename T> struct Callbacked : CallbackedTag {
-    using CallbackType = Function<void(T)>;
+template<typename T> struct Callbacked;
 
-    void callback(CallbackType &&function) noexcept {
-        _callback_function = std::move(function);
+namespace internal {
+
+template<typename Signature> struct CallbackedController : CallbackedTag {
+    using CallbackType = Function<Signature>;
+
+    /// @brief Set callback from optional function
+    void callback(Option<CallbackType> optional_function) noexcept {
+        _callback_function = std::move(optional_function);
     }
 
-    void invoke(T value) noexcept {
-        if (_callback_function) {
-            _callback_function(value);
-        }
+    /// @brief Set callback from function object
+    void callback(CallbackType function) noexcept {
+        _callback_function = some(std::move(function));
     }
 
-private:
-    CallbackType _callback_function{nullptr};
+    /// @brief Set callback as None
+    void callback(::kf::internal::NoneType) noexcept {
+        _callback_function.reset();
+    }
+
+protected:
+    Option<CallbackType> _callback_function{none};
 };
 
-template<> struct Callbacked<void> : CallbackedTag {
-    using CallbackType = Function<void()>;
+}// namespace internal
 
-    void callback(CallbackType &&function) noexcept {
-        _callback_function = std::move(function);
-    }
+template<typename T> struct Callbacked : internal::CallbackedController<void(T)> {
 
-    void invoke() noexcept {
-        if (_callback_function) {
-            _callback_function();
+    /// @brief Invoke callback function if is some
+    /// @param value callback function argument
+    void invoke(T value) noexcept {
+        if (this->_callback_function.isSome()) {
+            this->_callback_function.value()(value);
         }
     }
+};
 
-private:
-    CallbackType _callback_function{nullptr};
+template<> struct Callbacked<void> : internal::CallbackedController<void()> {
+
+    /// @brief Invoke callback function if is some
+    void invoke() noexcept {
+        if (this->_callback_function.isSome()) {
+            this->_callback_function.value()();
+        }
+    }
 };
 
 }// namespace kf::mixin
