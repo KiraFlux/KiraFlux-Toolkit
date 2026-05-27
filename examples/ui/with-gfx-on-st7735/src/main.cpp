@@ -225,8 +225,8 @@ static MyDisplayDriver::Config display_config{
 static MyDisplayDriver display{
     display_config,
     bus.createNode(node_config),
-    DigitalOutput{GPIO_NUM_2},
-    DigitalOutput{GPIO_NUM_15},
+    DigitalOutput{GPIO_NUM_22},// DC
+    DigitalOutput{GPIO_NUM_17},// RESET
 };
 
 // display
@@ -246,17 +246,25 @@ void setup() {
     // render setup
     MyUI::RenderConfig &config = ui.renderConfig();
 
-    static kf::gfx::Canvas<P> root_canvas{kf::image::DynamicImage<P>{display.image()}};
+    using CanvasImpl = kf::gfx::Canvas<P>;
+
+    static CanvasImpl root_canvas{
+        kf::image::DynamicImage<P>{display.image()},
+        CanvasImpl::State{
+            .active_font = kf::someRef(kf::gfx::fonts::gyver_5x7_en),
+            .foreground_color = CanvasImpl::PaletteType::bright_white,
+            .background_color = CanvasImpl::PaletteType::black,
+            .auto_next_line = true,
+        },
+    };
 
     // post-render procedure
     config.callback([](kf::memory::StringView text) {
         root_canvas.fill();
-        root_canvas.text(0, 0, text.data());
+        root_canvas.text(0, 0, text);
 
         (void) display.send();// SPI cannot tell anything about error => ignoring
     });
-
-    root_canvas.font(kf::gfx::fonts::gyver_5x7_en);
 
     // misc
     config.float_places = 3;                         // float rendering like:  1234.567
