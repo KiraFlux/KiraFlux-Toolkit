@@ -153,7 +153,7 @@ template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
     /// @brief Default contructor
     constexpr Option() noexcept : _ptr{nullptr} {}
 
-    /// @brief Deleted constructor for rvalue references – cannot store temporaries
+    /// @brief Deleted constructor for rvalue references - cannot store temporaries
     Option(T &&) = delete;
 
     /// @brief Check if Option contains a reference
@@ -244,77 +244,62 @@ template<typename R, typename... Args> struct Option<Function<R(Args...)>> final
 
     using FunctionType = Function<R(Args...)>;
 
-    /// @brief Default constructor – creates empty Option (None)
-    constexpr Option() noexcept : _is_some{false} {}
+    /// @brief Default constructor - creates empty Option (None)
+    constexpr Option() noexcept : _function{} {}
 
     /// @brief Construct empty Option from NoneType (used with kf::none)
-    constexpr Option(internal::NoneType) noexcept : _is_some{false} {}
+    constexpr Option(internal::NoneType) noexcept : _function{} {}
 
     /// @brief Move constructor
     /// @param other Source Option (becomes None after move)
-    Option(Option &&other) noexcept : _is_some{other._is_some} {
-        if (_is_some) {
-            new (&_storage) FunctionType{std::move(*reinterpret_cast<FunctionType *>(&other._storage))};
-            other._is_some = false;
-        }
-    }
+    Option(Option &&other) noexcept : _function{std::move(other._function)} {}
 
-    /// @brief Destructor – destroys stored function if present
+    /// @brief Destructor - destroys stored function if present
     ~Option() { this->reset(); }
 
     /// @brief Move assignment operator
     /// @param other Source Option (becomes None after move)
     Option &operator=(Option &&other) noexcept {
         if (this != &other) {
-            this->reset();
-            _is_some = other._is_some;
-            if (_is_some) {
-                new (&_storage) FunctionType{std::move(*reinterpret_cast<FunctionType *>(&other._storage))};
-                other._is_some = false;
-            }
+            _function = std::move(other._function);
         }
         return *this;
     }
 
     /// @brief Check if Option contains a function
-    [[nodiscard]] constexpr bool isSome() const noexcept { return _is_some; }
+    [[nodiscard]] constexpr bool isSome() const noexcept { return nullptr != _function._func; }
 
     /// @brief Check if Option is empty
-    [[nodiscard]] constexpr bool isNone() const noexcept { return not _is_some; }
+    [[nodiscard]] constexpr bool isNone() const noexcept { return nullptr == _function._func; }
 
     /// @brief Get stored function (const lvalue reference). Panics if None
     [[nodiscard]] const FunctionType &value() const & {
-        if (not _is_some) { abort(); }
-        return *reinterpret_cast<const FunctionType *>(&_storage);
+        if (isNone()) { abort(); }
+
+        return _function;
     }
 
     /// @brief Extract stored function (rvalue). Panics if None
     [[nodiscard]] FunctionType value() && {
-        if (not _is_some) { abort(); }
-        auto ret = std::move(*reinterpret_cast<FunctionType *>(&_storage));
+        if (isNone()) { abort(); }
+
+        auto ret = std::move(_function);
         this->reset();
         return ret;
     }
 
-    /// @brief Reset Option to empty state (None)
-    void reset() noexcept {
-        if (_is_some) {
-            reinterpret_cast<FunctionType *>(&_storage)->~FunctionType();
-            _is_some = false;
-        }
-    }
-
 private:
-    alignas(alignof(FunctionType)) u8 _storage[sizeof(FunctionType)];///< Storage for the function object
-    bool _is_some;                                                   ///< Flag: true = Some, false = None
+    FunctionType _function;
 
     /// @brief Private constructor for Some (called by kf::some)
-    Option(FunctionType func) noexcept : _is_some{true} {
-        new (&_storage) FunctionType(std::move(func));
-    }
+    Option(FunctionType function) noexcept : _function{std::move(function)} {}
 
     KF_IMPL_RESETTABLE(Option<FunctionType>);
-    void resetImpl() noexcept { this->reset(); }
+    void resetImpl() noexcept {
+        if (isSome()) {
+            _function = std::move(FunctionType{});
+        }
+    }
 };
 
 }// namespace kf

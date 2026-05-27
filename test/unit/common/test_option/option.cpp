@@ -354,6 +354,8 @@ static int add(int a, int b) { return a + b; }
 template<typename T> struct TestFunctionOption {
     using FunctionType = Function<T(T)>;
 
+    static_assert(sizeof(Option<FunctionType>) == sizeof(FunctionType));
+
     static inline int counter = 0;
     static int normal(int x) { return x; }
     static int plus_one(int x) { return x + 1; }
