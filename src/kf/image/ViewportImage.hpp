@@ -32,22 +32,15 @@ private:
     StaticImage<PixelImpl, W, H> _image{};///< Raw image buffer data
     math::Pixels _logical_width{W}, _logical_height{H};
 
-    // impl
-    using This = ViewportImage<P, W, H>;
-
-    KF_IMPL(Image<This, P>);
+    KF_IMPL(Image<ViewportImage<P, W, H>, P>);
 
     [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return _logical_width; }
 
     [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept { return _logical_height; }
 
-    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return _logical_width; }
+    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
 
     [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
-        return _image.buffer().first(_logical_width * _logical_height);
-    }
-
-    [[nodiscard]] constexpr Slice<const BufferType> getBufferImpl() const noexcept {
         return _image.buffer().first(_logical_width * _logical_height);
     }
 };

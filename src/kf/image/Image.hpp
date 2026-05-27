@@ -35,15 +35,15 @@ template<typename Impl, typename P> struct Image : ImageTag, meta::CRTP<Impl> {
     [[nodiscard]] Slice<BufferType> buffer() noexcept { return this->impl().getBufferImpl(); }
 
     /// @brief Get readonly frame buffer
-    [[nodiscard]] Slice<const BufferType> buffer() const noexcept { return this->impl().getBufferImpl(); }
+    [[nodiscard]] Slice<const BufferType> buffer() const noexcept { return const_cast<Image *>(this)->impl().getBufferImpl(); }
 
     // properties
 
     /// @brief Get maximum valid X coordinate
-    [[nodiscard]] u8 maxX() const noexcept { return width() - 1; }
+    [[nodiscard]] math::Pixels maxX() const noexcept { return width() - 1; }
 
     /// @brief Get maximum valid Y coordinate
-    [[nodiscard]] u8 maxY() const noexcept { return height() - 1; }
+    [[nodiscard]] math::Pixels maxY() const noexcept { return height() - 1; }
 
     /// @brief Get image size in bytes
     [[nodiscard]] usize size() const noexcept { return buffer().size() * sizeof(BufferType); }
