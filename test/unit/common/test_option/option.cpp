@@ -17,9 +17,6 @@ struct Point {
 };
 
 template<typename T> struct TestOption {
-    static_assert(std::is_trivially_copyable_v<Option<T>>);
-    static_assert(std::is_trivially_destructible_v<Option<T>>);
-
     inline static T value{};
     static constexpr T default_value{};
 
@@ -64,9 +61,8 @@ template<typename T> struct TestOption {
     static void move() noexcept {
         auto original = kf::some(value);
         auto moved = std::move(original);
-        TEST_ASSERT_TRUE(original.isSome());
+        TEST_ASSERT_TRUE(original.isNone());
         TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_TRUE(value == original.value());
         TEST_ASSERT_TRUE(value == moved.value());
     }
 
@@ -74,9 +70,8 @@ template<typename T> struct TestOption {
         auto original = kf::some(value);
         Option<T> moved = kf::none;
         moved = std::move(original);
-        TEST_ASSERT_TRUE(original.isSome());
+        TEST_ASSERT_TRUE(original.isNone());
         TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_TRUE(value == original.value());
         TEST_ASSERT_TRUE(value == moved.value());
     }
 

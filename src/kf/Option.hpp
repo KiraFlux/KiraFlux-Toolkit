@@ -75,9 +75,6 @@ template<typename R, typename... Args> [[nodiscard]] constexpr Option<Function<R
 ///       Use kf::some() to create an Option with a value, and kf::none for an empty one
 /// @see kf::some, kf::none
 template<typename T> struct Option final : mixin::Resettable<Option<T>> {
-    static_assert(std::is_trivially_destructible_v<T>);
-    static_assert(std::is_trivially_copyable_v<T>);
-
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
@@ -85,6 +82,45 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
 
     /// @brief Default contructor
     constexpr Option() noexcept : _is_some{false}, _dummy{} {}
+
+    Option(const Option &other) noexcept : _is_some{other._is_some} {
+        if (_is_some) {
+            _value = std::move(other._value);
+        }
+    };
+
+    Option(Option &&other) noexcept {
+        if (_is_some) {
+            _value = std::move(other._value);
+            other._is_some = false;
+        }
+    };
+
+    Option &operator=(const Option &other) noexcept {
+        if (this != &other) {
+            _is_some = other._is_some;
+            if (_is_some) {
+                _value = std::move(other._value);
+            }
+        }
+
+        return *this;
+    };
+
+    Option &operator=(Option &&other) noexcept {
+        if (this != &other) {
+            this->reset();
+            _is_some = other._is_some;
+            if (_is_some) {
+                _value = std::move(other._value);
+                other._is_some = false;
+            }
+        }
+
+        return *this;
+    };
+
+    ~Option() noexcept { this->reset(); }
 
     /// @brief Check if Option contains a value
     [[nodiscard]] constexpr bool isSome() const noexcept { return _is_some; }
@@ -130,7 +166,12 @@ private:
     constexpr Option(T value) noexcept : _is_some{true}, _value{std::move(value)} {}
 
     KF_IMPL_RESETTABLE(Option<T>);
-    void resetImpl() noexcept { _is_some = false; }
+    void resetImpl() noexcept {
+        if (_is_some) {
+            _value.~T();
+            _is_some = false;
+        }
+    }
 };
 
 /// @brief Optional value container for lvalue references
