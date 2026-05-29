@@ -50,28 +50,41 @@ template<typename E> struct ErrorWrapper {
 ///       Use kf::ok() and kf::error() to create instances.
 /// @see kf::ok, kf::error
 template<typename T, typename E> struct Result final : internal::ResultErrorController<Result<T, E>, E> {
-    static_assert(std::is_trivially_destructible_v<T>);
-    static_assert(std::is_trivially_copyable_v<T>);
 
-    /// @brief Construct from OkWrapper (internal - use kf::ok)
+    /// @brief Construct from OkWrapper
+    /// @see kf::ok(T)
     constexpr Result(internal::OkWrapper<T> ok) noexcept :
         _is_ok{true}, _ok{std::move(ok.value)} {}
 
-    /// @brief Construct from ErrorWrapper (internal - use kf::error)
+    /// @brief Construct from ErrorWrapper
+    /// @see kf::error(E)
     constexpr Result(internal::ErrorWrapper<E> error) noexcept :
         _is_ok{false}, _error{std::move(error.value)} {}
+
+    ~Result() noexcept {
+        if (_is_ok) {
+            _ok.~T();
+        } else {
+            _error.~E();
+        }
+    }
 
     /// @brief Check if result contains a value (success)
     [[nodiscard]] constexpr bool isOk() const noexcept { return _is_ok; }
 
     /// @brief Get the stored value (undefined behaviour if not ok)
-    [[nodiscard]] T &ok() noexcept {
+    [[nodiscard]] T &ok() & noexcept {
         if (isOk()) { return _ok; }
         abort();
     }
 
+    [[nodiscard]] T ok() && noexcept {
+        if (isOk()) { return std::move(_ok); }
+        abort();
+    }
+
     /// @brief Get the stored value (const overload)
-    [[nodiscard]] const T &ok() const noexcept { return const_cast<Result *>(this)->ok(); }
+    [[nodiscard]] const T &ok() const & noexcept { return const_cast<Result *>(this)->ok(); }
 
     /// @brief Transform the success value using a function
     /// @tparam F Callable type (auto‑deduced)
@@ -117,13 +130,21 @@ private:
 /// @tparam E Type of error value
 template<typename E> struct Result<void, E> final : internal::ResultErrorController<Result<void, E>, E> {
 
-    /// @brief Construct from OkWrapper<void> (internal - use kf::ok())
+    /// @brief Construct from OkWrapper<void>
+    /// @see kf::ok()
     constexpr Result(internal::OkWrapper<void>) noexcept :
         _is_error{false} {}
 
-    /// @brief Construct from ErrorWrapper (internal - use kf::error)
+    /// @brief Construct from ErrorWrapper
+    /// @see kf::error(E)
     constexpr Result(internal::ErrorWrapper<E> error) noexcept :
         _is_error{true}, _error{std::move(error.value)} {}
+
+    ~Result() noexcept {
+        if (_is_error) {
+            _error.~E();
+        }
+    }
 
     /// @brief Check if result is successful
     [[nodiscard]] constexpr bool isOk() const noexcept { return not _is_error; }
