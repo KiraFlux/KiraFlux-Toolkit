@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "kf/Function.hpp"
+#include "kf/NoneType.hpp"
 #include "kf/Slice.hpp"
 #include "kf/mixin/Resettable.hpp"
 
@@ -35,12 +36,6 @@ struct SomeCreator final {
     template<typename R, typename... Args> [[nodiscard]] static constexpr Option<Function<R(Args...)>> create(Function<R(Args...)> func) noexcept {
         return {std::move(func)};
     }
-};
-
-/// @brief Tag type for constructing an empty Option (None)
-/// @note Use the global constant kf::none to create empty options.
-struct NoneType final {
-    explicit NoneType() = default;
 };
 
 }// namespace internal
@@ -74,9 +69,6 @@ template<typename R, typename... Args> [[nodiscard]] constexpr Option<Function<R
     return internal::SomeCreator::create(std::move(func));
 }
 
-/// @brief Global constant for constructing an empty Option (None).
-constexpr internal::NoneType none{};
-
 /// @brief Optional value container for value types
 /// @tparam T Value type (must be trivially copyable and destructible)
 /// @note Embedded‑friendly implementation without exceptions or heap allocation
@@ -89,7 +81,7 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
-    constexpr Option(internal::NoneType) noexcept : _is_some{false}, _dummy{} {}
+    constexpr Option(NoneType) noexcept : _is_some{false}, _dummy{} {}
 
     /// @brief Default contructor
     constexpr Option() noexcept : _is_some{false}, _dummy{} {}
@@ -148,7 +140,7 @@ template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
-    constexpr Option(internal::NoneType) noexcept : _ptr{nullptr} {}
+    constexpr Option(NoneType) noexcept : _ptr{nullptr} {}
 
     /// @brief Default contructor
     constexpr Option() noexcept : _ptr{nullptr} {}
@@ -196,7 +188,7 @@ template<typename T> struct Option<Slice<T>> final : mixin::Resettable<Option<Sl
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
-    constexpr Option(internal::NoneType) noexcept : _ptr{nullptr}, _size{is_none_mark} {}
+    constexpr Option(NoneType) noexcept : _ptr{nullptr}, _size{is_none_mark} {}
 
     /// @brief Default contructor
     constexpr Option() noexcept : _ptr{nullptr}, _size{is_none_mark} {}
@@ -248,7 +240,7 @@ template<typename R, typename... Args> struct Option<Function<R(Args...)>> final
     constexpr Option() noexcept : _function{} {}
 
     /// @brief Construct empty Option from NoneType (used with kf::none)
-    constexpr Option(internal::NoneType) noexcept : _function{} {}
+    constexpr Option(NoneType) noexcept : _function{} {}
 
     /// @brief Move constructor
     /// @param other Source Option (becomes None after move)

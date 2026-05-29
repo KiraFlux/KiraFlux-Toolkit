@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/Function.hpp"
+#include "kf/NoneType.hpp"
 #include "kf/Option.hpp"
 
 namespace kf::mixin {
@@ -31,7 +32,7 @@ template<typename Signature> struct CallbackedController : CallbackedTag {
     }
 
     /// @brief Set callback as None
-    void callback(::kf::internal::NoneType) noexcept {
+    void callback(NoneType) noexcept {
         _callback_function.reset();
     }
 
