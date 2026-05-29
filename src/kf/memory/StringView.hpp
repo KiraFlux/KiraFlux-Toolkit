@@ -134,7 +134,7 @@ struct StringView {
     /// @param ch Character to find
     /// @param pos Starting position
     /// @return Option containing position of character if found, empty otherwise
-    [[nodiscard]] constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
+    [[nodiscard]] Option<usize> find(char ch, usize pos = 0) const noexcept {
         for (usize i = pos; i < _size; ++i) {
             if (_data[i] == ch) { return some(i); }
         }
@@ -145,7 +145,7 @@ struct StringView {
     /// @param str Substring to find
     /// @param pos Starting position
     /// @return Option containing position of substring if found, empty otherwise
-    [[nodiscard]] constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
+    [[nodiscard]] Option<usize> find(StringView str, usize pos = 0) const noexcept {
         if (str.size() > _size or pos > _size - str.size()) { return none; }
         for (usize i = pos; i <= _size - str.size(); ++i) {
             bool found = true;
@@ -164,7 +164,7 @@ struct StringView {
     /// @param ch Character to find
     /// @param pos Starting position (search backwards from this position)
     /// @return Option containing position of character if found, empty otherwise
-    [[nodiscard]] constexpr Option<usize> rfind(char ch, usize pos = static_cast<usize>(-1)) const noexcept {
+    [[nodiscard]] Option<usize> rfind(char ch, usize pos = static_cast<usize>(-1)) const noexcept {
         if (_size == 0) { return none; }
 
         usize start = (pos >= _size) ? _size - 1 : pos;
