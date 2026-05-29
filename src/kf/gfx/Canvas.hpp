@@ -33,12 +33,12 @@ template<typename P> struct Canvas {
         ColorType background_color;      ///< Background/fill color
         bool auto_next_line;             ///< Automatically wrap text to next line
 
-        [[nodiscard]] constexpr State defaults() noexcept {
+        [[nodiscard]] static constexpr State defaults() noexcept {
             return State{
                 .active_font = none,
                 .foreground_color = ColorType{},
                 .background_color = ColorType{},
-                auto_next_line = false,
+                .auto_next_line = false,
             };
         }
     };
