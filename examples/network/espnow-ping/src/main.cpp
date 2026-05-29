@@ -37,15 +37,10 @@ void setupTargetPeer() {
     EspNow::instance().onReceiveFromUnknown(onUnknown);
 
     auto peer_add_result = EspNow::Peer::add(target_peer_address);
-    if (peer_add_result.isError()) {
-        Serial.printf("Failed to add broadcast peer: %s\n", EspNow::stringFromError(peer_add_result.error()));
+    if (peer_add_result.isOk()) {
+        peer_add_result.ok().callback(onTarget);
     } else {
-        // ok => attach handler
-
-        const auto result = peer_add_result.ok().onReceive(onTarget);
-        if (result.isError()) {
-            Serial.printf("Failed to attach receive callback: %s\n", EspNow::stringFromError(result.error()));
-        }
+        Serial.printf("Failed to add broadcast peer: %s\n", EspNow::stringFromError(peer_add_result.error()));
     }
 
     if (peer_add_result.isOk()) {
