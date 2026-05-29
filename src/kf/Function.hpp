@@ -59,7 +59,7 @@ private:
     struct Base {
         virtual ~Base() noexcept = default;
 
-        virtual R invoke(Args... args) noexcept = 0;
+        virtual R invoke(Args... args) const noexcept = 0;
 
         virtual void moveTo(void *dest) noexcept = 0;
     };
@@ -69,7 +69,7 @@ private:
 
         template<typename G> explicit Impl(G &&func) noexcept : f(std::forward<G>(func)) {}
 
-        R invoke(Args... args) noexcept override { return f(std::forward<Args>(args)...); }
+        R invoke(Args... args) const noexcept override { return f(std::forward<Args>(args)...); }
 
         void moveTo(void *dest) noexcept override { new (dest) Impl{std::move(f)}; }
     };

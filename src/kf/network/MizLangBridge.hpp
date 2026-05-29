@@ -54,7 +54,7 @@ template<typename R, typename W, typename Tlc, typename Trc = Tlc> struct MizLan
             _output_stream{other._output_stream}, _sender{std::move(other._sender)}, _code{other._code} {}
 
         [[nodiscard]] Result<void, Error> send(void *args) noexcept {
-            if (not _sender) { return error(Error::Sender_FunctionNotReady); }
+            // if (_sender) { return error(Error::Sender_FunctionNotReady); }
             if (_output_stream.writePacket(_code).isError()) { return error(Error::Sender_CodeWriteFail); }
             return _sender(_output_stream, args);
         }
