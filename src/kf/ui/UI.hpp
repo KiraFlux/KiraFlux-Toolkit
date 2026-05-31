@@ -97,11 +97,11 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     /// @param page Page to make active (must remain valid)
     void bindPage(Page &page) noexcept {
         if (_active_page.isSome()) {
-            _active_page.value().onExit();
+            _active_page.unwrap().onExit();
         }
 
         _active_page = someRef(page);
-        _active_page.value().onEntry();
+        _active_page.unwrap().onEntry();
     }
 
     /// @brief Add event to processing queue
@@ -241,7 +241,7 @@ private:
 
         if (_active_page.isNone()) { return; }
 
-        _active_page.value().onUpdate(now);
+        _active_page.unwrap().onUpdate(now);
 
         if (_events.empty()) { return; }
 
@@ -251,14 +251,14 @@ private:
         bool render_required{false};
 
         while (not _events.empty() and events_processed < max_events_per_poll) {
-            render_required |= _active_page.value().onEvent(_events.front());
+            render_required |= _active_page.unwrap().onEvent(_events.front());
             events_processed += 1;
             _events.pop();
         }
 
         if (render_required) {
             _render_system.prepare();
-            _active_page.value().render(_render_system);
+            _active_page.unwrap().render(_render_system);
             _render_system.finish();
         }
     }

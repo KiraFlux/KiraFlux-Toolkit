@@ -48,7 +48,7 @@ template<typename T> struct Callbacked : internal::CallbackedController<void(T)>
     /// @param value callback function argument
     void invoke(T value) const noexcept {
         if (this->_callback_function.isSome()) {
-            this->_callback_function.value()(value);
+            this->_callback_function.unwrap()(value);
         }
     }
 };
@@ -58,7 +58,7 @@ template<> struct Callbacked<void> : internal::CallbackedController<void()> {
     /// @brief Invoke callback function if is some
     void invoke() const noexcept {
         if (this->_callback_function.isSome()) {
-            this->_callback_function.value()();
+            this->_callback_function.unwrap()();
         }
     }
 };

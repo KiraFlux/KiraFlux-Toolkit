@@ -27,15 +27,15 @@ template<typename T> struct TestOption {
         auto option_some = kf::some(value);
         TEST_ASSERT_TRUE(option_some.isSome());
         TEST_ASSERT_FALSE(option_some.isNone());
-        TEST_ASSERT_TRUE(value == option_some.value());
-        TEST_ASSERT_TRUE(value == option_some.valueOr(default_value));
+        TEST_ASSERT_TRUE(value == option_some.unwrap());
+        TEST_ASSERT_TRUE(value == option_some.unwrapOr(default_value));
     }
 
     static void none() noexcept {
         Option<T> option_none = kf::none;
         TEST_ASSERT_TRUE(option_none.isNone());
         TEST_ASSERT_FALSE(option_none.isSome());
-        TEST_ASSERT_TRUE(default_value == option_none.valueOr(default_value));
+        TEST_ASSERT_TRUE(default_value == option_none.unwrapOr(default_value));
     }
 
     static void copy() noexcept {
@@ -43,9 +43,9 @@ template<typename T> struct TestOption {
         auto copy = original;
         TEST_ASSERT_TRUE(original.isSome());
         TEST_ASSERT_TRUE(copy.isSome());
-        TEST_ASSERT_TRUE(value == original.value());
-        TEST_ASSERT_TRUE(value == copy.value());
-        TEST_ASSERT_FALSE(&original.value() == &copy.value());
+        TEST_ASSERT_TRUE(value == original.unwrap());
+        TEST_ASSERT_TRUE(value == copy.unwrap());
+        TEST_ASSERT_FALSE(&original.unwrap() == &copy.unwrap());
     }
 
     static void copy_assignment() noexcept {
@@ -54,8 +54,8 @@ template<typename T> struct TestOption {
         copy = original;
         TEST_ASSERT_TRUE(original.isSome());
         TEST_ASSERT_TRUE(copy.isSome());
-        TEST_ASSERT_TRUE(value == original.value());
-        TEST_ASSERT_TRUE(value == copy.value());
+        TEST_ASSERT_TRUE(value == original.unwrap());
+        TEST_ASSERT_TRUE(value == copy.unwrap());
     }
 
     static void move() noexcept {
@@ -63,7 +63,7 @@ template<typename T> struct TestOption {
         auto moved = std::move(original);
         TEST_ASSERT_TRUE(original.isNone());
         TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_TRUE(value == moved.value());
+        TEST_ASSERT_TRUE(value == moved.unwrap());
     }
 
     static void move_assignment() noexcept {
@@ -72,30 +72,30 @@ template<typename T> struct TestOption {
         moved = std::move(original);
         TEST_ASSERT_TRUE(original.isNone());
         TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_TRUE(value == moved.value());
+        TEST_ASSERT_TRUE(value == moved.unwrap());
     }
 
     static void const_instance() noexcept {
         const auto option = kf::some(value);
         TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_TRUE(value == option.value());
+        TEST_ASSERT_TRUE(value == option.unwrap());
     }
 
     static void value_get() noexcept {
         auto option = kf::some(value);
-        TEST_ASSERT_TRUE(value == option.value());
+        TEST_ASSERT_TRUE(value == option.unwrap());
     }
 
     static void value_get_const() noexcept {
         const auto option = kf::some(value);
-        TEST_ASSERT_TRUE(value == option.value());
+        TEST_ASSERT_TRUE(value == option.unwrap());
     }
 
     static void reassign() noexcept {
         auto option = kf::some(default_value);
         option = kf::some(value);
         TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_TRUE(value == option.value());
+        TEST_ASSERT_TRUE(value == option.unwrap());
 
         option = kf::none;
         TEST_ASSERT_TRUE(option.isNone());
@@ -110,7 +110,7 @@ template<typename T> struct TestOption {
     static void map_some() noexcept {
         auto mapped_some = kf::some(value).map(mapper);
         TEST_ASSERT_TRUE(mapped_some.isSome());
-        TEST_ASSERT_TRUE(mapped_some.value() == map_result);
+        TEST_ASSERT_TRUE(mapped_some.unwrap() == map_result);
     }
 
     static void map_none() noexcept {
@@ -145,9 +145,9 @@ template<typename T> struct TestReferenceOption {
         auto option = kf::someRef(value);
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_FALSE(option.isNone());
-        TEST_ASSERT_TRUE(&value == &option.value());
+        TEST_ASSERT_TRUE(&value == &option.unwrap());
         T &def = default_value;
-        TEST_ASSERT_TRUE(&value == &option.valueOr(def));
+        TEST_ASSERT_TRUE(&value == &option.unwrapOr(def));
     }
 
     static void none() {
@@ -155,7 +155,7 @@ template<typename T> struct TestReferenceOption {
         TEST_ASSERT_TRUE(option.isNone());
         TEST_ASSERT_FALSE(option.isSome());
         T &def = default_value;
-        TEST_ASSERT_TRUE(&def == &option.valueOr(def));
+        TEST_ASSERT_TRUE(&def == &option.unwrapOr(def));
     }
 
     static void copy() {
@@ -163,9 +163,9 @@ template<typename T> struct TestReferenceOption {
         auto copy = original;
         TEST_ASSERT_TRUE(original.isSome());
         TEST_ASSERT_TRUE(copy.isSome());
-        TEST_ASSERT_TRUE(&value == &original.value());
-        TEST_ASSERT_TRUE(&value == &copy.value());
-        TEST_ASSERT_TRUE(&original.value() == &copy.value());
+        TEST_ASSERT_TRUE(&value == &original.unwrap());
+        TEST_ASSERT_TRUE(&value == &copy.unwrap());
+        TEST_ASSERT_TRUE(&original.unwrap() == &copy.unwrap());
     }
 
     static void copy_assignment() {
@@ -174,15 +174,15 @@ template<typename T> struct TestReferenceOption {
         copy = original;
         TEST_ASSERT_TRUE(original.isSome());
         TEST_ASSERT_TRUE(copy.isSome());
-        TEST_ASSERT_TRUE(&value == &original.value());
-        TEST_ASSERT_TRUE(&value == &copy.value());
+        TEST_ASSERT_TRUE(&value == &original.unwrap());
+        TEST_ASSERT_TRUE(&value == &copy.unwrap());
     }
 
     static void move() {
         auto original = kf::someRef(value);
         auto moved = std::move(original);
         TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_TRUE(&value == &moved.value());
+        TEST_ASSERT_TRUE(&value == &moved.unwrap());
     }
 
     static void move_assignment() {
@@ -190,18 +190,18 @@ template<typename T> struct TestReferenceOption {
         Option<T &> moved = kf::none;
         moved = std::move(original);
         TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_TRUE(&value == &moved.value());
+        TEST_ASSERT_TRUE(&value == &moved.unwrap());
     }
 
     static void const_instance() {
         const auto option = kf::someRef(value);
         TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_TRUE(&value == &option.value());
+        TEST_ASSERT_TRUE(&value == &option.unwrap());
     }
 
     static void value_get() {
         auto option = kf::someRef(value);
-        TEST_ASSERT_TRUE(&value == &option.value());
+        TEST_ASSERT_TRUE(&value == &option.unwrap());
     }
 
     static void reassign() {
@@ -209,7 +209,7 @@ template<typename T> struct TestReferenceOption {
         auto option = kf::someRef(value);
         option = kf::someRef(other);
         TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_TRUE(&other == &option.value());
+        TEST_ASSERT_TRUE(&other == &option.unwrap());
 
         option = kf::none;
         TEST_ASSERT_TRUE(option.isNone());
@@ -249,15 +249,15 @@ template<typename T> struct TestSliceOption {
         auto option = kf::some(slice_a);
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_FALSE(option.isNone());
-        TEST_ASSERT_EQUAL_PTR(data_a, option.value().data());
-        TEST_ASSERT_EQUAL(data_a_size, option.value().size());
+        TEST_ASSERT_EQUAL_PTR(data_a, option.unwrap().data());
+        TEST_ASSERT_EQUAL(data_a_size, option.unwrap().size());
     }
 
     static void none() {
         Option<Slice<T>> option = kf::none;
         TEST_ASSERT_TRUE(option.isNone());
         TEST_ASSERT_FALSE(option.isSome());
-        const auto value = option.valueOr(slice_b);
+        const auto value = option.unwrapOr(slice_b);
         TEST_ASSERT_EQUAL_PTR(data_b, value.data());
         TEST_ASSERT_EQUAL(data_b_size, value.size());
     }
@@ -267,8 +267,8 @@ template<typename T> struct TestSliceOption {
         Slice<T> empty_slice{&dummy, 0};
         auto option = kf::some(empty_slice);
         TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_EQUAL_PTR(&dummy, option.value().data());
-        TEST_ASSERT_EQUAL(0u, option.value().size());
+        TEST_ASSERT_EQUAL_PTR(&dummy, option.unwrap().data());
+        TEST_ASSERT_EQUAL(0u, option.unwrap().size());
     }
 
     static void copy() {
@@ -276,7 +276,7 @@ template<typename T> struct TestSliceOption {
         const auto copy = original;
         TEST_ASSERT_TRUE(original.isSome());
         TEST_ASSERT_TRUE(copy.isSome());
-        TEST_ASSERT_EQUAL_PTR(data_a, copy.value().data());
+        TEST_ASSERT_EQUAL_PTR(data_a, copy.unwrap().data());
     }
 
     static void copy_assignment() {
@@ -284,14 +284,14 @@ template<typename T> struct TestSliceOption {
         Option<Slice<T>> copy = kf::none;
         copy = original;
         TEST_ASSERT_TRUE(copy.isSome());
-        TEST_ASSERT_EQUAL_PTR(data_a, copy.value().data());
+        TEST_ASSERT_EQUAL_PTR(data_a, copy.unwrap().data());
     }
 
     static void move() {
         auto original = kf::some(slice_a);
         auto moved = std::move(original);
         TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_EQUAL_PTR(data_a, moved.value().data());
+        TEST_ASSERT_EQUAL_PTR(data_a, moved.unwrap().data());
     }
 
     static void move_assignment() {
@@ -299,26 +299,26 @@ template<typename T> struct TestSliceOption {
         Option<Slice<T>> moved = kf::none;
         moved = std::move(original);
         TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_EQUAL_PTR(data_a, moved.value().data());
+        TEST_ASSERT_EQUAL_PTR(data_a, moved.unwrap().data());
     }
 
     static void const_instance() {
         const auto option = kf::some(slice_a);
         TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_EQUAL_PTR(data_a, option.value().data());
+        TEST_ASSERT_EQUAL_PTR(data_a, option.unwrap().data());
     }
 
     static void value_get() {
         auto option = kf::some(slice_a);
-        TEST_ASSERT_EQUAL_PTR(data_a, option.value().data());
-        TEST_ASSERT_EQUAL(data_a_size, option.value().size());
+        TEST_ASSERT_EQUAL_PTR(data_a, option.unwrap().data());
+        TEST_ASSERT_EQUAL(data_a_size, option.unwrap().size());
     }
 
     static void reassign() {
         auto option = kf::some(slice_a);
         option = kf::some(slice_b);
         TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_EQUAL_PTR(data_b, option.value().data());
+        TEST_ASSERT_EQUAL_PTR(data_b, option.unwrap().data());
 
         option = kf::none;
         TEST_ASSERT_TRUE(option.isNone());
@@ -360,7 +360,7 @@ template<typename T> struct TestFunctionOption {
         auto option = kf::some(std::move(func));
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_FALSE(option.isNone());
-        TEST_ASSERT_EQUAL(42, option.value()(41));// plus_one(41)
+        TEST_ASSERT_EQUAL(42, option.unwrap()(41));// plus_one(41)
     }
 
     static void none() {
@@ -374,7 +374,7 @@ template<typename T> struct TestFunctionOption {
         auto option_1 = kf::some(std::move(func));
         auto option_2 = std::move(option_1);
         TEST_ASSERT_TRUE(option_2.isSome());
-        TEST_ASSERT_EQUAL(100, option_2.value()(100));
+        TEST_ASSERT_EQUAL(100, option_2.unwrap()(100));
         TEST_ASSERT_TRUE(option_1.isNone());// moved-from becomes None
     }
 
@@ -385,7 +385,7 @@ template<typename T> struct TestFunctionOption {
         auto option_2 = kf::some(std::move(f2));
         option_2 = std::move(option_1);
         TEST_ASSERT_TRUE(option_2.isSome());
-        TEST_ASSERT_EQUAL(43, option_2.value()(42));
+        TEST_ASSERT_EQUAL(43, option_2.unwrap()(42));
         TEST_ASSERT_TRUE(option_1.isNone());
     }
 
@@ -399,7 +399,7 @@ template<typename T> struct TestFunctionOption {
     static void value_invocation() {
         FunctionType func = [](int x) { return x * 2; };
         auto option = kf::some(std::move(func));
-        TEST_ASSERT_EQUAL(20, option.value()(10));
+        TEST_ASSERT_EQUAL(20, option.unwrap()(10));
     }
 };
 

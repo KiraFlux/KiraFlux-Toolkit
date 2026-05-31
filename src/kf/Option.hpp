@@ -124,13 +124,13 @@ template<typename T> struct Option final :
 
     Option(const Option &other) noexcept : _is_some{other._is_some} {
         if (this->isSome()) {
-            construct(other.rawValue());
+            construct(other.value());
         }
     }
 
     Option(Option &&other) noexcept : _is_some{other._is_some} {
         if (other.isSome()) {
-            construct(std::move(other.rawValue()));
+            construct(std::move(other.value()));
             other.reset();
         }
     };
@@ -139,9 +139,9 @@ template<typename T> struct Option final :
         if (this != &other) {
             if (other.isSome()) {
                 if (this->isSome()) {
-                    this->rawValue() = other.rawValue();
+                    this->value() = other.value();
                 } else {
-                    construct(other.rawValue());
+                    construct(other.value());
                 }
             } else {
                 this->reset();
@@ -156,7 +156,7 @@ template<typename T> struct Option final :
             this->reset();
 
             if (other.isSome()) {
-                construct(std::move(other.rawValue()));
+                construct(std::move(other.value()));
                 other.reset();
             }
         }
@@ -168,28 +168,28 @@ template<typename T> struct Option final :
 
     /// @brief Get mutable access the stored value
     /// @note (abort if is none)
-    [[nodiscard]] T &value() & noexcept {
-        if (this->isSome()) { return rawValue(); }
+    [[nodiscard]] T &unwrap() & noexcept {
+        if (this->isSome()) { return value(); }
         abort();
     }
 
     /// @brief Get readonly access to the stored value
     /// @note (abort if is none)
-    [[nodiscard]] const T &value() const & noexcept { return const_cast<Option *>(this)->value(); }
+    [[nodiscard]] const T &unwrap() const & noexcept { return const_cast<Option *>(this)->unwrap(); }
 
-    [[nodiscard]] T &&value() && noexcept {
-        if (this->isSome()) { return std::move(rawValue()); }
+    [[nodiscard]] T &&unwrap() && noexcept {
+        if (this->isSome()) { return std::move(value()); }
         abort();
     }
 
     /// @brief Get the stored value or a default (for lvalue Option)
-    template<typename U> [[nodiscard]] T valueOr(U &&default_value) const & noexcept {
-        return this->isSome() ? rawValue() : std::forward<U>(default_value);
+    template<typename U> [[nodiscard]] T unwrapOr(U &&default_value) const & noexcept {
+        return this->isSome() ? value() : std::forward<U>(default_value);
     }
 
     /// @brief Get the stored value or a default (for rvalue Option – moves stored value)
-    template<typename U> [[nodiscard]] T valueOr(U &&default_value) && noexcept {
-        return this->isSome() ? std::move(rawValue()) : std::forward<U>(default_value);
+    template<typename U> [[nodiscard]] T unwrapOr(U &&default_value) && noexcept {
+        return this->isSome() ? std::move(value()) : std::forward<U>(default_value);
     }
 
     /// @brief Transform the stored value using a function
@@ -201,10 +201,10 @@ template<typename T> struct Option final :
         if (this->isNone()) { return none; }
 
         if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
-            f(rawValue());
+            f(value());
             return some();
         } else {
-            return some(f(rawValue()));
+            return some(f(value()));
         }
     }
 
@@ -212,10 +212,10 @@ template<typename T> struct Option final :
         if (this->isNone()) { return none; }
 
         if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
-            f(std::move(rawValue()));
+            f(std::move(value()));
             return some();
         } else {
-            return some(f(std::move(rawValue())));
+            return some(f(std::move(value())));
         }
     }
 
@@ -232,9 +232,9 @@ private:
         _is_some = true;
     }
 
-    [[nodiscard]] T &rawValue() noexcept { return *reinterpret_cast<T *>(_storage); }
+    [[nodiscard]] T &value() noexcept { return *reinterpret_cast<T *>(_storage); }
 
-    [[nodiscard]] const T &rawValue() const noexcept { return const_cast<Option *>(this)->rawValue(); }
+    [[nodiscard]] const T &value() const noexcept { return const_cast<Option *>(this)->value(); }
 
     using This = Option<T>;
 
@@ -244,7 +244,7 @@ private:
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
         if (this->isSome()) {
-            rawValue().~T();
+            value().~T();
             _is_some = false;
         }
     }
@@ -272,20 +272,20 @@ template<typename T> struct Option<T &> final :
     Option(T &&) = delete;
 
     /// @brief Get the stored reference (undefined behaviour if not some)
-    [[nodiscard]] T &value() noexcept {
+    [[nodiscard]] T &unwrap() noexcept {
         if (this->isSome()) { return *_ptr; }
         abort();
     }
 
     /// @brief Const overload of value()
-    [[nodiscard]] const T &value() const noexcept {
-        return const_cast<Option *>(this)->value();
+    [[nodiscard]] const T &unwrap() const noexcept {
+        return const_cast<Option *>(this)->unwrap();
     }
 
     /// @brief Get the stored reference or a default
     /// @param default_ref Reference to return if Option is empty
     /// @return Reference to the stored object or default_ref
-    [[nodiscard]] constexpr T &valueOr(T &default_ref) const noexcept {
+    [[nodiscard]] constexpr T &unwrapOr(T &default_ref) const noexcept {
         return this->isSome() ? *_ptr : default_ref;
     }
 
@@ -322,7 +322,7 @@ template<typename T> struct Option<Slice<T>> final :
     constexpr Option() noexcept : _ptr{nullptr}, _size{is_none_mark} {}
 
     /// @brief Get the stored slice
-    [[nodiscard]] Slice<T> value() const noexcept {
+    [[nodiscard]] Slice<T> unwrap() const noexcept {
         if (this->isSome()) { return {_ptr, _size}; }
         abort();
     }
@@ -330,7 +330,7 @@ template<typename T> struct Option<Slice<T>> final :
     /// @brief Get the stored slice or a default
     /// @param default_slice Slice to return if Option is empty
     /// @return The stored slice if Some, otherwise `default_slice`
-    [[nodiscard]] constexpr Slice<T> valueOr(Slice<T> default_slice) const noexcept {
+    [[nodiscard]] constexpr Slice<T> unwrapOr(Slice<T> default_slice) const noexcept {
         return this->isSome() ? Slice<T>{_ptr, _size} : default_slice;
     }
 
@@ -392,13 +392,13 @@ template<typename R, typename... Args> struct Option<Function<R(Args...)>> final
     }
 
     /// @brief Get stored function (const lvalue reference). Panics if None
-    [[nodiscard]] const FunctionType &value() const & noexcept {
+    [[nodiscard]] const FunctionType &unwrap() const & noexcept {
         if (this->isNone()) { abort(); }
         return _function;
     }
 
     /// @brief Extract stored function (rvalue). Panics if None
-    [[nodiscard]] FunctionType value() && noexcept {
+    [[nodiscard]] FunctionType unwrap() && noexcept {
         if (this->isNone()) { abort(); }
         auto ret = std::move(_function);
         this->reset();
