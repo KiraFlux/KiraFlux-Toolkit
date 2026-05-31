@@ -11,9 +11,12 @@
 #include "kf/Function.hpp"
 #include "kf/NoneType.hpp"
 #include "kf/Slice.hpp"
+#include "kf/mixin/Invariant.hpp"
 #include "kf/mixin/Resettable.hpp"
 
 namespace kf {
+
+struct OptionTag {};
 
 template<typename> struct Option;
 
@@ -22,8 +25,9 @@ namespace internal {
 /// @brief Helper for constructing Option with a value
 /// @details Provides a static method `create` that bypasses the private constructor.
 struct SomeCreator final {
-    template<typename T> [[nodiscard]] static constexpr Option<T> create(T value) noexcept {
-        return {std::move(value)};
+
+    template<typename T> [[nodiscard]] static constexpr Option<std::decay_t<T>> create(T &&value) noexcept {
+        return {std::forward<T>(value)};
     }
 
     template<typename T> [[nodiscard]] static constexpr Option<T &> createRef(T &ref) noexcept {
@@ -33,20 +37,54 @@ struct SomeCreator final {
     template<typename T> [[nodiscard]] static constexpr Option<Slice<T>> create(Slice<T> slice) noexcept {
         return {slice};
     }
-
-    template<typename R, typename... Args> [[nodiscard]] static constexpr Option<Function<R(Args...)>> create(Function<R(Args...)> func) noexcept {
-        return {std::move(func)};
-    }
 };
 
 }// namespace internal
 
-/// @brief Create an Option containing a value (Some)
+template<> struct Option<void> final :
+
+    OptionTag,
+    mixin::Invariant<Option<void>>,
+    mixin::Resettable<Option<void>>
+
+{
+    friend struct internal::SomeCreator;
+
+    /// @brief Construct an empty Option (None)
+    constexpr Option(NoneType) noexcept : _is_some{false} {}
+
+    /// @brief Default contructor
+    constexpr Option() noexcept : _is_some{false} {}
+
+    /// @note called by some()
+    explicit constexpr Option(internal::SomeCreator) noexcept : _is_some{true} {}
+
+private:
+    bool _is_some;
+
+    using This = Option<void>;
+
+    KF_IMPL_INVARIANT(This);
+    constexpr bool isSomeImpl() const noexcept { return _is_some; }
+
+    KF_IMPL_RESETTABLE(This);
+    void resetImpl() noexcept {
+        if (this->isSome()) {
+            _is_some = false;
+        }
+    }
+};
+
+/// @brief Create an Option containing a value or function (Some)
 /// @tparam T Type of the value (auto‑deduced)
 /// @param value The value to store
 /// @return Option<T> containing the value.
-template<typename T> [[nodiscard]] constexpr Option<T> some(T value) noexcept {
-    return internal::SomeCreator::create(std::move(value));
+template<typename T> [[nodiscard]] constexpr Option<std::decay_t<T>> some(T &&value) noexcept {
+    return internal::SomeCreator::create(std::forward<T>(value));
+}
+
+[[nodiscard]] constexpr Option<void> some() noexcept {
+    return Option<void>{internal::SomeCreator{}};
 }
 
 /// @brief Create an Option containing a reference (Some_ref)
@@ -64,18 +102,18 @@ template<typename T> [[nodiscard]] constexpr Option<Slice<T>> some(Slice<T> slic
     return internal::SomeCreator::create(slice);
 }
 
-/// @brief Create an Option containing a function (Some)
-/// @return Option<Function<R(Args...)>> containing the function object
-template<typename R, typename... Args> [[nodiscard]] constexpr Option<Function<R(Args...)>> some(Function<R(Args...)> func) noexcept {
-    return internal::SomeCreator::create(std::move(func));
-}
-
 /// @brief Optional value container for value types
 /// @tparam T Value type (must be trivially copyable and destructible)
 /// @note Embedded‑friendly implementation without exceptions or heap allocation
 ///       Use kf::some() to create an Option with a value, and kf::none for an empty one
 /// @see kf::some, kf::none
-template<typename T> struct Option final : mixin::Resettable<Option<T>> {
+template<typename T> struct Option final :
+
+    OptionTag,
+    mixin::Invariant<Option<T>>,
+    mixin::Resettable<Option<T>>
+
+{
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
@@ -85,7 +123,7 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     constexpr Option() noexcept : _is_some{false} {}
 
     Option(const Option &other) noexcept : _is_some{other._is_some} {
-        if (isSome()) {
+        if (this->isSome()) {
             construct(other.rawValue());
         }
     }
@@ -98,29 +136,29 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     };
 
     Option &operator=(const Option &other) noexcept {
-        if (this == &other) { return *this; }
-
-        if (other.isSome()) {
-            if (isSome()) {
-                this->rawValue() = other.rawValue();
+        if (this != &other) {
+            if (other.isSome()) {
+                if (this->isSome()) {
+                    this->rawValue() = other.rawValue();
+                } else {
+                    construct(other.rawValue());
+                }
             } else {
-                construct(other.rawValue());
+                this->reset();
             }
-        } else {
-            this->reset();
         }
 
         return *this;
     }
 
     Option &operator=(Option &&other) noexcept {
-        if (this == &other) { return *this; }
+        if (this != &other) {
+            this->reset();
 
-        this->reset();
-
-        if (other.isSome()) {
-            construct(std::move(other.rawValue()));
-            other.reset();
+            if (other.isSome()) {
+                construct(std::move(other.rawValue()));
+                other.reset();
+            }
         }
 
         return *this;
@@ -128,41 +166,30 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
 
     ~Option() noexcept { this->reset(); }
 
-    /// @brief Check if Option contains a value
-    [[nodiscard]] constexpr bool isSome() const noexcept { return _is_some; }
-
-    /// @brief Check if Option does not contain a value
-    [[nodiscard]] constexpr bool isNone() const noexcept { return not isSome(); }
-
-    /// @brief Get the stored value (undefined behaviour if not some)
+    /// @brief Get mutable access the stored value
+    /// @note (abort if is none)
     [[nodiscard]] T &value() & noexcept {
-        if (isSome()) { return rawValue(); }
+        if (this->isSome()) { return rawValue(); }
         abort();
     }
 
+    /// @brief Get readonly access to the stored value
+    /// @note (abort if is none)
     [[nodiscard]] const T &value() const & noexcept { return const_cast<Option *>(this)->value(); }
 
     [[nodiscard]] T &&value() && noexcept {
-        if (isSome()) { return std::move(rawValue()); }
+        if (this->isSome()) { return std::move(rawValue()); }
         abort();
     }
 
     /// @brief Get the stored value or a default (for lvalue Option)
-    [[nodiscard]] T valueOr(const T &default_value) const & noexcept {
-        return isSome() ? rawValue() : default_value;
-    }
-
-    [[nodiscard]] T valueOr(T &&default_value) const & noexcept {
-        return isSome() ? rawValue() : std::move(default_value);
+    template<typename U> [[nodiscard]] T valueOr(U &&default_value) const & noexcept {
+        return this->isSome() ? rawValue() : std::forward<U>(default_value);
     }
 
     /// @brief Get the stored value or a default (for rvalue Option – moves stored value)
-    [[nodiscard]] T &&valueOr(const T &default_value) && noexcept {
-        return isSome() ? std::move(rawValue()) : default_value;
-    }
-
-    [[nodiscard]] T &&valueOr(T &&default_value) && noexcept {
-        return isSome() ? std::move(rawValue()) : std::move(default_value);
+    template<typename U> [[nodiscard]] T valueOr(U &&default_value) && noexcept {
+        return this->isSome() ? std::move(rawValue()) : std::forward<U>(default_value);
     }
 
     /// @brief Transform the stored value using a function
@@ -170,8 +197,26 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     /// @param f Mapping function: T -> U
     /// @return Option<U> containing the mapped value if some,
     ///         otherwise an empty Option
-    template<typename F> [[nodiscard]] auto map(F &&f) const noexcept -> Option<decltype(f(std::declval<T>()))> {
-        return isSome() ? some(f(rawValue())) : none;
+    template<typename F> [[nodiscard]] auto map(F &&f) const & noexcept -> Option<decltype(f(std::declval<T>()))> {
+        if (this->isNone()) { return none; }
+
+        if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
+            f(rawValue());
+            return some();
+        } else {
+            return some(f(rawValue()));
+        }
+    }
+
+    template<typename F> [[nodiscard]] auto map(F &&f) && noexcept -> Option<decltype(f(std::declval<T>()))> {
+        if (this->isNone()) { return none; }
+
+        if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
+            f(std::move(rawValue()));
+            return some();
+        } else {
+            return some(f(std::move(rawValue())));
+        }
     }
 
 private:
@@ -179,7 +224,8 @@ private:
     bool _is_some{};                    ///< Flag indicating whether value is present
 
     /// @brief Private constructor for a value (called by some())
-    constexpr Option(T value) noexcept { construct(std::move(value)); }
+    template<typename U, typename = std::enable_if_t<not std::is_same_v<std::decay_t<U>, Option>>>
+    constexpr Option(U &&value) noexcept { construct(std::forward<U>(value)); }
 
     template<typename U> void construct(U &&value) noexcept {
         new (static_cast<void *>(_storage)) T(std::forward<U>(value));
@@ -190,9 +236,14 @@ private:
 
     [[nodiscard]] const T &rawValue() const noexcept { return const_cast<Option *>(this)->rawValue(); }
 
-    KF_IMPL_RESETTABLE(Option<T>);
+    using This = Option<T>;
+
+    KF_IMPL_INVARIANT(This);
+    constexpr bool isSomeImpl() const noexcept { return _is_some; }
+
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
-        if (isSome()) {
+        if (this->isSome()) {
             rawValue().~T();
             _is_some = false;
         }
@@ -202,7 +253,13 @@ private:
 /// @brief Optional value container for lvalue references
 /// @tparam T Referenced type
 /// @note Stores a pointer internally, cannot hold rvalue references.
-template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
+template<typename T> struct Option<T &> final :
+
+    OptionTag,
+    mixin::Invariant<Option<T &>>,
+    mixin::Resettable<Option<T &>>
+
+{
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
@@ -214,15 +271,9 @@ template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
     /// @brief Deleted constructor for rvalue references - cannot store temporaries
     Option(T &&) = delete;
 
-    /// @brief Check if Option contains a reference
-    [[nodiscard]] constexpr bool isSome() const noexcept { return _ptr != nullptr; }
-
-    /// @brief Check if Option does not contain a reference
-    [[nodiscard]] constexpr bool isNone() const noexcept { return nullptr == _ptr; }
-
     /// @brief Get the stored reference (undefined behaviour if not some)
     [[nodiscard]] T &value() noexcept {
-        if (isSome()) { return *_ptr; }
+        if (this->isSome()) { return *_ptr; }
         abort();
     }
 
@@ -235,22 +286,33 @@ template<typename T> struct Option<T &> final : mixin::Resettable<Option<T &>> {
     /// @param default_ref Reference to return if Option is empty
     /// @return Reference to the stored object or default_ref
     [[nodiscard]] constexpr T &valueOr(T &default_ref) const noexcept {
-        return isSome() ? *_ptr : default_ref;
+        return this->isSome() ? *_ptr : default_ref;
     }
 
 private:
-    T *_ptr;///< Pointer to the referenced object (nullptr indicates None)
+    T *_ptr;
 
     /// @note called by someRef()
     constexpr Option(T &ref) noexcept : _ptr{&ref} {}
 
-    KF_IMPL_RESETTABLE(Option<T &>);
+    using This = Option<T &>;
+
+    KF_IMPL_INVARIANT(This);
+    constexpr bool isSomeImpl() const noexcept { return _ptr != nullptr; }
+
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept { _ptr = nullptr; }
 };
 
 /// @brief Optional value container for slice
 /// @tparam T Slice item type
-template<typename T> struct Option<Slice<T>> final : mixin::Resettable<Option<Slice<T>>> {
+template<typename T> struct Option<Slice<T>> final :
+
+    OptionTag,
+    mixin::Invariant<Option<Slice<T>>>,
+    mixin::Resettable<Option<Slice<T>>>
+
+{
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
@@ -259,15 +321,9 @@ template<typename T> struct Option<Slice<T>> final : mixin::Resettable<Option<Sl
     /// @brief Default contructor
     constexpr Option() noexcept : _ptr{nullptr}, _size{is_none_mark} {}
 
-    /// @brief Check if Option contains a reference
-    [[nodiscard]] constexpr bool isSome() const noexcept { return _size != is_none_mark; }
-
-    /// @brief Check if Option does not contain a reference
-    [[nodiscard]] constexpr bool isNone() const noexcept { return _size == is_none_mark; }
-
     /// @brief Get the stored slice
     [[nodiscard]] Slice<T> value() const noexcept {
-        if (isSome()) { return {_ptr, _size}; }
+        if (this->isSome()) { return {_ptr, _size}; }
         abort();
     }
 
@@ -275,7 +331,7 @@ template<typename T> struct Option<Slice<T>> final : mixin::Resettable<Option<Sl
     /// @param default_slice Slice to return if Option is empty
     /// @return The stored slice if Some, otherwise `default_slice`
     [[nodiscard]] constexpr Slice<T> valueOr(Slice<T> default_slice) const noexcept {
-        return isSome() ? Slice<T>{_ptr, _size} : default_slice;
+        return this->isSome() ? Slice<T>{_ptr, _size} : default_slice;
     }
 
 private:
@@ -287,7 +343,12 @@ private:
     /// @note called by some()
     constexpr Option(Slice<T> slice) noexcept : _ptr{slice.data()}, _size{slice.size()} {}
 
-    KF_IMPL_RESETTABLE(Option<Slice<T>>);
+    using This = Option<Slice<T>>;
+
+    KF_IMPL_INVARIANT(This);
+    constexpr bool isSomeImpl() const noexcept { return _size != is_none_mark; }
+
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
         _size = is_none_mark;
         _ptr = nullptr;
@@ -297,7 +358,13 @@ private:
 /// @brief Optional value container for function
 /// @tparam R Function's return value type
 /// @tparam Args Function's argument types
-template<typename R, typename... Args> struct Option<Function<R(Args...)>> final : mixin::Resettable<Option<Function<R(Args...)>>> {
+template<typename R, typename... Args> struct Option<Function<R(Args...)>> final :
+
+    OptionTag,
+    mixin::Invariant<Option<Function<R(Args...)>>>,
+    mixin::Resettable<Option<Function<R(Args...)>>>
+
+{
     friend struct internal::SomeCreator;
 
     using FunctionType = Function<R(Args...)>;
@@ -313,7 +380,7 @@ template<typename R, typename... Args> struct Option<Function<R(Args...)>> final
     Option(Option &&other) noexcept : _function{std::move(other._function)} {}
 
     /// @brief Destructor - destroys stored function if present
-    ~Option() { this->reset(); }
+    ~Option() noexcept { this->reset(); }
 
     /// @brief Move assignment operator
     /// @param other Source Option (becomes None after move)
@@ -324,23 +391,15 @@ template<typename R, typename... Args> struct Option<Function<R(Args...)>> final
         return *this;
     }
 
-    /// @brief Check if Option contains a function
-    [[nodiscard]] constexpr bool isSome() const noexcept { return nullptr != _function._func; }
-
-    /// @brief Check if Option is empty
-    [[nodiscard]] constexpr bool isNone() const noexcept { return nullptr == _function._func; }
-
     /// @brief Get stored function (const lvalue reference). Panics if None
-    [[nodiscard]] const FunctionType &value() const & {
-        if (isNone()) { abort(); }
-
+    [[nodiscard]] const FunctionType &value() const & noexcept {
+        if (this->isNone()) { abort(); }
         return _function;
     }
 
     /// @brief Extract stored function (rvalue). Panics if None
-    [[nodiscard]] FunctionType value() && {
-        if (isNone()) { abort(); }
-
+    [[nodiscard]] FunctionType value() && noexcept {
+        if (this->isNone()) { abort(); }
         auto ret = std::move(_function);
         this->reset();
         return ret;
@@ -350,11 +409,16 @@ private:
     FunctionType _function;
 
     /// @brief Private constructor for Some (called by kf::some)
-    Option(FunctionType function) noexcept : _function{std::move(function)} {}
+    template<typename F> Option(F &&function) noexcept : _function{std::forward<F>(function)} {}
 
-    KF_IMPL_RESETTABLE(Option<FunctionType>);
+    using This = Option<FunctionType>;
+
+    KF_IMPL_INVARIANT(This);
+    constexpr bool isSomeImpl() const noexcept { return nullptr != _function._func; }
+
+    KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
-        if (isSome()) {
+        if (this->isSome()) {
             _function = std::move(FunctionType{});
         }
     }
