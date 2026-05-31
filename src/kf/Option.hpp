@@ -21,6 +21,8 @@ struct OptionTag {};
 
 template<typename> struct Option;
 
+template<typename> struct TrivialOption;
+
 namespace internal {
 
 /// @brief Helper for constructing Option with a value
@@ -37,6 +39,10 @@ struct SomeCreator final {
 
     template<typename T> [[nodiscard]] static constexpr Option<Slice<T>> create(Slice<T> slice) noexcept {
         return Option<Slice<T>>{slice};
+    }
+
+    template<typename T> [[nodiscard]] static constexpr TrivialOption<T> createTrivial(const T &value) noexcept {
+        return TrivialOption<T>{value};
     }
 };
 
@@ -61,7 +67,7 @@ template<> struct Option<void> final :
     /// @note Intended for containers
     constexpr Option() noexcept : _is_some{false} {}
 
-    /// @note called by some()
+    /// @brief Construct Option<void> (called by kf::some())
     explicit constexpr Option(internal::SomeCreator) noexcept : _is_some{true} {}
 
 private:
@@ -110,6 +116,15 @@ template<typename T> [[nodiscard]] constexpr Option<T &> someRef(T &ref) noexcep
 /// @return `Option<Slice<T>>`
 template<typename T> [[nodiscard]] constexpr Option<Slice<T>> some(Slice<T> slice) noexcept {
     return internal::SomeCreator::create(slice);
+}
+
+/// @brief Create TrivialOption containing a value
+/// @tparam T Deduced type of value
+/// @param value The value to store (copied)
+/// @return `TrivialOption<T>`
+/// @note This is the only way to create a non‑empty TrivialOption
+template<typename T> [[nodiscard]] constexpr TrivialOption<T> someTrivial(const T &value) noexcept {
+    return internal::SomeCreator::createTrivial(value);
 }
 
 /// @brief Optional container for any value type
@@ -365,7 +380,7 @@ template<typename T> struct Option<Slice<T>> final :
     /// @brief Construct an empty Option (None)
     constexpr Option(NoneType) noexcept : _ptr{nullptr}, _size{is_none_mark} {}
 
-    /// @brief Default contructor
+    /// @brief Default constructor
     /// @note Intended for containers
     constexpr Option() noexcept : _ptr{nullptr}, _size{is_none_mark} {}
 
@@ -479,6 +494,75 @@ private:
             _function = std::move(FunctionType{});
         }
     }
+};
+
+/// @brief Trivially copyable optional container for trivially copyable types
+/// @tparam T Stored type (must be trivially copyable)
+/// @note Safe for byte serialization
+/// @note Created via `kf::someTrivial()` or `kf::none`
+/// @note Always check `isSome()` before `unwrap()`, otherwise `abort()`
+template<typename T> struct TrivialOption final :
+
+    OptionTag,
+    mixin::Invariant<TrivialOption<T>>,
+    mixin::Resettable<TrivialOption<T>>
+
+{
+    static_assert(std::is_trivially_copyable_v<T>);
+
+    friend struct internal::SomeCreator;
+
+    /// @brief Construct an empty Option (None)
+    constexpr TrivialOption(NoneType) noexcept : _dummy{}, _is_some{false} {}
+
+    /// @brief Default constructor – empty Option (None)
+    /// @note Intended for containers
+    constexpr TrivialOption() noexcept : _dummy{}, _is_some{false} {}
+
+    /// @brief Unwrap the stored value (lvalue Option)
+    /// @return Mutable reference to stored value
+    /// @note Aborts if None
+    [[nodiscard]] T &unwrap() & noexcept {
+        if (this->isNone()) { abort(); }
+        return _value;
+    }
+
+    /// @brief Unwrap the stored value (const lvalue Option)
+    /// @return Const reference to stored value
+    /// @note Aborts if None
+    [[nodiscard]] const T &unwrap() const & noexcept { return const_cast<TrivialOption *>(this)->unwrap(); }
+
+    /// @brief Unwrap the stored value (rvalue Option)
+    /// @return Rvalue reference to stored value (allows moving out)
+    /// @note Aborts if None
+    [[nodiscard]] T &&unwrap() && noexcept {
+        if (this->isNone()) { abort(); }
+        return std::move(_value);
+    }
+
+    /// @brief Get stored value or a default
+    /// @param default_value Value to return if Option is empty
+    /// @return Stored value if Some, otherwise default_value (copied)
+    [[nodiscard]] constexpr T unwrapOr(T default_value) const noexcept {
+        return this->isSome() ? _value : default_value;
+    }
+
+private:
+    union {
+        T _value;
+        char _dummy;
+    };
+    bool _is_some;
+
+    explicit constexpr TrivialOption(const T &value) noexcept : _value{value}, _is_some{true} {}
+
+    using This = TrivialOption<T>;
+
+    KF_IMPL_INVARIANT(This);
+    constexpr bool isSomeImpl() const noexcept { return _is_some; }
+
+    KF_IMPL_RESETTABLE(This);
+    void resetImpl() noexcept { _is_some = false; }
 };
 
 }// namespace kf
