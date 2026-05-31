@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <new>
 #include <type_traits>
 #include <utility>
 
@@ -14,7 +15,7 @@
 
 namespace kf {
 
-template<typename T> struct Option;
+template<typename> struct Option;
 
 namespace internal {
 
@@ -78,47 +79,52 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     friend struct internal::SomeCreator;
 
     /// @brief Construct an empty Option (None)
-    constexpr Option(NoneType) noexcept : _is_some{false}, _dummy{} {}
+    constexpr Option(NoneType) noexcept : _is_some{false} {}
 
     /// @brief Default contructor
-    constexpr Option() noexcept : _is_some{false}, _dummy{} {}
+    constexpr Option() noexcept : _is_some{false} {}
 
     Option(const Option &other) noexcept : _is_some{other._is_some} {
-        if (_is_some) {
-            _value = std::move(other._value);
+        if (isSome()) {
+            construct(other.rawValue());
         }
-    };
+    }
 
-    Option(Option &&other) noexcept {
-        if (_is_some) {
-            _value = std::move(other._value);
-            other._is_some = false;
+    Option(Option &&other) noexcept : _is_some{other._is_some} {
+        if (other.isSome()) {
+            construct(std::move(other.rawValue()));
+            other.reset();
         }
     };
 
     Option &operator=(const Option &other) noexcept {
-        if (this != &other) {
-            _is_some = other._is_some;
-            if (_is_some) {
-                _value = std::move(other._value);
+        if (this == &other) { return *this; }
+
+        if (other.isSome()) {
+            if (isSome()) {
+                this->rawValue() = other.rawValue();
+            } else {
+                construct(other.rawValue());
             }
+        } else {
+            this->reset();
         }
 
         return *this;
-    };
+    }
 
     Option &operator=(Option &&other) noexcept {
-        if (this != &other) {
-            this->reset();
-            _is_some = other._is_some;
-            if (_is_some) {
-                _value = std::move(other._value);
-                other._is_some = false;
-            }
+        if (this == &other) { return *this; }
+
+        this->reset();
+
+        if (other.isSome()) {
+            construct(std::move(other.rawValue()));
+            other.reset();
         }
 
         return *this;
-    };
+    }
 
     ~Option() noexcept { this->reset(); }
 
@@ -126,24 +132,37 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     [[nodiscard]] constexpr bool isSome() const noexcept { return _is_some; }
 
     /// @brief Check if Option does not contain a value
-    [[nodiscard]] constexpr bool isNone() const noexcept { return not _is_some; }
+    [[nodiscard]] constexpr bool isNone() const noexcept { return not isSome(); }
 
     /// @brief Get the stored value (undefined behaviour if not some)
-    [[nodiscard]] T &value() noexcept {
-        if (isSome()) { return _value; }
+    [[nodiscard]] T &value() & noexcept {
+        if (isSome()) { return rawValue(); }
         abort();
     }
 
-    /// @brief Const overload of value()
-    [[nodiscard]] const T &value() const noexcept {
-        return const_cast<Option *>(this)->value();
+    [[nodiscard]] const T &value() const & noexcept { return const_cast<Option *>(this)->value(); }
+
+    [[nodiscard]] T &&value() && noexcept {
+        if (isSome()) { return std::move(rawValue()); }
+        abort();
     }
 
-    /// @brief Get the stored value or a default
-    /// @param default_value Value to return if Option is empty
-    /// @note Safe alternative to value()
-    [[nodiscard]] constexpr T valueOr(T default_value) const noexcept {
-        return isSome() ? _value : std::move(default_value);
+    /// @brief Get the stored value or a default (for lvalue Option)
+    [[nodiscard]] T valueOr(const T &default_value) const & noexcept {
+        return isSome() ? rawValue() : default_value;
+    }
+
+    [[nodiscard]] T valueOr(T &&default_value) const & noexcept {
+        return isSome() ? rawValue() : std::move(default_value);
+    }
+
+    /// @brief Get the stored value or a default (for rvalue Option – moves stored value)
+    [[nodiscard]] T &&valueOr(const T &default_value) && noexcept {
+        return isSome() ? std::move(rawValue()) : default_value;
+    }
+
+    [[nodiscard]] T &&valueOr(T &&default_value) && noexcept {
+        return isSome() ? std::move(rawValue()) : std::move(default_value);
     }
 
     /// @brief Transform the stored value using a function
@@ -152,23 +171,29 @@ template<typename T> struct Option final : mixin::Resettable<Option<T>> {
     /// @return Option<U> containing the mapped value if some,
     ///         otherwise an empty Option
     template<typename F> [[nodiscard]] auto map(F &&f) const noexcept -> Option<decltype(f(std::declval<T>()))> {
-        return isSome() ? some(f(_value)) : none;
+        return isSome() ? some(f(rawValue())) : none;
     }
 
 private:
-    union {
-        T _value;   ///< Storage for value when engaged
-        char _dummy;///< Dummy member for empty state
-    };
-    bool _is_some;///< Flag indicating whether value is present
+    alignas(T) u8 _storage[sizeof(T)]{};///< Storage for value when engaged
+    bool _is_some{};                    ///< Flag indicating whether value is present
 
     /// @brief Private constructor for a value (called by some())
-    constexpr Option(T value) noexcept : _is_some{true}, _value{std::move(value)} {}
+    constexpr Option(T value) noexcept { construct(std::move(value)); }
+
+    template<typename U> void construct(U &&value) noexcept {
+        new (static_cast<void *>(_storage)) T(std::forward<U>(value));
+        _is_some = true;
+    }
+
+    [[nodiscard]] T &rawValue() noexcept { return *reinterpret_cast<T *>(_storage); }
+
+    [[nodiscard]] const T &rawValue() const noexcept { return const_cast<Option *>(this)->rawValue(); }
 
     KF_IMPL_RESETTABLE(Option<T>);
     void resetImpl() noexcept {
-        if (_is_some) {
-            _value.~T();
+        if (isSome()) {
+            rawValue().~T();
             _is_some = false;
         }
     }
