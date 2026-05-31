@@ -27,15 +27,15 @@ namespace internal {
 struct SomeCreator final {
 
     template<typename T> [[nodiscard]] static constexpr Option<std::decay_t<T>> create(T &&value) noexcept {
-        return {std::forward<T>(value)};
+        return Option<std::decay_t<T>>{std::forward<T>(value)};
     }
 
     template<typename T> [[nodiscard]] static constexpr Option<T &> createRef(T &ref) noexcept {
-        return {ref};
+        return Option<T &>{ref};
     }
 
     template<typename T> [[nodiscard]] static constexpr Option<Slice<T>> create(Slice<T> slice) noexcept {
-        return {slice};
+        return Option<Slice<T>>{slice};
     }
 };
 
@@ -225,7 +225,7 @@ private:
 
     /// @brief Private constructor for a value (called by some())
     template<typename U, typename = std::enable_if_t<not std::is_same_v<std::decay_t<U>, Option>>>
-    constexpr Option(U &&value) noexcept { construct(std::forward<U>(value)); }
+    explicit constexpr Option(U &&value) noexcept { construct(std::forward<U>(value)); }
 
     template<typename U> void construct(U &&value) noexcept {
         new (static_cast<void *>(_storage)) T(std::forward<U>(value));
@@ -293,7 +293,7 @@ private:
     T *_ptr;
 
     /// @note called by someRef()
-    constexpr Option(T &ref) noexcept : _ptr{&ref} {}
+    explicit constexpr Option(T &ref) noexcept : _ptr{&ref} {}
 
     using This = Option<T &>;
 
@@ -341,7 +341,7 @@ private:
     usize _size;
 
     /// @note called by some()
-    constexpr Option(Slice<T> slice) noexcept : _ptr{slice.data()}, _size{slice.size()} {}
+    explicit constexpr Option(Slice<T> slice) noexcept : _ptr{slice.data()}, _size{slice.size()} {}
 
     using This = Option<Slice<T>>;
 
@@ -409,7 +409,7 @@ private:
     FunctionType _function;
 
     /// @brief Private constructor for Some (called by kf::some)
-    template<typename F> Option(F &&function) noexcept : _function{std::forward<F>(function)} {}
+    template<typename F> explicit Option(F &&function) noexcept : _function{std::forward<F>(function)} {}
 
     using This = Option<FunctionType>;
 
