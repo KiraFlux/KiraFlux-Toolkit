@@ -318,8 +318,8 @@ template<typename T> struct Option<T &> final :
     /// @return Reference to stored object
     /// @note Aborts if None
     [[nodiscard]] T &unwrap() noexcept {
-        if (this->isSome()) { return *_ptr; }
-        abort();
+        if (this->isNone()) { abort(); }
+        return *_ptr;
     }
 
     /// @brief Unwrap the stored reference (const lvalue Option)
