@@ -8,7 +8,7 @@
 
 using kf::Option;
 
-using kf::test::Point;
+using kf::test::TrivialType;
 
 template<typename T> struct TestOption {
     inline static T value{};
@@ -134,7 +134,7 @@ int main() {
 
     RUN_OPTION_TESTS(int, 42);
     RUN_OPTION_TESTS(float, 123.456f);
-    RUN_OPTION_TESTS(Point, Point::create());
+    RUN_OPTION_TESTS(TrivialType, TrivialType{12345});
 
     return UNITY_END();
 }
