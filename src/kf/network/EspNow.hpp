@@ -27,11 +27,10 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Singleton.hpp"
+#include "kf/network/MacAddress.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::network {
-
-struct EspNow;
 
 namespace internal {
 
@@ -48,12 +47,23 @@ enum class EspNowError : u8 {
     TooBigMessage,    ///< Message size exceeds ESP_NOW_MAX_DATA_LEN
 };
 
+struct MacAddressed {
+    explicit constexpr MacAddressed(const MacAddress &mac_address) noexcept : _mac_address{mac_address} {}
+
+    /// @brief Get MAC address
+    [[nodiscard]] const MacAddress &mac() const noexcept { return _mac_address; }
+
+protected:
+    MacAddress _mac_address;
+};
+
 }// namespace internal
 
 /// @brief Encapsulates ESP-NOW protocol in safe C++ abstractions
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks
 struct EspNow final :
 
+    internal::MacAddressed,
     kf::mixin::Singleton<EspNow>,
     kf::mixin::Initable<EspNow, Result<void, internal::EspNowError>>,
     kf::mixin::Quitable<EspNow>
@@ -62,34 +72,53 @@ struct EspNow final :
 
     static constexpr usize max_peers{20};
 
-    /// @brief MAC address type (6 bytes)
-    using Mac = memory::Array<u8, ESP_NOW_ETH_ALEN>;
-
     /// @brief Handler type for receiving data from unknown peers
-    using ReceiveFromUnknownCallback = Function<void(const Mac &, Slice<const u8>)>;
+    using ReceiveFromUnknownCallback = Function<void(const MacAddress &, Slice<const u8>)>;
 
     /// @brief ESP-NOW operation error codes
     using Error = internal::EspNowError;
 
     /// @brief ESP-NOW peer representation with communication capabilities
-    struct Peer final : mixin::NonCopyable, io::Writable<Peer, kf::Result<void, Error>>, mixin::Callbacked<Slice<const u8>> {
+    struct Peer final :
+
+        internal::MacAddressed,
+        mixin::NonCopyable,
+        io::Writable<Peer, kf::Result<void, Error>>,
+        mixin::Callbacked<Slice<const u8>>
+
+    {
+
+        struct Config final {
+            wifi_interface_t wifi_interface;
+            u8 channel;
+            bool encrypt;
+
+            [[nodiscard]] static constexpr Config defaults() noexcept {
+                return Config{
+                    .wifi_interface = WIFI_IF_STA,
+                    .channel = 0,
+                    .encrypt = false,
+                };
+            }
+        };
 
         Peer(Peer &&other) noexcept = default;
+
         Peer &operator=(Peer &&other) noexcept = default;
 
         /// @brief Add new peer to ESP-NOW network
         /// @param mac MAC address of peer to add
         /// @return Peer object on success, Error on failure
         /// @note Automatically registers peer with ESP-NOW subsystem
-        [[nodiscard]] static Result<Peer, Error> add(const Mac &mac) noexcept {
-            esp_now_peer_info_t peer = {
-                .channel = 0,
-                .ifidx = WIFI_IF_STA,
-                .encrypt = false,
+        [[nodiscard]] static Result<Peer, Error> create(const MacAddress &mac, Config config = Config::defaults()) noexcept {
+            esp_now_peer_info_t peer_info{
+                .channel = config.channel,
+                .ifidx = config.wifi_interface,
+                .encrypt = config.encrypt,
             };
-            std::copy(mac.begin(), mac.end(), peer.peer_addr);
+            std::copy(mac.begin(), mac.end(), peer_info.peer_addr);
 
-            const auto result = esp_now_add_peer(&peer);
+            const auto result = esp_now_add_peer(&peer_info);
 
             if (ESP_OK == result) {
                 return ok(std::move(Peer{mac}));
@@ -97,9 +126,6 @@ struct EspNow final :
                 return error(translateEspnowError(result));
             }
         }
-
-        /// @brief Get peer MAC address
-        [[nodiscard]] const Mac &mac() const noexcept { return _mac_address; }
 
         /// @brief Remove peer from ESP-NOW network
         /// @return Success or Error
@@ -127,11 +153,9 @@ struct EspNow final :
         }
 
     private:
-        Mac _mac_address;
-
         /// @brief Private constructor
         /// @see Peer::add
-        explicit Peer(const Mac &mac) noexcept : _mac_address{mac} {
+        explicit Peer(const MacAddress &mac) noexcept : internal::MacAddressed{mac} {
             EspNow::instance().putPeer(*this);
         }
 
@@ -171,10 +195,6 @@ struct EspNow final :
         }
     };
 
-    /// @brief Get local device MAC address
-    /// @return Const reference to MAC address
-    [[nodiscard]] const Mac &mac() const noexcept { return _local_mac_address; }
-
     /// @brief Set handler for receiving data from unknown peers
     void onReceiveFromUnknown(Option<ReceiveFromUnknownCallback> optional_callback) noexcept {
         _on_receive_from_unknown = std::move(optional_callback);
@@ -191,7 +211,10 @@ struct EspNow final :
 private:
     memory::Array<Option<const Peer &>, max_peers> _peers{};          /// Registry of peer entries
     Option<ReceiveFromUnknownCallback> _on_receive_from_unknown{none};///< Handler for unknown peers
-    Mac _local_mac_address;                                           ///< Local device MAC address (cached)
+
+    friend struct ::kf::mixin::Singleton<EspNow>;
+
+    constexpr EspNow() noexcept : MacAddressed{{}} {}
 
     /// @brief ESP-NOW receive callback (static wrapper)
     /// @param raw_mac_address Source MAC address
@@ -200,7 +223,7 @@ private:
     static void onReceive(const u8 *raw_mac_address, const u8 *data, int size) noexcept {
         auto &self = EspNow::instance();
 
-        Mac source_mac_address;
+        MacAddress source_mac_address;
         std::copy(raw_mac_address, raw_mac_address + ESP_NOW_ETH_ALEN, source_mac_address.begin());
 
         const Slice<const u8> buffer{data, static_cast<usize>(size)};
@@ -209,18 +232,18 @@ private:
 
         if (peer.isNone()) {
             if (self._on_receive_from_unknown.isSome()) {
-                self._on_receive_from_unknown.value()(source_mac_address, buffer);
+                self._on_receive_from_unknown.unwrap()(source_mac_address, buffer);
             }
         } else {
-            peer.value().invoke(buffer);
+            peer.unwrap().invoke(buffer);
         }
     }
 
     /// @brief Get peer context by MAC address
-    [[nodiscard]] Option<const Peer &> getPeer(const Mac &target_mac_address) noexcept {
+    [[nodiscard]] Option<const Peer &> getPeer(const MacAddress &target_mac_address) noexcept {
         for (auto &peer: _peers) {
-            if (peer.isSome() and peer.value().mac() == target_mac_address) {
-                return someRef(peer.value());
+            if (peer.isSome() and peer.unwrap().mac() == target_mac_address) {
+                return someRef(peer.unwrap());
             }
         }
 
@@ -238,7 +261,7 @@ private:
 
     KF_IMPL_INITABLE(EspNow, Result<void, Error>);
     Result<void, Error> initImpl() noexcept {
-        (void) esp_read_mac(_local_mac_address.data(), ESP_MAC_WIFI_STA);
+        (void) esp_read_mac(_mac_address.data(), ESP_MAC_WIFI_STA);
 
         const auto wifi_ok = WiFiClass::mode(WIFI_MODE_STA);
         if (not wifi_ok) { return error(Error::InternalError); }
@@ -283,7 +306,7 @@ public:
     /// @brief Convert MAC address to human-readable string
     /// @param mac MAC address to convert
     /// @return StaticString with formatted MAC address (XX:XX:XX:XX:XX:XX format)
-    [[nodiscard]] static memory::StaticString<mac_string_size> stringFromMac(const Mac &mac) noexcept {
+    [[nodiscard]] static memory::StaticString<mac_string_size> stringFromMac(const MacAddress &mac) noexcept {
         return memory::StaticString<mac_string_size>::formatted("%02x%02x-%02x%02x-%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     }
 

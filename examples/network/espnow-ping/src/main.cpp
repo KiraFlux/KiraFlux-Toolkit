@@ -3,25 +3,27 @@
 #include <kf/Slice.hpp>
 #include <kf/primitives.hpp>
 
+#include <kf/network/MacAddress.hpp>
 #include <kf/network/EspNow.hpp>
 
 using kf::network::EspNow;
+using kf::network::MacAddress;
 
-constexpr EspNow::Mac broadcast_address{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-constexpr EspNow::Mac target_peer_address{0x01, 0x02, 0x03, 0x04, 0x05, 0x06};// replace with real peer MAC address
+constexpr MacAddress broadcast_address{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+constexpr MacAddress target_peer_address{0x01, 0x02, 0x03, 0x04, 0x05, 0x06};// replace with real peer MAC address
 
 kf::Option<EspNow::Peer> broadcast_peer{kf::none}, target_peer{kf::none};
 
-void onUnknown(const EspNow::Mac &mac, kf::Slice<const kf::u8> data) {
+void onUnknown(const MacAddress &mac, kf::Slice<const kf::u8> data) {
     Serial.printf("(unknown): from [%s] got %d bytes\n", EspNow::stringFromMac(mac).data(), data.size());
 }
 
 void setupBroadcastPeer() {
     EspNow::instance().onReceiveFromUnknown(onUnknown);
 
-    auto result = EspNow::Peer::add(broadcast_address);
+    auto result = EspNow::Peer::create(broadcast_address);
     if (result.isError()) {
-        Serial.printf("Failed to add broadcast peer: %s\n", EspNow::stringFromError(result.error()));
+        Serial.printf("Failed to create broadcast peer: %s\n", EspNow::stringFromError(result.error()));
     }
 
     if (result.isOk()) {
@@ -36,11 +38,11 @@ void onTarget(kf::Slice<const kf::u8> data) {
 void setupTargetPeer() {
     EspNow::instance().onReceiveFromUnknown(onUnknown);
 
-    auto peer_add_result = EspNow::Peer::add(target_peer_address);
+    auto peer_add_result = EspNow::Peer::create(target_peer_address);
     if (peer_add_result.isOk()) {
         peer_add_result.ok().callback(onTarget);
     } else {
-        Serial.printf("Failed to add broadcast peer: %s\n", EspNow::stringFromError(peer_add_result.error()));
+        Serial.printf("Failed to create broadcast peer: %s\n", EspNow::stringFromError(peer_add_result.error()));
     }
 
     if (peer_add_result.isOk()) {
@@ -65,13 +67,13 @@ void setup() {
 void loop() {
     if (broadcast_peer.isSome()) {
         Serial.println("Sending: broadcast");
-        const auto result = broadcast_peer.value().writePacket("[broadcast]: ping");
+        const auto result = broadcast_peer.unwrap().writePacket("[broadcast]: ping");
         if (result.isError()) { Serial.println("[broadcast]: Failed to send"); }
     }
 
     if (target_peer.isSome()) {
         Serial.println("Sending: target");
-        const auto result = target_peer.value().writePacket("ping");
+        const auto result = target_peer.unwrap().writePacket("ping");
         if (result.isError()) { Serial.println("Failed to send"); }
     }
 
