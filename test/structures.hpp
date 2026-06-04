@@ -15,17 +15,21 @@ struct OnlyCopyable {
         destructor_calls{0};
 
     static constexpr bool
-        tracked_contstructor_destructor{true},
+        tracked_constructor_destructor{true},
         tracked_copy{true},
         tracked_move{false};
 
-    int _value;
+    static constexpr bool
+        copyable{true},
+        movable{false};
 
-    explicit OnlyCopyable(int value) noexcept : _value{value} {
+    int value;
+
+    explicit OnlyCopyable(int value) noexcept : value{value} {
         constructor_calls += 1;
     }
 
-    OnlyCopyable(const OnlyCopyable &other) noexcept : _value{other._value} {
+    OnlyCopyable(const OnlyCopyable &other) noexcept : value{other.value} {
         copy_constructor_calls += 1;
     }
 
@@ -35,16 +39,16 @@ struct OnlyCopyable {
         return *this;
     }
 
-    OnlyCopyable(OnlyCopyable &&) noexcept = delete;
+    OnlyCopyable(OnlyCopyable &&) noexcept = default;
 
-    OnlyCopyable &operator=(OnlyCopyable &&) noexcept = delete;
+    OnlyCopyable &operator=(OnlyCopyable &&) noexcept = default;
 
     ~OnlyCopyable() noexcept {
         destructor_calls += 1;
     }
 
     bool operator==(const OnlyCopyable &other) const noexcept {
-        return _value == other._value;
+        return value == other.value;
     }
 
     static void reset() noexcept {
@@ -65,27 +69,31 @@ struct OnlyMovable {
         destructor_calls{0};
 
     static constexpr bool
-        tracked_contstructor_destructor{true},
+        tracked_constructor_destructor{true},
         tracked_copy{false},
         tracked_move{true};
 
-    int _value;
+    static constexpr bool
+        copyable{false},
+        movable{true};
 
-    explicit OnlyMovable(int value) noexcept : _value(value) {
+    int value;
+
+    explicit OnlyMovable(int value) noexcept : value(value) {
         constructor_calls += 1;
     }
 
-    OnlyMovable(OnlyMovable &&other) noexcept : _value(other._value) {
+    OnlyMovable(OnlyMovable &&other) noexcept : value(other.value) {
         move_constructor_calls += 1;
 
-        other._value = 0;
+        other.value = 0;
     }
 
     OnlyMovable &operator=(OnlyMovable &&other) noexcept {
         move_assignment_calls += 1;
 
-        _value = other._value;
-        other._value = 0;
+        value = other.value;
+        other.value = 0;
 
         return *this;
     }
@@ -96,10 +104,6 @@ struct OnlyMovable {
 
     ~OnlyMovable() noexcept {
         destructor_calls += 1;
-    }
-
-    bool operator==(const OnlyMovable &other) const noexcept {
-        return _value == other._value;
     }
 
     static void reset() {
@@ -122,24 +126,28 @@ struct CopyableMovable {
         destructor_calls{0};
 
     static constexpr bool
-        tracked_contstructor_destructor{true},
+        tracked_constructor_destructor{true},
         tracked_copy{true},
         tracked_move{true};
 
-    int _value;
+    static constexpr bool
+        copyable{true},
+        movable{true};
 
-    explicit CopyableMovable(int value) noexcept : _value{value} {
+    int value;
+
+    explicit CopyableMovable(int value) noexcept : value{value} {
         constructor_calls += 1;
     }
 
-    CopyableMovable(const CopyableMovable &other) noexcept : _value{other._value} {
+    CopyableMovable(const CopyableMovable &other) noexcept : value{other.value} {
         copy_constructor_calls += 1;
     }
 
-    CopyableMovable(CopyableMovable &&other) noexcept : _value(other._value) {
+    CopyableMovable(CopyableMovable &&other) noexcept : value(other.value) {
         move_constructor_calls += 1;
 
-        other._value = 0;
+        other.value = 0;
     }
 
     CopyableMovable &operator=(const CopyableMovable &other) noexcept {
@@ -151,18 +159,14 @@ struct CopyableMovable {
     CopyableMovable &operator=(CopyableMovable &&other) noexcept {
         move_assignment_calls += 1;
 
-        _value = other._value;
-        other._value = 0;
+        value = other.value;
+        other.value = 0;
 
         return *this;
     }
 
     ~CopyableMovable() noexcept {
         destructor_calls += 1;
-    }
-
-    bool operator==(const CopyableMovable &other) const noexcept {
-        return _value == other._value;
     }
 
     static void reset() noexcept {
@@ -180,15 +184,17 @@ struct CopyableMovable {
 
 struct TrivialType {
     static constexpr bool
-        tracked_contstructor_destructor{false},
+        tracked_constructor_destructor{false},
         tracked_copy{false},
         tracked_move{false};
 
-    int value;
+    static constexpr bool
+        copyable{true},
+        movable{true};
 
-    bool operator==(const TrivialType &other) const noexcept {
-        return value == other.value;
-    }
+    static void reset() noexcept {}
+
+    int value;
 };
 
 }// namespace kf::test
