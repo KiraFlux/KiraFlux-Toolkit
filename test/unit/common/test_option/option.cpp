@@ -6,135 +6,241 @@
 
 #include "structures.hpp"
 
+#define CHECK_COPY_CONSTRUCTOR_CALLS(__type__, __expected__) \
+    if constexpr (__type__::tracked_copy) { TEST_ASSERT_EQUAL(__expected__, __type__::copy_constructor_calls); }
+
+#define CHECK_COPY_ASSIGNMENT_CALLS(__type__, __expected__) \
+    if constexpr (__type__::tracked_copy) { TEST_ASSERT_EQUAL(__expected__, __type__::copy_assignment_calls); }
+
+#define CHECK_MOVE_CONSTRUCTOR_CALLS(__type__, __expected__) \
+    if constexpr (__type__::tracked_move) { TEST_ASSERT_EQUAL(__expected__, __type__::move_constructor_calls); }
+
+#define CHECK_MOVE_ASSIGNMENT_CALLS(__type__, __expected__) \
+    if constexpr (__type__::tracked_move) { TEST_ASSERT_EQUAL(__expected__, __type__::move_assignment_calls); }
+
+#define CHECK_DESTRUCTOR_CALLS(__type__, __expected__) \
+    if constexpr (__type__::tracked_constructor_destructor) { TEST_ASSERT_EQUAL(__expected__, __type__::destructor_calls); }
+
+#define CHECK_CONSTRUCTOR_CALLS(__type__, __expected__) \
+    if constexpr (__type__::tracked_constructor_destructor) { TEST_ASSERT_EQUAL(__expected__, __type__::constructor_calls); }
+
 using kf::Option;
 
-using kf::test::TrivialType;
-
 template<typename T> struct TestOption {
-    inline static T value{};
-    static constexpr T default_value{};
+    static constexpr int value{12345}, default_value{0};
 
-    static constexpr auto map_result{12345};
-    static constexpr auto mapper{[](const T &) { return map_result; }};
+    static constexpr auto mapper{[](const T &) { return 123.456f; }};
+
+    static constexpr auto void_mapper{[](const T &) -> void {}};
 
     static void some() noexcept {
-        auto option_some = kf::some(value);
-        TEST_ASSERT_TRUE(option_some.isSome());
-        TEST_ASSERT_FALSE(option_some.isNone());
-        TEST_ASSERT_TRUE(value == option_some.unwrap());
-        TEST_ASSERT_TRUE(value == option_some.unwrapOr(default_value));
+        const Option<T> option = kf::some(T{value});
+
+        TEST_ASSERT_FALSE(option.isNone());
+        TEST_ASSERT_TRUE(option.isSome());
+
+        CHECK_CONSTRUCTOR_CALLS(T, 1);     // T{value}
+        CHECK_DESTRUCTOR_CALLS(T, 1);      // temp T
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);//
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0); //
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 1);// move into Option
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0); //
     }
 
     static void none() noexcept {
-        Option<T> option_none = kf::none;
-        TEST_ASSERT_TRUE(option_none.isNone());
-        TEST_ASSERT_FALSE(option_none.isSome());
-        TEST_ASSERT_TRUE(default_value == option_none.unwrapOr(default_value));
-    }
+        const Option<T> option = kf::none;
 
-    static void copy() noexcept {
-        auto original = kf::some(value);
-        auto copy = original;
-        TEST_ASSERT_TRUE(original.isSome());
-        TEST_ASSERT_TRUE(copy.isSome());
-        TEST_ASSERT_TRUE(value == original.unwrap());
-        TEST_ASSERT_TRUE(value == copy.unwrap());
-        TEST_ASSERT_FALSE(&original.unwrap() == &copy.unwrap());
-    }
-
-    static void copy_assignment() noexcept {
-        auto original = kf::some(value);
-        Option<T> copy = kf::none;
-        copy = original;
-        TEST_ASSERT_TRUE(original.isSome());
-        TEST_ASSERT_TRUE(copy.isSome());
-        TEST_ASSERT_TRUE(value == original.unwrap());
-        TEST_ASSERT_TRUE(value == copy.unwrap());
-    }
-
-    static void move() noexcept {
-        auto original = kf::some(value);
-        auto moved = std::move(original);
-        TEST_ASSERT_TRUE(original.isNone());
-        TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_TRUE(value == moved.unwrap());
-    }
-
-    static void move_assignment() noexcept {
-        auto original = kf::some(value);
-        Option<T> moved = kf::none;
-        moved = std::move(original);
-        TEST_ASSERT_TRUE(original.isNone());
-        TEST_ASSERT_TRUE(moved.isSome());
-        TEST_ASSERT_TRUE(value == moved.unwrap());
-    }
-
-    static void const_instance() noexcept {
-        const auto option = kf::some(value);
-        TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_TRUE(value == option.unwrap());
-    }
-
-    static void value_get() noexcept {
-        auto option = kf::some(value);
-        TEST_ASSERT_TRUE(value == option.unwrap());
-    }
-
-    static void value_get_const() noexcept {
-        const auto option = kf::some(value);
-        TEST_ASSERT_TRUE(value == option.unwrap());
-    }
-
-    static void reassign() noexcept {
-        auto option = kf::some(default_value);
-        option = kf::some(value);
-        TEST_ASSERT_TRUE(option.isSome());
-        TEST_ASSERT_TRUE(value == option.unwrap());
-
-        option = kf::none;
         TEST_ASSERT_TRUE(option.isNone());
+        TEST_ASSERT_FALSE(option.isSome());
+
+        CHECK_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_DESTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
+    }
+
+    static void unwrap() noexcept {
+        const Option<T> option = kf::some(T{value});
+
+        TEST_ASSERT_TRUE(value == option.unwrap().value);
+
+        CHECK_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_DESTRUCTOR_CALLS(T, 1);
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
+    }
+
+    static void unwrap_or() noexcept {
+        const Option<T> option = kf::none;
+
+        TEST_ASSERT_TRUE(value == option.unwrapOr(T{value}).value);
+
+        CHECK_CONSTRUCTOR_CALLS(T, 1);     // T{value}
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);// copy
+        CHECK_DESTRUCTOR_CALLS(T, 2);      // temp T
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
     }
 
     static void reset() noexcept {
-        auto option = kf::some(value);
+        Option<T> option = kf::some(T{value});
         option.reset();
+
         TEST_ASSERT_TRUE(option.isNone());
+
+        CHECK_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_DESTRUCTOR_CALLS(T, 2);// temp + Option
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
     }
 
     static void map_some() noexcept {
-        auto mapped_some = kf::some(value).map(mapper);
-        TEST_ASSERT_TRUE(mapped_some.isSome());
-        TEST_ASSERT_TRUE(mapped_some.unwrap() == map_result);
+        const auto option = kf::some(T{value}).map(mapper);
+
+        TEST_ASSERT_TRUE(option.isSome());
+        TEST_ASSERT_TRUE(option.unwrap() == mapper(T{value}));
+
+        CHECK_CONSTRUCTOR_CALLS(T, 2);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_DESTRUCTOR_CALLS(T, 3);
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
+    }
+
+    static void void_map_some() noexcept {
+        const auto option = kf::some(T{value}).map(void_mapper);
+
+        TEST_ASSERT_TRUE(option.isSome());
+
+        CHECK_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_DESTRUCTOR_CALLS(T, 2);
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
     }
 
     static void map_none() noexcept {
-        auto mapped_none = Option<T>(kf::none).map(mapper);
-        TEST_ASSERT_TRUE(mapped_none.isNone());
+        const auto option = Option<T>{kf::none}.map(mapper);
+
+        TEST_ASSERT_TRUE(option.isNone());
+
+        CHECK_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_DESTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
+    }
+
+    static void copy() noexcept {
+        auto original = kf::some(T{value});
+        auto copy = original;
+
+        TEST_ASSERT_TRUE(original.isSome());
+        TEST_ASSERT_TRUE(copy.isSome());
+        TEST_ASSERT_TRUE(value == original.unwrap().value);
+        TEST_ASSERT_TRUE(value == copy.unwrap().value);
+        TEST_ASSERT_FALSE(&original.unwrap().value == &copy.unwrap().value);
+
+        CHECK_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_DESTRUCTOR_CALLS(T, 1);// temp T (original)
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
+    }
+
+    static void copy_assignment() noexcept {
+        auto original = kf::some(T{value});
+        Option<T> copy = kf::none;
+        copy = original;
+
+        TEST_ASSERT_TRUE(original.isSome());
+        TEST_ASSERT_TRUE(copy.isSome());
+        TEST_ASSERT_TRUE(value == original.unwrap().value);
+        TEST_ASSERT_TRUE(value == copy.unwrap().value);
+
+        CHECK_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_DESTRUCTOR_CALLS(T, 1);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
+    }
+
+    static void move() noexcept {
+        auto original = kf::some(T{value});
+        auto moved = std::move(original);
+
+        TEST_ASSERT_TRUE(original.isNone());
+        TEST_ASSERT_TRUE(moved.isSome());
+        TEST_ASSERT_TRUE(value == moved.unwrap().value);
+
+        CHECK_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 2);
+        CHECK_DESTRUCTOR_CALLS(T, 2);
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
+    }
+
+    static void move_assignment() noexcept {
+        auto original = kf::some(T{value});
+        Option<T> moved = kf::none;
+        moved = std::move(original);
+
+        TEST_ASSERT_TRUE(original.isNone());
+        TEST_ASSERT_TRUE(moved.isSome());
+        TEST_ASSERT_TRUE(value == moved.unwrap().value);
+
+        CHECK_CONSTRUCTOR_CALLS(T, 1);
+        CHECK_MOVE_CONSTRUCTOR_CALLS(T, 2);
+        CHECK_DESTRUCTOR_CALLS(T, 2);
+        CHECK_COPY_CONSTRUCTOR_CALLS(T, 0);
+        CHECK_COPY_ASSIGNMENT_CALLS(T, 0);
+        CHECK_MOVE_ASSIGNMENT_CALLS(T, 0);
     }
 };
 
-#define RUN_OPTION_TESTS(__type__, __value__)        \
-    TestOption<__type__>::value = __value__;         \
-    RUN_TEST(TestOption<__type__>::some);            \
-    RUN_TEST(TestOption<__type__>::none);            \
-    RUN_TEST(TestOption<__type__>::copy);            \
-    RUN_TEST(TestOption<__type__>::copy_assignment); \
-    RUN_TEST(TestOption<__type__>::move);            \
-    RUN_TEST(TestOption<__type__>::move_assignment); \
-    RUN_TEST(TestOption<__type__>::const_instance);  \
-    RUN_TEST(TestOption<__type__>::value_get);       \
-    RUN_TEST(TestOption<__type__>::value_get_const); \
-    RUN_TEST(TestOption<__type__>::reassign);        \
-    RUN_TEST(TestOption<__type__>::reset);           \
-    RUN_TEST(TestOption<__type__>::map_some);        \
-    RUN_TEST(TestOption<__type__>::map_none)
+#define RESET_AND_RUN_TEST(__type__, __test__) \
+    __type__::reset();                         \
+    RUN_TEST(TestOption<__type__>::__test__)
+
+#define RESET_AND_RUN_TEST_IF(__condition__, __type__, __test__) \
+    if constexpr (__type__::__condition__) { RESET_AND_RUN_TEST(__type__, __test__); }
+
+#define RUN_OPTION_TESTS(__type__)                              \
+    RESET_AND_RUN_TEST(__type__, some);                         \
+    RESET_AND_RUN_TEST(__type__, none);                         \
+    RESET_AND_RUN_TEST(__type__, unwrap);                       \
+    RESET_AND_RUN_TEST_IF(copyable, __type__, unwrap_or);       \
+    RESET_AND_RUN_TEST(__type__, reset);                        \
+    RESET_AND_RUN_TEST(__type__, map_some);                     \
+    RESET_AND_RUN_TEST(__type__, void_map_some);                \
+    RESET_AND_RUN_TEST(__type__, map_none);                     \
+    RESET_AND_RUN_TEST_IF(copyable, __type__, copy);            \
+    RESET_AND_RUN_TEST_IF(copyable, __type__, copy_assignment); \
+    RESET_AND_RUN_TEST_IF(movable, __type__, move);             \
+    RESET_AND_RUN_TEST_IF(movable, __type__, move_assignment);
 
 int main() {
     UNITY_BEGIN();
 
-    RUN_OPTION_TESTS(int, 42);
-    RUN_OPTION_TESTS(float, 123.456f);
-    RUN_OPTION_TESTS(TrivialType, TrivialType{12345});
+    using namespace kf::test;
+
+    RUN_OPTION_TESTS(TrivialType);
+    RUN_OPTION_TESTS(OnlyMovable);
+    RUN_OPTION_TESTS(OnlyCopyable);
+    RUN_OPTION_TESTS(CopyableMovable);
 
     return UNITY_END();
 }
