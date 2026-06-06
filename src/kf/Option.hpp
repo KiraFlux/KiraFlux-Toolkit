@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include <cmath>
 #include <cstdlib>
+#include <limits>
 #include <new>
 #include <type_traits>
 #include <utility>
@@ -37,13 +39,49 @@ struct SomeCreator final {
         return Option<T &>{ref};
     }
 
-    template<typename T> [[nodiscard]] static constexpr Option<Slice<T>> create(Slice<T> slice) noexcept {
-        return Option<Slice<T>>{slice};
-    }
-
     template<typename T> [[nodiscard]] static constexpr TrivialOption<T> createTrivial(const T &value) noexcept {
         return TrivialOption<T>{value};
     }
+};
+
+template<typename T> struct RealValueOption :
+
+    OptionTag,
+    mixin::Invariant<RealValueOption<T>>,
+    mixin::Resettable<RealValueOption<T>>
+
+{
+    friend struct internal::SomeCreator;
+
+    constexpr RealValueOption(NoneType) noexcept : _value{nan} {}
+
+    constexpr RealValueOption() noexcept : _value{nan} {}
+
+    [[nodiscard]] T &unwrap() noexcept {
+        if (this->isNone()) { abort(); }
+        return _value;
+    }
+
+    [[nodiscard]] const T &unwrap() const noexcept { return const_cast<RealValueOption *>(this)->unwrap(); }
+
+    [[nodiscard]] T unwrapOr(T default_value) const noexcept {
+        return this->isSome() ? _value : default_value;
+    }
+
+private:
+    static constexpr auto nan{std::numeric_limits<T>::quiet_NaN()};
+
+    T _value;
+
+    constexpr RealValueOption(T value) noexcept : _value{value} {}
+
+    using This = RealValueOption<T>;
+
+    KF_IMPL_INVARIANT(This);
+    bool isSomeImpl() const noexcept { return not std::isnan(_value); }
+
+    KF_IMPL_RESETTABLE(This);
+    void resetImpl() noexcept { _value = nan; }
 };
 
 }// namespace internal
@@ -108,14 +146,6 @@ template<typename T> [[nodiscard]] constexpr Option<std::decay_t<T>> some(T &&va
 /// @note The reference must remain valid throughout Option lifetime
 template<typename T> [[nodiscard]] constexpr Option<T &> someRef(T &ref) noexcept {
     return internal::SomeCreator::createRef(ref);
-}
-
-/// @brief Create Option containing a slice
-/// @tparam T Slice element type
-/// @param slice Slice to store (trivially copied)
-/// @return `Option<Slice<T>>`
-template<typename T> [[nodiscard]] constexpr Option<Slice<T>> some(Slice<T> slice) noexcept {
-    return internal::SomeCreator::create(slice);
 }
 
 /// @brief Create TrivialOption containing a value
@@ -364,6 +394,21 @@ private:
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept { _ptr = nullptr; }
+};
+
+template<> struct Option<float> final : internal::RealValueOption<float> {
+    friend struct internal::SomeCreator;
+    using internal::RealValueOption<float>::RealValueOption;
+};
+
+template<> struct Option<double> final : internal::RealValueOption<double> {
+    friend struct internal::SomeCreator;
+    using internal::RealValueOption<double>::RealValueOption;
+};
+
+template<> struct Option<long double> final : internal::RealValueOption<long double> {
+    friend struct internal::SomeCreator;
+    using internal::RealValueOption<long double>::RealValueOption;
 };
 
 /// @brief Optional slice container
