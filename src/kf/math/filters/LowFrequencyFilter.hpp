@@ -11,21 +11,27 @@
 
 namespace kf::math::filters {
 
-// LowFrequencyFilter
-namespace internal::lff {
-struct Config final : mixin::NonCopyable {
+namespace internal {
+
+struct LowFrequencyFilterConfig final {
     f32 factor;///< Smoothing factor (0.0 to 1.0)
 };
-}// namespace internal::lff
+
+}// namespace internal
 
 /// @brief First-order low-pass filter (exponential smoothing).
 /// @tparam T Scalar type (e.g., float, double).
 /// @note Attenuates high-frequency noise. The `factor` determines smoothing:
 ///       factor = 1.0 -> no filtering (output = input)
 ///       factor = 0.0 -> output stays constant (infinite smoothing)
-template<typename T> struct LowFrequencyFilter : Filter<LowFrequencyFilter<T>, T>, mixin::Configurable<internal::lff::Config> {
+template<typename T> struct LowFrequencyFilter :
+
+    Filter<LowFrequencyFilter<T>, T>,
+    mixin::Configurable<internal::LowFrequencyFilterConfig>
+
+{
     using ValueType = T;
-    using Config = internal::lff::Config;
+    using Config = internal::LowFrequencyFilterConfig;
 
     using mixin::Configurable<Config>::Configurable;
 
@@ -33,7 +39,6 @@ private:
     ValueType _filtered{};  ///< Current filtered value
     bool _first_step{false};///< First sample flag for initialization
 
-    // impl
     using This = LowFrequencyFilter<ValueType>;
 
     KF_IMPL(Filter<This, ValueType>);
