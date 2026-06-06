@@ -72,15 +72,15 @@ template<typename T, typename E> struct Result final : internal::ResultErrorCont
     /// @brief Check if result contains a value (success)
     [[nodiscard]] constexpr bool isOk() const noexcept { return _is_ok; }
 
-    /// @brief Get the stored value (undefined behaviour if not ok)
+    /// @brief Get the stored value (abort if is error)
     [[nodiscard]] T &ok() & noexcept {
-        if (isOk()) { return _ok; }
-        abort();
+        if (this->isError()) { abort(); }
+        return _ok;
     }
 
     [[nodiscard]] T ok() && noexcept {
-        if (isOk()) { return std::move(_ok); }
-        abort();
+        if (this->isError()) { abort(); }
+        return std::move(_ok);
     }
 
     /// @brief Get the stored value (const overload)
@@ -93,7 +93,12 @@ template<typename T, typename E> struct Result final : internal::ResultErrorCont
     ///         otherwise the original error.
     template<typename F> [[nodiscard]] auto map(F &&f) const noexcept -> Result<decltype(f(std::declval<T>())), E> {
         if (_is_ok) {
-            return {internal::OkWrapper<decltype(f(std::declval<T>()))>{f(_ok)}};
+            if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
+                f(_ok);
+                return {internal::OkWrapper<void>{}};
+            } else {
+                return {internal::OkWrapper<decltype(f(std::declval<T>()))>{f(_ok)}};
+            }
         } else {
             return {internal::ErrorWrapper<E>{_error}};
         }
