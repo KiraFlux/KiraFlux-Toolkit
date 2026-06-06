@@ -17,14 +17,14 @@
 #include "kf/drivers/sensors/Sensor.hpp"
 
 namespace kf::drivers::sensors {
-namespace internal::nai {// NormalizedAdcInput
-struct Config final : mixin::NonCopyable {
+
+namespace internal {
+
+struct NormalizedAdcInputConfig final {
     using AdcSignedValue = i16;
 
     bool inverted;
-    AdcSignedValue dead_zone;
-    AdcSignedValue range_positive;
-    AdcSignedValue range_negative;
+    AdcSignedValue dead_zone, range_positive, range_negative;
 
     [[nodiscard]] static constexpr AdcSignedValue calcPositiveRange(AdcSignedValue max_analog_value, AdcSignedValue center) noexcept {
         return static_cast<AdcSignedValue>(max_analog_value - center);
@@ -34,15 +34,21 @@ struct Config final : mixin::NonCopyable {
         return center;
     }
 };
-}// namespace internal::nai
+
+}// namespace internal
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
-template<typename I> struct NormalizedAdcInput final : Sensor<NormalizedAdcInput<I>, f32, void>, mixin::Configurable<internal::nai::Config> {
+template<typename I> struct NormalizedAdcInput final :
+
+    Sensor<NormalizedAdcInput<I>, f32, void>,
+    mixin::Configurable<internal::NormalizedAdcInputConfig>
+
+{
     KF_CHECK_IMPL(I, kf::gpio::AdcInputTag);
 
     using AdcPinImpl = I;
     using FilterImpl = math::filters::ExponentialFilter<f32>;
-    using Config = internal::nai::Config;
+    using Config = internal::NormalizedAdcInputConfig;
 
     /// @brief Tuner for a single analog axis.
     /// @note Inherits from SampleCollectingTuner and implements the concrete logic:
@@ -61,20 +67,16 @@ template<typename I> struct NormalizedAdcInput final : Sensor<NormalizedAdcInput
     private:
         NormalizedAdcInput &_normalized_input;
         i64 _sum{};
-        Config::AdcSignedValue _max_sample{};
-        Config::AdcSignedValue _min_sample{};
+        Config::AdcSignedValue _max_sample{}, _min_sample{};
 
-        // impl
-        using This = Tuner;
-
-        KF_IMPL_RESETTABLE(This);
+        KF_IMPL_RESETTABLE(Tuner);
         void resetImpl() noexcept {
             _max_sample = 0;
             _min_sample = AdcPinImpl::maxValue();
             _sum = 0;
         }
 
-        KF_IMPL_POLLABLE(This);
+        KF_IMPL_POLLABLE(Tuner);
         void pollImpl() noexcept {
             const auto sample = Config::AdcSignedValue(_normalized_input.readRaw());
             _max_sample = kf::max(_max_sample, sample);
@@ -103,7 +105,6 @@ private:
     FilterImpl _filter;
     AdcPinImpl _pin;
 
-    // impl
     using This = NormalizedAdcInput<I>;
 
     KF_IMPL_INITABLE(This, void);
