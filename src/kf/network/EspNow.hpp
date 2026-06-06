@@ -10,9 +10,6 @@
 #include <esp_mac.h>
 #include <esp_now.h>
 
-// arduino
-#include <WiFi.h>
-
 // lib
 #include "kf/Function.hpp"
 #include "kf/NoneType.hpp"
@@ -21,12 +18,13 @@
 #include "kf/Slice.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/memory/Array.hpp"
-#include "kf/memory/StaticString.hpp"
+#include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Singleton.hpp"
+#include "kf/mixin/StringRepresentable.hpp"
 #include "kf/network/MacAddress.hpp"
 #include "kf/primitives.hpp"
 
@@ -34,19 +32,52 @@ namespace kf::network {
 
 namespace internal {
 
-enum class EspNowError : u8 {
-    InternalError,    ///< ESP-NOW internal API error
-    UnknownError,     ///< Unknown ESP API error
-    NotInitialized,   ///< ESP-NOW protocol not initialized
-    IncorrectWiFiMode,///< Incorrect WiFi interface mode set
-    PeerListIsFull,   ///< Peer list is at maximum capacity
-    InvalidArg,       ///< Invalid argument passed to API
-    NoMemory,         ///< Insufficient memory for peer addition
-    PeerAlreadyExists,///< Peer already exists in list
-    PeerNotFound,     ///< Peer not found in peer list
-    TooBigMessage,    ///< Message size exceeds ESP_NOW_MAX_DATA_LEN
+struct EspNowError final : mixin::StringRepresentable<EspNowError, memory::StringView> {
+
+    enum Kind : u8 {
+        InternalError,    ///< ESP-NOW internal API error
+        UnknownError,     ///< Unknown ESP API error
+        NotInitialized,   ///< ESP-NOW protocol not initialized
+        IncorrectWiFiMode,///< Incorrect WiFi interface mode set
+        PeerListIsFull,   ///< Peer list is at maximum capacity
+        InvalidArg,       ///< Invalid argument passed to API
+        NoMemory,         ///< Insufficient memory for peer addition
+        PeerAlreadyExists,///< Peer already exists in list
+        PeerNotFound,     ///< Peer not found in peer list
+        TooBigMessage,    ///< Message size exceeds ESP_NOW_MAX_DATA_LEN
+    } kind;
+
+    static constexpr EspNowError create(Kind kind) noexcept {
+        return EspNowError{.kind = kind};
+    }
+
+private:
+    KF_IMPL_STRING_REPRESENTABLE(EspNowError, memory::StringView);
+    memory::StringView toStringImpl() const noexcept {
+
+#define CASE_RETURN(__v) \
+    case __v: return #__v
+
+        switch (kind) {
+            CASE_RETURN(EspNowError::NotInitialized);
+            CASE_RETURN(EspNowError::InternalError);
+            CASE_RETURN(EspNowError::TooBigMessage);
+            CASE_RETURN(EspNowError::InvalidArg);
+            CASE_RETURN(EspNowError::NoMemory);
+            CASE_RETURN(EspNowError::PeerNotFound);
+            CASE_RETURN(EspNowError::IncorrectWiFiMode);
+            CASE_RETURN(EspNowError::PeerListIsFull);
+            CASE_RETURN(EspNowError::PeerAlreadyExists);
+            default:
+                CASE_RETURN(EspNowError::UnknownError);
+        }
+
+#undef CASE_RETURN
+    }
 };
 
+/// @brief Base class for objects that own a MAC address
+/// @note Provides read‑only access to the address
 struct MacAddressed {
     explicit constexpr MacAddressed(const MacAddress &mac_address) noexcept : _mac_address{mac_address} {}
 
@@ -69,16 +100,20 @@ struct EspNow final :
     kf::mixin::Quitable<EspNow>
 
 {
-
+    /// @brief Maximum number of peers that can be stored in the registry
     static constexpr usize max_peers{20};
-
-    /// @brief Handler type for receiving data from unknown peers
-    using ReceiveFromUnknownCallback = Function<void(const MacAddress &, Slice<const u8>)>;
 
     /// @brief ESP-NOW operation error codes
     using Error = internal::EspNowError;
 
-    /// @brief ESP-NOW peer representation with communication capabilities
+    /// @brief Handler type for receiving data from unknown peers
+    /// @param mac Source MAC address
+    /// @param data Received payload
+    using ReceiveFromUnknownCallback = Function<void(const MacAddress &, Slice<const u8>)>;
+
+    /// @brief ESP‑NOW peer representation with communication capabilities
+    /// @note Manages a single peer: registration, sending, and receive callback
+    /// @note Move‑only, non‑copyable
     struct Peer final :
 
         internal::MacAddressed,
@@ -88,33 +123,50 @@ struct EspNow final :
 
     {
 
+        /// @brief Default configuration (station interface)
         struct Config final {
-            wifi_interface_t wifi_interface;
-            u8 channel;
-            bool encrypt;
+            wifi_interface_t wifi_interface;///< WiFi interface (STA or AP)
 
             [[nodiscard]] static constexpr Config defaults() noexcept {
                 return Config{
                     .wifi_interface = WIFI_IF_STA,
-                    .channel = 0,
-                    .encrypt = false,
                 };
             }
         };
 
-        Peer(Peer &&other) noexcept = default;
+        /// @brief Move constructor
+        /// @param other Source peer (becomes inactive)
+        Peer(Peer &&other) noexcept : internal::MacAddressed{std::move(other)}, _owns{other._owns} {
+            other._owns = false;
+        }
 
-        Peer &operator=(Peer &&other) noexcept = default;
+        /// @brief Move assignment
+        /// @param other Source peer (becomes inactive)
+        /// @return Reference to this
+        Peer &operator=(Peer &&other) noexcept {
+            if (this != &other) {
+                if (_owns) {
+                    (void) del();
+                }
 
-        /// @brief Add new peer to ESP-NOW network
-        /// @param mac MAC address of peer to add
+                static_cast<internal::MacAddressed &>(*this) = std::move(other);
+                _owns = other._owns;
+                other._owns = false;
+            }
+
+            return *this;
+        }
+
+        /// @brief Add a new peer to ESP‑NOW network
+        /// @param mac MAC address of the peer
+        /// @param config Configuration parameters (optional)
         /// @return Peer object on success, Error on failure
-        /// @note Automatically registers peer with ESP-NOW subsystem
+        /// @note Automatically registers the peer with the ESP‑NOW subsystem
         [[nodiscard]] static Result<Peer, Error> create(const MacAddress &mac, Config config = Config::defaults()) noexcept {
             esp_now_peer_info_t peer_info{
-                .channel = config.channel,
+                .channel = 0,
                 .ifidx = config.wifi_interface,
-                .encrypt = config.encrypt,
+                .encrypt = false,
             };
             std::copy(mac.begin(), mac.end(), peer_info.peer_addr);
 
@@ -123,7 +175,7 @@ struct EspNow final :
             if (ESP_OK == result) {
                 return ok(std::move(Peer{mac}));
             } else {
-                return error(translateEspnowError(result));
+                return error(translateEspError(result));
             }
         }
 
@@ -131,14 +183,14 @@ struct EspNow final :
         /// @return Success or Error
         /// @note Also removes any associated receive handler
         [[nodiscard]] Result<void, Error> del() noexcept {
-            EspNow::instance().getPeer(_mac_address).reset();
-
             const auto result = esp_now_del_peer(_mac_address.data());
+
+            EspNow::instance().getPeer(_mac_address).reset();
 
             if (ESP_OK == result) {
                 return ok();
             } else {
-                return error(translateEspnowError(result));
+                return error(translateEspError(result));
             }
         }
 
@@ -148,33 +200,41 @@ struct EspNow final :
             return esp_now_is_peer_exist(_mac_address.data());
         }
 
+        /// @brief Destructor - automatically removes the peer if owned
         ~Peer() noexcept {
-            (void) del();
+            if (_owns) {
+                (void) del();
+            }
         }
 
     private:
-        /// @brief Private constructor
-        /// @see Peer::add
-        explicit Peer(const MacAddress &mac) noexcept : internal::MacAddressed{mac} {
+        bool _owns;
+
+        /// @brief Private constructor – creates a peer owned by this object
+        /// @param mac MAC address
+        /// @note Called only by Peer::create
+        explicit Peer(const MacAddress &mac) noexcept : internal::MacAddressed{mac}, _owns{true} {
             EspNow::instance().putPeer(*this);
         }
 
         /// @brief Internal send implementation
-        /// @return Success or translated ESP-NOW error
+        /// @param data Pointer to data buffer
+        /// @param len Length in bytes
+        /// @return Success or translated ESP‑NOW error
         [[nodiscard]] Result<void, Error> processSend(const void *data, usize len) noexcept {
             const auto result = esp_now_send(_mac_address.data(), static_cast<const u8 *>(data), len);
 
             if (ESP_OK == result) {
                 return ok();
             } else {
-                return error(translateEspnowError(result));
+                return error(translateEspError(result));
             }
         }
 
         KF_IMPL_WRITABLE(Peer, Result<void, Error>);
 
         [[nodiscard]] Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept {
-            if (buffer.size() > ESP_NOW_MAX_DATA_LEN) { return error(Error::TooBigMessage); }
+            if (buffer.size() > ESP_NOW_MAX_DATA_LEN) { return error(Error::create(Error::TooBigMessage)); }
             return processSend(buffer.data(), buffer.size());
         }
 
@@ -195,15 +255,20 @@ struct EspNow final :
         }
     };
 
-    /// @brief Set handler for receiving data from unknown peers
+    /// @brief Set handler for receiving data from unknown peers (via Option)
+    /// @param optional_callback Handler or none
     void onReceiveFromUnknown(Option<ReceiveFromUnknownCallback> optional_callback) noexcept {
         _on_receive_from_unknown = std::move(optional_callback);
     }
 
+    /// @brief Set handler for receiving data from unknown peers
+    /// @param callback Function to call on receipt
     void onReceiveFromUnknown(ReceiveFromUnknownCallback callback) noexcept {
         _on_receive_from_unknown = some(std::move(callback));
     }
 
+    /// @brief Clear handler for receiving data from unknown peers
+    /// @param none Tag value kf::none
     void onReceiveFromUnknown(NoneType) noexcept {
         _on_receive_from_unknown.reset();
     }
@@ -214,10 +279,11 @@ private:
 
     friend struct ::kf::mixin::Singleton<EspNow>;
 
+    /// @brief Private constructor (singleton)
     constexpr EspNow() noexcept : MacAddressed{{}} {}
 
-    /// @brief ESP-NOW receive callback (static wrapper)
-    /// @param raw_mac_address Source MAC address
+    /// @brief ESP‑NOW receive callback (static wrapper)
+    /// @param raw_mac_address Source MAC address (6 bytes)
     /// @param data Received data buffer
     /// @param size Size of received data
     static void onReceive(const u8 *raw_mac_address, const u8 *data, int size) noexcept {
@@ -240,6 +306,8 @@ private:
     }
 
     /// @brief Get peer context by MAC address
+    /// @param target_mac_address MAC to search for
+    /// @return Option containing const reference to peer, or none if not found
     [[nodiscard]] Option<const Peer &> getPeer(const MacAddress &target_mac_address) noexcept {
         for (auto &peer: _peers) {
             if (peer.isSome() and peer.unwrap().mac() == target_mac_address) {
@@ -250,6 +318,8 @@ private:
         return none;
     };
 
+    /// @brief Store a peer reference in the registry
+    /// @param peer_to_add Reference to peer (must outlive registry)
     void putPeer(const Peer &peer_to_add) noexcept {
         for (auto &peer: _peers) {
             if (peer.isNone()) {
@@ -259,18 +329,32 @@ private:
         }
     };
 
+    /// @brief Translate ESP error code to Error enum
+    /// @param result ESP error code
+    /// @return Corresponding Error enum value
+    [[nodiscard]] static Error translateEspError(esp_err_t result) noexcept {
+        switch (result) {
+            case ESP_ERR_ESPNOW_INTERNAL: return Error::create(Error::InternalError);
+            case ESP_ERR_ESPNOW_NOT_INIT: return Error::create(Error::NotInitialized);
+            case ESP_ERR_ESPNOW_ARG: return Error::create(Error::InvalidArg);
+            case ESP_ERR_ESPNOW_NO_MEM: return Error::create(Error::NoMemory);
+            case ESP_ERR_ESPNOW_NOT_FOUND: return Error::create(Error::PeerNotFound);
+            case ESP_ERR_ESPNOW_IF: return Error::create(Error::IncorrectWiFiMode);
+            case ESP_ERR_ESPNOW_FULL: return Error::create(Error::PeerListIsFull);
+            case ESP_ERR_ESPNOW_EXIST: return Error::create(Error::PeerAlreadyExists);
+            default: return Error::create(Error::UnknownError);
+        }
+    }
+
     KF_IMPL_INITABLE(EspNow, Result<void, Error>);
     Result<void, Error> initImpl() noexcept {
         (void) esp_read_mac(_mac_address.data(), ESP_MAC_WIFI_STA);
 
-        const auto wifi_ok = WiFiClass::mode(WIFI_MODE_STA);
-        if (not wifi_ok) { return error(Error::InternalError); }
-
         const auto init_result = esp_now_init();
-        if (ESP_OK != init_result) { return error(translateEspnowError(init_result)); }
+        if (ESP_OK != init_result) { return error(translateEspError(init_result)); }
 
         const auto handler_result = esp_now_register_recv_cb(onReceive);
-        if (ESP_OK != handler_result) { return error(translateEspnowError(handler_result)); }
+        if (ESP_OK != handler_result) { return error(translateEspError(handler_result)); }
 
         return ok();
     }
@@ -280,59 +364,6 @@ private:
         (void) esp_now_unregister_recv_cb();
         (void) esp_now_deinit();
     }
-
-    // stringFrom...
-
-    /// @brief Translate ESP error code to Error enum
-    /// @param result ESP error code
-    /// @return Corresponding Error enum value
-    [[nodiscard]] static Error translateEspnowError(esp_err_t result) noexcept {
-        switch (result) {
-            case ESP_ERR_ESPNOW_INTERNAL: return Error::InternalError;
-            case ESP_ERR_ESPNOW_NOT_INIT: return Error::NotInitialized;
-            case ESP_ERR_ESPNOW_ARG: return Error::InvalidArg;
-            case ESP_ERR_ESPNOW_NO_MEM: return Error::NoMemory;
-            case ESP_ERR_ESPNOW_NOT_FOUND: return Error::PeerNotFound;
-            case ESP_ERR_ESPNOW_IF: return Error::IncorrectWiFiMode;
-            case ESP_ERR_ESPNOW_FULL: return Error::PeerListIsFull;
-            case ESP_ERR_ESPNOW_EXIST: return Error::PeerAlreadyExists;
-            default: return Error::UnknownError;
-        }
-    }
-
-    static constexpr auto mac_string_size = sizeof("0000-0000-0000");///< Size for MAC string representation
-
-public:
-    /// @brief Convert MAC address to human-readable string
-    /// @param mac MAC address to convert
-    /// @return StaticString with formatted MAC address (XX:XX:XX:XX:XX:XX format)
-    [[nodiscard]] static memory::StaticString<mac_string_size> stringFromMac(const MacAddress &mac) noexcept {
-        return memory::StaticString<mac_string_size>::formatted("%02x%02x-%02x%02x-%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    }
-
-#define return_case(__v) \
-    case __v: return #__v
-
-    /// @brief Convert Error enum to string representation
-    /// @param error Error code to convert
-    /// @return String representation of error
-    [[nodiscard]] static const char *stringFromError(kf::network::EspNow::Error error) noexcept {
-        switch (error) {
-            return_case(kf::network::EspNow::Error::NotInitialized);
-            return_case(kf::network::EspNow::Error::InternalError);
-            return_case(kf::network::EspNow::Error::TooBigMessage);
-            return_case(kf::network::EspNow::Error::InvalidArg);
-            return_case(kf::network::EspNow::Error::NoMemory);
-            return_case(kf::network::EspNow::Error::PeerNotFound);
-            return_case(kf::network::EspNow::Error::IncorrectWiFiMode);
-            return_case(kf::network::EspNow::Error::PeerListIsFull);
-            return_case(kf::network::EspNow::Error::PeerAlreadyExists);
-            default:
-                return_case(kf::network::EspNow::Error::UnknownError);
-        }
-    }
-
-#undef return_case
 };
 
 }// namespace kf::network
