@@ -3,21 +3,22 @@
 
 #pragma once
 
-#include "kf/memory/StaticString.hpp"
-#include "kf/primitives.hpp"
-
 namespace kf::mixin {
 
 struct StringRepresentableTag {};
 
-template<typename Impl, kf::usize> struct StringRepresentable : StringRepresentableTag {
-    static constexpr auto repr_string_capacity{N};
+/// @brief CRTP mixin that adds a `toString()` method
+/// @tparam Impl       Implementation class (must implement `StringType toStringImpl() const noexcept`)
+/// @tparam StringType Return type of `toString()`
+template<typename Impl, typename StringType> struct StringRepresentable : StringRepresentableTag {
 
-    [[nodiscard]] memory::StaticString<N> toString() const noexcept {
+    /// @brief Get string representation of the object
+    /// @return String of type `StringType`
+    [[nodiscard]] StringType toString() const noexcept {
         return static_cast<const Impl *>(this)->toStringImpl();
     }
 };
 
 }// namespace kf::mixin
 
-#define KF_IMPL_STRING_REPRESENTABLE(__impl__, n) friend struct ::kf::mixin::StringRepresentable<__impl__, n>
+#define KF_IMPL_STRING_REPRESENTABLE(__impl__, ...) friend struct ::kf::mixin::StringRepresentable<__impl__, __VA_ARGS__>
