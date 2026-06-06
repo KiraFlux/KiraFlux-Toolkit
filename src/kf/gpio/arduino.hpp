@@ -34,18 +34,15 @@ private:
         }
     }
 
-    // impl
-    using This = DigitalInput;
-
-    KF_IMPL_INITABLE(This, void);
+    KF_IMPL_INITABLE(DigitalInput, void);
     void initImpl() noexcept {
         const bool inverted_reading = ((_state & pull_up_bit) == 0);
         pinMode(_pin, matchMode(inverted_reading));
         _state = static_cast<u8>(inverted_reading);
     }
 
-    KF_IMPL(kf::gpio::Input<This, bool, void>);
-    [[nodiscard]] bool readImpl() const noexcept {
+    KF_IMPL(kf::gpio::Input<DigitalInput, bool, void>);
+    bool readImpl() const noexcept {
         const auto level = static_cast<bool>(digitalRead(_pin));
 
         // if inverted
@@ -66,25 +63,21 @@ struct AdcInput : gpio::AdcInput<AdcInput, void> {
     explicit AdcInput(gpio_num_t pin) noexcept : _pin{static_cast<u8>(pin)} {}
 
 private:
-    static u8 resolution_bits;
+    inline static u8 resolution_bits{12};// Arduino default resolution on ESP32 is 12-bits
 
     const u8 _pin;
 
-    // impl
-
-    using This = AdcInput;
-
-    KF_IMPL_INITABLE(This, void);
+    KF_IMPL_INITABLE(AdcInput, void);
     void initImpl() noexcept {
         pinMode(_pin, INPUT);
     }
 
-    KF_IMPL(kf::gpio::Input<This, u16, void>);
+    KF_IMPL(kf::gpio::Input<AdcInput, u16, void>);
     [[nodiscard]] u16 readImpl() const noexcept {
         return analogRead(_pin);
     }
 
-    KF_IMPL(kf::gpio::AdcInput<This, void>);
+    KF_IMPL(kf::gpio::AdcInput<AdcInput, void>);
     static void setResolutionImpl(u8 new_resolution_bits) noexcept {
         if (resolution_bits != new_resolution_bits) {
             resolution_bits = new_resolution_bits;
@@ -94,8 +87,6 @@ private:
 
     static u8 getResolutionImpl() noexcept { return resolution_bits; }
 };
-
-u8 AdcInput::resolution_bits{12};// Arduino default resolution on ESP32 is 12-bits
 
 /// @brief Arduino digital output.
 struct DigitalOutput : gpio::DigitalOutput<DigitalOutput, void> {
@@ -108,10 +99,7 @@ struct DigitalOutput : gpio::DigitalOutput<DigitalOutput, void> {
 private:
     const u8 _pin;
 
-    // impl
-    using This = DigitalOutput;
-
-    KF_IMPL_INITABLE(This, void);
+    KF_IMPL_INITABLE(DigitalOutput, void);
     void initImpl() noexcept {
         pinMode(_pin, OUTPUT);
     }
@@ -122,37 +110,34 @@ private:
     }
 };
 
-// PwmOutput
-namespace internal::pwm {
-struct Config final : mixin::NonCopyable {
+namespace internal {
+
+struct PwmOutputConfig final {
     u32 frequency_hz;  ///< PWM frequency (Hz)
     u8 resolution_bits;///< resolution in bits (1..16)
     u8 pin;            ///< GPIO pin number
     u8 channel;        ///< LEDC channel (0..15)
 
-    /// Maximum PWM value for given resolution (2^bits - 1).
-    constexpr u16 maxDuty() const noexcept {
+    /// @brief Maximum PWM value for given resolution (2^bits - 1).
+    [[nodiscard]] constexpr u16 maxDuty() const noexcept {
         return static_cast<u16>((1u << (resolution_bits)) - 1u);
     }
 };
-}// namespace internal::pwm
+
+}// namespace internal
 
 /// @brief Arduino PWM output using ESP32 LEDC hardware.
 /// @note One LEDC channel can drive multiple pins (same frequency/resolution).
-struct PwmOutput : gpio::PwmOutput<PwmOutput, bool>, mixin::Configurable<internal::pwm::Config> {
+struct PwmOutput : gpio::PwmOutput<PwmOutput, bool>, mixin::Configurable<internal::PwmOutputConfig> {
 
     /// @brief Configuration for an ESP32 LEDC PWM channel.
-    using Config = internal::pwm::Config;
+    using Config = internal::PwmOutputConfig;
 
     using mixin::Configurable<Config>::Configurable;
 
 private:
-    // impl
-
-    using This = PwmOutput;
-
-    KF_IMPL_INITABLE(This, bool);
-    [[nodiscard]] bool initImpl() noexcept {
+    KF_IMPL_INITABLE(PwmOutput, bool);
+    bool initImpl() noexcept {
         if (ledcSetup(this->config().channel, this->config().frequency_hz, this->config().resolution_bits) == 0) {
             return false;
         }
