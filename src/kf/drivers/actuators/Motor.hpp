@@ -20,7 +20,7 @@ struct MotorConfig final : mixin::NonCopyable {
     /// @brief PWM value type for control
     using DutyType = u16;
 
-    constexpr static auto normalized_dead_zone{1e-2f};
+    static constexpr auto normalized_dead_zone{1e-2f};
 
     /// @brief Positive rotation direction definition
     enum class Direction : u8 {

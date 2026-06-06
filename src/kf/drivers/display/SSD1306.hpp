@@ -79,7 +79,7 @@ template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, internal::
         return sendCommand(invert ? InvertDisplay : NormalDisplay);
     }
 
-    [[nodiscard]] constexpr static bool supportOrientation(Orientation orientation) noexcept {
+    [[nodiscard]] static constexpr bool supportOrientation(Orientation orientation) noexcept {
         return orientation == Orientation::Normal or orientation == Orientation::MirrorX or orientation == Orientation::MirrorY;
     }
 

@@ -13,8 +13,8 @@ private:
     explicit constexpr TestConfig(bool a) noexcept : ok_is_true{a} {}
 
 public:
-    constexpr static TestConfig good() noexcept { return TestConfig{true}; }
-    constexpr static TestConfig bad() noexcept { return TestConfig{false}; }
+    static constexpr TestConfig good() noexcept { return TestConfig{true}; }
+    static constexpr TestConfig bad() noexcept { return TestConfig{false}; }
 
     void checkImpl(Validator &v) const noexcept {
         KF_VALIDATOR_CHECK(v, logger, ok_is_true);

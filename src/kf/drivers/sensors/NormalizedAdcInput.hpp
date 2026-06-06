@@ -26,11 +26,11 @@ struct Config final : mixin::NonCopyable {
     AdcSignedValue range_positive;
     AdcSignedValue range_negative;
 
-    [[nodiscard]] constexpr static AdcSignedValue calcPositiveRange(AdcSignedValue max_analog_value, AdcSignedValue center) noexcept {
+    [[nodiscard]] static constexpr AdcSignedValue calcPositiveRange(AdcSignedValue max_analog_value, AdcSignedValue center) noexcept {
         return static_cast<AdcSignedValue>(max_analog_value - center);
     }
 
-    [[nodiscard]] constexpr static AdcSignedValue calcNegativeRange(AdcSignedValue center) noexcept {
+    [[nodiscard]] static constexpr AdcSignedValue calcNegativeRange(AdcSignedValue center) noexcept {
         return center;
     }
 };

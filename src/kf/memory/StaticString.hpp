@@ -43,7 +43,7 @@ public:
         assign(StringView(str, min(M - 1, N)));
     }
 
-    template<usize M, typename... Args> [[nodiscard]] constexpr static StaticString formatted(const char (&fmt)[M], Args... args) noexcept {
+    template<usize M, typename... Args> [[nodiscard]] static constexpr StaticString formatted(const char (&fmt)[M], Args... args) noexcept {
         static_assert(M > 0, "String literal must not be empty");
         StaticString ret{};
         (void) ret.format(fmt, args...);
