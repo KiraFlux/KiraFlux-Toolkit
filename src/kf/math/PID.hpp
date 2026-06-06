@@ -14,34 +14,36 @@
 #include "kf/primitives.hpp"
 
 namespace kf::math {
-namespace internal::pid {
 
-using FilterImpl = filters::LowFrequencyFilter<f32>;
+namespace internal {
 
-struct Config final : mixin::NonCopyable {
+using PidFilterImpl = filters::LowFrequencyFilter<f32>;
+
+struct PidConfig final {
     f32 p;           ///< Proportional gain coefficient
     f32 i;           ///< Integral gain coefficient
     f32 d;           ///< Derivative gain coefficient
     f32 i_limit;     ///< Integral term saturation limit
     f32 output_limit;///< Controller output saturation limit
+    f32 max_dt;      ///< Max valid dt
 
-    typename FilterImpl::Config dx_filter;///< Derivative filter config
+    typename PidFilterImpl::Config dx_filter;///< Derivative filter config
 
-    constexpr f32 calc(f32 x, f32 ix, f32 dx) const noexcept {
+    [[nodiscard]] constexpr f32 calc(f32 x, f32 ix, f32 dx) const noexcept {
         return kf::clamp(p * x + i * ix + d * dx, -output_limit, output_limit);
     }
 };
 
-}// namespace internal::pid
+}// namespace internal
 
 /// @brief PID controller implementation
 /// @note Includes derivative filtering and integral anti-windup
-struct PID final : mixin::Configurable<internal::pid::Config>, mixin::NonCopyable, mixin::Resettable<PID> {
+struct PID final : mixin::Configurable<internal::PidConfig>, mixin::NonCopyable, mixin::Resettable<PID> {
 
-    using FilterImpl = internal::pid::FilterImpl;
+    using FilterImpl = internal::PidFilterImpl;
 
     /// @brief PID controller tuning parameters
-    using Config = internal::pid::Config;
+    using Config = internal::PidConfig;
 
     /// @brief Construct PID controller instance
     /// @param PID tuning parameters
@@ -53,11 +55,9 @@ struct PID final : mixin::Configurable<internal::pid::Config>, mixin::NonCopyabl
     /// @param error Current control error (setpoint - measurement)
     /// @param dt Time step in seconds since last calculation
     /// @return Controller output (saturated to output_limit)
-    /// @note Skips calculation for invalid dt values (≤0 or >0.1s)
+    /// @note Skips calculation for invalid dt values (<= 0 or >0.1s)
     [[nodiscard]] f32 calc(f32 error, f32 dt) noexcept {
-        constexpr auto max_dt = 0.1f;
-
-        if (dt <= 0.0f or dt > max_dt) {
+        if (dt <= 0.0f or dt > this->config().max_dt) {
             return 0.0f;
         }
 
@@ -84,10 +84,7 @@ private:
     f32 _ix{0};           ///< Current integral value
     f32 _last_error{nan}; ///< Previous error value
 
-    // impl
-    using This = PID;
-
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(PID);
     void resetImpl() noexcept {
         _dx = 0.0f;
         _ix = 0.0f;
