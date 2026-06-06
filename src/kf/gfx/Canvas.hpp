@@ -111,7 +111,7 @@ template<typename P> struct Canvas {
     // Properties: Font
 
     /// @brief Get current text font
-    [[nodiscard]] const Font &font() const noexcept { return _state.active_font.valueOr(Font::blank()); }
+    [[nodiscard]] const Font &font() const noexcept { return _state.active_font.unwrapOr(Font::blank()); }
 
     /// @brief Set current text font
     void font(const Font &new_font) noexcept { _state.active_font = someRef(new_font); }
