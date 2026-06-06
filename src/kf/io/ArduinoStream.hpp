@@ -34,7 +34,7 @@ struct ArduinoStream final :
 {
     using Error = internal::ArduinoStreamError;
 
-    constexpr explicit ArduinoStream(Stream &stream) noexcept : _stream{stream} {}
+    explicit constexpr ArduinoStream(Stream &stream) noexcept : _stream{stream} {}
 
 private:
     Stream &_stream;

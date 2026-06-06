@@ -10,7 +10,7 @@ struct TestConfig : kf::Validatable<TestConfig> {
     bool ok_is_true;
 
 private:
-    constexpr explicit TestConfig(bool a) noexcept : ok_is_true{a} {}
+    explicit constexpr TestConfig(bool a) noexcept : ok_is_true{a} {}
 
 public:
     constexpr static TestConfig good() noexcept { return TestConfig{true}; }

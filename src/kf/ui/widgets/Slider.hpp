@@ -38,7 +38,7 @@ struct Slider final : SliderTag,
 
     using Config = internal::SliderConfig<T>;
 
-    constexpr explicit Slider(const Config &config) noexcept :
+    explicit constexpr Slider(const Config &config) noexcept :
         mixin::ValueCallbacked<T>{config.value_range.clamped(config.default_value)},
         mixin::Configurable<Config>{config}, _show_value{config.init_show_value} {}
 

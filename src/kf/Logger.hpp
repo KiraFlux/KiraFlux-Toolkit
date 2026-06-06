@@ -18,7 +18,7 @@ struct Logger final : mixin::NonCopyable {
 private:
     const memory::StringView _key;
 
-    constexpr explicit Logger(memory::StringView key) noexcept :
+    explicit constexpr Logger(memory::StringView key) noexcept :
         _key{key} {}
 
 public:

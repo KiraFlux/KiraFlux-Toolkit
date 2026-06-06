@@ -10,7 +10,7 @@ template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
     using Wrapped = PlainTextRender<N>;
     using Config = typename Wrapped::Config;
 
-    constexpr explicit ColoredTextRender(const Config &config) noexcept : _wrapped{config} {}
+    explicit constexpr ColoredTextRender(const Config &config) noexcept : _wrapped{config} {}
 
 private:
     Wrapped _wrapped{};

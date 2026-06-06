@@ -37,7 +37,7 @@ template<usize N> struct Event : EventTag {
         WidgetValueChange = static_cast<Storage>(Storage{3} << value_bits),
     };
 
-    constexpr explicit Event(Kind kind, Value value = 0) noexcept :
+    explicit constexpr Event(Kind kind, Value value = 0) noexcept :
         _storage{static_cast<Storage>((static_cast<Storage>(kind) & type_mask) | static_cast<Storage>((clamp(value, value_min, value_max)) & value_mask))} {}
 
     [[nodiscard]] constexpr Kind kind() const noexcept {

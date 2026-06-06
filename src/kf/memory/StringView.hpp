@@ -38,7 +38,7 @@ struct StringView {
 
     /// @brief Construct from Slice<const char>
     /// @param slice Slice containing string data
-    constexpr explicit StringView(Slice<const char> slice) noexcept :
+    explicit constexpr StringView(Slice<const char> slice) noexcept :
         _data{slice.data()}, _size{slice.size()} {}
 
     /// @brief Get pointer to string data

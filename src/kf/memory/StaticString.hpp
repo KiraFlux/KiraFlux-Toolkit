@@ -51,7 +51,7 @@ public:
     }
 
     /// @brief Construct from StringView
-    constexpr explicit StaticString(StringView view) noexcept {
+    explicit constexpr StaticString(StringView view) noexcept {
         assign(view);
     }
 
@@ -446,7 +446,7 @@ public:
     }
 
     /// @brief Implicit conversion to const char*
-    [[nodiscard]] constexpr explicit operator const char *() const noexcept {
+    [[nodiscard]] explicit constexpr operator const char *() const noexcept {
         return data();
     }
 

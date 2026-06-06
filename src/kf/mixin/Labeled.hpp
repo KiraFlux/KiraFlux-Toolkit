@@ -12,7 +12,7 @@ struct LabeledTag {};
 /// @brief Adds Label
 struct Labeled : LabeledTag {
 
-    constexpr explicit Labeled(memory::StringView label) noexcept :
+    explicit constexpr Labeled(memory::StringView label) noexcept :
         _label{label} {}
 
     [[nodiscard]] constexpr memory::StringView label() const noexcept {

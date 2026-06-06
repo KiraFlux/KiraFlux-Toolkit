@@ -13,7 +13,7 @@ struct LabeledTag {};
 
 /// @brief Widget wrapper adding label to another widget
 template<typename U> struct Labeled final : LabeledTag, Widget<U>, mixin::Labeled {
-    constexpr explicit Labeled(memory::StringView label, Widget<U> &wrapped) noexcept :
+    explicit constexpr Labeled(memory::StringView label, Widget<U> &wrapped) noexcept :
         mixin::Labeled{label}, _wrapped{wrapped} {}
 
     /// @brief Forward click event to wrapped widget

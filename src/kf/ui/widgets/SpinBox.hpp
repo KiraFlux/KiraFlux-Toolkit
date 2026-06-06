@@ -32,7 +32,7 @@ struct SpinBox final : SpinBoxTag, Widget<U>, mixin::ValueCallbacked<T>, mixin::
     KF_CHECK_IMPL(AdjusterImpl, ::kf::ui::internal::AdjusterTag);
     using Config = internal::SpinBoxConfig<T>;
 
-    constexpr explicit SpinBox(const Config &config, T default_value = T{}) noexcept :
+    explicit constexpr SpinBox(const Config &config, T default_value = T{}) noexcept :
         mixin::ValueCallbacked<T>{default_value}, mixin::Configurable<Config>{config}, _step(config.default_step) {}
 
     /// @brief Toggle between value adjustment and step adjustment modes
