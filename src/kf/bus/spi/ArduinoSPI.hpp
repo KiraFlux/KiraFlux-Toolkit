@@ -12,15 +12,16 @@
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/mixin/Configurable.hpp"
-#include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/bus/spi/SPI.hpp"
 
-namespace kf::bus::spi {
-namespace internal::arduino {
+namespace kf::internal {
 
-struct NodeConfig final : mixin::NonCopyable {
+/// Dummy. Arduino SPI cannot provide information about errors
+struct ArduinoSpiError {};
+
+struct ArduinoSpiNodeConfig final {
 
     /// @brief Bit order for SPI transfers.
     enum class BitOrder : u8 {
@@ -55,13 +56,13 @@ struct NodeConfig final : mixin::NonCopyable {
     BitOrder bit_order;
     ClockBits clock_bits;
 
-    [[nodiscard]] static constexpr NodeConfig create(
+    [[nodiscard]] static constexpr ArduinoSpiNodeConfig create(
         gpio_num_t chip_select_pin,
         u32 clock_hz,
         BitOrder bit_order = BitOrder::MostSignificant,
         ClockBits clock_bits = ClockBits::None) noexcept {
 
-        return NodeConfig{
+        return ArduinoSpiNodeConfig{
             .clock_hz = clock_hz,
             .pin_cs = static_cast<u8>(chip_select_pin),
             .bit_order = bit_order,
@@ -69,20 +70,20 @@ struct NodeConfig final : mixin::NonCopyable {
         };
     }
 
-    [[nodiscard]] SPISettings toArduinoSPISettings() const noexcept {
+    [[nodiscard]] SPISettings toArduinoSpiSettings() const noexcept {
         return SPISettings{clock_hz, static_cast<u8>(bit_order), static_cast<u8>(clock_bits)};
     }
 };
 
-struct BusConfig final : mixin::NonCopyable {
+struct ArduinoSpiBusConfig final {
     using PinIndex = i8;
 
     static constexpr PinIndex default_pin = static_cast<PinIndex>(GPIO_NUM_NC);
 
     PinIndex pin_mosi, pin_miso, pin_sck;
 
-    static constexpr BusConfig create(gpio_num_t mosi = GPIO_NUM_NC, gpio_num_t miso = GPIO_NUM_NC, gpio_num_t sck = GPIO_NUM_NC) noexcept {
-        return BusConfig{
+    static constexpr ArduinoSpiBusConfig create(gpio_num_t mosi = GPIO_NUM_NC, gpio_num_t miso = GPIO_NUM_NC, gpio_num_t sck = GPIO_NUM_NC) noexcept {
+        return ArduinoSpiBusConfig{
             .pin_mosi = static_cast<PinIndex>(mosi),
             .pin_miso = static_cast<PinIndex>(miso),
             .pin_sck = static_cast<PinIndex>(sck),
@@ -94,24 +95,28 @@ struct BusConfig final : mixin::NonCopyable {
     }
 };
 
-/// Dummy. Arduino SPI cannot provide information about errors
-enum class Error : u8 {};
-
 /// @brief SPI node implementation that adapts Arduino SPIClass to the library's Readable/Writable interfaces.
 /// @tparam I The bus implementation type (ArduinoSPI).
 /// @note This class is movable but not copyable. It manages a dedicated chip select pin and SPI settings.
 ///       Each transaction begins with CS active and applies the stored SPI configuration.
 ///       The node is created via ArduinoSPI::createNode() and must outlive the bus.
-template<typename I> struct ArduinoSpiNode : SpiNode<ArduinoSpiNode<I>, Error>, mixin::Configurable<NodeConfig> {
+template<typename I> struct ArduinoSpiNode :
+
+    ::kf::bus::spi::SpiNode<ArduinoSpiNode<I>, ArduinoSpiError>,
+    ::kf::mixin::Configurable<ArduinoSpiNodeConfig>
+
+{
     using BusImpl = I;
 
     /// @brief Bit order for SPI transfers.
-    using Config = NodeConfig;
+    using Config = ArduinoSpiNodeConfig;
 
     explicit ArduinoSpiNode(BusImpl &bus, const Config &config) noexcept :
         mixin::Configurable<Config>{config}, _spi{bus._spi} {}
 
 private:
+    template<typename> static constexpr bool always_false{false};
+
     SPIClass &_spi;
 
     /// @brief Control the chip select line (active low).
@@ -124,7 +129,7 @@ private:
     /// @note Must be called before any data transfer.
     void beginTransaction() noexcept {
         chipSelected(true);
-        _spi.beginTransaction(this->config().toArduinoSPISettings());
+        _spi.beginTransaction(this->config().toArduinoSpiSettings());
     }
 
     /// @brief End an SPI transaction: pull CS high.
@@ -132,68 +137,6 @@ private:
         _spi.endTransaction();
         chipSelected(false);
     }
-
-    // impl
-    using This = ArduinoSpiNode<I>;
-
-    KF_IMPL_INITABLE(This, void);
-    void initImpl() noexcept {
-        pinMode(this->config().pin_cs, OUTPUT);
-        digitalWrite(this->config().pin_cs, HIGH);
-    }
-
-    KF_IMPL_READABLE(This, Error);
-    void readBytes(u8 *buffer, usize length) noexcept {
-        // Read length bytes from the device while sending zeros (full‑duplex)
-        _spi.transferBytes(nullptr, buffer, length);
-    }
-
-    template<typename> static constexpr bool always_false{false};
-
-    /// @brief Read a 1/2/4‑byte packet using dedicated SPI transfer functions (faster than generic loop).
-    /// @tparam T Must be exactly 1, 2 or 4 bytes.
-    template<typename T> T readPacketUnchecked() noexcept {
-        constexpr usize to_read = sizeof(T);
-
-        if constexpr (to_read == sizeof(u8)) {
-            return static_cast<T>(_spi.transfer(0));
-        } else if constexpr (to_read == sizeof(u16)) {
-            return static_cast<T>(_spi.transfer16(0));
-        } else if constexpr (to_read == sizeof(u32)) {
-            return static_cast<T>(_spi.transfer32(0));
-        } else {
-            static_assert(always_false<T>, "readPacketUnchecked supports only 1,2,4 byte types");
-        }
-    }
-
-    // impl
-
-    Result<Slice<const u8>, Error> readBufferImpl(Slice<u8> buffer) noexcept {
-        beginTransaction();
-        readBytes(buffer.data(), buffer.size());
-        endTransaction();
-        return ok(Slice<const u8>{const_cast<const u8 *>(buffer.data()), buffer.size()});
-    }
-
-    template<typename T> Result<T, Error> readPacketImpl() noexcept {
-        constexpr usize to_read = sizeof(T);
-
-        beginTransaction();
-
-        T value;
-
-        if constexpr (to_read <= sizeof(u32)) {
-            value = readPacketUnchecked<T>();
-        } else {
-            readBytes(reinterpret_cast<u8 *>(&value), to_read);
-        }
-
-        endTransaction();
-
-        return ok(value);
-    }
-
-    KF_IMPL_WRITABLE(This, Result<void, Error>);
 
     /// @brief Write raw bytes to the device (simplex).
     void writeBytes(const u8 *buffer, usize length) noexcept {
@@ -212,23 +155,79 @@ private:
     /// @brief Write a packet of arbitrary size (generic fallback).
     template<typename T> void writePacketUnchecked(T &&packet) noexcept { writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(T)); }
 
-    // impl
+    /// @brief Read a 1/2/4‑byte packet using dedicated SPI transfer functions (faster than generic loop).
+    /// @tparam T Must be exactly 1, 2 or 4 bytes.
+    template<typename T> T readPacketUnchecked() noexcept {
+        constexpr usize to_read = sizeof(T);
 
-    [[nodiscard]] Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept {
+        if constexpr (to_read == sizeof(u8)) {
+            return static_cast<T>(_spi.transfer(0));
+        } else if constexpr (to_read == sizeof(u16)) {
+            return static_cast<T>(_spi.transfer16(0));
+        } else if constexpr (to_read == sizeof(u32)) {
+            return static_cast<T>(_spi.transfer32(0));
+        } else {
+            static_assert(always_false<T>, "readPacketUnchecked supports only 1,2,4 byte types");
+        }
+    }
+
+    using This = ArduinoSpiNode<I>;
+
+    KF_IMPL_INITABLE(This, void);
+    void initImpl() noexcept {
+        pinMode(this->config().pin_cs, OUTPUT);
+        digitalWrite(this->config().pin_cs, HIGH);
+    }
+
+    KF_IMPL_READABLE(This, ArduinoSpiError);
+
+    void readBytes(u8 *buffer, usize length) noexcept {
+        // Read length bytes from the device while sending zeros (full‑duplex)
+        _spi.transferBytes(nullptr, buffer, length);
+    }
+
+    Result<Slice<const u8>, ArduinoSpiError> readBufferImpl(Slice<u8> buffer) noexcept {
+        beginTransaction();
+        readBytes(buffer.data(), buffer.size());
+        endTransaction();
+        return ok(Slice<const u8>{const_cast<const u8 *>(buffer.data()), buffer.size()});
+    }
+
+    template<typename T> Result<T, ArduinoSpiError> readPacketImpl() noexcept {
+        constexpr usize to_read = sizeof(T);
+
+        beginTransaction();
+
+        T value;
+
+        if constexpr (to_read <= sizeof(u32)) {
+            value = readPacketUnchecked<T>();
+        } else {
+            readBytes(reinterpret_cast<u8 *>(&value), to_read);
+        }
+
+        endTransaction();
+
+        return ok(value);
+    }
+
+    KF_IMPL_WRITABLE(This, Result<void, ArduinoSpiError>);
+
+    [[nodiscard]] Result<void, ArduinoSpiError> writeBufferImpl(Slice<const u8> buffer) noexcept {
         beginTransaction();
         writeBytes(buffer.data(), buffer.size());
         endTransaction();
         return ok();
     }
 
-    template<typename T> [[nodiscard]] Result<void, Error> writePacketImpl(T &&packet) noexcept {
+    template<typename T> [[nodiscard]] Result<void, ArduinoSpiError> writePacketImpl(T &&packet) noexcept {
         beginTransaction();
         writePacketUnchecked(std::forward<T>(packet));
         endTransaction();
         return ok();
     }
 
-    template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
+    template<typename T> [[nodiscard]] Result<void, ArduinoSpiError> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
         beginTransaction();
         writePacketUnchecked(std::forward<T>(header));
         writeBytes(buffer.data(), buffer.size());
@@ -237,13 +236,20 @@ private:
     }
 };
 
-}// namespace internal::arduino
+}// namespace kf::internal
 
-struct ArduinoSPI : spi::SPI<ArduinoSPI, internal::arduino::ArduinoSpiNode<ArduinoSPI>, internal::arduino::Error>,
-                    mixin::Configurable<internal::arduino::BusConfig> {
-    using Config = internal::arduino::BusConfig;
-    using Error = internal::arduino::Error;
-    using Node = internal::arduino::ArduinoSpiNode<ArduinoSPI>;
+namespace kf::bus::spi {
+
+struct ArduinoSPI :
+
+    SPI<ArduinoSPI, internal::ArduinoSpiNode<ArduinoSPI>, internal::ArduinoSpiError>,
+    mixin::Configurable<internal::ArduinoSpiBusConfig>
+
+{
+    using Config = internal::ArduinoSpiBusConfig;
+    using Error = internal::ArduinoSpiError;
+    using Node = internal::ArduinoSpiNode<ArduinoSPI>;
+
     friend Node;
 
     explicit ArduinoSPI(const Config &config, SPIClass &spi) : mixin::Configurable<Config>{config}, _spi{spi} {}
@@ -251,12 +257,8 @@ struct ArduinoSPI : spi::SPI<ArduinoSPI, internal::arduino::ArduinoSpiNode<Ardui
 private:
     SPIClass &_spi;
 
-    // impl
-    using This = ArduinoSPI;
-
-    using InitResult = Result<void, Error>;
-    KF_IMPL_INITABLE(This, InitResult);
-    InitResult initImpl() noexcept {
+    KF_IMPL_INITABLE(ArduinoSPI, Result<void, Error>);
+    Result<void, Error> initImpl() noexcept {
         if (this->config().hasDefaultPins()) {
             _spi.begin();
         } else {
@@ -265,7 +267,7 @@ private:
         return ok();
     }
 
-    KF_IMPL_QUITABLE(This);
+    KF_IMPL_QUITABLE(ArduinoSPI);
     void quitImpl() noexcept { _spi.end(); }
 };
 
