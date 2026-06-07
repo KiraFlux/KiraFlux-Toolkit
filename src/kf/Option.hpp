@@ -396,21 +396,6 @@ private:
     void resetImpl() noexcept { _ptr = nullptr; }
 };
 
-template<> struct Option<float> final : internal::RealValueOption<float> {
-    friend struct internal::SomeCreator;
-    using internal::RealValueOption<float>::RealValueOption;
-};
-
-template<> struct Option<double> final : internal::RealValueOption<double> {
-    friend struct internal::SomeCreator;
-    using internal::RealValueOption<double>::RealValueOption;
-};
-
-template<> struct Option<long double> final : internal::RealValueOption<long double> {
-    friend struct internal::SomeCreator;
-    using internal::RealValueOption<long double>::RealValueOption;
-};
-
 /// @brief Optional slice container
 /// @tparam T Slice element type
 template<typename T> struct Option<Slice<T>> final :
@@ -608,6 +593,21 @@ private:
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept { _is_some = false; }
+};
+
+template<> struct TrivialOption<float> final : internal::RealValueOption<float> {
+    friend struct internal::SomeCreator;
+    using internal::RealValueOption<float>::RealValueOption;
+};
+
+template<> struct TrivialOption<double> final : internal::RealValueOption<double> {
+    friend struct internal::SomeCreator;
+    using internal::RealValueOption<double>::RealValueOption;
+};
+
+template<> struct TrivialOption<long double> final : internal::RealValueOption<long double> {
+    friend struct internal::SomeCreator;
+    using internal::RealValueOption<long double>::RealValueOption;
 };
 
 }// namespace kf

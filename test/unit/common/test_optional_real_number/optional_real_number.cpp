@@ -2,43 +2,43 @@
 
 #include <unity.h>
 
-using kf::Option;
+using kf::TrivialOption;
 
 template<typename T> struct TestOptionalRealNumber {
-    static_assert(sizeof(Option<T>) == sizeof(T));
+    static_assert(sizeof(TrivialOption<T>) == sizeof(T));
 
     static constexpr T value{static_cast<T>(1)}, default_value{static_cast<T>(0)};
 
     static void some() noexcept {
-        const Option<T> option = kf::some(value);
+        const TrivialOption<T> option = kf::someTrivial(value);
 
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_FALSE(option.isNone());
     }
 
     static void none() noexcept {
-        const Option<T> option = kf::none;
+        const TrivialOption<T> option = kf::none;
 
         TEST_ASSERT_FALSE(option.isSome());
         TEST_ASSERT_TRUE(option.isNone());
     }
 
     static void unwrap() noexcept {
-        const Option<T> option = kf::some(value);
+        const TrivialOption<T> option = kf::someTrivial(value);
 
         TEST_ASSERT_TRUE(option.unwrap() == value);
     }
 
     static void unwrap_or() noexcept {
-        const Option<T> option_none = kf::none;
-        const Option<T> option_some = kf::some(value);
+        const TrivialOption<T> option_none = kf::none;
+        const TrivialOption<T> option_some = kf::someTrivial(value);
 
         TEST_ASSERT_TRUE(option_some.unwrapOr(default_value) == value);
         TEST_ASSERT_TRUE(option_none.unwrapOr(default_value) == default_value);
     }
 
     static void reset() noexcept {
-        Option<T> option = kf::some(value);
+        TrivialOption<T> option = kf::someTrivial(value);
         option.reset();
 
         TEST_ASSERT_TRUE(option.isNone());
