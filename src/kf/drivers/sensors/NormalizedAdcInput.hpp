@@ -44,7 +44,7 @@ template<typename I> struct NormalizedAdcInput final :
     mixin::Configurable<internal::NormalizedAdcInputConfig>
 
 {
-    KF_CHECK_IMPL(I, kf::gpio::AdcInputTag);
+    KF_CHECK_IMPL(I, kf::gpio::GPIO::AdcInputTag);
 
     using AdcPinImpl = I;
     using FilterImpl = math::filters::ExponentialFilter<f32>;

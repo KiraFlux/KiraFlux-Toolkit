@@ -16,22 +16,27 @@
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/drivers/display/Orientation.hpp"
 
-namespace kf::drivers::display {
-
-namespace internal {
+namespace kf::internal {
 
 using ST7735Image = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
 
 struct ST7735Config final : mixin::NonCopyable {
-    Orientation init_orientation;
+    drivers::display::Orientation init_orientation;
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::drivers::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, internal::ST7735Image>, mixin::Configurable<internal::ST7735Config> {
+template<typename Ib, typename Ido> struct ST7735 final :
+
+    DisplayDriver<ST7735<Ib, Ido>, internal::ST7735Image>,
+    mixin::Configurable<internal::ST7735Config>
+
+{
     KF_CHECK_IMPL(Ib, kf::bus::spi::SpiNodeTag);
-    KF_CHECK_IMPL(Ido, kf::gpio::DigitalOutputTag);
+    KF_CHECK_IMPL(Ido, kf::gpio::GPIO::DigitalOutputTag);
 
     using NodeImpl = Ib;
     using DigitalOutputPinImpl = Ido;

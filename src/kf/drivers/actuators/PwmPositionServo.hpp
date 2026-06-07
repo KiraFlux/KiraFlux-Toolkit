@@ -19,7 +19,7 @@ namespace kf::drivers::actuators {
 
 namespace internal {
 
-struct PwmPositionServoConfig final : mixin::NonCopyable, Validatable<PwmPositionServoConfig> {
+struct PwmPositionServoConfig final : Validatable<PwmPositionServoConfig> {
     using AngleRange = Range<math::Degrees>;
     using PulseRange = Range<math::Microseconds>;
 
@@ -45,10 +45,13 @@ private:
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
-template<typename I>
-struct PwmPositionServo final : Actuator<PwmPositionServo<I>, bool>,
-                                mixin::Configurable<internal::PwmPositionServoConfig> {
-    KF_CHECK_IMPL(I, kf::gpio::PwmOutputTag);
+template<typename I> struct PwmPositionServo final :
+
+    Actuator<PwmPositionServo<I>, bool>,
+    mixin::Configurable<internal::PwmPositionServoConfig>
+
+{
+    KF_CHECK_IMPL(I, kf::gpio::GPIO::PwmOutputTag);
     using PwmPinImpl = I;
 
     /// @brief Configuration for PWM position servo (angle <-> pulse width mapping).

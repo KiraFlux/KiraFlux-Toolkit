@@ -31,7 +31,7 @@ template<typename I> struct LogicalLevelListener :
     mixin::Configurable<internal::LogicalLevelListenerConfig>
 
 {
-    KF_CHECK_IMPL(I, gpio::DigitalInputTag);
+    KF_CHECK_IMPL(I, gpio::GPIO::DigitalInputTag);
 
     using PinImpl = I;
     using Config = internal::LogicalLevelListenerConfig;
