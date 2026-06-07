@@ -12,17 +12,21 @@
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/drivers/display/Orientation.hpp"
 
-namespace kf::drivers::display {
-namespace internal {
-using SSD1306_ImageImpl = image::StaticImage<pixel::MonochromePixel, 128, 64>;
+namespace kf::internal {
+
+using SSD1306ImageImpl = image::StaticImage<pixel::MonochromePixel, 128, 64>;
+
 }
 
-/// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, internal::SSD1306_ImageImpl> {
-    KF_CHECK_IMPL(I, kf::bus::iic::IicNodeTag);
+namespace kf::drivers::display {
 
-    using NodeImpl = I;
-    using PixelImpl = typename internal::SSD1306_ImageImpl::PixelImpl;
+/// @brief SSD1306 OLED display driver for 128x64 monochrome panels
+/// @tparam B IIC Bus implementation
+template<typename B> struct SSD1306 final : DisplayDriver<SSD1306<B>, internal::SSD1306ImageImpl> {
+    KF_CHECK_IMPL(B, kf::bus::iic::IicBusTag);
+
+    using IicNodeImpl = typename B::Node;
+    using PixelImpl = typename internal::SSD1306ImageImpl::PixelImpl;
 
     /// @brief SSD1306 command set
     enum Command : u8 {
@@ -58,7 +62,7 @@ template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, internal::
     static constexpr u8 default_address = {0x3C};
 
     /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(NodeImpl &&node) noexcept : _node{std::move(node)} {}
+    explicit SSD1306(IicNodeImpl &&node) noexcept : _node{std::move(node)} {}
 
     /// @brief Set display contrast level (0..255)
     /// @returns true - operation success
@@ -84,7 +88,7 @@ template<typename I> struct SSD1306 final : DisplayDriver<SSD1306<I>, internal::
     }
 
 private:
-    NodeImpl _node;
+    IicNodeImpl _node;
 
     /// @brief Send single command to display
     [[nodiscard]] bool sendCommand(Command c) noexcept {
@@ -93,7 +97,7 @@ private:
     }
 
     // impl
-    using This = SSD1306<I>;
+    using This = SSD1306<B>;
 
     KF_IMPL_INITABLE(This, bool);
     /// @brief Initialize display hardware via I2C
@@ -146,7 +150,7 @@ private:
     KF_IMPL_RESETTABLE(This);
     void resetImpl() const noexcept {}
 
-    KF_IMPL(DisplayDriver<This, internal::SSD1306_ImageImpl>);
+    KF_IMPL(DisplayDriver<This, internal::SSD1306ImageImpl>);
     bool sendImpl() noexcept {
         // Transfer software buffer to display via I2C
 
