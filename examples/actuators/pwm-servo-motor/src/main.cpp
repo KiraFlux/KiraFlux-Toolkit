@@ -6,7 +6,7 @@
 
 using kf::gpio::ArduinoGPIO;
 
-using PwmPositionServo = kf::drivers::actuators::PwmPositionServo<ArduinoGPIO::PwmOutput>;
+using PwmPositionServo = kf::drivers::actuators::PwmPositionServo<ArduinoGPIO>;
 
 // Angle -> pulse width mapping (0° = 500 µs, 180° = 2500 µs)
 PwmPositionServo::Config servo_config{

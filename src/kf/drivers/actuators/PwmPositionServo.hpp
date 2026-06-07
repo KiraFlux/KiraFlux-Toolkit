@@ -45,14 +45,15 @@ private:
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
-template<typename I> struct PwmPositionServo final :
+/// @tparam G GPIO impl
+template<typename G> struct PwmPositionServo final :
 
-    Actuator<PwmPositionServo<I>, bool>,
+    Actuator<PwmPositionServo<G>, bool>,
     mixin::Configurable<internal::PwmPositionServoConfig>
 
 {
-    KF_CHECK_IMPL(I, kf::gpio::GPIO::PwmOutputTag);
-    using PwmPinImpl = I;
+    KF_CHECK_IMPL(G, kf::gpio::GpioTag);
+    using PwmPinImpl = typename G::PwmOutput;
 
     /// @brief Configuration for PWM position servo (angle <-> pulse width mapping).
     /// @note Contains hardware‑independent mapping and is self‑validating.
@@ -86,7 +87,7 @@ private:
     PwmPinImpl _pin;                     ///< PWM output pin.
 
     // impl
-    using This = PwmPositionServo<I>;
+    using This = PwmPositionServo<G>;
 
     KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept {
