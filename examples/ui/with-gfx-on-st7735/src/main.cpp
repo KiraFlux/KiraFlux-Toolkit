@@ -8,7 +8,7 @@
 #include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
 #include <kf/gfx/fonts/gyver_5x7.hpp>
-#include <kf/gpio/arduino.hpp>
+#include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/UI.hpp>
@@ -16,10 +16,10 @@
 
 using kf::bus::spi::ArduinoSPI;
 using kf::drivers::display::Orientation;
-using kf::gpio::arduino::DigitalOutput;
+using kf::gpio::ArduinoGPIO;
 
 // Display Driver specialisation
-using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node, DigitalOutput>;
+using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput>;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
@@ -225,8 +225,8 @@ static MyDisplayDriver::Config display_config{
 static MyDisplayDriver display{
     display_config,
     bus.createNode(node_config),
-    DigitalOutput{GPIO_NUM_22},// DC
-    DigitalOutput{GPIO_NUM_17},// RESET
+    ArduinoGPIO::DigitalOutput{GPIO_NUM_22},// DC
+    ArduinoGPIO::DigitalOutput{GPIO_NUM_17},// RESET
 };
 
 // display

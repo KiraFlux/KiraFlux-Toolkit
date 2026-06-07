@@ -2,14 +2,14 @@
 #include <Arduino.h>
 
 #include <kf/drivers/actuators/Motor.hpp>
-#include <kf/gpio/arduino.hpp>
+#include <kf/gpio/ArduinoGPIO.hpp>
 
-using kf::gpio::arduino::DigitalOutput;
-using kf::gpio::arduino::PwmOutput;
-using L293N = kf::drivers::actuators::L298nMotor<PwmOutput, DigitalOutput>;
+using kf::gpio::ArduinoGPIO;
+
+using L293N = kf::drivers::actuators::L298nMotor<ArduinoGPIO::PwmOutput, ArduinoGPIO::DigitalOutput>;
 
 // static/global: must outlive motor
-PwmOutput::Config pwm_config{
+ArduinoGPIO::PwmOutput::Config pwm_config{
     .frequency_hz = 30'000,// typical for DC motors
     .resolution_bits = 10,
     .pin = static_cast<kf::u8>(GPIO_NUM_26),
@@ -25,8 +25,8 @@ L293N::Config driver_config{
 
 L293N motor{
     /* & */ driver_config,
-    PwmOutput{/* & */ pwm_config},
-    DigitalOutput{GPIO_NUM_25},
+    ArduinoGPIO::PwmOutput{/* & */ pwm_config},
+    ArduinoGPIO::DigitalOutput{GPIO_NUM_25},
 };
 
 void setup() {

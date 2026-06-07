@@ -6,12 +6,12 @@
 // target files for this demo
 #include <kf/drivers/sensors/Joystick.hpp>
 #include <kf/drivers/sensors/NormalizedAdcInput.hpp>
-#include <kf/gpio/arduino.hpp>
+#include <kf/gpio/ArduinoGPIO.hpp>
 
 #include <kf/input/JoystickListener.hpp>
 
-using kf::gpio::arduino::AdcInput;
-using NormalizedAdcInput = kf::drivers::sensors::NormalizedAdcInput<AdcInput>;
+using kf::gpio::ArduinoGPIO;
+using NormalizedAdcInput = kf::drivers::sensors::NormalizedAdcInput<ArduinoGPIO::AdcInput>;
 using Joystick = kf::drivers::sensors::Joystick<NormalizedAdcInput>;
 using JoystickListener = kf::input::JoystickListener<Joystick>;
 
@@ -38,8 +38,8 @@ NormalizedAdcInput::FilterImpl::Config axis_filter_config{
 Joystick my_joystick{
     my_joystick_config,// referenced, must stay alive
     axis_filter_config,// referenced, must stay alive
-    AdcInput{GPIO_NUM_34},
-    AdcInput{GPIO_NUM_35},
+    ArduinoGPIO::AdcInput{GPIO_NUM_34},
+    ArduinoGPIO::AdcInput{GPIO_NUM_35},
 };
 
 JoystickListener::Config my_listener_config{

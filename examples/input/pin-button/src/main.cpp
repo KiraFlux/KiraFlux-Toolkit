@@ -1,11 +1,11 @@
 // KiraFlux-Toolkit Demo 'input-button'
 #include <Arduino.h>
 
-#include <kf/gpio/arduino.hpp>
+#include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/input/LogicalLevelListener.hpp>
 
-using kf::gpio::arduino::DigitalInput;
-using Button = kf::input::LogicalLevelListener<DigitalInput>;
+using kf::gpio::ArduinoGPIO;
+using Button = kf::input::LogicalLevelListener<ArduinoGPIO::DigitalInput>;
 
 Button::Config my_button_config{
     .debounce = 50,// ms
@@ -15,9 +15,9 @@ Button my_button{
     /* &: */
     my_button_config,
     /* move: */
-    DigitalInput{
+    ArduinoGPIO::DigitalInput{
         GPIO_NUM_15,
-        DigitalInput::Pull::InternalDown,
+        ArduinoGPIO::DigitalInput::Pull::InternalDown,
     },
 };
 

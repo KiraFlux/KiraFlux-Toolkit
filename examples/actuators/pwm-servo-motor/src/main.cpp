@@ -2,10 +2,11 @@
 #include <kf/Logger.hpp>
 
 #include <kf/drivers/actuators/PwmPositionServo.hpp>
-#include <kf/gpio/arduino.hpp>
+#include <kf/gpio/ArduinoGPIO.hpp>
 
-using kf::gpio::arduino::PwmOutput;
-using PwmPositionServo = kf::drivers::actuators::PwmPositionServo<PwmOutput>;
+using kf::gpio::ArduinoGPIO;
+
+using PwmPositionServo = kf::drivers::actuators::PwmPositionServo<ArduinoGPIO::PwmOutput>;
 
 // Angle -> pulse width mapping (0° = 500 µs, 180° = 2500 µs)
 PwmPositionServo::Config servo_config{
@@ -14,7 +15,7 @@ PwmPositionServo::Config servo_config{
 };
 
 // PWM: 50 Hz, 12-bit resolution
-PwmOutput::Config pwm_config{
+ArduinoGPIO::PwmOutput::Config pwm_config{
     .frequency_hz = 50,
     .resolution_bits = 12,
     .pin = static_cast<kf::u8>(GPIO_NUM_13),
@@ -24,7 +25,7 @@ PwmOutput::Config pwm_config{
 // Servo with additional safe angle limit (0‑90 instead of 0‑180)
 PwmPositionServo servo{
     servo_config,
-    PwmOutput{pwm_config},
+    ArduinoGPIO::PwmOutput{pwm_config},
     PwmPositionServo::Config::AngleRange{.start = 0, .end = 90},// safe range
 };
 

@@ -140,7 +140,7 @@ private:
 - Use the macro `KF_VALIDATOR_CHECK(validator, logger, condition)` inside `checkImpl()`.
 
 ### Hardware Abstraction
-- Isolate hardware‑dependent code in separate headers (e.g., `kf/gpio/arduino.hpp`).
+- Isolate hardware‑dependent code in separate headers (e.g., `kf/gpio/ArduinoGPIO.hpp`).
 - Algorithmic code should not directly include `<Arduino.h>`; use portable abstractions.
 
 ### Testing

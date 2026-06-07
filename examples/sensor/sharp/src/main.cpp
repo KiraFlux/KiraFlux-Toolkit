@@ -2,17 +2,17 @@
 #include <Arduino.h>
 
 #include <kf/drivers/sensors/Sharp.hpp>
-#include <kf/gpio/arduino.hpp>
+#include <kf/gpio/ArduinoGPIO.hpp>
 
-using kf::gpio::arduino::AdcInput;
-using Sharp = kf::drivers::sensors::Sharp<AdcInput>;
+using kf::gpio::ArduinoGPIO;
+using Sharp = kf::drivers::sensors::Sharp<ArduinoGPIO::AdcInput>;
 
-Sharp my_sensor{AdcInput{GPIO_NUM_30}};
+Sharp my_sensor{ArduinoGPIO::AdcInput{GPIO_NUM_30}};
 
 void setup() {
     Serial.begin(115200);
 
-    AdcInput::resolution(10);
+    ArduinoGPIO::AdcInput::resolution(10);
     my_sensor.init();
 }
 
