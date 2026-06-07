@@ -41,7 +41,7 @@ template<typename B, typename G> struct ST7735 final :
     KF_CHECK_IMPL(G, kf::gpio::GpioTag);
 
     using SpiBusNodeImpl = typename B::Node;
-    using DigitalOutputPinImpl = typename G::DigitalOutputTag;
+    using DigitalOutputPinImpl = typename G::DigitalOutput;
     using PixelImpl = typename internal::ST7735Image::PixelImpl;
 
     /// @brief Hardware configuration for ST7735

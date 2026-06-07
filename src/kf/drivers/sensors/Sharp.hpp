@@ -16,7 +16,7 @@ namespace kf::drivers::sensors {
 /// @note Provides distance measurements in millimeters using analog voltage output
 /// @tparam G GPIO implementation
 template<typename G> struct Sharp : Sensor<Sharp<G>, math::Millimeters, void> {
-    KF_CHECK_IMPL(G, kf::gpio::GPIO::AdcInputTag);
+    KF_CHECK_IMPL(G, kf::gpio::GpioTag);
     using PinImpl = typename G::AdcInput;
 
     explicit Sharp(PinImpl &&pin) noexcept : _pin{std::move(pin)} {}
