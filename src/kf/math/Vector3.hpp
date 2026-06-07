@@ -61,10 +61,10 @@ template<typename T> struct Vector3 final {
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] Option<Vector3> divChecked(Scalar scalar) const noexcept {
+    [[nodiscard]] TrivialOption<Vector3> divChecked(Scalar scalar) const noexcept {
         if (scalar == 0) { return none; }
 
-        return some(Vector3{
+        return someTrivial(Vector3{
             .x = static_cast<Scalar>(x / scalar),
             .y = static_cast<Scalar>(y / scalar),
             .z = static_cast<Scalar>(z / scalar),
@@ -111,12 +111,12 @@ template<typename T> struct Vector3 final {
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] Option<Vector3> normalized() const noexcept {
+    [[nodiscard]] TrivialOption<Vector3> normalized() const noexcept {
         const auto len = length();
 
         if (len == 0) { return none; }
 
-        return some(Vector3{
+        return someTrivial(Vector3{
             .x = static_cast<Scalar>(x / len),
             .y = static_cast<Scalar>(y / len),
             .z = static_cast<Scalar>(z / len),
