@@ -5,7 +5,7 @@
 #include <kf/gpio/ArduinoGPIO.hpp>
 
 using kf::gpio::ArduinoGPIO;
-using Sharp = kf::drivers::sensors::Sharp<ArduinoGPIO::AdcInput>;
+using Sharp = kf::drivers::sensors::Sharp<ArduinoGPIO>;
 
 Sharp my_sensor{ArduinoGPIO::AdcInput{GPIO_NUM_30}};
 
