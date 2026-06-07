@@ -76,7 +76,7 @@ private:
     }
 
     // impl
-    using This = DRV8871<PwmOutputImpl>;
+    using This = DRV8871<G>;
 
     KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept {
