@@ -45,7 +45,7 @@ private:
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
-/// @tparam G GPIO impl
+/// @tparam G GPIO implementation
 template<typename G> struct PwmPositionServo final :
 
     Actuator<PwmPositionServo<G>, bool>,
