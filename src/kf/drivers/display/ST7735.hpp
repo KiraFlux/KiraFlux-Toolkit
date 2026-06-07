@@ -29,17 +29,19 @@ struct ST7735Config final : mixin::NonCopyable {
 namespace kf::drivers::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-template<typename Ib, typename Ido> struct ST7735 final :
+/// @tparam B SPI Bus implementation
+/// @tparam G GPIO implementation
+template<typename B, typename G> struct ST7735 final :
 
-    DisplayDriver<ST7735<Ib, Ido>, internal::ST7735Image>,
+    DisplayDriver<ST7735<B, G>, internal::ST7735Image>,
     mixin::Configurable<internal::ST7735Config>
 
 {
-    KF_CHECK_IMPL(Ib, kf::bus::spi::SpiNodeTag);
-    KF_CHECK_IMPL(Ido, kf::gpio::GPIO::DigitalOutputTag);
+    KF_CHECK_IMPL(B, kf::bus::spi::SpiBusTag);
+    KF_CHECK_IMPL(G, kf::gpio::GpioTag);
 
-    using NodeImpl = Ib;
-    using DigitalOutputPinImpl = Ido;
+    using SpiBusNodeImpl = typename B::Node;
+    using DigitalOutputPinImpl = typename G::DigitalOutputTag;
     using PixelImpl = typename internal::ST7735Image::PixelImpl;
 
     /// @brief Hardware configuration for ST7735
@@ -74,11 +76,11 @@ template<typename Ib, typename Ido> struct ST7735 final :
         COLMOD = 0x3A ///< Color mode setting
     };
 
-    explicit ST7735(const Config &config, NodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
+    explicit ST7735(const Config &config, SpiBusNodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
         mixin::Configurable<internal::ST7735Config>{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
 
 private:
-    NodeImpl _node;
+    SpiBusNodeImpl _node;
     DigitalOutputPinImpl _pin_data_command;
     DigitalOutputPinImpl _pin_reset;
 
@@ -102,7 +104,7 @@ private:
     }
 
     // impl
-    using This = ST7735<Ib, Ido>;
+    using This = ST7735<B, G>;
 
     KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept {
