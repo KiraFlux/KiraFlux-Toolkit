@@ -16,9 +16,7 @@
 
 #include "kf/drivers/sensors/Sensor.hpp"
 
-namespace kf::drivers::sensors {
-
-namespace internal {
+namespace kf::internal {
 
 struct NormalizedAdcInputConfig final {
     using AdcSignedValue = i16;
@@ -35,18 +33,20 @@ struct NormalizedAdcInputConfig final {
     }
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::drivers::sensors {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
-template<typename I> struct NormalizedAdcInput final :
+template<typename G> struct NormalizedAdcInput final :
 
-    Sensor<NormalizedAdcInput<I>, f32, void>,
+    Sensor<NormalizedAdcInput<G>, f32, void>,
     mixin::Configurable<internal::NormalizedAdcInputConfig>
 
 {
-    KF_CHECK_IMPL(I, kf::gpio::GPIO::AdcInputTag);
+    KF_CHECK_IMPL(G, kf::gpio::GpioTag);
 
-    using AdcPinImpl = I;
+    using AdcPinImpl = typename G::AdcInput;
     using FilterImpl = math::filters::ExponentialFilter<f32>;
     using Config = internal::NormalizedAdcInputConfig;
 
@@ -105,7 +105,7 @@ private:
     FilterImpl _filter;
     AdcPinImpl _pin;
 
-    using This = NormalizedAdcInput<I>;
+    using This = NormalizedAdcInput<G>;
 
     KF_IMPL_INITABLE(This, void);
     void initImpl() noexcept { _pin.init(); }
