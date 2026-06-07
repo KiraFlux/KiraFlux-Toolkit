@@ -2,16 +2,24 @@
 #include <Arduino.h>
 
 #include <kf/gpio/arduino.hpp>
-#include <kf/input/Button.hpp>
+#include <kf/input/LogicalLevelListener.hpp>
 
 using kf::gpio::arduino::DigitalInput;
-using Button = kf::input::Button<DigitalInput>;
+using Button = kf::input::LogicalLevelListener<DigitalInput>;
 
 Button::Config my_button_config{
     .debounce = 50,// ms
 };
 
-Button my_button{/* & */ my_button_config, DigitalInput{GPIO_NUM_15, DigitalInput::Pull::InternalDown}};
+Button my_button{
+    /* &: */
+    my_button_config,
+    /* move: */
+    DigitalInput{
+        GPIO_NUM_15,
+        DigitalInput::Pull::InternalDown,
+    },
+};
 
 void setup() {
     Serial.begin(115200);

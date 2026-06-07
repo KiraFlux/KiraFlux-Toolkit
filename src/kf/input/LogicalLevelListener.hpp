@@ -11,27 +11,32 @@
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/TimedPollable.hpp"
-#include "kf/primitives.hpp"
 
-namespace kf::input {
-namespace internal {
-struct ButtonConfig final : mixin::NonCopyable {
+namespace kf::internal {
+
+struct LogicalLevelListenerConfig final {
     math::Milliseconds debounce;
 };
-}// namespace internal
+
+}// namespace kf::internal
+
+namespace kf::input {
 
 /// @brief Minimal button with press detection only
-template<typename I>
-struct Button : mixin::Initable<Button<I>, void>,
-                mixin::NonCopyable,
-                mixin::TimedPollable<Button<I>>,
-                mixin::Configurable<internal::ButtonConfig> {
-    KF_CHECK_IMPL(I, kf::gpio::DigitalInputTag);
+template<typename I> struct LogicalLevelListener :
+
+    mixin::NonCopyable,
+    mixin::TimedPollable<LogicalLevelListener<I>>,
+    mixin::Initable<LogicalLevelListener<I>, void>,
+    mixin::Configurable<internal::LogicalLevelListenerConfig>
+
+{
+    KF_CHECK_IMPL(I, gpio::DigitalInputTag);
 
     using PinImpl = I;
-    using Config = internal::ButtonConfig;
+    using Config = internal::LogicalLevelListenerConfig;
 
-    explicit Button(const Config &config, PinImpl &&pin) noexcept :
+    explicit LogicalLevelListener(const Config &config, PinImpl &&pin) noexcept :
         mixin::Configurable<Config>{config}, _pin{std::move(pin)} {}
 
     /// @brief Check if button was clicked (consumes the click)
@@ -50,22 +55,29 @@ struct Button : mixin::Initable<Button<I>, void>,
 
 private:
     math::Milliseconds _next{0};
-    PinImpl _pin;
     bool _last_stable{false};
     bool _last_raw{false};
     bool _click_ready{false};
+    bool _first{true};
+    PinImpl _pin;
 
     // impl
-    using This = Button<I>;
+    using This = LogicalLevelListener<I>;
 
     KF_IMPL_INITABLE(This, void);
-    void initImpl() noexcept { _pin.init(); }
+    void initImpl() noexcept {
+        _pin.init();
+    }
 
     KF_IMPL_TIMED_POLLABLE(This);
     void pollImpl(math::Milliseconds now) noexcept {
         const bool state = _pin.read();
 
-        // todo use Timer here
+        if (_first) {
+            _first = false;
+            _last_raw = state;
+            _last_stable = state;
+        }
 
         if (state != _last_raw) {
             _last_raw = state;
