@@ -56,7 +56,7 @@ void setup() {
     Serial.printf("Self: %s\n", self_mac_address.toString().data());
 
     // Direct overload used - no Option wrapper needed here.
-    EspNow::instance().onReceiveFromUnknown(onUnknown);
+    EspNow::instance().callback(onUnknown);
     broadcast_peer = createPeer({0xff, 0xff, 0xff, 0xff, 0xff, 0xff});
 
     target_peer = createPeer({0x01, 0x02, 0x03, 0x04, 0x05, 0x06});// replace with real MAC

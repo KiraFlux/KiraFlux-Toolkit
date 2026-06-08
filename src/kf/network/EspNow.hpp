@@ -99,7 +99,8 @@ struct EspNow final :
     internal::MacAddressed,
     kf::mixin::Singleton<EspNow>,
     kf::mixin::Initable<EspNow, Result<void, internal::EspNowError>>,
-    kf::mixin::Quitable<EspNow>
+    kf::mixin::Quitable<EspNow>,
+    kf::mixin::Callbacked<const MacAddress &, Slice<const u8>>
 
 {
     /// @brief Maximum number of peers that can be stored in the registry
@@ -107,11 +108,6 @@ struct EspNow final :
 
     /// @brief ESP-NOW operation error codes
     using Error = internal::EspNowError;
-
-    /// @brief Handler type for receiving data from unknown peers
-    /// @param mac Source MAC address
-    /// @param data Received payload
-    using ReceiveFromUnknownCallback = Function<void(const MacAddress &, Slice<const u8>)>;
 
     /// @brief ESP‑NOW peer representation with communication capabilities
     /// @note Manages a single peer: registration, sending, and receive callback
@@ -124,6 +120,7 @@ struct EspNow final :
         mixin::Callbacked<Slice<const u8>>
 
     {
+        friend struct EspNow;
 
         /// @brief Default configuration (station interface)
         struct Config final {
@@ -257,29 +254,10 @@ struct EspNow final :
         }
     };
 
-    /// @brief Set handler for receiving data from unknown peers (via Option)
-    /// @param optional_callback Handler or none
-    void onReceiveFromUnknown(Option<ReceiveFromUnknownCallback> optional_callback) noexcept {
-        _on_receive_from_unknown = std::move(optional_callback);
-    }
-
-    /// @brief Set handler for receiving data from unknown peers
-    /// @param callback Function to call on receipt
-    void onReceiveFromUnknown(ReceiveFromUnknownCallback callback) noexcept {
-        _on_receive_from_unknown = some(std::move(callback));
-    }
-
-    /// @brief Clear handler for receiving data from unknown peers
-    /// @param none Tag value kf::none
-    void onReceiveFromUnknown(NoneType) noexcept {
-        _on_receive_from_unknown.reset();
-    }
-
 private:
-    memory::Array<Option<const Peer &>, max_peers> _peers{};          /// Registry of peer entries
-    Option<ReceiveFromUnknownCallback> _on_receive_from_unknown{none};///< Handler for unknown peers
-
     friend struct ::kf::mixin::Singleton<EspNow>;
+
+    memory::Array<Option<const Peer &>, max_peers> _peers{};/// Registry of peer entries
 
     /// @brief Private constructor (singleton)
     constexpr EspNow() noexcept : MacAddressed{{}} {}
@@ -299,9 +277,7 @@ private:
         auto peer = self.getPeer(source_mac_address);
 
         if (peer.isNone()) {
-            if (self._on_receive_from_unknown.isSome()) {
-                self._on_receive_from_unknown.unwrap()(source_mac_address, buffer);
-            }
+            self.invoke(source_mac_address, buffer);
         } else {
             peer.unwrap().invoke(buffer);
         }
