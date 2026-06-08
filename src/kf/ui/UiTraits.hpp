@@ -30,7 +30,7 @@ namespace kf::ui {
 
 struct UiTraitsTag {};
 
-template<typename R, typename E> struct UiTraits final : UiTraitsTag {
+template<typename R, typename E> struct UiTraits : UiTraitsTag {
     KF_CHECK_IMPL(R, ::kf::ui::render::RenderTag);
     using RenderImpl = R;
 

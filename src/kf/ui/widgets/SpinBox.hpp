@@ -23,7 +23,9 @@ namespace kf::ui::widgets {
 struct SpinBoxTag {};
 
 /// @brief Spin box for adjusting numeric values with different modes
+/// @tparam U UI Traits Type
 /// @tparam T Numeric type for spin box value (must be arithmetic)
+/// @tparam A Adjuster type
 template<typename U, typename T, typename A> struct SpinBox final :
 
     SpinBoxTag,
@@ -33,6 +35,7 @@ template<typename U, typename T, typename A> struct SpinBox final :
 
 {
     KF_CHECK_IMPL(A, typename U::AdjusterTag);
+
     using AdjusterImpl = A;
     using Config = internal::SpinBoxConfig<T>;
 

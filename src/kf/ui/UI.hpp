@@ -31,7 +31,7 @@ namespace kf::ui {
 /// @tparam R Render impl
 /// @tparam E Event impl
 /// @note Singleton pattern ensures single UI instance with event queue and page management
-template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, mixin::TimedPollable<UI<R, E>> {
+template<typename R, typename E> struct UI : mixin::Singleton<UI<R, E>>, mixin::TimedPollable<UI<R, E>> {
     struct Page;// forward declaration
 
     /// @brief Renderer implementation type

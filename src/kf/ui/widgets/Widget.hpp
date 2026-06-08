@@ -11,7 +11,13 @@ struct WidgetTag {};
 
 /// @brief Base widget class for all UI components
 /// @note All interactive UI elements inherit from this class
-template<typename U> struct Widget : WidgetTag, mixin::NonCopyable {
+/// @tparam U UI Traits Type
+template<typename U> struct Widget :
+
+    WidgetTag,
+    mixin::NonCopyable
+
+{
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     /// @brief Render widget content (must be implemented by derived classes)
@@ -19,11 +25,15 @@ template<typename U> struct Widget : WidgetTag, mixin::NonCopyable {
 
     /// @brief Handle click event
     /// @return true if redraw required, false otherwise
-    [[nodiscard]] virtual bool onClick() noexcept { return false; }
+    [[nodiscard]] virtual bool onClick() noexcept {
+        return false;
+    }
 
     /// @brief Handle Event value
     /// @return true if redraw required, false otherwise
-    [[nodiscard]] virtual bool onEventValue(typename U::EventImpl::Value event_value) noexcept { return false; }
+    [[nodiscard]] virtual bool onEventValue(typename U::EventImpl::Value event_value) noexcept {
+        return false;
+    }
 
     /// @brief External widget rendering with focus handling
     void render(typename U::RenderImpl &render, bool focused) const noexcept {

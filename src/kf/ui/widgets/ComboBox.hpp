@@ -16,12 +16,12 @@ namespace kf::internal {
 
 template<typename T> struct ComboBoxItem final : mixin::Labeled {
 
-    constexpr ComboBoxItem(memory::StringView label, T value) noexcept :
+    constexpr ComboBoxItem(memory::StringView label, const T &value) noexcept :
         mixin::Labeled{label}, _value{value} {}
 
-    [[nodiscard]] T value() const noexcept { return _value; }
+    [[nodiscard]] const T &value() const noexcept { return _value; }
 
-    void value(T new_value) noexcept { _value = new_value; }
+    void value(const T &new_value) noexcept { _value = new_value; }
 
 private:
     T _value;
@@ -50,8 +50,9 @@ namespace kf::ui::widgets {
 struct ComboBoxTag {};
 
 /// @brief Combo box for selecting from predefined options
+/// @tparam U UI Traits Type
 /// @tparam T Value type for options
-template<typename U, typename T> struct ComboBox final :
+template<typename U, typename T> struct ComboBox :
 
     ComboBoxTag,
     Widget<U>,

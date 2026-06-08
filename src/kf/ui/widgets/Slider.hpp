@@ -27,7 +27,8 @@ namespace kf::ui::widgets {
 
 struct SliderTag {};
 
-template<typename U, typename T> struct Slider final :
+/// @tparam U UI Traits Type
+template<typename U, typename T> struct Slider :
 
     SliderTag,
     Widget<U>,
