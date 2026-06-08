@@ -25,4 +25,4 @@ template<typename Impl> struct Invariant {
 
 }// namespace kf::mixin
 
-#define KF_IMPL_INVARIANT(...) friend struct ::kf::mixin::Invariant<__VA_ARGS__>;
+#define KF_IMPL_INVARIANT(...) friend struct ::kf::mixin::Invariant<__VA_ARGS__>
