@@ -11,8 +11,6 @@
 #include <esp_now.h>
 
 // lib
-#include "kf/Function.hpp"
-#include "kf/NoneType.hpp"
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/Slice.hpp"
@@ -21,6 +19,7 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Initable.hpp"
+#include "kf/mixin/MacAddressed.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Singleton.hpp"
@@ -74,20 +73,6 @@ private:
     }
 };
 
-/// @brief Base class for objects that own a MAC address
-/// @note Provides read‑only access to the address
-struct MacAddressed {
-    explicit constexpr MacAddressed(const network::MacAddress &mac_address) noexcept : _mac_address{mac_address} {}
-
-    /// @brief Get MAC address
-    [[nodiscard]] const network::MacAddress &mac() const noexcept {
-        return _mac_address;
-    }
-
-protected:
-    network::MacAddress _mac_address;
-};
-
 }// namespace kf::internal
 
 namespace kf::network {
@@ -96,8 +81,8 @@ namespace kf::network {
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks
 struct EspNow final :
 
-    internal::MacAddressed,
     kf::mixin::Singleton<EspNow>,
+    mixin::MacAddressed,
     kf::mixin::Initable<EspNow, Result<void, internal::EspNowError>>,
     kf::mixin::Quitable<EspNow>,
     kf::mixin::Callbacked<const MacAddress &, Slice<const u8>>
@@ -114,8 +99,8 @@ struct EspNow final :
     /// @note Move‑only, non‑copyable
     struct Peer final :
 
-        internal::MacAddressed,
         mixin::NonCopyable,
+        mixin::MacAddressed,
         io::Writable<Peer, kf::Result<void, Error>>,
         mixin::Callbacked<Slice<const u8>>
 
@@ -135,7 +120,7 @@ struct EspNow final :
 
         /// @brief Move constructor
         /// @param other Source peer (becomes inactive)
-        Peer(Peer &&other) noexcept : internal::MacAddressed{std::move(other)}, _owns{other._owns} {
+        Peer(Peer &&other) noexcept : mixin::MacAddressed{std::move(other)}, _owns{other._owns} {
             other._owns = false;
         }
 
@@ -148,7 +133,7 @@ struct EspNow final :
                     (void) del();
                 }
 
-                static_cast<internal::MacAddressed &>(*this) = std::move(other);
+                static_cast<mixin::MacAddressed &>(*this) = std::move(other);
                 _owns = other._owns;
                 other._owns = false;
             }
@@ -212,7 +197,7 @@ struct EspNow final :
         /// @brief Private constructor – creates a peer owned by this object
         /// @param mac MAC address
         /// @note Called only by Peer::create
-        explicit Peer(const MacAddress &mac) noexcept : internal::MacAddressed{mac}, _owns{true} {
+        explicit Peer(const MacAddress &mac) noexcept : mixin::MacAddressed{mac}, _owns{true} {
             EspNow::instance().putPeer(*this);
         }
 
