@@ -8,9 +8,9 @@
 #include <cstdio>
 
 #include "kf/Result.hpp"
+#include "kf/Slice.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/memory/Array.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/memory/StringView.hpp"
 
 namespace kf::memory {
@@ -18,8 +18,8 @@ namespace kf::memory {
 /// @brief Fixed-size string buffer with compile-time capacity
 /// @tparam N Maximum string capacity (excluding null terminator)
 /// @note Always null-terminated, safe for C APIs
-template<usize N> class ArrayString {
-    static_assert(N > 0, "ArrayString capacity must be positive");
+template<usize N> struct StaticString {
+    static_assert(N > 0, "StaticString capacity must be positive");
 
     enum class Error {
         Truncated,
@@ -32,31 +32,31 @@ private:
 
 public:
     /// @brief Default constructor (empty string)
-    constexpr ArrayString() noexcept {
+    constexpr StaticString() noexcept {
         _buffer[0] = '\0';
     }
 
     /// @brief Construct from string literal
     /// @tparam M Literal size (including null terminator)
-    template<usize M> constexpr ArrayString(const char (&str)[M]) noexcept {
+    template<usize M> constexpr StaticString(const char (&str)[M]) noexcept {
         static_assert(M > 0, "String literal must not be empty");
         assign(StringView(str, min(M - 1, N)));
     }
 
-    template<usize M, typename... Args> constexpr static ArrayString formatted(const char (&fmt)[M], Args... args) noexcept {
+    template<usize M, typename... Args> [[nodiscard]] static constexpr StaticString formatted(const char (&fmt)[M], Args... args) noexcept {
         static_assert(M > 0, "String literal must not be empty");
-        ArrayString ret{};
+        StaticString ret{};
         (void) ret.format(fmt, args...);
         return ret;
     }
 
     /// @brief Construct from StringView
-    constexpr explicit ArrayString(StringView view) noexcept {
+    explicit constexpr StaticString(StringView view) noexcept {
         assign(view);
     }
 
     /// @brief Construct from C-string
-    constexpr ArrayString(const char *str) noexcept {
+    constexpr StaticString(const char *str) noexcept {
         assign(StringView(str));
     }
 
@@ -112,7 +112,7 @@ public:
     }
 
     /// @brief Assign string from StringView
-    constexpr ArrayString &assign(StringView view) noexcept {
+    constexpr StaticString &assign(StringView view) noexcept {
         _size = min(view.size(), N);
         for (usize i = 0; i < _size; ++i) {
             _buffer[i] = view[i];
@@ -306,21 +306,21 @@ public:
         if (result < 0) {
             _size = 0;
             _buffer[0] = '\0';
-            return {Error::FormatFailed};
+            return error(Error::FormatFailed);
         }
 
         _size = min(static_cast<usize>(result), N);
         _buffer[_size] = '\0';
 
         if (static_cast<usize>(result) > N) {
-            return {Error::Truncated};
+            return error(Error::Truncated);
         }
-        return {_size};
+        return ok(_size);
     }
 
     /// @brief Trim whitespace from beginning
     /// @return Reference to this string
-    constexpr ArrayString &trimStart() noexcept {
+    constexpr StaticString &trimStart() noexcept {
         usize i = 0;
         while (i < _size and isWhitespace(_buffer[i])) {
             ++i;
@@ -340,7 +340,7 @@ public:
 
     /// @brief Trim whitespace from end
     /// @return Reference to this string
-    constexpr ArrayString &trimEnd() noexcept {
+    constexpr StaticString &trimEnd() noexcept {
         while (_size > 0 and isWhitespace(_buffer[_size - 1])) {
             --_size;
         }
@@ -350,7 +350,7 @@ public:
 
     /// @brief Trim whitespace from both ends
     /// @return Reference to this string
-    constexpr ArrayString &trim() noexcept {
+    constexpr StaticString &trim() noexcept {
         return trimStart().trimEnd();
     }
 
@@ -361,10 +361,10 @@ public:
     [[nodiscard]] constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
         for (usize i = pos; i < _size; ++i) {
             if (_buffer[i] == ch) {
-                return i;
+                return some(i);
             }
         }
-        return {};
+        return none;
     }
 
     /// @brief Find substring in string
@@ -373,7 +373,7 @@ public:
     /// @return Option containing position of substring if found
     [[nodiscard]] constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
         if (str.size() > _size or pos > _size - str.size()) {
-            return {};
+            return none;
         }
 
         for (usize i = pos; i <= _size - str.size(); ++i) {
@@ -385,10 +385,10 @@ public:
                 }
             }
             if (found) {
-                return i;
+                return some(i);
             }
         }
-        return {};
+        return none;
     }
 
     /// @brief Check if string starts with prefix
@@ -416,17 +416,17 @@ public:
     }
 
     /// @brief Assignment from StringView
-    constexpr ArrayString &operator=(StringView view) noexcept {
+    constexpr StaticString &operator=(StringView view) noexcept {
         return assign(view);
     }
 
     /// @brief Assignment from C-string
-    constexpr ArrayString &operator=(const char *str) noexcept {
+    constexpr StaticString &operator=(const char *str) noexcept {
         return assign(StringView(str));
     }
 
     /// @brief Assignment from string literal
-    template<usize M> constexpr ArrayString &operator=(const char (&str)[M]) noexcept {
+    template<usize M> constexpr StaticString &operator=(const char (&str)[M]) noexcept {
         return assign(StringView(str, min(M - 1, N)));
     }
 
@@ -446,7 +446,7 @@ public:
     }
 
     /// @brief Implicit conversion to const char*
-    [[nodiscard]] constexpr explicit operator const char *() const noexcept {
+    [[nodiscard]] explicit constexpr operator const char *() const noexcept {
         return data();
     }
 
@@ -457,41 +457,41 @@ private:
     }
 };
 
-template<usize N> constexpr bool operator==(const ArrayString<N> &lhs, const ArrayString<N> &rhs) noexcept {
+template<usize N> constexpr bool operator==(const StaticString<N> &lhs, const StaticString<N> &rhs) noexcept {
     return lhs.view() == rhs.view();
 }
 
-template<usize N> constexpr bool operator!=(const ArrayString<N> &lhs, const ArrayString<N> &rhs) noexcept {
+template<usize N> constexpr bool operator!=(const StaticString<N> &lhs, const StaticString<N> &rhs) noexcept {
     return !(lhs == rhs);
 }
 
 /// @brief Compare FixedString with StringView for equality
-template<usize N> constexpr bool operator==(const ArrayString<N> &lhs, StringView rhs) noexcept {
+template<usize N> constexpr bool operator==(const StaticString<N> &lhs, StringView rhs) noexcept {
     return lhs.view() == rhs;
 }
 
 /// @brief Compare StringView with FixedString for equality
-template<usize N> constexpr bool operator==(StringView lhs, const ArrayString<N> &rhs) noexcept {
+template<usize N> constexpr bool operator==(StringView lhs, const StaticString<N> &rhs) noexcept {
     return lhs == rhs.view();
 }
 
 /// @brief Compare FixedString with C-string for equality
-template<usize N> constexpr bool operator==(const ArrayString<N> &lhs, const char *rhs) noexcept {
+template<usize N> constexpr bool operator==(const StaticString<N> &lhs, const char *rhs) noexcept {
     return lhs.view() == StringView(rhs);
 }
 
 /// @brief Compare C-string with FixedString for equality
-template<usize N> constexpr bool operator==(const char *lhs, const ArrayString<N> &rhs) noexcept {
+template<usize N> constexpr bool operator==(const char *lhs, const StaticString<N> &rhs) noexcept {
     return StringView(lhs) == rhs.view();
 }
 
 /// @brief Inequality operators (implement via equality)
-template<usize N, typename T> constexpr bool operator!=(const ArrayString<N> &lhs, const T &rhs) noexcept {
+template<usize N, typename T> constexpr bool operator!=(const StaticString<N> &lhs, const T &rhs) noexcept {
     return !(lhs == rhs);
 }
 
-template<usize N, typename T> constexpr bool operator!=(const T &lhs, const ArrayString<N> &rhs) noexcept {
+template<usize N, typename T> constexpr bool operator!=(const T &lhs, const StaticString<N> &rhs) noexcept {
     return !(lhs == rhs);
 }
 
-}// namespace kf
+}// namespace kf::memory

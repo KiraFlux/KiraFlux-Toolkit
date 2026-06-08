@@ -3,27 +3,33 @@
 
 #pragma once
 
-#include "kf/aliases.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/math/filters/Filter.hpp"
 
-namespace kf::math::filters {
+namespace kf::internal {
 
-// ExponentialFilter
-namespace internal::ef {
-struct Config final : mixin::NonCopyable {
+struct ExponentialFilterConfig final {
     f32 factor;///< Smoothing factor (0.0 to 1.0, higher = faster response)
 };
-}// namespace internal::ef
+
+}// namespace kf::internal
+
+namespace kf::math::filters {
 
 /// @brief Exponential moving average filter (EMA)
 /// @tparam T Data type (typically float or integer)
 /// @note Simple first-order IIR filter for smoothing noisy signals
-template<typename T> struct ExponentialFilter : Filter<ExponentialFilter<T>, T>, mixin::Configurable<internal::ef::Config> {
+template<typename T> struct ExponentialFilter :
+
+    Filter<ExponentialFilter<T>, T>,
+    mixin::Configurable<internal::ExponentialFilterConfig>
+
+{
     using ValueType = T;
-    using Config = internal::ef::Config;
+    using Config = internal::ExponentialFilterConfig;
 
     using mixin::Configurable<Config>::Configurable;
 
@@ -31,7 +37,6 @@ private:
     ValueType _current_filtered{};
     bool _first_step{true};
 
-    // impl
     using This = ExponentialFilter<ValueType>;
 
     KF_IMPL(Filter<This, ValueType>);

@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "kf/Slice.hpp"
 #include "kf/math/units.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
 
@@ -16,7 +16,7 @@ struct ImageTag {};
 /// @tparam Impl Image implementation
 /// @tparam P Pixel implementation
 template<typename Impl, typename P> struct Image : ImageTag, meta::CRTP<Impl> {
-    KF_CHECK_IMPL(P, pixel::PixelTag);
+    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
 
     using BufferType = typename P::BufferType;
 
@@ -32,18 +32,18 @@ template<typename Impl, typename P> struct Image : ImageTag, meta::CRTP<Impl> {
     [[nodiscard]] math::Pixels stride() const noexcept { return this->impl().getStrideImpl(); }
 
     /// @brief Get writable frame buffer
-    [[nodiscard]] memory::Slice<BufferType> buffer() noexcept { return this->impl().getBufferImpl(); }
+    [[nodiscard]] Slice<BufferType> buffer() noexcept { return this->impl().getBufferImpl(); }
 
     /// @brief Get readonly frame buffer
-    [[nodiscard]] memory::Slice<const BufferType> buffer() const noexcept { return this->impl().getBufferImpl(); }
+    [[nodiscard]] Slice<const BufferType> buffer() const noexcept { return const_cast<Image *>(this)->impl().getBufferImpl(); }
 
     // properties
 
     /// @brief Get maximum valid X coordinate
-    [[nodiscard]] u8 maxX() const noexcept { return width() - 1; }
+    [[nodiscard]] math::Pixels maxX() const noexcept { return width() - 1; }
 
     /// @brief Get maximum valid Y coordinate
-    [[nodiscard]] u8 maxY() const noexcept { return height() - 1; }
+    [[nodiscard]] math::Pixels maxY() const noexcept { return height() - 1; }
 
     /// @brief Get image size in bytes
     [[nodiscard]] usize size() const noexcept { return buffer().size() * sizeof(BufferType); }

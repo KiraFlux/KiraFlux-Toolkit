@@ -5,22 +5,20 @@
 
 #include "kf/Function.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/aliases.hpp"
-#include "kf/memory/ArrayString.hpp"
+#include "kf/memory/StaticString.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
-#include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
-#include "kf/ui/internal/Placement.hpp"
+#include "kf/ui/Placement.hpp"
 #include "kf/ui/render/Render.hpp"
 
-namespace kf::ui {
+namespace kf::internal {
 
-namespace internal {
 using Glyph = u8;///< Text interface measurement unit in glyphs
 
-struct PlainTextRenderConfig final : mixin::NonCopyable, mixin::Callbacked<memory::StringView> {
+struct PlainTextRenderConfig final {
     Glyph row_max_length{16}; ///< Maximum characters per row
     Glyph rows_total{4};      ///< Total available rows in display
     Glyph float_places{2};    ///< Decimal places for float
@@ -56,13 +54,20 @@ struct PlainTextRenderCursor {
     }
 };
 
-}// namespace internal
-namespace render {
+}// namespace kf::internal
+
+namespace kf::ui::render {
+
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
 /// @note Implements Render CRTP interface for character-based display
-template<usize N> struct PlainTextRender : Render<PlainTextRender<N>>, mixin::Configurable<internal::PlainTextRenderConfig> {
+template<usize N> struct PlainTextRender :
 
+    Render<PlainTextRender<N>>,
+    mixin::Callbacked<memory::StringView>,
+    mixin::Configurable<internal::PlainTextRenderConfig>
+
+{
     /// @brief Text renderer configuration
     using Config = internal::PlainTextRenderConfig;
 
@@ -92,13 +97,13 @@ template<usize N> struct PlainTextRender : Render<PlainTextRender<N>>, mixin::Co
     }
 
     void writeReal(f64 real, u8 rounding) noexcept {
-        memory::ArrayString<24> temp;// Enough for double with precision
+        memory::StaticString<24> temp;// Enough for double with precision
         (void) temp.append(real, rounding);
         writeString(temp.view());
     }
 
 private:
-    memory::ArrayString<N> _buffer{};///< Output buffer for rendered text
+    memory::StaticString<N> _buffer{};///< Output buffer for rendered text
     internal::PlainTextRenderCursor _cursor{};
 
     KF_IMPL(Render<PlainTextRender<N>>);
@@ -118,7 +123,7 @@ private:
     }
 
     void finishImpl() noexcept {
-        const_cast<Config &>(this->config()).invoke(_buffer.view());
+        this->invoke(_buffer.view());
     }
 
     void titleImpl(memory::StringView title) noexcept {
@@ -138,12 +143,10 @@ private:
         writeString(enabled ? on : off);
     }
 
-    template<typename T> void sliderImpl(
-        T slider_value, Range<T> value_range,
-        internal::Placement placement) noexcept {
+    template<typename T> void sliderImpl(T slider_value, Range<T> value_range,Placement placement) noexcept {
 
         // Textual now supports only show/hide placement
-        if (internal::Placement::Hidden != placement) {
+        if (Placement::Hidden != placement) {
             this->value(slider_value);
             writeChar(' ');
         }
@@ -177,7 +180,7 @@ private:
     }
 
     void valueImpl(i32 integer) noexcept {
-        memory::ArrayString<12> temp;// Enough for 32-bit int
+        memory::StaticString<12> temp;// Enough for 32-bit int
         (void) temp.append(integer);
         writeString(temp.view());
     }
@@ -213,5 +216,4 @@ private:
     void endWidgetImpl() noexcept { writeChar('\n'); }
 };
 
-}// namespace render
-}// namespace kf::ui
+}// namespace kf::ui::render

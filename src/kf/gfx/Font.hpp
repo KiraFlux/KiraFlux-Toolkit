@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::gfx {
 
@@ -89,18 +89,4 @@ struct Font final {
     }
 };
 
-/// @brief System fonts collection
-/// @details Predefined fonts for common display resolutions and applications.
-/// All fonts are stored in program memory (Flash) with external linkage.
-namespace fonts {
-
-/// @brief GyverOLED 5×7 English font
-/// @details Optimized for 128×64 OLED displays. Contains ASCII characters
-/// from space (0x20) to tilde (0x7E). Each glyph is 5 pixels wide and 7 pixels high.
-/// Font data format: 5 bytes per glyph, each byte = 1 vertical column (8 bits, bits 0-6 used).
-/// Total glyphs: 126 - 32 + 1 = 95 characters.
-/// @note This font does not include Cyrillic or other non-ASCII characters
-extern const Font gyver_5x7_en;
-
-}// namespace fonts
 }// namespace kf::gfx

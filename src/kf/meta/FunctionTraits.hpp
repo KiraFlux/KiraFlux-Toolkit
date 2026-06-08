@@ -33,4 +33,4 @@ template<typename F> struct FunctionTraits<F &> : FunctionTraits<F> {};
 
 template<typename F> struct FunctionTraits<F &&> : FunctionTraits<F> {};
 
-}// namespace kf
+}// namespace kf::meta

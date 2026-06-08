@@ -10,16 +10,13 @@
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
-#include "kf/mixin/NonCopyable.hpp"
 #include "kf/validation.hpp"
 
 #include "kf/drivers/actuators/Actuator.hpp"
 
-namespace kf::drivers::actuators {
+namespace kf::internal {
 
-namespace internal {
-
-struct PwmPositionServoConfig final : mixin::NonCopyable, Validatable<PwmPositionServoConfig> {
+struct PwmPositionServoConfig final : Validatable<PwmPositionServoConfig> {
     using AngleRange = Range<math::Degrees>;
     using PulseRange = Range<math::Microseconds>;
 
@@ -41,15 +38,21 @@ private:
     }
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::drivers::actuators {
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
-template<typename I>
-struct PwmPositionServo final : Actuator<PwmPositionServo<I>, bool>,
-                                mixin::Configurable<internal::PwmPositionServoConfig> {
-    KF_CHECK_IMPL(I, kf::gpio::PwmOutputTag);
-    using PwmPinImpl = I;
+/// @tparam G Implementation of GPIO with PWM output support
+template<typename G> struct PwmPositionServo final :
+
+    Actuator<PwmPositionServo<G>, bool>,
+    mixin::Configurable<internal::PwmPositionServoConfig>
+
+{
+    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::PwmOutputTag);
+    using PwmPinImpl = G;
 
     /// @brief Configuration for PWM position servo (angle <-> pulse width mapping).
     /// @note Contains hardware‑independent mapping and is self‑validating.
@@ -83,7 +86,7 @@ private:
     PwmPinImpl _pin;                     ///< PWM output pin.
 
     // impl
-    using This = PwmPositionServo<I>;
+    using This = PwmPositionServo<G>;
 
     KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept {

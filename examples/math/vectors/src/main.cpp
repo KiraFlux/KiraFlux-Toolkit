@@ -12,7 +12,7 @@ void setup() {
         Vector2<float> a1{3.0f, 4.0f};
         Serial.println(a1.length());// 5.0
 
-        Vector2<float> a2{12.0f, 5.0f};
+        Vector2<float> a2{.x = 12.0f, .y = 5.0f};
         Serial.println(a2.length());// 13.0
 
         auto sum = a1 + a2;
@@ -26,7 +26,8 @@ void setup() {
     }
     {
         Vector3<kf::u8> b1{1, 2, 3};
-        Vector3<kf::u8> b2{4, 5, 6};
+        Vector3<kf::u8> b2{.x = 4, .y = 5, .z = 6};
+        auto zero{Vector3<double>::zero()};
 
         auto sum = b1 + b2;
         auto sub = b1 - b2;
@@ -39,8 +40,8 @@ void setup() {
         auto normalized = b1.normalized();// None if a1.length() is 0
     }
 
-    // Vector2i = Vector2<i32> 
-    // Vector2f = Vector2<f32> 
+    // Vector2i = Vector2<i32>
+    // Vector2f = Vector2<f32>
 }
 
 void loop() {}

@@ -4,45 +4,45 @@
 #pragma once
 
 #include "kf/Function.hpp"
+#include "kf/NoneType.hpp"
+#include "kf/Option.hpp"
 
 namespace kf::mixin {
 
+/// @brief Tag specifies that target struct support Callbacked mixin
 struct CallbackedTag {};
 
 /// @brief Adds Callback
-/// @tparam T
-template<typename T> struct Callbacked : CallbackedTag {
-    using CallbackType = Function<void(T)>;
+/// @tparam Args Callback arguments
+template<typename... Args> struct Callbacked : CallbackedTag {
+    using CallbackType = Function<void(Args...)>;
 
-    void callback(CallbackType &&function) noexcept {
-        _callback_function = std::move(function);
+    /// @brief Set callback from optional function
+    void callback(Option<CallbackType> optional_function) noexcept {
+        _callback_function = std::move(optional_function);
     }
 
-    void invoke(T value) noexcept {
-        if (_callback_function) {
-            _callback_function(value);
+    /// @brief Set callback from function object
+    template<typename F> void callback(F &&function) noexcept {
+        _callback_function = some(CallbackType{std::forward<F>(function)});
+    }
+
+    /// @brief Set callback as None
+    void callback(NoneType) noexcept {
+        _callback_function.reset();
+    }
+
+protected:
+    /// @brief Invoke callback function if is some
+    /// @param value callback function argument
+    void invoke(Args... args) const noexcept {
+        if (this->_callback_function.isSome()) {
+            this->_callback_function.unwrap()(args...);
         }
     }
 
 private:
-    CallbackType _callback_function{nullptr};
-};
-
-template<> struct Callbacked<void> : CallbackedTag {
-    using CallbackType = Function<void()>;
-
-    void callback(CallbackType &&function) noexcept {
-        _callback_function = std::move(function);
-    }
-
-    void invoke() noexcept {
-        if (_callback_function) {
-            _callback_function();
-        }
-    }
-
-private:
-    CallbackType _callback_function{nullptr};
+    Option<CallbackType> _callback_function{none};
 };
 
 }// namespace kf::mixin

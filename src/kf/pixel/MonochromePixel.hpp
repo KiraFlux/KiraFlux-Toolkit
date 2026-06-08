@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "kf/Slice.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::pixel {
@@ -30,7 +30,7 @@ private:
         return (r + g + b) > 128 * 3;
     }
 
-    static void setPixelImpl(memory::Slice<BufferType> buffer, PositionType stride, PositionType abs_x, PositionType abs_y, ColorType color) noexcept {
+    static void setPixelImpl(Slice<BufferType> buffer, PositionType stride, PositionType abs_x, PositionType abs_y, ColorType color) noexcept {
         const auto page = abs_y / page_height;
         const auto bit_mask = static_cast<u8>(1 << (abs_y % page_height));
         const usize index = page * stride + abs_x;
@@ -43,7 +43,7 @@ private:
     }
 
     static void fillImpl(
-        memory::Slice<BufferType> buffer,
+        Slice<BufferType> buffer,
         PositionType stride,
         PositionType offset_x,
         PositionType offset_y,
@@ -71,14 +71,14 @@ private:
     }
 
     static void copyImpl(
-        memory::Slice<const BufferType> src,
+        Slice<const BufferType> src,
         PositionType src_w,
         PositionType src_h,
         PositionType src_x,
         PositionType src_y,
         PositionType copy_w,
         PositionType copy_h,
-        memory::Slice<BufferType> dst,
+        Slice<BufferType> dst,
         PositionType dst_stride,
         PositionType dst_x,
         PositionType dst_y) noexcept {

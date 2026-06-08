@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::math {
 
@@ -28,4 +28,4 @@ using Milliseconds = u32;
 /// @brief Time duration in microseconds
 using Microseconds = u32;
 
-}// namespace kf
+}// namespace kf::math

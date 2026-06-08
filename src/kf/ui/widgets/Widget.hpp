@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/ui/internal/UiTraits.hpp"
+#include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
 
@@ -12,7 +12,7 @@ struct WidgetTag {};
 /// @brief Base widget class for all UI components
 /// @note All interactive UI elements inherit from this class
 template<typename U> struct Widget : WidgetTag, mixin::NonCopyable {
-    KF_CHECK_IMPL(U, ::kf::ui::internal::UiTraitsTag);
+    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     /// @brief Render widget content (must be implemented by derived classes)
     virtual void doRender(typename U::RenderImpl &render) const noexcept = 0;

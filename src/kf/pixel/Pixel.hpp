@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include "kf/Slice.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/aliases.hpp"
-#include "kf/memory/Slice.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::pixel {
 
@@ -22,20 +22,19 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelT
 
     static constexpr auto bits_per_pixel{bits};
 
-    template<PositionType W, PositionType H> static constexpr usize buffer_size{Impl::getBufferSizeImpl(W, H)};
+    [[nodiscard]] static constexpr usize bufferSize(usize width, usize height) noexcept {
+        return Impl::getBufferSizeImpl(width, height);
+    }
 
     // conventions
 
-    [[nodiscard]] static constexpr ColorType fromRgb(
-        u8 r,
-        u8 g,
-        u8 b) noexcept { return Impl::fromRgbImpl(r, g, b); }
+    [[nodiscard]] static constexpr ColorType fromRgb(u8 r, u8 g, u8 b) noexcept { return Impl::fromRgbImpl(r, g, b); }
 
     // draw
 
     /// @brief set pixel color
     static void setPixel(
-        memory::Slice<BufferType> buffer,
+        Slice<BufferType> buffer,
         PositionType stride,
         PositionType abs_x,
         PositionType abs_y,
@@ -48,7 +47,7 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelT
 
     /// @brief Effective fill rectangular region with specified color
     static void fill(
-        memory::Slice<BufferType> buffer,
+        Slice<BufferType> buffer,
         PositionType stride,
         PositionType offset_x,
         PositionType offset_y,
@@ -64,43 +63,39 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelT
 
     /// @brief Copy rectangular region from source to destination buffer
     static void copy(
-        memory::Slice<const BufferType> src,
-        PositionType src_w,
-        PositionType src_h,
-        memory::Slice<BufferType> dst,
-        PositionType dst_stride,
-        PositionType dst_x,
-        PositionType dst_y) noexcept {
-        if (src_w <= 0 || src_h <= 0 || dst_stride <= 0) return;
+        Slice<const BufferType> source_buffer,
+        PositionType source_width,
+        PositionType source_height,
+        Slice<BufferType> dest_buffer,
+        PositionType dest_stride,
+        PositionType dest_x,
+        PositionType dest_y) noexcept {
+        if (source_width <= 0 or source_height <= 0 or dest_stride <= 0) { return; }
 
-        // Обрезка по целевому буферу
-        const auto dst_total_h = dst.size() / dst_stride;
-        if (dst_y >= dst_total_h) return;
+        const auto dst_total_h = dest_buffer.size() / dest_stride;
+        if (dest_y >= dst_total_h) { return; }
 
-        PositionType copy_w = src_w;
-        PositionType copy_h = src_h;
+        auto copy_width = source_width;
+        auto copy_height = source_height;
 
-        // Обрезка справа
-        if (dst_x + copy_w > dst_stride) {
-            if (dst_x >= dst_stride) return;
-            copy_w = dst_stride - dst_x;
+        if (dest_x + copy_width > dest_stride) {
+            if (dest_x >= dest_stride) { return; }
+            copy_width = dest_stride - dest_x;
         }
 
-        // Обрезка снизу
-        if (dst_y + copy_h > dst_total_h) {
-            copy_h = dst_total_h - dst_y;
+        if (dest_y + copy_height > dst_total_h) {
+            copy_height = dst_total_h - dest_y;
         }
 
-        if (copy_w <= 0 || copy_h <= 0) return;
+        if (copy_width <= 0 or copy_height <= 0) { return; }
 
-        // Обрезка по размеру исходного буфера (на всякий случай)
-        const usize src_pixels = src.size();
-        if (static_cast<usize>(src_w) * src_h > src_pixels) {
-            copy_h = kf::min(copy_h, static_cast<PositionType>(src_pixels / src_w));
-            if (copy_h <= 0) return;
+        const usize src_pixels = source_buffer.size();
+        if (static_cast<usize>(source_width) * source_height > src_pixels) {
+            copy_height = kf::min(copy_height, static_cast<PositionType>(src_pixels / source_width));
+            if (copy_height <= 0) { return; }
         }
 
-        Impl::copyImpl(src, src_w, src_h, dst, dst_stride, dst_x, dst_y, copy_w, copy_h);
+        Impl::copyImpl(source_buffer, source_width, source_height, dest_buffer, dest_stride, dest_x, dest_y, copy_width, copy_height);
     }
 
     // CRTP

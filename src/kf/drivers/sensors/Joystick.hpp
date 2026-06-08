@@ -4,17 +4,11 @@
 #pragma once
 
 #include "kf/meta/CRTP.hpp"
-#include "kf/mixin/Configurable.hpp"
-#include "kf/mixin/Initable.hpp"
-#include "kf/mixin/NonCopyable.hpp"
 #include "kf/tuner/Tuner.hpp"
 
-#include "kf/drivers/sensors/NormalizedAdcInput.hpp"
 #include "kf/drivers/sensors/Sensor.hpp"
 
-namespace kf::drivers::sensors {
-
-namespace internal {
+namespace kf::internal {
 
 struct JoystickValue {
     f32 x;        ///< Normalized X-axis value (-1.0 to 1.0)
@@ -22,7 +16,9 @@ struct JoystickValue {
     f32 magnitude;///< Combined vector magnitude (0.0 to 1.0)
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::drivers::sensors {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
@@ -34,12 +30,12 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
     /// @brief Normalized joystick reading value
     using Value = internal::JoystickValue;
 
-    struct Config final : mixin::NonCopyable {
+    struct Config final {
         typename InputImpl::Config x, y;
     };
 
     /// @brief Tuner for a complete two‑axis joystick.
-    /// @note Aggregates two NormalizedAdcInput::Tuner instances (X and Y).
+    /// @note Aggregates two InputImpl::Tuner instances (X and Y).
     ///       After reset(), call poll() repeatedly until running() returns false.
     ///       The tuner reads raw values from the joystick axes internally.
     struct Tuner : tuner::Tuner<Tuner> {
@@ -50,22 +46,19 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
     private:
         typename InputImpl::Tuner _tuner_x, _tuner_y;
 
-        // impl
-        using This = Tuner;
-
-        KF_IMPL_RESETTABLE(This);
+        KF_IMPL_RESETTABLE(Tuner);
         void resetImpl() noexcept {
             _tuner_x.reset();
             _tuner_y.reset();
         }
 
-        KF_IMPL_POLLABLE(This);
+        KF_IMPL_POLLABLE(Tuner);
         void pollImpl() noexcept {
             _tuner_x.poll();
             _tuner_y.poll();
         }
 
-        KF_IMPL_TUNER(This);
+        KF_IMPL_TUNER(Tuner);
         bool runningImpl() const noexcept {
             return _tuner_x.running() or _tuner_y.running();
         }
@@ -76,13 +69,12 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
     explicit Joystick(
         const Config &config,
         const typename InputImpl::FilterImpl::Config &filter_config,
-        typename InputImpl::AdcPinImpl &&pin_x,
-        typename InputImpl::AdcPinImpl &&pin_y) noexcept :
+        typename InputImpl::AdcInputImpl &&pin_x,
+        typename InputImpl::AdcInputImpl &&pin_y) noexcept :
         axis_x{config.x, filter_config, std::move(pin_x)},
         axis_y{config.y, filter_config, std::move(pin_y)} {}
 
 private:
-    // impl
     using This = Joystick<I>;
 
     KF_IMPL_INITABLE(This, void);

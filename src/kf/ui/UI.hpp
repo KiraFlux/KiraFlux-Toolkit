@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "kf/Option.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/aliases.hpp"
 #include "kf/math/units.hpp"
 #include "kf/memory/Queue.hpp"
 #include "kf/memory/StringView.hpp"
@@ -12,8 +12,9 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
+#include "kf/primitives.hpp"
 
-#include "kf/ui/internal/UiTraits.hpp"
+#include "kf/ui/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
 #include "kf/ui/widgets/Button.hpp"
 #include "kf/ui/widgets/CheckBox.hpp"
@@ -45,18 +46,7 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     /// @brief UI Event Value type
     using EventValue = typename Event::Value;
 
-    using Traits = internal::UiTraits<RenderImpl, Event>;
-
-    /// @brief Arithmetic mode: value += direction * step
-    template<typename T> using ArithmeticAdjuster = internal::ArithmeticAdjuster<T>;
-
-    /// @brief ArithmeticPositiveOnly mode: value += direction * step, clamp >= 0
-    template<typename T> using ArithmeticPositiveOnlyAdjuster = internal::ArithmeticPositiveOnlyAdjuster<T>;
-
-    /// @brief Geometric mode: value *= step for positive direction, /= for negative
-    template<typename T> using GeometricAdjuster = internal::GeometricAdjuster<T>;
-
-    using Placement = internal::Placement;
+    using Traits = UiTraits<RenderImpl, Event>;
 
     /// @brief Base widget type (provided for inheritance or generic references)
     using Widget = widgets::Widget<Traits>;
@@ -89,18 +79,22 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     template<typename T> using Slider = widgets::Slider<Traits, T>;
 
     /// @brief Access renderer configuration
-    /// @return Reference to renderer config structure
+    /// @return Mutable reference to renderer config structure
     [[nodiscard]] RenderConfig &renderConfig() noexcept { return _render_config; }
+
+    /// @brief Access renderer instance
+    /// @return Mutable  Reference to renderer
+    [[nodiscard]] RenderImpl &renderSystem() noexcept { return _render_system; }
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
     void bindPage(Page &page) noexcept {
-        if (nullptr != _active_page) {
-            _active_page->onExit();
+        if (_active_page.isSome()) {
+            _active_page.unwrap().onExit();
         }
 
-        _active_page = &page;
-        _active_page->onEntry();
+        _active_page = someRef(page);
+        _active_page.unwrap().onEntry();
     }
 
     /// @brief Add event to processing queue
@@ -200,16 +194,16 @@ public:
         }
 
         /// @brief Get widgets on page
-        [[nodiscard]] memory::Slice<Widget *> widgets() noexcept { return _widgets; }
+        [[nodiscard]] Slice<Widget *> widgets() noexcept { return _widgets; }
 
     protected:
         /// @brief Set widgets on page
-        void widgets(memory::Slice<Widget *> new_widgets) noexcept { _widgets = new_widgets; }
+        void widgets(Slice<Widget *> new_widgets) noexcept { _widgets = new_widgets; }
 
     private:
-        memory::Slice<Widget *> _widgets{};///< Widgets on this page
-        PageSetter _to_this{*this};        ///< Navigation widget to this page
-        isize _cursor{0};                  ///< Current widget cursor position (focused widget index)
+        Slice<Widget *> _widgets{};///< Widgets on this page
+        PageSetter _to_this{*this};///< Navigation widget to this page
+        isize _cursor{0};          ///< Current widget cursor position (focused widget index)
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
@@ -229,7 +223,7 @@ private:
     memory::Queue<Event> _events{};           ///< Event queue for pending UI events
     RenderConfig _render_config{};            ///< Render Configuration
     RenderImpl _render_system{_render_config};///< Renderer system implementation instance
-    Page *_active_page{nullptr};              ///< Currently active page for rendering
+    Option<Page &> _active_page{none};        ///< Currently active page for rendering
 
     // impl
     using This = UI<R, E>;
@@ -238,9 +232,9 @@ private:
     void pollImpl(math::Milliseconds now) noexcept {
         // Process active page update, pending events and render if needed
 
-        if (nullptr == _active_page) { return; }
+        if (_active_page.isNone()) { return; }
 
-        _active_page->onUpdate(now);
+        _active_page.unwrap().onUpdate(now);
 
         if (_events.empty()) { return; }
 
@@ -250,14 +244,14 @@ private:
         bool render_required{false};
 
         while (not _events.empty() and events_processed < max_events_per_poll) {
-            render_required |= _active_page->onEvent(_events.front());
+            render_required |= _active_page.unwrap().onEvent(_events.front());
             events_processed += 1;
             _events.pop();
         }
 
         if (render_required) {
             _render_system.prepare();
-            _active_page->render(_render_system);
+            _active_page.unwrap().render(_render_system);
             _render_system.finish();
         }
     }

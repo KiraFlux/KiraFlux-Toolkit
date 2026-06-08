@@ -7,7 +7,8 @@
 #include <kf/drivers/display/Orientation.hpp>
 #include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
-#include <kf/gpio/arduino.hpp>
+#include <kf/gfx/fonts/gyver_5x7.hpp>
+#include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/UI.hpp>
@@ -15,10 +16,10 @@
 
 using kf::bus::spi::ArduinoSPI;
 using kf::drivers::display::Orientation;
-using kf::gpio::arduino::DigitalOutput;
+using kf::gpio::ArduinoGPIO;
 
 // Display Driver specialisation
-using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node, DigitalOutput>;
+using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput>;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
@@ -54,7 +55,7 @@ struct MainPage : MyUI::Page {
         },
         .default_value = 0,
         .step = 25,
-        .placement = MyUI::Placement::Outside,
+        .placement = kf::ui::Placement::Outside,
         .init_show_value = true,
     };
 
@@ -145,7 +146,7 @@ struct SettingsPage : MyUI::Page {
         strings_combo_box_config,// by ref
     };
 
-    using MySpinBox = MyUI::SpinBox<int, MyUI::GeometricAdjuster<int>>;
+    using MySpinBox = MyUI::SpinBox<int, MyUI::Traits::GeometricAdjuster<int>>;
 
     MySpinBox::Config spin_box_config{
         .default_step = 2,
@@ -224,8 +225,8 @@ static MyDisplayDriver::Config display_config{
 static MyDisplayDriver display{
     display_config,
     bus.createNode(node_config),
-    DigitalOutput{GPIO_NUM_2},
-    DigitalOutput{GPIO_NUM_15},
+    ArduinoGPIO::DigitalOutput{GPIO_NUM_22},// DC
+    ArduinoGPIO::DigitalOutput{GPIO_NUM_17},// RESET
 };
 
 // display
@@ -245,17 +246,25 @@ void setup() {
     // render setup
     MyUI::RenderConfig &config = ui.renderConfig();
 
-    static kf::gfx::Canvas<P> root_canvas{kf::image::DynamicImage<P>{display.image()}};
+    using CanvasImpl = kf::gfx::Canvas<P>;
+
+    static CanvasImpl root_canvas{
+        kf::image::DynamicImage<P>{display.image()},
+        CanvasImpl::State{
+            .active_font = kf::someRef(kf::gfx::fonts::gyver_5x7_en),
+            .foreground_color = CanvasImpl::PaletteType::bright_white,
+            .background_color = CanvasImpl::PaletteType::black,
+            .auto_next_line = true,
+        },
+    };
 
     // post-render procedure
-    config.callback([](kf::memory::StringView text) {
+    ui.renderSystem().wrapped.callback([](kf::memory::StringView text) {
         root_canvas.fill();
-        root_canvas.text(0, 0, text.data());
+        root_canvas.text(0, 0, text);
 
         (void) display.send();// SPI cannot tell anything about error => ignoring
     });
-
-    root_canvas.font(kf::gfx::fonts::gyver_5x7_en);
 
     // misc
     config.float_places = 3;                         // float rendering like:  1234.567

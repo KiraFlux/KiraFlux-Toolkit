@@ -7,58 +7,20 @@
 #include <type_traits>
 
 #include "kf/algorithm.hpp"
-#include "kf/aliases.hpp"
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/bus/iic/IIC.hpp"
 
-namespace kf::bus::iic {
-namespace internal::arduino {
-
-struct NodeConfig final : mixin::NonCopyable {
-    /// @brief 7‑bit I2C device address (usually 0x08–0x77)
-    /// @note Wire.h uses 7‑bit format
-    u8 address;
-};
-
-struct BusConfig final : mixin::NonCopyable {
-    static constexpr u8 pin_default{static_cast<u8>(GPIO_NUM_NC)};
-    static constexpr math::Milliseconds max_timeout{60'000};
-
-    u32 clock_hz;
-    math::Milliseconds timeout;
-    usize buffer_size;
-    u8 pin_sda;
-    u8 pin_scl;
-
-    [[nodiscard]] static constexpr BusConfig create(
-        u32 clock_hz = 0,              // 0: use Wire defaults
-        math::Milliseconds timeout = 0,// 0: use Wire defaults
-        usize buffer_size = 0,         // 0: use Wire defaults
-        u8 sda = pin_default,
-        u8 scl = pin_default) noexcept {
-        return BusConfig{
-            .clock_hz = clock_hz,
-            .timeout = kf::min(timeout, max_timeout),
-            .buffer_size = buffer_size,
-            .pin_sda = sda,
-            .pin_scl = scl,
-        };
-    }
-
-    constexpr bool hasDefaultPins() const noexcept { return pin_sda == pin_default and pin_scl == pin_default; }
-    constexpr bool hasDefaultClock() const noexcept { return clock_hz == 0; }
-    constexpr bool hasDefaultTimeout() const noexcept { return timeout == 0; }
-    constexpr bool hasDefaultBufferSize() const noexcept { return buffer_size == 0; }
-};
+namespace kf::internal {
 
 /// @brief Error codes for I2C operations.
 /// @note Most errors correspond directly to Arduino Wire library failure conditions.
-enum class Error : u8 {
+enum class ArduinoIicError : u8 {
     // Bus errors
 
     ClockConfigFailed,     ///< Setting I2C clock frequency failed (Wire.setClock() returned false).
@@ -76,12 +38,54 @@ enum class Error : u8 {
     Unknown,         ///< Any other unspecified error from Arduino Wire (endTransmission code 4).
 };
 
+struct NodeConfig final {
+    /// @brief 7‑bit I2C device address (usually 0x08–0x77)
+    /// @note Wire.h uses 7‑bit format
+    u8 address;
+};
+
+struct ArduinoIicBusConfig final {
+    static constexpr u8 pin_default{static_cast<u8>(GPIO_NUM_NC)};
+    static constexpr math::Milliseconds max_timeout{60'000};
+
+    u32 clock_hz;
+    math::Milliseconds timeout;
+    usize buffer_size;
+    u8 pin_sda;
+    u8 pin_scl;
+
+    [[nodiscard]] static constexpr ArduinoIicBusConfig create(
+        u32 clock_hz = 0,              // 0: use Wire defaults
+        math::Milliseconds timeout = 0,// 0: use Wire defaults
+        usize buffer_size = 0,         // 0: use Wire defaults
+        u8 sda = pin_default,
+        u8 scl = pin_default) noexcept {
+        return ArduinoIicBusConfig{
+            .clock_hz = clock_hz,
+            .timeout = kf::min(timeout, max_timeout),
+            .buffer_size = buffer_size,
+            .pin_sda = sda,
+            .pin_scl = scl,
+        };
+    }
+
+    constexpr bool hasDefaultPins() const noexcept { return pin_sda == pin_default and pin_scl == pin_default; }
+    constexpr bool hasDefaultClock() const noexcept { return clock_hz == 0; }
+    constexpr bool hasDefaultTimeout() const noexcept { return timeout == 0; }
+    constexpr bool hasDefaultBufferSize() const noexcept { return buffer_size == 0; }
+};
+
 /// @brief I2C node implementation that adapts Arduino TwoWire to the library's Readable/Writable interfaces.
 /// @tparam I The bus implementation type (ArduinoIIC).
 /// @note This class is movable but not copyable. It holds a reference to the underlying TwoWire instance
 ///       and manages the I2C address and transaction state. All I/O operations are blocking.
 ///       The node is created via `ArduinoIIC::createNode()` and must remain valid while the bus exists.
-template<typename I> struct ArduinoIicNode : IicNode<ArduinoIicNode<I>, Error>, mixin::Configurable<NodeConfig> {
+template<typename I> struct ArduinoIicNode :
+
+    ::kf::bus::iic::IicNode<ArduinoIicNode<I>, ArduinoIicError>,
+    ::kf::mixin::Configurable<NodeConfig>
+
+{
     using BusImpl = I;
 
     /// @brief Configuration for an Arduino Wire I2C node.
@@ -96,7 +100,7 @@ private:
     // impl
     using This = ArduinoIicNode<BusImpl>;
 
-    KF_IMPL_READABLE(This, Error);
+    KF_IMPL_READABLE(This, ArduinoIicError);
 
     /// @brief Request `requested` bytes from the I2C device.
     /// @return Number of bytes actually available.
@@ -121,36 +125,36 @@ private:
 
     // interface impl
 
-    Result<memory::Slice<const u8>, Error> readBufferImpl(memory::Slice<u8> buffer) noexcept {
+    Result<Slice<const u8>, ArduinoIicError> readBufferImpl(Slice<u8> buffer) noexcept {
         const usize received = request(buffer.size());
-        if (received == 0) { return {Error::Timeout}; }
+        if (received == 0) { return error(ArduinoIicError::Timeout); }
 
         readBytesUnchecked(buffer.data(), received);
-        return {memory::Slice<const u8>{buffer.data(), received}};
+        return ok(Slice<const u8>{buffer.data(), received});
     }
 
-    template<typename T> [[nodiscard]] Result<T, Error> readPacketImpl() noexcept {
+    template<typename T> [[nodiscard]] Result<T, ArduinoIicError> readPacketImpl() noexcept {
         constexpr usize requested = sizeof(T);
         const usize received = request(requested);
-        if (received == 0) { return {Error::Timeout}; }
+        if (received == 0) { return error(ArduinoIicError::Timeout); }
 
         if (received != requested) {
             discardReceiveBuffer();
-            return {Error::IncompletePacket};
+            return error(ArduinoIicError::IncompletePacket);
         }
 
         if constexpr (requested == sizeof(u8)) {
-            return {static_cast<T>(_wire.read())};
+            return ok(static_cast<T>(_wire.read()));
         } else {
             T packet;
             readBytesUnchecked(reinterpret_cast<u8 *>(&packet), requested);
-            return {packet};
+            return ok(packet);
         }
     }
 
     //
 
-    KF_IMPL_WRITABLE(This, Error);
+    KF_IMPL_WRITABLE(This, Result<void, ArduinoIicError>);
 
     /// @brief Begin an I2C transmission (send START condition).
     /// @note Must be called before writing any data.
@@ -167,23 +171,23 @@ private:
     /// @param to_write Total number of bytes that were intended to be written.
     /// @return Success or specific I2C error.
     /// @note Possible errors: AddressNack, DataNack, Timeout, BufferTooLong, Unknown.
-    [[nodiscard]] Result<void, Error> endTransmission(usize written, usize to_write) noexcept {
+    [[nodiscard]] Result<void, ArduinoIicError> endTransmission(usize written, usize to_write) noexcept {
         const u8 code = _wire.endTransmission();
 
-        if (written != to_write) { return {Error::BufferTooLong}; }
+        if (written != to_write) { return error(ArduinoIicError::BufferTooLong); }
 
         switch (code) {
-            case 0: return {};
-            case 1: return {Error::BufferTooLong};
-            case 2: return {Error::AddressNack};
-            case 3: return {Error::DataNack};
-            case 4: return {Error::Unknown};
-            case 5: return {Error::Timeout};
-            default: return {Error::Unknown};
+            case 0: return ok();
+            case 1: return error(ArduinoIicError::BufferTooLong);
+            case 2: return error(ArduinoIicError::AddressNack);
+            case 3: return error(ArduinoIicError::DataNack);
+            case 4: return error(ArduinoIicError::Unknown);
+            case 5: return error(ArduinoIicError::Timeout);
+            default: return error(ArduinoIicError::Unknown);
         }
     }
 
-    [[nodiscard]] Result<void, Error> writeBufferImpl(memory::Slice<const u8> buffer) noexcept {
+    [[nodiscard]] Result<void, ArduinoIicError> writeBufferImpl(Slice<const u8> buffer) noexcept {
         beginTransmission();
         const usize written = writeBytes(buffer.data(), buffer.size());
         return endTransmission(written, buffer.size());
@@ -201,13 +205,13 @@ private:
 
     // interface impl
 
-    template<typename T> [[nodiscard]] Result<void, Error> writePacketImpl(T &&packet) noexcept {
+    template<typename T> [[nodiscard]] Result<void, ArduinoIicError> writePacketImpl(T &&packet) noexcept {
         beginTransmission();
         const usize written = writePacketUnchecked(std::forward<T>(packet));
         return endTransmission(written, sizeof(T));
     }
 
-    template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, memory::Slice<const u8> buffer) noexcept {
+    template<typename T> [[nodiscard]] Result<void, ArduinoIicError> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
         beginTransmission();
         const usize header_written = writePacketUnchecked(std::forward<T>(header));
         const usize buffer_written = writeBytes(buffer.data(), buffer.size());
@@ -215,13 +219,19 @@ private:
     }
 };
 
-};// namespace internal::arduino
+};// namespace kf::internal
 
-struct ArduinoIIC : IIC<ArduinoIIC, internal::arduino::ArduinoIicNode<ArduinoIIC>, internal::arduino::Error>,
-                    mixin::Configurable<internal::arduino::BusConfig> {
-    using Config = internal::arduino::BusConfig;
-    using Error = internal::arduino::Error;
-    using Node = internal::arduino::ArduinoIicNode<ArduinoIIC>;
+namespace kf::bus::iic {
+
+struct ArduinoIIC :
+
+    ::kf::bus::iic::IIC<ArduinoIIC, internal::ArduinoIicNode<ArduinoIIC>, internal::ArduinoIicError>,
+    ::kf::mixin::Configurable<internal::ArduinoIicBusConfig>
+
+{
+    using Config = internal::ArduinoIicBusConfig;
+    using Error = internal::ArduinoIicError;
+    using Node = internal::ArduinoIicNode<ArduinoIIC>;
 
     friend Node;
 
@@ -231,16 +241,16 @@ struct ArduinoIIC : IIC<ArduinoIIC, internal::arduino::ArduinoIicNode<ArduinoIIC
 private:
     TwoWire &_wire;
 
-    // impl
-    using This = ArduinoIIC;
-
-    using InitResult = kf::Result<void, Error>;
-    KF_IMPL_INITABLE(This, InitResult);
-    InitResult initImpl() noexcept {
-        if (not _wire.begin()) { return Error::BeginFailed; }
+    KF_IMPL_INITABLE(ArduinoIIC, Result<void, Error>);
+    Result<void, Error> initImpl() noexcept {
+        if (not _wire.begin()) {
+            return error(Error::BeginFailed);
+        }
 
         if (not this->config().hasDefaultClock()) {
-            if (not _wire.setClock(this->config().clock_hz)) { return Error::ClockConfigFailed; }
+            if (not _wire.setClock(this->config().clock_hz)) {
+                return error(Error::ClockConfigFailed);
+            }
         }
 
         if (not this->config().hasDefaultTimeout()) {
@@ -248,17 +258,21 @@ private:
         }
 
         if (not this->config().hasDefaultBufferSize()) {
-            if (_wire.setBufferSize(this->config().buffer_size) != this->config().buffer_size) { return Error::BufferSizeConfigFailed; }
+            if (_wire.setBufferSize(this->config().buffer_size) != this->config().buffer_size) {
+                return error(Error::BufferSizeConfigFailed);
+            }
         }
 
         if (not this->config().hasDefaultPins()) {
-            if (not _wire.setPins(static_cast<int>(this->config().pin_sda), static_cast<int>(this->config().pin_scl))) { return Error::PinConfigFailed; }
+            if (not _wire.setPins(static_cast<int>(this->config().pin_sda), static_cast<int>(this->config().pin_scl))) {
+                return error(Error::PinConfigFailed);
+            }
         }
 
-        return {};
+        return ok();
     }
 
-    KF_IMPL_QUITABLE(This);
+    KF_IMPL_QUITABLE(ArduinoIIC);
     void quitImpl() noexcept {
         (void) _wire.end();// just ignore
     }

@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <cstdint>
 
-
 namespace kf {
 
 using u8 = uint8_t;

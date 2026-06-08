@@ -2,9 +2,9 @@
 #include <kf/Logger.hpp>
 
 #include <kf/drivers/actuators/PwmPositionServo.hpp>
-#include <kf/gpio/arduino.hpp>
+#include <kf/gpio/ArduinoGPIO.hpp>
 
-using kf::gpio::arduino::PwmOutput;
+using PwmOutput = kf::gpio::ArduinoGPIO::PwmOutput;
 using PwmPositionServo = kf::drivers::actuators::PwmPositionServo<PwmOutput>;
 
 // Angle -> pulse width mapping (0° = 500 µs, 180° = 2500 µs)
@@ -25,7 +25,7 @@ PwmOutput::Config pwm_config{
 PwmPositionServo servo{
     servo_config,
     PwmOutput{pwm_config},
-    PwmPositionServo::Config::AngleRange{.start = 0, .end = 90},// safe range
+    PwmPositionServo::Config::AngleRange{.start = 0, .end = 90},// narrow override of available position range
 };
 
 void setup() {

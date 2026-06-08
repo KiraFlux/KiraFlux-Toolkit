@@ -7,32 +7,36 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
-#include "kf/ui/internal/Adjuster.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
-namespace kf::ui {
+namespace kf::internal {
 
-namespace internal {
-
-template<typename T> struct SpinBoxConfig final : mixin::NonCopyable {
+template<typename T> struct SpinBoxConfig final {
     T default_step;///< value adjust step default value
     T step_adjust; ///< adjust step of step
 };
 
-}// namespace internal
+}// namespace kf::internal
 
-namespace widgets {
+namespace kf::ui::widgets {
 
 struct SpinBoxTag {};
 
 /// @brief Spin box for adjusting numeric values with different modes
 /// @tparam T Numeric type for spin box value (must be arithmetic)
-template<typename U, typename T, typename AdjusterImpl = internal::ArithmeticAdjuster<T>>
-struct SpinBox final : SpinBoxTag, Widget<U>, mixin::ValueCallbacked<T>, mixin::Configurable<internal::SpinBoxConfig<T>> {
-    KF_CHECK_IMPL(AdjusterImpl, ::kf::ui::internal::AdjusterTag);
+template<typename U, typename T, typename A> struct SpinBox final :
+
+    SpinBoxTag,
+    Widget<U>,
+    mixin::ValueCallbacked<T>,
+    mixin::Configurable<internal::SpinBoxConfig<T>>
+
+{
+    KF_CHECK_IMPL(A, typename U::AdjusterTag);
+    using AdjusterImpl = A;
     using Config = internal::SpinBoxConfig<T>;
 
-    constexpr explicit SpinBox(const Config &config, T default_value = T{}) noexcept :
+    explicit constexpr SpinBox(const Config &config, T default_value = T{}) noexcept :
         mixin::ValueCallbacked<T>{default_value}, mixin::Configurable<Config>{config}, _step(config.default_step) {}
 
     /// @brief Toggle between value adjustment and step adjustment modes
@@ -46,7 +50,7 @@ struct SpinBox final : SpinBoxTag, Widget<U>, mixin::ValueCallbacked<T>, mixin::
     /// @param event_value Adjustment scale
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
         if (_is_step_setting_mode) {
-            _step = internal::GeometricAdjuster<T>::adjust(_step, this->config().step_adjust, event_value);
+            _step = U::template GeometricAdjuster<T>::adjust(_step, this->config().step_adjust, event_value);
         } else {
             this->value(AdjusterImpl::adjust(this->value(), _step, event_value));
         }
@@ -72,6 +76,4 @@ private:
     bool _is_step_setting_mode{false};///< true when adjusting step size, false when adjusting value
 };
 
-}// namespace widgets
-
-}// namespace kf::ui
+}// namespace kf::ui::widgets

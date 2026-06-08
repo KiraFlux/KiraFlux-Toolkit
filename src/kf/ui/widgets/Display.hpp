@@ -13,7 +13,7 @@ struct DisplayTag {};
 /// @tparam T Type of value to display
 template<typename U, typename T> struct Display final : DisplayTag, Widget<U> {
 
-    constexpr explicit Display(T value) noexcept : _value{value} {}
+    explicit constexpr Display(T value) noexcept : _value{value} {}
 
     /// @brief Update the displayed value
     void value(T new_value) noexcept { _value = new_value; }

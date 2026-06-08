@@ -29,4 +29,4 @@ template<typename Impl> struct Initable<Impl, void> : InitableTag {
 
 }// namespace kf::mixin
 
-#define KF_IMPL_INITABLE(__impl__, __init_result_type) friend struct ::kf::mixin::Initable<__impl__, __init_result_type>
+#define KF_IMPL_INITABLE(__impl__, ...) friend struct ::kf::mixin::Initable<__impl__, __VA_ARGS__>

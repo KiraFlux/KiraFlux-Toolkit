@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/memory/Slice.hpp"
+#include "kf/Slice.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
@@ -12,9 +12,7 @@
 
 #include "kf/ui/widgets/Widget.hpp"
 
-namespace kf::ui {
-
-namespace internal {
+namespace kf::internal {
 
 template<typename T> struct ComboBoxItem final : mixin::Labeled {
 
@@ -39,22 +37,28 @@ template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled {
     void value(memory::StringView new_value) noexcept { this->label(new_value); }
 };
 
-template<typename T> struct ComboBoxConfig final : mixin::NonCopyable {
+template<typename T> struct ComboBoxConfig final {
     using Item = ComboBoxItem<T>;
 
-    memory::Slice<Item> items;///< Available options
+    Slice<Item> items;///< Available options
 };
 
-}// namespace internal
+}// namespace kf::internal
 
-namespace widgets {
+namespace kf::ui::widgets {
 
 struct ComboBoxTag {};
 
 /// @brief Combo box for selecting from predefined options
 /// @tparam T Value type for options
-template<typename U, typename T>
-struct ComboBox final : ComboBoxTag, Widget<U>, mixin::Callbacked<T>, mixin::Configurable<internal::ComboBoxConfig<T>> {
+template<typename U, typename T> struct ComboBox final :
+
+    ComboBoxTag,
+    Widget<U>,
+    mixin::Callbacked<T>,
+    mixin::Configurable<internal::ComboBoxConfig<T>>
+
+{
     using Config = internal::ComboBoxConfig<T>;
     using Item = typename Config::Item;
 
@@ -92,5 +96,4 @@ private:
     }
 };
 
-}// namespace widgets
-}// namespace kf::ui
+}// namespace kf::ui::widgets
