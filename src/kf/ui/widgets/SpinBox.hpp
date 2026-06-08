@@ -7,7 +7,6 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
-#include "kf/ui/internal/Adjuster.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::internal {
@@ -25,7 +24,7 @@ struct SpinBoxTag {};
 
 /// @brief Spin box for adjusting numeric values with different modes
 /// @tparam T Numeric type for spin box value (must be arithmetic)
-template<typename U, typename T, typename AdjusterImpl = internal::ArithmeticAdjuster<T>> struct SpinBox final :
+template<typename U, typename T, typename A> struct SpinBox final :
 
     SpinBoxTag,
     Widget<U>,
@@ -33,7 +32,8 @@ template<typename U, typename T, typename AdjusterImpl = internal::ArithmeticAdj
     mixin::Configurable<internal::SpinBoxConfig<T>>
 
 {
-    KF_CHECK_IMPL(AdjusterImpl, ::kf::internal::AdjusterTag);
+    KF_CHECK_IMPL(A, typename U::AdjusterTag);
+    using AdjusterImpl = A;
     using Config = internal::SpinBoxConfig<T>;
 
     explicit constexpr SpinBox(const Config &config, T default_value = T{}) noexcept :
@@ -50,7 +50,7 @@ template<typename U, typename T, typename AdjusterImpl = internal::ArithmeticAdj
     /// @param event_value Adjustment scale
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
         if (_is_step_setting_mode) {
-            _step = internal::GeometricAdjuster<T>::adjust(_step, this->config().step_adjust, event_value);
+            _step = U::template GeometricAdjuster<T>::adjust(_step, this->config().step_adjust, event_value);
         } else {
             this->value(AdjusterImpl::adjust(this->value(), _step, event_value));
         }

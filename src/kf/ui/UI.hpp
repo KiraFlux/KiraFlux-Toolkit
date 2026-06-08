@@ -14,7 +14,7 @@
 #include "kf/mixin/TimedPollable.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/ui/internal/UiTraits.hpp"
+#include "kf/ui/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
 #include "kf/ui/widgets/Button.hpp"
 #include "kf/ui/widgets/CheckBox.hpp"
@@ -46,18 +46,7 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     /// @brief UI Event Value type
     using EventValue = typename Event::Value;
 
-    using Traits = internal::UiTraits<RenderImpl, Event>;
-
-    /// @brief Arithmetic mode: value += direction * step
-    template<typename T> using ArithmeticAdjuster = internal::ArithmeticAdjuster<T>;
-
-    /// @brief ArithmeticPositiveOnly mode: value += direction * step, clamp >= 0
-    template<typename T> using ArithmeticPositiveOnlyAdjuster = internal::ArithmeticPositiveOnlyAdjuster<T>;
-
-    /// @brief Geometric mode: value *= step for positive direction, /= for negative
-    template<typename T> using GeometricAdjuster = internal::GeometricAdjuster<T>;
-
-    using Placement = internal::Placement;
+    using Traits = UiTraits<RenderImpl, Event>;
 
     /// @brief Base widget type (provided for inheritance or generic references)
     using Widget = widgets::Widget<Traits>;

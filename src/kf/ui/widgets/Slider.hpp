@@ -8,18 +8,17 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
-#include "kf/ui/internal/Adjuster.hpp"
-#include "kf/ui/internal/Placement.hpp"
+#include "kf/ui/Placement.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::internal {
 
 template<typename T> struct SliderConfig final {
-    Range<T> value_range;///< value range (slider value will clamped at this value)
-    T default_value;     ///< slider value by default
-    T step;              ///< slider value adjust step
-    Placement placement; ///< placement of slider value
-    bool init_show_value;///< show value by default
+    Range<T> value_range;   ///< value range (slider value will clamped at this value)
+    T default_value;        ///< slider value by default
+    T step;                 ///< slider value adjust step
+    ui::Placement placement;///< placement of slider value
+    bool init_show_value;   ///< show value by default
 };
 
 }// namespace kf::internal
@@ -51,12 +50,12 @@ template<typename U, typename T> struct Slider final :
     /// @brief Adjust value
     /// @param event_value adjust change scale
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
-        this->value(this->config().value_range.clamped(internal::ArithmeticAdjuster<T>::adjust(this->value(), this->config().step, event_value)));
+        this->value(this->config().value_range.clamped(U::template ArithmeticAdjuster<T>::adjust(this->value(), this->config().step, event_value)));
         return true;// redraw required after adjustment
     }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {
-        const auto placement = _show_value ? this->config().placement : internal::Placement::Hidden;
+        const auto placement = _show_value ? this->config().placement : Placement::Hidden;
         render.slider(this->value(), this->config().value_range, placement);
     }
 

@@ -55,7 +55,7 @@ struct MainPage : MyUI::Page {
         },
         .default_value = 0,
         .step = 25,
-        .placement = MyUI::Placement::Outside,
+        .placement = kf::ui::Placement::Outside,
         .init_show_value = true,
     };
 
@@ -146,7 +146,7 @@ struct SettingsPage : MyUI::Page {
         strings_combo_box_config,// by ref
     };
 
-    using MySpinBox = MyUI::SpinBox<int, MyUI::GeometricAdjuster<int>>;
+    using MySpinBox = MyUI::SpinBox<int, MyUI::Traits::GeometricAdjuster<int>>;
 
     MySpinBox::Config spin_box_config{
         .default_step = 2,

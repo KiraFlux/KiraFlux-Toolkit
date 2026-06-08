@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace kf::internal {
+namespace kf::ui {
 
 enum class Placement : char {
     Hidden, ///< Do not display at all
@@ -11,4 +11,4 @@ enum class Placement : char {
     Inside, ///< Show inside
 };
 
-}// namespace kf::internal
+}// namespace kf::ui

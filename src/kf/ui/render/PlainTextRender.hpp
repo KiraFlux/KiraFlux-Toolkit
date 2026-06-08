@@ -11,7 +11,7 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/ui/internal/Placement.hpp"
+#include "kf/ui/Placement.hpp"
 #include "kf/ui/render/Render.hpp"
 
 namespace kf::internal {
@@ -64,7 +64,9 @@ namespace kf::ui::render {
 template<usize N> struct PlainTextRender :
 
     Render<PlainTextRender<N>>,
-    mixin::Configurable<internal::PlainTextRenderConfig> {
+    mixin::Configurable<internal::PlainTextRenderConfig>
+
+{
     /// @brief Text renderer configuration
     using Config = internal::PlainTextRenderConfig;
 
@@ -140,12 +142,10 @@ private:
         writeString(enabled ? on : off);
     }
 
-    template<typename T> void sliderImpl(
-        T slider_value, Range<T> value_range,
-        internal::Placement placement) noexcept {
+    template<typename T> void sliderImpl(T slider_value, Range<T> value_range,Placement placement) noexcept {
 
         // Textual now supports only show/hide placement
-        if (internal::Placement::Hidden != placement) {
+        if (Placement::Hidden != placement) {
             this->value(slider_value);
             writeChar(' ');
         }
