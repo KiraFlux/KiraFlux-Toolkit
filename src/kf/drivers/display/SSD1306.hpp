@@ -25,7 +25,7 @@ namespace kf::drivers::display {
 template<typename N> struct SSD1306 final : DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl> {
     KF_CHECK_IMPL(N, ::kf::bus::iic::IicNodeTag);
 
-    using IicNodeImpl = typename N;
+    using IicNodeImpl = N;
     using PixelImpl = typename internal::SSD1306ImageImpl::PixelImpl;
 
     /// @brief SSD1306 command set

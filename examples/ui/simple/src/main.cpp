@@ -191,7 +191,7 @@ void setup() {
     MyUI::RenderConfig &config = ui.renderConfig();
 
     // post-render procedure
-    config.callback([](kf::memory::StringView text) {
+    ui.renderSystem().callback([](kf::memory::StringView text) {
         Serial.println("---");
         Serial.print(text.data());
     });

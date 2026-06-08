@@ -18,7 +18,7 @@ namespace kf::internal {
 
 using Glyph = u8;///< Text interface measurement unit in glyphs
 
-struct PlainTextRenderConfig final : mixin::Callbacked<memory::StringView> {
+struct PlainTextRenderConfig final {
     Glyph row_max_length{16}; ///< Maximum characters per row
     Glyph rows_total{4};      ///< Total available rows in display
     Glyph float_places{2};    ///< Decimal places for float
@@ -64,6 +64,7 @@ namespace kf::ui::render {
 template<usize N> struct PlainTextRender :
 
     Render<PlainTextRender<N>>,
+    mixin::Callbacked<memory::StringView>,
     mixin::Configurable<internal::PlainTextRenderConfig>
 
 {
@@ -122,7 +123,7 @@ private:
     }
 
     void finishImpl() noexcept {
-        this->config().invoke(_buffer.view());
+        this->invoke(_buffer.view());
     }
 
     void titleImpl(memory::StringView title) noexcept {

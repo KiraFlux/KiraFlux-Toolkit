@@ -79,8 +79,12 @@ template<typename R, typename E> struct UI final : mixin::Singleton<UI<R, E>>, m
     template<typename T> using Slider = widgets::Slider<Traits, T>;
 
     /// @brief Access renderer configuration
-    /// @return Reference to renderer config structure
+    /// @return Mutable reference to renderer config structure
     [[nodiscard]] RenderConfig &renderConfig() noexcept { return _render_config; }
+
+    /// @brief Access renderer instance
+    /// @return Mutable  Reference to renderer
+    [[nodiscard]] RenderImpl &renderSystem() noexcept { return _render_system; }
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
