@@ -20,7 +20,7 @@ namespace kf::internal {
 
 using ST7735Image = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
 
-struct ST7735Config final : mixin::NonCopyable {
+struct ST7735Config final {
     drivers::display::Orientation init_orientation;
 };
 

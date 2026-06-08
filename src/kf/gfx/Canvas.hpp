@@ -21,7 +21,7 @@ namespace kf::gfx {
 /// @brief Drawing context with graphics primitives and text rendering
 /// @tparam P Pixel format for canvas operations
 template<typename P> struct Canvas {
-    KF_CHECK_IMPL(P, pixel::PixelTag);
+    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
 
     using PixelImpl = P;
     using ColorType = typename PixelImpl::ColorType;

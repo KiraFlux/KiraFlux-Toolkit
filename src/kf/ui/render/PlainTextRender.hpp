@@ -9,18 +9,16 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
-#include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/ui/internal/Placement.hpp"
 #include "kf/ui/render/Render.hpp"
 
-namespace kf::ui {
+namespace kf::internal {
 
-namespace internal {
 using Glyph = u8;///< Text interface measurement unit in glyphs
 
-struct PlainTextRenderConfig final : mixin::NonCopyable, mixin::Callbacked<memory::StringView> {
+struct PlainTextRenderConfig final : mixin::Callbacked<memory::StringView> {
     Glyph row_max_length{16}; ///< Maximum characters per row
     Glyph rows_total{4};      ///< Total available rows in display
     Glyph float_places{2};    ///< Decimal places for float
@@ -56,13 +54,17 @@ struct PlainTextRenderCursor {
     }
 };
 
-}// namespace internal
-namespace render {
+}// namespace kf::internal
+
+namespace kf::ui::render {
+
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
 /// @note Implements Render CRTP interface for character-based display
-template<usize N> struct PlainTextRender : Render<PlainTextRender<N>>, mixin::Configurable<internal::PlainTextRenderConfig> {
+template<usize N> struct PlainTextRender :
 
+    Render<PlainTextRender<N>>,
+    mixin::Configurable<internal::PlainTextRenderConfig> {
     /// @brief Text renderer configuration
     using Config = internal::PlainTextRenderConfig;
 
@@ -118,7 +120,7 @@ private:
     }
 
     void finishImpl() noexcept {
-        const_cast<Config &>(this->config()).invoke(_buffer.view());
+        this->config().invoke(_buffer.view());
     }
 
     void titleImpl(memory::StringView title) noexcept {
@@ -213,5 +215,4 @@ private:
     void endWidgetImpl() noexcept { writeChar('\n'); }
 };
 
-}// namespace render
-}// namespace kf::ui
+}// namespace kf::ui::render

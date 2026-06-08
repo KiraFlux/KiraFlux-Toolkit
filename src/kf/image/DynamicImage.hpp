@@ -15,7 +15,7 @@ namespace kf::image {
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam P Pixel implementation
 template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
-    KF_CHECK_IMPL(P, pixel::PixelTag);
+    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
 
     using PixelImpl = P;
     using BufferType = typename P::BufferType;
@@ -52,7 +52,7 @@ template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
 
     template<typename I> explicit DynamicImage(I &image) noexcept :
         _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, _offset_x{0}, _offset_y{0} {
-        KF_CHECK_IMPL(I, image::ImageTag);
+        KF_CHECK_IMPL(I, ::kf::image::ImageTag);
     }
 
     /// @brief Creates validated sub-region

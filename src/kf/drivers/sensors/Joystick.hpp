@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/meta/CRTP.hpp"
-#include "kf/mixin/NonCopyable.hpp"
 #include "kf/tuner/Tuner.hpp"
 
 #include "kf/drivers/sensors/Sensor.hpp"
@@ -31,7 +30,7 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
     /// @brief Normalized joystick reading value
     using Value = internal::JoystickValue;
 
-    struct Config final : mixin::NonCopyable {
+    struct Config final {
         typename InputImpl::Config x, y;
     };
 

@@ -12,11 +12,9 @@
 #include "kf/mixin/TimedPollable.hpp"
 #include "kf/primitives.hpp"
 
-namespace kf::input {
+namespace kf::internal {
 
-namespace internal {
-
-enum class Direction : u8 {
+enum class JoystickListenerDirection : u8 {
     Up = 0,
     Down = 1,
     Left = 2,
@@ -24,26 +22,28 @@ enum class Direction : u8 {
     Home
 };
 
-struct JoystickListenerConfig final : mixin::NonCopyable {
+struct JoystickListenerConfig final {
     math::Timer::Config repeat_timer, delay_timer;
     f32 threshold;///< 0..1
 
-    [[nodiscard]] Direction calculateDirection(f32 x, f32 y) const noexcept {
+    [[nodiscard]] JoystickListenerDirection calculateDirection(f32 x, f32 y) const noexcept {
         const auto ax = kf::abs(x);
         const auto ay = kf::abs(y);
         // todo array-map
         if (ax < threshold and ay < threshold) {
-            return Direction::Home;
+            return JoystickListenerDirection::Home;
         }
         if (ax > ay) {
-            return x > 0 ? Direction::Right : Direction::Left;
+            return x > 0 ? JoystickListenerDirection::Right : JoystickListenerDirection::Left;
         } else {
-            return y > 0 ? Direction::Up : Direction::Down;
+            return y > 0 ? JoystickListenerDirection::Up : JoystickListenerDirection::Down;
         }
     }
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::input {
 
 template<typename I> struct JoystickListener final :
 
@@ -55,7 +55,7 @@ template<typename I> struct JoystickListener final :
 {
     using JoystickImpl = I;
     using Config = internal::JoystickListenerConfig;
-    using Direction = internal::Direction;
+    using Direction = internal::JoystickListenerDirection;
 
     explicit JoystickListener(JoystickImpl &joystick, const Config &config) noexcept :
         _joystick{joystick}, mixin::Configurable<Config>{config} {}

@@ -28,9 +28,7 @@
 #include "kf/network/MacAddress.hpp"
 #include "kf/primitives.hpp"
 
-namespace kf::network {
-
-namespace internal {
+namespace kf::internal {
 
 struct EspNowError final : mixin::StringRepresentable<EspNowError, memory::StringView> {
 
@@ -88,7 +86,9 @@ protected:
     MacAddress _mac_address;
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::network {
 
 /// @brief Encapsulates ESP-NOW protocol in safe C++ abstractions
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks

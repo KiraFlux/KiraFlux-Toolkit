@@ -8,13 +8,13 @@
 #include "kf/mixin/StringRepresentable.hpp"
 #include "kf/primitives.hpp"
 
-namespace kf::network {
-
-namespace internal {
+namespace kf::internal {
 
 using MacAddressStringType = memory::StaticString<14>;
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::network {
 
 /// @brief MAC address (6 bytes)
 /// @note Trivially copyable, safe for serialization

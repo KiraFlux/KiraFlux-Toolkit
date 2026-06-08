@@ -9,15 +9,15 @@
 
 #include "kf/math/filters/Filter.hpp"
 
-namespace kf::math::filters {
-
-namespace internal {
+namespace kf::internal {
 
 struct LowFrequencyFilterConfig final {
     f32 factor;///< Smoothing factor (0.0 to 1.0)
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::math::filters {
 
 /// @brief First-order low-pass filter (exponential smoothing).
 /// @tparam T Scalar type (e.g., float, double).

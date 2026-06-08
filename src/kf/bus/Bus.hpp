@@ -39,7 +39,7 @@ template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus :
     meta::CRTP<BusImpl>
 
 {
-    KF_CHECK_IMPL(NodeImpl, kf::bus::BusNodeTag);
+    KF_CHECK_IMPL(NodeImpl, ::kf::bus::BusNodeTag);
 
     [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept {
         return NodeImpl{this->impl(), config};

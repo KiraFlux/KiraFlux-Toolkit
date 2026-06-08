@@ -12,7 +12,7 @@ struct WidgetTag {};
 /// @brief Base widget class for all UI components
 /// @note All interactive UI elements inherit from this class
 template<typename U> struct Widget : WidgetTag, mixin::NonCopyable {
-    KF_CHECK_IMPL(U, ::kf::ui::internal::UiTraitsTag);
+    KF_CHECK_IMPL(U, ::kf::internal::UiTraitsTag);
 
     /// @brief Render widget content (must be implemented by derived classes)
     virtual void doRender(typename U::RenderImpl &render) const noexcept = 0;

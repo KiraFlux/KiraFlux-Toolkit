@@ -5,7 +5,7 @@
 
 #include "kf/ui/render/Render.hpp"
 
-namespace kf::ui::internal {
+namespace kf::internal {
 
 struct UiTraitsTag {};
 
@@ -16,4 +16,4 @@ template<typename R, typename E> struct UiTraits final : UiTraitsTag {
     using EventImpl = E;
 };
 
-}// namespace kf::ui::internal
+}// namespace kf::internal

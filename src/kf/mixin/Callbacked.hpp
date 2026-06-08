@@ -7,18 +7,9 @@
 #include "kf/NoneType.hpp"
 #include "kf/Option.hpp"
 
-namespace kf::mixin {
+namespace kf::internal {
 
-/// @brief Tag specifies that target struct support Callbacked mixin
-struct CallbackedTag {};
-
-/// @brief Adds Callback
-/// @tparam T
-template<typename T> struct Callbacked;
-
-namespace internal {
-
-template<typename Signature> struct CallbackedController : CallbackedTag {
+template<typename Signature> struct CallbackedController {
     using CallbackType = Function<Signature>;
 
     /// @brief Set callback from optional function
@@ -40,9 +31,16 @@ protected:
     Option<CallbackType> _callback_function{none};
 };
 
-}// namespace internal
+}// namespace kf::internal
 
-template<typename T> struct Callbacked : internal::CallbackedController<void(T)> {
+namespace kf::mixin {
+
+/// @brief Tag specifies that target struct support Callbacked mixin
+struct CallbackedTag {};
+
+/// @brief Adds Callback
+/// @tparam T Callback argument type
+template<typename T> struct Callbacked : CallbackedTag, internal::CallbackedController<void(T)> {
 
     /// @brief Invoke callback function if is some
     /// @param value callback function argument
@@ -53,7 +51,8 @@ template<typename T> struct Callbacked : internal::CallbackedController<void(T)>
     }
 };
 
-template<> struct Callbacked<void> : internal::CallbackedController<void()> {
+/// @brief Adds Callback with function without arguments
+template<> struct Callbacked<void> : CallbackedTag, internal::CallbackedController<void()> {
 
     /// @brief Invoke callback function if is some
     void invoke() const noexcept {

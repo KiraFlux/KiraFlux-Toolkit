@@ -16,7 +16,7 @@ struct ImageTag {};
 /// @tparam Impl Image implementation
 /// @tparam P Pixel implementation
 template<typename Impl, typename P> struct Image : ImageTag, meta::CRTP<Impl> {
-    KF_CHECK_IMPL(P, pixel::PixelTag);
+    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
 
     using BufferType = typename P::BufferType;
 

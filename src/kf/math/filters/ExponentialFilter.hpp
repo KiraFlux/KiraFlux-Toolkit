@@ -9,15 +9,15 @@
 
 #include "kf/math/filters/Filter.hpp"
 
-namespace kf::math::filters {
-
-namespace internal {
+namespace kf::internal {
 
 struct ExponentialFilterConfig final {
     f32 factor;///< Smoothing factor (0.0 to 1.0, higher = faster response)
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::math::filters {
 
 /// @brief Exponential moving average filter (EMA)
 /// @tparam T Data type (typically float or integer)

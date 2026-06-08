@@ -34,10 +34,10 @@ template<typename G> struct LogicalLevelListener :
 {
     KF_CHECK_IMPL(G, ::kf::gpio::GPIO::DigitalInputTag);
 
-    using PinImpl = G;
+    using DigitalInputImpl = G;
     using Config = internal::LogicalLevelListenerConfig;
 
-    explicit LogicalLevelListener(const Config &config, PinImpl &&pin) noexcept :
+    explicit LogicalLevelListener(const Config &config, DigitalInputImpl &&pin) noexcept :
         mixin::Configurable<Config>{config}, _pin{std::move(pin)} {}
 
     /// @brief Check if button was clicked (consumes the click)
@@ -60,7 +60,7 @@ private:
     bool _last_raw{false};
     bool _click_ready{false};
     bool _first{true};
-    PinImpl _pin;
+    DigitalInputImpl _pin;
 
     // impl
     using This = LogicalLevelListener<G>;

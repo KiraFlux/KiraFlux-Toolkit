@@ -9,15 +9,15 @@
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
 
-namespace kf::math::filters {
+namespace kf::internal {
 
-namespace internal {
-
-struct ComplementaryFilterConfig final : mixin::NonCopyable {
+struct ComplementaryFilterConfig final {
     f32 factor;///< Filter coefficient for prediction (0.0 to 1.0)
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::math::filters {
 
 /// @brief Complementary filter for sensor fusion
 /// @tparam T Data type (typically float or vector type)

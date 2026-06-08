@@ -7,15 +7,15 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-namespace kf::math {
+namespace kf::internal {
 
-namespace internal {
-
-struct TimerConfig final : mixin::NonCopyable {
-    Milliseconds period;
+struct TimerConfig final {
+    math::Milliseconds period;
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::math {
 
 struct Timer final : mixin::NonCopyable, mixin::Configurable<internal::TimerConfig> {
 

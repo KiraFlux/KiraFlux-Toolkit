@@ -10,7 +10,6 @@
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
-#include "kf/mixin/NonCopyable.hpp"
 #include "kf/validation.hpp"
 
 #include "kf/drivers/actuators/Actuator.hpp"

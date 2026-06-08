@@ -12,11 +12,9 @@
 #include "kf/ui/internal/Placement.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
-namespace kf::ui {
+namespace kf::internal {
 
-namespace internal {
-
-template<typename T> struct SliderConfig final : mixin::NonCopyable {
+template<typename T> struct SliderConfig final {
     Range<T> value_range;///< value range (slider value will clamped at this value)
     T default_value;     ///< slider value by default
     T step;              ///< slider value adjust step
@@ -24,18 +22,20 @@ template<typename T> struct SliderConfig final : mixin::NonCopyable {
     bool init_show_value;///< show value by default
 };
 
-}// namespace internal
+}// namespace kf::internal
 
-namespace widgets {
+namespace kf::ui::widgets {
 
 struct SliderTag {};
 
-template<typename U, typename T>
-struct Slider final : SliderTag,
-                      Widget<U>,
-                      mixin::ValueCallbacked<T>,
-                      mixin::Configurable<internal::SliderConfig<T>> {
+template<typename U, typename T> struct Slider final :
 
+    SliderTag,
+    Widget<U>,
+    mixin::ValueCallbacked<T>,
+    mixin::Configurable<internal::SliderConfig<T>>
+
+{
     using Config = internal::SliderConfig<T>;
 
     explicit constexpr Slider(const Config &config) noexcept :
@@ -64,5 +64,4 @@ private:
     bool _show_value;
 };
 
-}// namespace widgets
-}// namespace kf::ui
+}// namespace kf::ui::widgets

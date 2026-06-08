@@ -13,9 +13,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
 
-namespace kf::io {
-
-namespace internal {
+namespace kf::internal {
 
 enum class ArduinoStreamError : u8 {
     ReadNotAvailable,
@@ -24,6 +22,8 @@ enum class ArduinoStreamError : u8 {
 };
 
 }
+
+namespace kf::io {
 
 struct ArduinoStream final :
 
@@ -39,7 +39,6 @@ struct ArduinoStream final :
 private:
     Stream &_stream;
 
-    // impl
     using This = ArduinoStream;
 
     KF_IMPL_READABLE(This, Error);

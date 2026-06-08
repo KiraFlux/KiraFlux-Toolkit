@@ -10,26 +10,30 @@
 #include "kf/ui/internal/Adjuster.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
-namespace kf::ui {
+namespace kf::internal {
 
-namespace internal {
-
-template<typename T> struct SpinBoxConfig final : mixin::NonCopyable {
+template<typename T> struct SpinBoxConfig final {
     T default_step;///< value adjust step default value
     T step_adjust; ///< adjust step of step
 };
 
-}// namespace internal
+}// namespace kf::internal
 
-namespace widgets {
+namespace kf::ui::widgets {
 
 struct SpinBoxTag {};
 
 /// @brief Spin box for adjusting numeric values with different modes
 /// @tparam T Numeric type for spin box value (must be arithmetic)
-template<typename U, typename T, typename AdjusterImpl = internal::ArithmeticAdjuster<T>>
-struct SpinBox final : SpinBoxTag, Widget<U>, mixin::ValueCallbacked<T>, mixin::Configurable<internal::SpinBoxConfig<T>> {
-    KF_CHECK_IMPL(AdjusterImpl, ::kf::ui::internal::AdjusterTag);
+template<typename U, typename T, typename AdjusterImpl = internal::ArithmeticAdjuster<T>> struct SpinBox final :
+
+    SpinBoxTag,
+    Widget<U>,
+    mixin::ValueCallbacked<T>,
+    mixin::Configurable<internal::SpinBoxConfig<T>>
+
+{
+    KF_CHECK_IMPL(AdjusterImpl, ::kf::internal::AdjusterTag);
     using Config = internal::SpinBoxConfig<T>;
 
     explicit constexpr SpinBox(const Config &config, T default_value = T{}) noexcept :
@@ -72,6 +76,4 @@ private:
     bool _is_step_setting_mode{false};///< true when adjusting step size, false when adjusting value
 };
 
-}// namespace widgets
-
-}// namespace kf::ui
+}// namespace kf::ui::widgets

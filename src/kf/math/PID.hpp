@@ -13,11 +13,9 @@
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
 
-namespace kf::math {
+namespace kf::internal {
 
-namespace internal {
-
-using PidFilterImpl = filters::LowFrequencyFilter<f32>;
+using PidFilterImpl = math::filters::LowFrequencyFilter<f32>;
 
 struct PidConfig final {
     f32 proportional_gain;///< Proportional gain coefficient
@@ -34,7 +32,9 @@ struct PidConfig final {
     }
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::math {
 
 /// @brief PID controller implementation
 /// @note Includes derivative filtering and integral anti-windup

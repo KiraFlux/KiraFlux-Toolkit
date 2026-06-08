@@ -6,7 +6,7 @@
 #include "kf/algorithm.hpp"
 #include "kf/meta/CRTP.hpp"
 
-namespace kf::ui::internal {
+namespace kf::internal {
 
 struct AdjusterTag {};
 
@@ -63,4 +63,4 @@ private:
     }
 };
 
-}// namespace kf::ui::internal
+}// namespace kf::internal
