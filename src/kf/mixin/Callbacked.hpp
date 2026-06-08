@@ -7,10 +7,15 @@
 #include "kf/NoneType.hpp"
 #include "kf/Option.hpp"
 
-namespace kf::internal {
+namespace kf::mixin {
 
-template<typename Signature> struct CallbackedController {
-    using CallbackType = Function<Signature>;
+/// @brief Tag specifies that target struct support Callbacked mixin
+struct CallbackedTag {};
+
+/// @brief Adds Callback
+/// @tparam Args Callback arguments
+template<typename... Args> struct Callbacked : CallbackedTag {
+    using CallbackType = Function<void(Args...)>;
 
     /// @brief Set callback from optional function
     void callback(Option<CallbackType> optional_function) noexcept {
@@ -18,8 +23,8 @@ template<typename Signature> struct CallbackedController {
     }
 
     /// @brief Set callback from function object
-    void callback(CallbackType function) noexcept {
-        _callback_function = some(std::move(function));
+    template<typename F> void callback(F &&function) noexcept {
+        _callback_function = some(CallbackType{std::forward<F>(function)});
     }
 
     /// @brief Set callback as None
@@ -27,39 +32,16 @@ template<typename Signature> struct CallbackedController {
         _callback_function.reset();
     }
 
-protected:
-    Option<CallbackType> _callback_function{none};
-};
-
-}// namespace kf::internal
-
-namespace kf::mixin {
-
-/// @brief Tag specifies that target struct support Callbacked mixin
-struct CallbackedTag {};
-
-/// @brief Adds Callback
-/// @tparam T Callback argument type
-template<typename T> struct Callbacked : CallbackedTag, internal::CallbackedController<void(T)> {
-
     /// @brief Invoke callback function if is some
     /// @param value callback function argument
-    void invoke(T value) const noexcept {
+    void invoke(Args... args) const noexcept {
         if (this->_callback_function.isSome()) {
-            this->_callback_function.unwrap()(value);
+            this->_callback_function.unwrap()(args...);
         }
     }
-};
 
-/// @brief Adds Callback with function without arguments
-template<> struct Callbacked<void> : CallbackedTag, internal::CallbackedController<void()> {
-
-    /// @brief Invoke callback function if is some
-    void invoke() const noexcept {
-        if (this->_callback_function.isSome()) {
-            this->_callback_function.unwrap()();
-        }
-    }
+private:
+    Option<CallbackType> _callback_function{none};
 };
 
 }// namespace kf::mixin

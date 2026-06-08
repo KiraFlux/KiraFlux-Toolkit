@@ -13,7 +13,7 @@ namespace kf::ui::widgets {
 struct ButtonTag {};
 
 /// @brief Button widget for triggering actions on click
-template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Callbacked<void>, mixin::Labeled {
+template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Callbacked<>, mixin::Labeled {
     using mixin::Labeled::Labeled;
 
     /// @brief Handle button click event
