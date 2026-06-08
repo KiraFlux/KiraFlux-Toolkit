@@ -6,8 +6,7 @@
 #include "kf/algorithm.hpp"
 #include "kf/pixel/Pixel.hpp"
 
-namespace kf {
-namespace pixel {
+namespace kf::pixel {
 
 /// @brief 16-bit BIG ENDIAN RGB565 format (5-6-5 bits per channel)
 struct Rgb565Pixel final : Pixel<Rgb565Pixel, u16, u16, 16> {
@@ -65,5 +64,4 @@ private:
     }
 };
 
-}// namespace pixel
 }// namespace kf
