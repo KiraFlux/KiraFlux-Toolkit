@@ -19,7 +19,7 @@ using kf::drivers::display::Orientation;
 using kf::gpio::ArduinoGPIO;
 
 // Display Driver specialisation
-using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI, ArduinoGPIO>;
+using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput>;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation

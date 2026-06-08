@@ -14,10 +14,10 @@ namespace kf::drivers::sensors {
 
 /// @brief Sharp infrared distance sensor driver
 /// @note Provides distance measurements in millimeters using analog voltage output
-/// @tparam G GPIO implementation
+/// @tparam G Implementation of GPIO with ADC input support
 template<typename G> struct Sharp : Sensor<Sharp<G>, math::Millimeters, void> {
-    KF_CHECK_IMPL(G, kf::gpio::GpioTag);
-    using PinImpl = typename G::AdcInput;
+    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::AdcInputTag);
+    using PinImpl = G;
 
     explicit Sharp(PinImpl &&pin) noexcept : _pin{std::move(pin)} {}
 

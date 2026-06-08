@@ -23,18 +23,18 @@ struct LogicalLevelListenerConfig final {
 namespace kf::input {
 
 /// @brief Minimal button with press detection only
-/// @tparam G GPIO implementation
+/// @tparam G Implementation of GPIO with digial INPUT support
 template<typename G> struct LogicalLevelListener :
 
     mixin::NonCopyable,
-    mixin::TimedPollable<LogicalLevelListener<G>>,
     mixin::Initable<LogicalLevelListener<G>, void>,
-    mixin::Configurable<internal::LogicalLevelListenerConfig>
+    mixin::Configurable<internal::LogicalLevelListenerConfig>,
+    mixin::TimedPollable<LogicalLevelListener<G>>
 
 {
-    KF_CHECK_IMPL(G, gpio::GpioTag);
+    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::DigitalInputTag);
 
-    using PinImpl = typename G::DigitalInput;
+    using PinImpl = G;
     using Config = internal::LogicalLevelListenerConfig;
 
     explicit LogicalLevelListener(const Config &config, PinImpl &&pin) noexcept :

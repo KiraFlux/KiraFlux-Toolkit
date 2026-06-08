@@ -38,15 +38,16 @@ struct NormalizedAdcInputConfig final {
 namespace kf::drivers::sensors {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
+/// @tparam G Implementation of GPIO with ADC input support
 template<typename G> struct NormalizedAdcInput final :
 
     Sensor<NormalizedAdcInput<G>, f32, void>,
     mixin::Configurable<internal::NormalizedAdcInputConfig>
 
 {
-    KF_CHECK_IMPL(G, kf::gpio::GpioTag);
+    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::AdcInputTag);
 
-    using AdcPinImpl = typename G::AdcInput;
+    using AdcInputImpl = G;
     using FilterImpl = math::filters::ExponentialFilter<f32>;
     using Config = internal::NormalizedAdcInputConfig;
 
@@ -59,7 +60,7 @@ template<typename G> struct NormalizedAdcInput final :
     ///
     ///       - on calculate: compute dead zone and ranges based on collected data.
     struct Tuner final : kf::tuner::SampleCollectingTuner<Tuner, Config> {
-        using TunerBase = kf::tuner::SampleCollectingTuner<Tuner, Config>;
+        using TunerBase = ::kf::tuner::SampleCollectingTuner<Tuner, Config>;
 
         explicit Tuner(Config &config, NormalizedAdcInput &normalized_input, u16 samples) :
             _normalized_input{normalized_input}, TunerBase{config, samples} {}
@@ -72,7 +73,7 @@ template<typename G> struct NormalizedAdcInput final :
         KF_IMPL_RESETTABLE(Tuner);
         void resetImpl() noexcept {
             _max_sample = 0;
-            _min_sample = AdcPinImpl::maxValue();
+            _min_sample = AdcInputImpl::maxValue();
             _sum = 0;
         }
 
@@ -91,19 +92,19 @@ template<typename G> struct NormalizedAdcInput final :
 
             config.dead_zone = static_cast<Config::AdcSignedValue>((_max_sample - _min_sample) / zone_percents + margin);
             const auto center = static_cast<Config::AdcSignedValue>(_sum / this->samples_total);
-            config.range_positive = Config::calcPositiveRange(AdcPinImpl::maxValue(), center);
+            config.range_positive = Config::calcPositiveRange(AdcInputImpl::maxValue(), center);
             config.range_negative = Config::calcNegativeRange(center);
         }
     };
 
-    explicit NormalizedAdcInput(const Config &config, const typename FilterImpl::Config &filter_config, AdcPinImpl &&pin) noexcept :
+    explicit NormalizedAdcInput(const Config &config, const typename FilterImpl::Config &filter_config, AdcInputImpl &&pin) noexcept :
         mixin::Configurable<Config>{config}, _filter{filter_config}, _pin{std::move(pin)} {}
 
     [[nodiscard]] u16 readRaw() const noexcept { return _pin.read(); }
 
 private:
     FilterImpl _filter;
-    AdcPinImpl _pin;
+    AdcInputImpl _pin;
 
     using This = NormalizedAdcInput<G>;
 

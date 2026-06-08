@@ -21,11 +21,11 @@ using SSD1306ImageImpl = image::StaticImage<pixel::MonochromePixel, 128, 64>;
 namespace kf::drivers::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-/// @tparam B IIC Bus implementation
-template<typename B> struct SSD1306 final : DisplayDriver<SSD1306<B>, internal::SSD1306ImageImpl> {
-    KF_CHECK_IMPL(B, kf::bus::iic::IicBusTag);
+/// @tparam N Implementation of IIC bus Node
+template<typename N> struct SSD1306 final : DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl> {
+    KF_CHECK_IMPL(N, ::kf::bus::iic::IicNodeTag);
 
-    using IicNodeImpl = typename B::Node;
+    using IicNodeImpl = typename N;
     using PixelImpl = typename internal::SSD1306ImageImpl::PixelImpl;
 
     /// @brief SSD1306 command set
@@ -97,7 +97,7 @@ private:
     }
 
     // impl
-    using This = SSD1306<B>;
+    using This = SSD1306<N>;
 
     KF_IMPL_INITABLE(This, bool);
     /// @brief Initialize display hardware via I2C

@@ -23,7 +23,7 @@
 
 using kf::bus::iic::ArduinoIIC;
 using kf::drivers::display::Orientation;
-using SSD1306 = kf::drivers::display::SSD1306<ArduinoIIC>;
+using SSD1306 = kf::drivers::display::SSD1306<ArduinoIIC::Node>;
 
 // Pixel format used by the display (monochrome)
 using P = SSD1306::PixelImpl;// = pixel::MonochromePixel

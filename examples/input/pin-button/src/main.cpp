@@ -4,8 +4,8 @@
 #include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/input/LogicalLevelListener.hpp>
 
-using kf::gpio::ArduinoGPIO;
-using Button = kf::input::LogicalLevelListener<ArduinoGPIO>;
+using DigitalInput = kf::gpio::ArduinoGPIO::DigitalInput;
+using Button = kf::input::LogicalLevelListener<DigitalInput>;
 
 Button::Config my_button_config{
     .debounce = 50,// ms
@@ -15,9 +15,9 @@ Button my_button{
     /* &: */
     my_button_config,
     /* move: */
-    ArduinoGPIO::DigitalInput{
+    DigitalInput{
         GPIO_NUM_15,
-        ArduinoGPIO::DigitalInput::Pull::InternalDown,
+        DigitalInput::Pull::InternalDown,
     },
 };
 

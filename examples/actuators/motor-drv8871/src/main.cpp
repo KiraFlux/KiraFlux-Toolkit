@@ -4,18 +4,18 @@
 #include <kf/drivers/actuators/DRV8871.hpp>
 #include <kf/gpio/ArduinoGPIO.hpp>
 
-using kf::gpio::ArduinoGPIO;
-using DRV8871 = kf::drivers::actuators::DRV8871<ArduinoGPIO>;
+using PwmOutput = kf::gpio::ArduinoGPIO::PwmOutput;
+using DRV8871 = kf::drivers::actuators::DRV8871<PwmOutput>;
 
 // static/global: must outlive motor
-ArduinoGPIO::PwmOutput::Config forward_pwm_config{
+PwmOutput::Config forward_pwm_config{
     .frequency_hz = 30'000,// typical for DC motors
     .resolution_bits = 10,
     .pin = static_cast<kf::u8>(GPIO_NUM_26),
     .channel = 0,
 };
 
-ArduinoGPIO::PwmOutput::Config backward_pwm_config{
+PwmOutput::Config backward_pwm_config{
     .frequency_hz = 30'000,// typical for DC motors
     .resolution_bits = 10,
     .pin = static_cast<kf::u8>(GPIO_NUM_25),
@@ -31,8 +31,8 @@ DRV8871::Config driver_config{
 
 DRV8871 motor{
     /* & */ driver_config,
-    ArduinoGPIO::PwmOutput{/* & */ forward_pwm_config},
-    ArduinoGPIO::PwmOutput{/* & */ backward_pwm_config},
+    PwmOutput{/* & */ forward_pwm_config},
+    PwmOutput{/* & */ backward_pwm_config},
 };
 
 void setup() {

@@ -27,16 +27,16 @@ struct DRV8871Config {
 namespace kf::drivers::actuators {
 
 /// @brief DRV8871 H-bridge motor driver abstraction
-/// @tparam G GPIO implementation type
+/// @tparam G Implementation of GPIO with PWM output support
 template<typename G> struct DRV8871 final :
 
     drivers::actuators::Actuator<DRV8871<G>, bool>,
     mixin::Configurable<internal::DRV8871Config>
 
 {
-    KF_CHECK_IMPL(G, gpio::GpioTag);
+    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::PwmOutputTag);
 
-    using PwmOutputImpl = typename G::PwmOutput;
+    using PwmOutputImpl = G;
     using Config = internal::DRV8871Config;
 
     /// @param config Driver configuration (dead zones, max input)

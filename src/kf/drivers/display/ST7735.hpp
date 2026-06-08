@@ -29,19 +29,19 @@ struct ST7735Config final : mixin::NonCopyable {
 namespace kf::drivers::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-/// @tparam B SPI Bus implementation
-/// @tparam G GPIO implementation
-template<typename B, typename G> struct ST7735 final :
+/// @tparam N Implementation of SPI bus Node 
+/// @tparam G Implementation of GPIO with digital input support 
+template<typename N, typename G> struct ST7735 final :
 
-    DisplayDriver<ST7735<B, G>, internal::ST7735Image>,
+    DisplayDriver<ST7735<N, G>, internal::ST7735Image>,
     mixin::Configurable<internal::ST7735Config>
 
 {
-    KF_CHECK_IMPL(B, kf::bus::spi::SpiBusTag);
-    KF_CHECK_IMPL(G, kf::gpio::GpioTag);
+    KF_CHECK_IMPL(N, ::kf::bus::spi::SpiNodeTag);
+    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::DigitalOutputTag);
 
-    using SpiBusNodeImpl = typename B::Node;
-    using DigitalOutputPinImpl = typename G::DigitalOutput;
+    using SpiBusNodeImpl = N;
+    using DigitalOutputImpl = G;
     using PixelImpl = typename internal::ST7735Image::PixelImpl;
 
     /// @brief Hardware configuration for ST7735
@@ -76,13 +76,13 @@ template<typename B, typename G> struct ST7735 final :
         COLMOD = 0x3A ///< Color mode setting
     };
 
-    explicit ST7735(const Config &config, SpiBusNodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
+    explicit ST7735(const Config &config, SpiBusNodeImpl &&node, DigitalOutputImpl &&pin_data_command, DigitalOutputImpl &&pin_reset) noexcept :
         mixin::Configurable<internal::ST7735Config>{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
 
 private:
     SpiBusNodeImpl _node;
-    DigitalOutputPinImpl _pin_data_command;
-    DigitalOutputPinImpl _pin_reset;
+    DigitalOutputImpl _pin_data_command;
+    DigitalOutputImpl _pin_reset;
 
     u8 _madctl_base_mode{0};///< Base MADCTL value
 
@@ -104,7 +104,7 @@ private:
     }
 
     // impl
-    using This = ST7735<B, G>;
+    using This = ST7735<N, G>;
 
     KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept {

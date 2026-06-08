@@ -10,8 +10,8 @@
 
 #include <kf/input/JoystickListener.hpp>
 
-using kf::gpio::ArduinoGPIO;
-using NormalizedAdcInput = kf::drivers::sensors::NormalizedAdcInput<ArduinoGPIO>;
+using AdcInput = kf::gpio::ArduinoGPIO::AdcInput;
+using NormalizedAdcInput = kf::drivers::sensors::NormalizedAdcInput<AdcInput>;
 using Joystick = kf::drivers::sensors::Joystick<NormalizedAdcInput>;
 using JoystickListener = kf::input::JoystickListener<Joystick>;
 
@@ -36,10 +36,10 @@ NormalizedAdcInput::FilterImpl::Config axis_filter_config{
 
 // Joystick – must outlive listener instance (referenced)
 Joystick my_joystick{
-    my_joystick_config,// referenced, must stay alive
-    axis_filter_config,// referenced, must stay alive
-    ArduinoGPIO::AdcInput{GPIO_NUM_34},
-    ArduinoGPIO::AdcInput{GPIO_NUM_35},
+    my_joystick_config,   // referenced, must stay alive
+    axis_filter_config,   // referenced, must stay alive
+    AdcInput{GPIO_NUM_34},// moved
+    AdcInput{GPIO_NUM_35},// moved
 };
 
 JoystickListener::Config my_listener_config{
