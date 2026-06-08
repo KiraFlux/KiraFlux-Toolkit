@@ -32,6 +32,7 @@ template<typename... Args> struct Callbacked : CallbackedTag {
         _callback_function.reset();
     }
 
+protected:
     /// @brief Invoke callback function if is some
     /// @param value callback function argument
     void invoke(Args... args) const noexcept {
