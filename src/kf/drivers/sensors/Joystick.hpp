@@ -69,8 +69,8 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
     explicit Joystick(
         const Config &config,
         const typename InputImpl::FilterImpl::Config &filter_config,
-        typename InputImpl::AdcPinImpl &&pin_x,
-        typename InputImpl::AdcPinImpl &&pin_y) noexcept :
+        typename InputImpl::AdcInputImpl &&pin_x,
+        typename InputImpl::AdcInputImpl &&pin_y) noexcept :
         axis_x{config.x, filter_config, std::move(pin_x)},
         axis_y{config.y, filter_config, std::move(pin_y)} {}
 
