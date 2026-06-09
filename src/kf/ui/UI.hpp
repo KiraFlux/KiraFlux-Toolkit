@@ -145,7 +145,7 @@ public:
 
         /// @brief Get selected widget
         [[nodiscard]] constexpr Option<const Widget &> selectedWidget() const noexcept {
-            return _widgets.empty() ? none : someRef(_widgets[_cursor]; 
+            return _widgets.empty() ? none : someRef(_widgets[_cursor]);
         }
 
         /// @brief Render page content to display.
@@ -203,7 +203,10 @@ public:
 
     protected:
         /// @brief Set widgets on page
-        void widgets(Slice<Widget *> new_widgets) noexcept { _widgets = new_widgets; }
+        void widgets(Slice<Widget *> new_widgets) noexcept {
+            _widgets = new_widgets;
+            _cursor = clamp(_cursor, 0, _widgets.size() - 1);
+        }
 
     private:
         Slice<Widget *> _widgets{};///< Widgets on this page
