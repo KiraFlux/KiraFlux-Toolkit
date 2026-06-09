@@ -9,6 +9,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
 
 namespace kf::ui::render {
