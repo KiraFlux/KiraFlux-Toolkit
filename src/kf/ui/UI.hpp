@@ -110,7 +110,7 @@ template<typename U> struct UI : mixin::Singleton<UI<U>>, mixin::TimedPollable<U
 private:
     /// @brief Special widget for creating page navigation buttons
     /// @note Internal use only - use Page::link() for page navigation
-    struct PageSetter final : Widget {
+    struct PageSetter : Widget {
 
         explicit PageSetter(Page &target) noexcept :
             _target{target} {}
@@ -125,6 +125,10 @@ private:
             render.arrow();
             render.value(_target.label());
         }
+
+    [[nodiscard]] Option<memory::StringView> hint() const noexcept override {
+        return some(memory::StringView{"Navigate to page.."});
+    }
 
     private:
         Page &_target;///< Target page for navigation

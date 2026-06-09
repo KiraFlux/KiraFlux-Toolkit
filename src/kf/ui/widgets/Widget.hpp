@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "kf/Option.hpp"
+#include "kf/memory/StringView.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
@@ -33,6 +35,11 @@ template<typename U> struct Widget :
     /// @return true if redraw required, false otherwise
     [[nodiscard]] virtual bool onEventValue(typename U::EventImpl::Value event_value) noexcept {
         return false;
+    }
+
+    /// @brief Get Contextual hint about this widget
+    [[nodiscard]] virtual Option<memory::StringView> hint() const noexcept {
+        return none;
     }
 
     /// @brief External widget rendering with focus handling
