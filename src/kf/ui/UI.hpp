@@ -28,14 +28,13 @@
 namespace kf::ui {
 
 /// @brief User interface framework with widget-based rendering
-/// @tparam R Render impl
-/// @tparam E Event impl
+/// @tparam U UI Traits implementation
 /// @note Singleton pattern ensures single UI instance with event queue and page management
-template<typename R, typename E> struct UI : mixin::Singleton<UI<R, E>>, mixin::TimedPollable<UI<R, E>> {
-    struct Page;// forward declaration
+template<typename U> struct UI : mixin::Singleton<UI<U>>, mixin::TimedPollable<UI<U>> {
+    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     /// @brief UI Traits implementation
-    using Traits = UiTraits<R, E>;
+    using Traits = U;
 
     /// @brief Base widget type (provided for inheritance or generic references)
     using Widget = widgets::Widget<Traits>;
@@ -66,6 +65,8 @@ template<typename R, typename E> struct UI : mixin::Singleton<UI<R, E>>, mixin::
     /// @brief Slider for numeric adjustment with constraints
     /// @tparam T Arithmetic type (int, float, etc.)
     template<typename T> using Slider = widgets::Slider<Traits, T>;
+
+    struct Page;// forward declaration
 
     /// @brief Access renderer configuration
     /// @return Mutable reference to renderer config structure
@@ -223,7 +224,7 @@ private:
     typename Traits::RenderImpl _render_system{_render_config};///< Renderer system implementation instance
     Option<Page &> _active_page{none};                         ///< Currently active page for rendering
 
-    using This = UI<R, E>;
+    using This = UI<U>;
 
     KF_IMPL_TIMED_POLLABLE(This);
     // Process active page update, pending events and render if needed
