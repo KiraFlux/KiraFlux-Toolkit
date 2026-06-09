@@ -100,7 +100,10 @@ template<typename U> struct UI : mixin::Singleton<UI<U>>, mixin::TimedPollable<U
     }
 
     /// @brief Add event to processing queue
+    /// @note If the queue is non‑empty and the last event is Update, adding another Update event is a no‑op.
     void addEvent(typename Traits::EventImpl event) {
+        using Kind = typename Traits::EventImpl::Kind;
+        if (not _events.empty() and Kind::Update == event.kind() and Kind::Update == _events.back().kind()) { return; }
         _events.push(event);
     }
 
