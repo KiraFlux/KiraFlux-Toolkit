@@ -143,6 +143,11 @@ public:
         /// @brief Get 'go to this page' Widget
         [[nodiscard]] constexpr Widget &link() noexcept { return _to_this; }
 
+        /// @brief Get selected widget
+        [[nodiscard]] constexpr Option<const Widget &> selectedWidget() const noexcept {
+            return _widgets.empty() ? none : someRef(_widgets[_cursor]; 
+        }
+
         /// @brief Render page content to display.
         /// @param render Renderer instance.
         /// @note Handles cursor positioning and widget focus.
