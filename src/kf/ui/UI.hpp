@@ -205,7 +205,7 @@ public:
         /// @brief Set widgets on page
         void widgets(Slice<Widget *> new_widgets) noexcept {
             _widgets = new_widgets;
-            _cursor = clamp(_cursor, 0, _widgets.size() - 1);
+            _cursor = clamp<isize>(_cursor, 0, _widgets.size() - 1);
         }
 
     private:
