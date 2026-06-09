@@ -34,37 +34,49 @@ template<typename U> struct UI : mixin::Singleton<UI<U>>, mixin::TimedPollable<U
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     /// @brief UI Traits implementation
-    using Traits = U;
+    struct Traits : U {};
 
-    /// @brief Base widget type (provided for inheritance or generic references)
     using Widget = widgets::Widget<Traits>;
 
     /// @brief Button widget with click handler
-    /// @note Usage: `Button(page, label)`
-    using Button = widgets::Button<Traits>;
+    struct Button : widgets::Button<Traits> {
+        using widgets::Button<Traits>::Button;
+    };
 
     /// @brief Checkbox with boolean state and change handler
-    using CheckBox = widgets::CheckBox<Traits>;
+    struct CheckBox : widgets::CheckBox<Traits> {
+        using widgets::CheckBox<Traits>::CheckBox;
+    };
 
     /// @brief Combo box for selecting from a fixed set of options
     /// @tparam T Value type of options
-    template<typename T> using ComboBox = widgets::ComboBox<Traits, T>;
+    template<typename T> struct ComboBox : widgets::ComboBox<Traits, T> {
+        using widgets::ComboBox<Traits, T>::ComboBox;
+    };
 
     /// @brief Read-only display of a value (by reference)
     /// @tparam T Type of displayed value (must outlive the widget)
-    template<typename T> using Display = widgets::Display<Traits, T>;
+    template<typename T> struct Display : widgets::Display<Traits, T> {
+        using widgets::Display<Traits, T>::Display;
+    };
 
     /// @brief Wrapper that adds a label to another widget
-    using Labeled = widgets::Labeled<Traits>;
+    struct Labeled : widgets::Labeled<Traits> {
+        using widgets::Labeled<Traits>::Labeled;
+    };
 
     /// @brief Spin box for numeric adjustment with configurable step mode
     /// @tparam T Arithmetic type (int, float, etc.)
-    /// @tparam M Step mode (Arithmetic, ArithmeticPositiveOnly, Geometric)
-    template<typename T, typename A> using SpinBox = widgets::SpinBox<Traits, T, A>;
+    /// @tparam A Adjuster (Arithmetic, ArithmeticPositiveOnly, Geometric)
+    template<typename T, typename A> struct SpinBox : widgets::SpinBox<Traits, T, A> {
+        using widgets::SpinBox<Traits, T, A>::SpinBox;
+    };
 
     /// @brief Slider for numeric adjustment with constraints
     /// @tparam T Arithmetic type (int, float, etc.)
-    template<typename T> using Slider = widgets::Slider<Traits, T>;
+    template<typename T> struct Slider : widgets::Slider<Traits, T> {
+        using widgets::Slider<Traits, T>::Slider;
+    };
 
     struct Page;// forward declaration
 

@@ -26,7 +26,7 @@ struct SpinBoxTag {};
 /// @tparam U UI Traits Type
 /// @tparam T Numeric type for spin box value (must be arithmetic)
 /// @tparam A Adjuster type
-template<typename U, typename T, typename A> struct SpinBox final :
+template<typename U, typename T, typename A> struct SpinBox :
 
     SpinBoxTag,
     Widget<U>,
