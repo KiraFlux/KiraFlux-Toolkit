@@ -28,8 +28,13 @@ template<typename U> struct CheckBox :
     }
 
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
-        this->value(event_value > 0);// TODO: callback only if changed
-        return true;                 // TODO: check is value changed
+        const bool new_value = event_value > 0;
+        if (this->value() != new_value) {
+            this->value(new_value);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {
