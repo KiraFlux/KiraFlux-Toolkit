@@ -19,9 +19,13 @@ template<typename T> struct ComboBoxItem final : mixin::Labeled {
     constexpr ComboBoxItem(memory::StringView label, const T &value) noexcept :
         mixin::Labeled{label}, _value{value} {}
 
-    [[nodiscard]] const T &value() const noexcept { return _value; }
+    [[nodiscard]] const T &value() const noexcept {
+        return _value;
+    }
 
-    void value(const T &new_value) noexcept { _value = new_value; }
+    void value(const T &new_value) noexcept {
+        _value = new_value;
+    }
 
 private:
     T _value;
@@ -32,15 +36,19 @@ template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled {
     template<usize N> constexpr ComboBoxItem(const char (&str)[N]) noexcept :// NOLINT(*-explicit-constructor)
         mixin::Labeled{str} {}
 
-    [[nodiscard]] memory::StringView value() const noexcept { return this->label(); }
+    [[nodiscard]] memory::StringView value() const noexcept {
+        return this->label();
+    }
 
-    void value(memory::StringView new_value) noexcept { this->label(new_value); }
+    void value(memory::StringView new_value) noexcept {
+        this->label(new_value);
+    }
 };
 
 template<typename T> struct ComboBoxConfig final {
     using Item = ComboBoxItem<T>;
 
-    Slice<Item> items;///< Available options
+    Slice<Item> items;///< Available options (Always NOT empty)
 };
 
 }// namespace kf::internal
@@ -64,6 +72,24 @@ template<typename U, typename T> struct ComboBox :
     using Item = typename Config::Item;
 
     using mixin::Configurable<Config>::Configurable;
+
+    /// @brief Set selection to the first item whose value equals `new_value`
+    /// @param new_value Value to match against items
+    /// @note If no matching item is found, the selection remains unchanged
+    /// @note undefined behavior if `config().items` is empty
+    void value(const T &new_value) noexcept {
+        for (auto i = 0u; i < totalItems(); i += 1) {
+            if (this->config().items[i].value() == new_value) {
+                _cursor = i;
+                return;
+            }
+        }
+    }
+
+    /// @return Reference to selected item's value
+    const T &value() const noexcept {
+        return this->config().items[_cursor].value();
+    }
 
     /// @brief Change selection based on direction
     /// @param value Navigation direction (positive/negative)
