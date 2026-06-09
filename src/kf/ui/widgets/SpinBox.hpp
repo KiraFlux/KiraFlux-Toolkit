@@ -7,6 +7,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
+#include "kf/ui/Color.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::internal {
@@ -62,10 +63,14 @@ template<typename U, typename T, typename A> struct SpinBox :
 
     /// @brief Render current value or step size based on mode
     void doRender(typename U::RenderImpl &render) const noexcept override {
+        if (_is_step_setting_mode) {
+            render.background(Color::Warning);
+        }
+
         render.beginAltBlock();
 
         if (_is_step_setting_mode) {
-            render.arrow();
+            render.colon();
             render.value(_step);
         } else {
             render.value(this->value());

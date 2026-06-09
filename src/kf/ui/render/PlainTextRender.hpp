@@ -11,6 +11,7 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -143,8 +144,7 @@ private:
     }
 
     template<typename T> void sliderImpl(const T &slider_value, const Range<T> &range, Placement placement) noexcept {
-
-        // Textual now supports only show/hide placement
+        // Plain text does not support only 'show inside' placement yet
         if (Placement::Hidden != placement) {
             this->value(slider_value);
             writeChar(' ');
@@ -173,8 +173,7 @@ private:
     void valueImpl(memory::StringView str) noexcept { writeString(str); }
 
     void valueImpl(bool slider_value) noexcept {
-        constexpr memory::StringView label_true{"true"};
-        constexpr memory::StringView label_false{"false"};
+        constexpr memory::StringView label_true{"true"}, label_false{"false"};
         writeString(slider_value ? label_true : label_false);
     }
 
@@ -191,6 +190,12 @@ private:
     void valueImpl(f64 real) noexcept {
         writeReal(real, this->config().double_places);
     }
+
+    // Semantic color (No-Op in plain text)
+
+    void setForegroundImpl(Color) noexcept {}
+
+    void setBackgroundImpl(Color) noexcept {}
 
     // Decoration rendering
 

@@ -59,7 +59,15 @@ template<typename Impl> struct Render :
     }
 
     /// @brief Render value
-    template<typename T> void value(const T &v) noexcept { this->impl().valueImpl(v); }
+    template<typename T> void value(const T &v) noexcept { this->impl().valueImpl(v); }// TODO: if T impl toString -> toString().view() and render it.
+
+    // Semantic color
+
+    /// @brief Set foreground Semantic color
+    void foreground(Color color) noexcept { this->impl().setForegroundImpl(color); }
+
+    /// @brief Set background Semantic color
+    void background(Color color) noexcept { this->impl().setBackgroundImpl(color); }
 
     // Decoration and layout
 

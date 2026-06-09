@@ -24,7 +24,7 @@ using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<// Traits Implementation
+    kf::ui::UiTraits<                          // Traits Implementation
         kf::ui::render::ColoredTextRender<256>,// Render implementation: colored text, buffered (256 Bytes)
         kf::ui::Event<4>                       // Event type: 4-bit value
         >>;
@@ -36,7 +36,7 @@ struct MainPage : MyUI::Page {
     int my_value{12345};
 
     MyUI::Button click_button{
-        "Test",// button label
+        "Button",// button label
     };
 
     MyUI::CheckBox check_box{
@@ -64,10 +64,31 @@ struct MainPage : MyUI::Page {
         slider_config,// by ref
     };
 
-    kf::memory::Array<MyUI::Widget *, 5> widgets_storage{
+    using ColorCombo = MyUI::ComboBox<kf::TrivialOption<kf::ui::Color>>;
+
+    kf::memory::Array<ColorCombo::Item, 9> color_combo_items{{
+        {"None", kf::none},
+        {"Normal", kf::someTrivial(kf::ui::Color::Normal)},
+        {"Primary", kf::someTrivial(kf::ui::Color::Primary)},
+        {"Secondary", kf::someTrivial(kf::ui::Color::Secondary)},
+        {"Success", kf::someTrivial(kf::ui::Color::Success)},
+        {"Warning", kf::someTrivial(kf::ui::Color::Warning)},
+        {"Error", kf::someTrivial(kf::ui::Color::Error)},
+        {"Info", kf::someTrivial(kf::ui::Color::Info)},
+        {"Disabled", kf::someTrivial(kf::ui::Color::Disabled)},
+    }};
+
+    ColorCombo::Config color_combo_config{
+        .items = {color_combo_items.data(), color_combo_items.size()},
+    };
+
+    ColorCombo color_combo{color_combo_config};
+
+    kf::memory::Array<MyUI::Widget *, 6> widgets_storage{
         {
             nullptr,// link widget will be init in setup()
             &click_button,
+            &color_combo,
             &check_box,
             &value_display,
             &slider,
@@ -88,6 +109,10 @@ struct MainPage : MyUI::Page {
             Serial.println(state ? "ON" : "OFF");
             my_value *= -1;
             value_display.value(my_value);
+        });
+
+        color_combo.callback([this](auto color) {
+            click_button.color(color);
         });
     }
 
