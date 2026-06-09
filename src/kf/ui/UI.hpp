@@ -94,9 +94,8 @@ template<typename U> struct UI : mixin::Singleton<UI<U>>, mixin::TimedPollable<U
         if (_active_page.isSome()) {
             _active_page.unwrap().onExit();
         }
-
+        page.onEntry();
         _active_page = someRef(page);
-        _active_page.unwrap().onEntry();
     }
 
     /// @brief Add event to processing queue
@@ -112,8 +111,9 @@ private:
     /// @note Internal use only - use Page::link() for page navigation
     struct PageSetter : Widget {
 
-        explicit PageSetter(Page &target) noexcept :
-            _target{target} {}
+        explicit PageSetter(Page &target) noexcept : _target{target} {
+            this->hint("Navigate to page..");
+        }
 
         /// @brief Set target page as active on click
         [[nodiscard]] bool onClick() noexcept override {
@@ -125,10 +125,6 @@ private:
             render.arrow();
             render.value(_target.label());
         }
-
-    [[nodiscard]] Option<memory::StringView> hint() const noexcept override {
-        return some(memory::StringView{"Navigate to page.."});
-    }
 
     private:
         Page &_target;///< Target page for navigation

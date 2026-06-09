@@ -38,20 +38,24 @@ template<typename U> struct Widget :
     }
 
     /// @brief Get Contextual hint about this widget
-    [[nodiscard]] virtual Option<memory::StringView> hint() const noexcept {
-        return none;
+    [[nodiscard]] memory::StringView hint() const noexcept {
+        return _hint;
+    }
+
+    /// @brief Set Contextual hint about this widget
+    void hint(memory::StringView new_hint) noexcept {
+        _hint = new_hint;
     }
 
     /// @brief External widget rendering with focus handling
     void render(typename U::RenderImpl &render, bool focused) const noexcept {
-        if (focused) {
-            render.beginFocused();
-            doRender(render);
-            render.endFocused();
-        } else {
-            doRender(render);
-        }
+        if (focused) { render.beginFocused(); }
+        doRender(render);
+        if (focused) { render.endFocused(); }
     }
+
+private:
+    memory::StringView _hint{};
 };
 
 }// namespace kf::ui::widgets
