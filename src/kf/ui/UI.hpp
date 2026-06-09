@@ -34,19 +34,8 @@ namespace kf::ui {
 template<typename R, typename E> struct UI : mixin::Singleton<UI<R, E>>, mixin::TimedPollable<UI<R, E>> {
     struct Page;// forward declaration
 
-    /// @brief Renderer implementation type
-    using RenderImpl = R;
-
-    /// @brief Renderer Configuration type
-    using RenderConfig = typename RenderImpl::Config;
-
-    /// @brief UI Event type
-    using Event = E;
-
-    /// @brief UI Event Value type
-    using EventValue = typename Event::Value;
-
-    using Traits = UiTraits<RenderImpl, Event>;
+    /// @brief UI Traits implementation
+    using Traits = UiTraits<R, E>;
 
     /// @brief Base widget type (provided for inheritance or generic references)
     using Widget = widgets::Widget<Traits>;
@@ -80,11 +69,11 @@ template<typename R, typename E> struct UI : mixin::Singleton<UI<R, E>>, mixin::
 
     /// @brief Access renderer configuration
     /// @return Mutable reference to renderer config structure
-    [[nodiscard]] RenderConfig &renderConfig() noexcept { return _render_config; }
+    [[nodiscard]] typename Traits::RenderImpl::Config &renderConfig() noexcept { return _render_config; }
 
     /// @brief Access renderer instance
     /// @return Mutable  Reference to renderer
-    [[nodiscard]] RenderImpl &renderSystem() noexcept { return _render_system; }
+    [[nodiscard]] typename Traits::RenderImpl &renderSystem() noexcept { return _render_system; }
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
@@ -98,7 +87,7 @@ template<typename R, typename E> struct UI : mixin::Singleton<UI<R, E>>, mixin::
     }
 
     /// @brief Add event to processing queue
-    void addEvent(Event event) {
+    void addEvent(typename Traits::EventImpl event) {
         _events.push(event);
     }
 
@@ -116,7 +105,7 @@ private:
             return true;// redraw always required after page change
         }
 
-        void doRender(RenderImpl &render) const noexcept override {
+        void doRender(typename Traits::RenderImpl &render) const noexcept override {
             render.arrow();
             render.value(_target.label());
         }
@@ -151,7 +140,7 @@ public:
         /// @brief Render page content to display.
         /// @param render Renderer instance.
         /// @note Handles cursor positioning and widget focus.
-        void render(RenderImpl &render) noexcept {
+        void render(typename Traits::RenderImpl &render) noexcept {
             render.title(this->label());
 
             if (nullptr == _widgets.data()) { return; }
@@ -176,20 +165,21 @@ public:
 
         /// @brief Add event to processing queue.
         /// @param event The event to be processed.
-        [[nodiscard]] bool onEvent(Event event) noexcept {
+        [[nodiscard]] bool onEvent(typename Traits::EventImpl event) noexcept {
+            using Kind = typename Traits::EventImpl::Kind;
             switch (event.kind()) {
-                case Event::Kind::Update: {
+                case Kind::Update: {
                     return true;
                 }
-                case Event::Kind::PageCursorMove: {
+                case Kind::PageCursorMove: {
                     return moveCursor(event.value());
                 }
-                case Event::Kind::WidgetClick: {
+                case Kind::WidgetClick: {
                     if (_widgets.size() > 0) {
                         return _widgets[_cursor]->onClick();
                     }
                 }
-                case Event::Kind::WidgetValueChange: {
+                case Kind::WidgetValueChange: {
                     if (_widgets.size() > 0) {
                         return _widgets[_cursor]->onEventValue(event.value());
                     }
@@ -228,18 +218,16 @@ public:
     };
 
 private:
-    memory::Queue<Event> _events{};           ///< Event queue for pending UI events
-    RenderConfig _render_config{};            ///< Render Configuration
-    RenderImpl _render_system{_render_config};///< Renderer system implementation instance
-    Option<Page &> _active_page{none};        ///< Currently active page for rendering
+    memory::Queue<typename Traits::EventImpl> _events{};       ///< Event queue for pending UI events
+    typename Traits::RenderImpl::Config _render_config{};      ///< Render Configuration
+    typename Traits::RenderImpl _render_system{_render_config};///< Renderer system implementation instance
+    Option<Page &> _active_page{none};                         ///< Currently active page for rendering
 
-    // impl
     using This = UI<R, E>;
 
     KF_IMPL_TIMED_POLLABLE(This);
+    // Process active page update, pending events and render if needed
     void pollImpl(math::Milliseconds now) noexcept {
-        // Process active page update, pending events and render if needed
-
         if (_active_page.isNone()) { return; }
 
         _active_page.unwrap().onUpdate(now);

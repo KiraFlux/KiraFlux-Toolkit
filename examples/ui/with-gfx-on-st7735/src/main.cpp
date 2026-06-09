@@ -189,14 +189,14 @@ struct SettingsPage : MyUI::Page {
 } settings_page{};
 
 // Simple function for convertion from char to event
-MyUI::Event eventFromChar(char c) {
+MyUI::Traits::EventImpl eventFromChar(char c) {
     switch (c) {
-        case 'w': return MyUI::Event::pageCursorMove(-1);// Up
-        case 's': return MyUI::Event::pageCursorMove(+1);// Down
-        case 'a': return MyUI::Event::widgetValue(-1);   // Left
-        case 'd': return MyUI::Event::widgetValue(1);    // Right
-        case ' ': return MyUI::Event::widgetClick();     // Click
-        default: return MyUI::Event::update();           // Other: Force update
+        case 'w': return MyUI::Traits::EventImpl::pageCursorMove(-1);// Up
+        case 's': return MyUI::Traits::EventImpl::pageCursorMove(+1);// Down
+        case 'a': return MyUI::Traits::EventImpl::widgetValue(-1);   // Left
+        case 'd': return MyUI::Traits::EventImpl::widgetValue(1);    // Right
+        case ' ': return MyUI::Traits::EventImpl::widgetClick();     // Click
+        default: return MyUI::Traits::EventImpl::update();           // Other: Force update
     }
 }
 
@@ -244,7 +244,7 @@ void setup() {
     }
 
     // render setup
-    MyUI::RenderConfig &config = ui.renderConfig();
+    auto &config = ui.renderConfig();
 
     using CanvasImpl = kf::gfx::Canvas<P>;
 
@@ -278,7 +278,7 @@ void setup() {
 
     ui.bindPage(main_page);// start ui with main page
 
-    ui.addEvent(MyUI::Event::update());// Force update for first ui rendering
+    ui.addEvent(MyUI::Traits::EventImpl::update());// Force update for first ui rendering
 }
 
 void loop() {
