@@ -21,9 +21,9 @@ private:
 
     [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return _wrapped.widgetsAvailable(); }
 
-    void prepareImpl() noexcept { _wrapped.prepare(); }
+    void beginFrameImpl() noexcept { _wrapped.beginFrame(); }
 
-    void finishImpl() noexcept { _wrapped.finish(); }
+    void endFrameImpl() noexcept { _wrapped.endFrame(); }
 
     void titleImpl(memory::StringView title) noexcept {
         _wrapped.writeChar('\xF0');

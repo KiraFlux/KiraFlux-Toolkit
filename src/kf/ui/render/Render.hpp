@@ -28,10 +28,10 @@ template<typename Impl> struct Render :
     // Control operations
 
     /// @brief Prepare render buffer for new frame
-    void prepare() noexcept { this->impl().prepareImpl(); }
+    void beginFrame() noexcept { this->impl().beginFrameImpl(); }
 
     /// @brief Finalize frame after rendering
-    void finish() noexcept { this->impl().finishImpl(); }
+    void endFrame() noexcept { this->impl().endFrameImpl(); }
 
     /// @brief Begin rendering specific widget
     /// @param index Widget index in UI hierarchy

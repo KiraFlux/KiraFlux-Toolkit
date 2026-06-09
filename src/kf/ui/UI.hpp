@@ -262,9 +262,9 @@ private:
         }
 
         if (render_required) {
-            _render_system.prepare();
+            _render_system.beginFrame();
             _active_page.unwrap().render(_render_system);
-            _render_system.finish();
+            _render_system.endFrame();
         }
     }
 };

@@ -117,12 +117,12 @@ private:
         }
     }
 
-    void prepareImpl() noexcept {
+    void beginFrameImpl() noexcept {
         _buffer.clear();
         _cursor.reset();
     }
 
-    void finishImpl() noexcept {
+    void endFrameImpl() noexcept {
         this->invoke(_buffer.view());
     }
 
