@@ -170,7 +170,13 @@ private:
 
     // Value rendering implementations
 
-    void valueImpl(memory::StringView str) noexcept { writeString(str); }
+    template<usize M> void valueImpl(const memory::StaticString<M> &str) noexcept {
+        writeString(str.view());
+    }
+
+    void valueImpl(memory::StringView str) noexcept {
+        writeString(str);
+    }
 
     void valueImpl(bool slider_value) noexcept {
         constexpr memory::StringView label_true{"true"}, label_false{"false"};

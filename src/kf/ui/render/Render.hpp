@@ -3,10 +3,13 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "kf/Range.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/StringRepresentable.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Color.hpp"
@@ -59,7 +62,13 @@ template<typename Impl> struct Render :
     }
 
     /// @brief Render value
-    template<typename T> void value(const T &v) noexcept { this->impl().valueImpl(v); }// TODO: if T impl toString -> toString().view() and render it.
+    template<typename T> void value(const T &v) noexcept {
+        if constexpr (std::is_base_of_v<mixin::StringRepresentableTag, T>) {
+            this->impl().valueImpl(v.toString());
+        } else {
+            this->impl().valueImpl(v);
+        }
+    }
 
     // Semantic color
 
