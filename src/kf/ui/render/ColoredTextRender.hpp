@@ -10,62 +10,64 @@ template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
     using Wrapped = PlainTextRender<N>;
     using Config = typename Wrapped::Config;
 
-    Wrapped wrapped{};
+    explicit constexpr ColoredTextRender(const Config &config) noexcept : _wrapped{config} {}
 
-    explicit constexpr ColoredTextRender(const Config &config) noexcept : wrapped{config} {}
+    template<typename F> void callback(F &&callback) noexcept { _wrapped.callback(std::forward<F>(callback)); }
 
 private:
+    Wrapped _wrapped{};
+
     KF_IMPL(Render<ColoredTextRender<N>>);
 
-    [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return wrapped.widgetsAvailable(); }
+    [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return _wrapped.widgetsAvailable(); }
 
-    void prepareImpl() noexcept { wrapped.prepare(); }
+    void prepareImpl() noexcept { _wrapped.prepare(); }
 
-    void finishImpl() noexcept { wrapped.finish(); }
+    void finishImpl() noexcept { _wrapped.finish(); }
 
     void titleImpl(memory::StringView title) noexcept {
-        wrapped.writeChar('\xF0');
-        wrapped.writeChar('\xBC');
-        wrapped.title(title);
-        wrapped.writeChar('\x80');
+        _wrapped.writeChar('\xF0');
+        _wrapped.writeChar('\xBC');
+        _wrapped.title(title);
+        _wrapped.writeChar('\x80');
     }
 
     void checkboxImpl(bool enabled) noexcept {
-        wrapped.writeChar(enabled ? '\xB2' : '\xB1');
-        wrapped.checkbox(enabled);
-        wrapped.writeChar('\x80');
+        _wrapped.writeChar(enabled ? '\xB2' : '\xB1');
+        _wrapped.checkbox(enabled);
+        _wrapped.writeChar('\x80');
     }
 
-    template<typename T> void sliderImpl(T value, Range<T> value_range, Placement value_placement) noexcept {
-        wrapped.slider(value, value_range, value_placement);
+    template<typename T> void sliderImpl(const T &value, const Range<T> &range, Placement placement) noexcept {
+        _wrapped.slider(value, range, placement);
     }
 
-    template<typename T> void valueImpl(T v) { wrapped.value(v); }
+    template<typename T> void valueImpl(const T &v) { _wrapped.value(v); }
 
-    void arrowImpl() noexcept { wrapped.arrow(); }
+    void arrowImpl() noexcept { _wrapped.arrow(); }
 
-    void colonImpl() noexcept { wrapped.colon(); }
+    void colonImpl() noexcept { _wrapped.colon(); }
 
     void beginFocusedImpl() noexcept {
-        wrapped.writeChar('\x81');
+        _wrapped.writeChar('\x81');
     }
 
     void endFocusedImpl() noexcept {
-        wrapped.endFocused();
-        wrapped.writeChar('\x80');
+        _wrapped.endFocused();
+        _wrapped.writeChar('\x80');
     }
 
-    void beginBlockImpl() noexcept { wrapped.beginBlock(); }
+    void beginBlockImpl() noexcept { _wrapped.beginBlock(); }
 
-    void endBlockImpl() noexcept { wrapped.endBlock(); }
+    void endBlockImpl() noexcept { _wrapped.endBlock(); }
 
-    void beginAltBlockImpl() noexcept { wrapped.beginAltBlock(); }
+    void beginAltBlockImpl() noexcept { _wrapped.beginAltBlock(); }
 
-    void endAltBlockImpl() noexcept { wrapped.endAltBlock(); }
+    void endAltBlockImpl() noexcept { _wrapped.endAltBlock(); }
 
-    void beginWidgetImpl(usize index) noexcept { wrapped.beginWidget(index); }
+    void beginWidgetImpl(usize index) noexcept { _wrapped.beginWidget(index); }
 
-    void endWidgetImpl() noexcept { wrapped.endWidget(); }
+    void endWidgetImpl() noexcept { _wrapped.endWidget(); }
 };
 
 }// namespace kf::ui::render

@@ -260,7 +260,7 @@ void setup() {
     };
 
     // post-render procedure
-    ui.renderSystem().wrapped.callback([](kf::memory::StringView text) {
+    ui.renderSystem().callback([](kf::memory::StringView text) {
         root_canvas.fill();
         root_canvas.text(0, 0, text);
 

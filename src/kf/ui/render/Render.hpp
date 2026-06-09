@@ -18,7 +18,13 @@ struct RenderTag {};
 /// @brief CRTP base class for UI rendering systems
 /// @tparam Impl Concrete renderer implementation type
 /// @note Delegates all rendering operations to derived class implementation
-template<typename Impl> struct Render : RenderTag, mixin::NonCopyable, meta::CRTP<Impl> {
+template<typename Impl> struct Render :
+
+    RenderTag,
+    meta::CRTP<Impl>,
+    mixin::NonCopyable
+
+{
     // Control operations
 
     /// @brief Prepare render buffer for new frame
@@ -47,12 +53,12 @@ template<typename Impl> struct Render : RenderTag, mixin::NonCopyable, meta::CRT
     void checkbox(bool enabled) noexcept { this->impl().checkboxImpl(enabled); }
 
     /// @brief Render slider
-    template<typename T> void slider(T v, Range<T> value_range, Placement placement) noexcept {
-        this->impl().sliderImpl(v, value_range, placement);
+    template<typename T> void slider(const T &v, const Range<T> &range, Placement placement) noexcept {
+        this->impl().sliderImpl(v, range, placement);
     }
 
     /// @brief Render value
-    template<typename T> void value(T v) noexcept { this->impl().valueImpl(v); }
+    template<typename T> void value(const T &v) noexcept { this->impl().valueImpl(v); }
 
     // Decoration and layout
 

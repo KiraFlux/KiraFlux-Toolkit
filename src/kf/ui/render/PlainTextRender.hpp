@@ -138,12 +138,11 @@ private:
     }
 
     void checkboxImpl(bool enabled) noexcept {
-        constexpr memory::StringView on{"==( 1 )"};
-        constexpr memory::StringView off{"( 0 )--"};
+        constexpr memory::StringView on{"==[ 1 ]"}, off{"[ 0 ]--"};
         writeString(enabled ? on : off);
     }
 
-    template<typename T> void sliderImpl(T slider_value, Range<T> value_range,Placement placement) noexcept {
+    template<typename T> void sliderImpl(const T &slider_value, const Range<T> &range, Placement placement) noexcept {
 
         // Textual now supports only show/hide placement
         if (Placement::Hidden != placement) {
@@ -154,7 +153,7 @@ private:
         writeChar('[');
         const usize start_col = _cursor.col;
         const usize inner_width = this->config().row_max_length - start_col - 1;// -1 for closing char
-        const usize fill = (slider_value - value_range.start) * inner_width / (value_range.end - value_range.start);
+        const usize fill = (slider_value - range.start) * inner_width / (range.end - range.start);
 
         for (usize i = 0; i < fill; i += 1) {
             writeChar('=');
