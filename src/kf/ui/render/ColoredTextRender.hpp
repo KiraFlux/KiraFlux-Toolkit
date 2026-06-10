@@ -59,24 +59,24 @@ private:
 
     static constexpr ASCII normal_background_codes_table[8]{
         ASCII::Black,     // Normal
-        ASCII::LightBlue, // Primary
+        ASCII::DarkBlue, // Primary
         ASCII::DarkGray,  // Secondary
         ASCII::DarkGreen, // Success
-        ASCII::DarkYellow,// Warning
+        ASCII::LightYellow,// Warning
         ASCII::DarkRed,   // Error
         ASCII::DarkCyan,  // Info
-        ASCII::LightGray, // Disabled
+        ASCII::DarkGray, // Disabled
     };
 
     static constexpr ASCII focused_background_codes_table[8]{
         ASCII::White,      // Normal
-        ASCII::DarkBlue,   // Primary
+        ASCII::LightBlue,   // Primary
         ASCII::LightGray,  // Secondary
         ASCII::LightGreen, // Success
-        ASCII::LightYellow,// Warning
+        ASCII::DarkYellow,// Warning
         ASCII::LightRed,   // Error
         ASCII::LightCyan,  // Info
-        ASCII::DarkGray,   // Disabled
+        ASCII::LightGray,   // Disabled
     };
 
     Wrapped _wrapped{};
