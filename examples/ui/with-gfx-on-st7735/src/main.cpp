@@ -290,6 +290,16 @@ void setup() {
         root_canvas.text(0, 0, text);
 
         (void) display.send();// SPI cannot tell anything about error => ignoring
+
+        // show buffer content
+        for (auto c: text) {
+            if (c < 0x80) {
+                Serial.write(c);
+            } else {
+                Serial.write(' ');
+                Serial.print(c, 16);
+            }
+        }
     });
 
     // misc

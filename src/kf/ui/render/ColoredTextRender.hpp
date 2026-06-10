@@ -59,33 +59,39 @@ private:
 
     static constexpr ASCII normal_background_codes_table[8]{
         ASCII::Black,     // Normal
-        ASCII::DarkBlue, // Primary
+        ASCII::DarkBlue,  // Primary
         ASCII::DarkGray,  // Secondary
         ASCII::DarkGreen, // Success
-        ASCII::LightYellow,// Warning
+        ASCII::DarkYellow,// Warning
         ASCII::DarkRed,   // Error
         ASCII::DarkCyan,  // Info
-        ASCII::DarkGray, // Disabled
+        ASCII::DarkGray,  // Disabled
     };
 
     static constexpr ASCII focused_background_codes_table[8]{
         ASCII::White,      // Normal
-        ASCII::LightBlue,   // Primary
+        ASCII::LightBlue,  // Primarysw
         ASCII::LightGray,  // Secondary
         ASCII::LightGreen, // Success
-        ASCII::DarkYellow,// Warning
+        ASCII::LightYellow,// Warning
         ASCII::LightRed,   // Error
         ASCII::LightCyan,  // Info
-        ASCII::LightGray,   // Disabled
+        ASCII::LightGray,  // Disabled
     };
 
     Wrapped _wrapped{};
-    bool _coloring_active{false};
     bool _focus_active{false};
 
     void writeColor(Color color, char base_code, const ASCII *code_from_color_table) noexcept {
         _wrapped.writeChar(base_code + static_cast<char>(code_from_color_table[static_cast<u8>(color)]));
-        _coloring_active = true;
+    }
+
+    void writeForegroundColor(Color color, const ASCII *code_from_color_table) noexcept {
+        writeColor(color, '\xF0', code_from_color_table);
+    }
+
+    void writeBackgroundColor(Color color, const ASCII *code_from_color_table) noexcept {
+        writeColor(color, '\xB0', code_from_color_table);
     }
 
     KF_IMPL(Render<ColoredTextRender<N>>);
@@ -99,10 +105,9 @@ private:
     void endFrameImpl() noexcept { _wrapped.endFrame(); }
 
     void titleImpl(memory::StringView title) noexcept {
-        _wrapped.writeChar('\xF0');
-        _wrapped.writeChar('\xBC');
+        writeForegroundColor(Color::Normal, focused_foreground_codes_table);
+        writeBackgroundColor(Color::Primary, focused_background_codes_table);
         _wrapped.title(title);
-        _wrapped.writeChar('\x80');
     }
 
     void beginWidgetImpl(usize index, bool focused) noexcept {
@@ -112,15 +117,8 @@ private:
     }
 
     void endWidgetImpl() noexcept {
-        if (_focus_active) { _wrapped.endWidget(); }
-
-        if (_coloring_active) {
-            _wrapped.writeChar('\x80');
-            _coloring_active = false;
-        }
-
-        if (not _focus_active) { _wrapped.endWidget(); }
-
+        if (not _focus_active) { _wrapped.writeChar('\x80'); }
+        _wrapped.endWidget();
         _focus_active = false;
     }
 
@@ -135,16 +133,16 @@ private:
 
     // value
 
-    template<typename T> void valueImpl(const T &v) { _wrapped.value(v); }
+    template<typename T> void valueImpl(const T &value) { _wrapped.value(value); }
 
     // semantic color
 
     void setForegroundImpl(Color color) noexcept {
-        writeColor(color, '\xF0', _focus_active ? focused_foreground_codes_table : normal_foreground_codes_table);
+        writeForegroundColor(color, _focus_active ? focused_foreground_codes_table : normal_foreground_codes_table);
     }
 
     void setBackgroundImpl(Color color) noexcept {
-        writeColor(color, '\xB0', _focus_active ? focused_background_codes_table : normal_background_codes_table);
+        writeBackgroundColor(color, _focus_active ? focused_background_codes_table : normal_background_codes_table);
     }
 
     // decoration
