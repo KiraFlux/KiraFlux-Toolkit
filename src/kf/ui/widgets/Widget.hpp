@@ -6,6 +6,8 @@
 #include "kf/Option.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/primitives.hpp"
+
+#include "kf/ui/Color.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
@@ -48,15 +50,36 @@ template<typename U> struct Widget :
         _hint = new_hint;
     }
 
+    /// @brief Get Foreground color
+    [[nodiscard]] Color foreground() const noexcept {
+        return _foreground_color;
+    }
+
+    /// @brief Set Foreground color
+    void foreground(Color new_color) noexcept {
+        _foreground_color = new_color;
+    }
+
+    /// @brief Get Background color
+    [[nodiscard]] Color background() const noexcept {
+        return _background_color;
+    }
+
+    /// @brief Set Background color
+    void background(Color new_color) noexcept {
+        _background_color = new_color;
+    }
+
     /// @brief External widget rendering with focus handling
     void render(typename U::RenderImpl &render, usize index, bool focused) const noexcept {
-        render.beginWidget(index, focused);
+        render.beginWidget(index, focused, _foreground_color, _background_color);
         doRender(render);
         render.endWidget();
     }
 
 private:
     memory::StringView _hint{};
+    Color _foreground_color{Color::Normal}, _background_color{Color::Normal};
 };
 
 }// namespace kf::ui::widgets

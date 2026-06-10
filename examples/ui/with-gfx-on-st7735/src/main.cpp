@@ -64,31 +64,35 @@ struct MainPage : MyUI::Page {
         slider_config,// by ref
     };
 
-    using ColorCombo = MyUI::ComboBox<kf::TrivialOption<kf::ui::Color>>;
+    using ColorCombo = MyUI::ComboBox<kf::ui::Color>;
 
-    kf::memory::Array<ColorCombo::Item, 9> color_combo_items{{
-        {"None", kf::none},
-        {"Normal", kf::someTrivial(kf::ui::Color::Normal)},
-        {"Primary", kf::someTrivial(kf::ui::Color::Primary)},
-        {"Secondary", kf::someTrivial(kf::ui::Color::Secondary)},
-        {"Success", kf::someTrivial(kf::ui::Color::Success)},
-        {"Warning", kf::someTrivial(kf::ui::Color::Warning)},
-        {"Error", kf::someTrivial(kf::ui::Color::Error)},
-        {"Info", kf::someTrivial(kf::ui::Color::Info)},
-        {"Disabled", kf::someTrivial(kf::ui::Color::Disabled)},
+    kf::memory::Array<ColorCombo::Item, 8> color_combo_items{{
+        {"Normal", kf::ui::Color::Normal},
+        {"Primary", kf::ui::Color::Primary},
+        {"Secondary", kf::ui::Color::Secondary},
+        {"Success", kf::ui::Color::Success},
+        {"Warning", kf::ui::Color::Warning},
+        {"Error", kf::ui::Color::Error},
+        {"Info", kf::ui::Color::Info},
+        {"Disabled", kf::ui::Color::Disabled},
     }};
 
     ColorCombo::Config color_combo_config{
         .items = {color_combo_items.data(), color_combo_items.size()},
     };
 
-    ColorCombo color_combo{color_combo_config};
+    ColorCombo foreground_color_combo{color_combo_config};
+    ColorCombo background_color_combo{color_combo_config};
 
-    kf::memory::Array<MyUI::Widget *, 6> widgets_storage{
+    MyUI::Labeled labeled_foreground_color_combo{"FG", foreground_color_combo};
+    MyUI::Labeled labeled_background_color_combo{"BG", background_color_combo};
+
+    kf::memory::Array<MyUI::Widget *, 7> widgets_storage{
         {
             nullptr,// link widget will be init in setup()
             &click_button,
-            &color_combo,
+            &labeled_foreground_color_combo,
+            &labeled_background_color_combo,
             &check_box,
             &value_display,
             &slider,
@@ -111,8 +115,12 @@ struct MainPage : MyUI::Page {
             value_display.value(my_value);
         });
 
-        color_combo.callback([this](auto color) {
-            click_button.color(color);
+        background_color_combo.callback([this](auto color) {
+            click_button.background(color);
+        });
+
+        foreground_color_combo.callback([this](auto color) {
+            click_button.foreground(color);
         });
     }
 

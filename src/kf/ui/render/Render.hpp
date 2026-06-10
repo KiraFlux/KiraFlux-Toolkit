@@ -38,9 +38,13 @@ template<typename Impl> struct Render :
     void endFrame() noexcept { this->impl().endFrameImpl(); }
 
     /// @brief Begin rendering specific widget
-    /// @param index Widget index in UI hierarchy
-    /// @brief focused contrasting text region (higher visibility)
-    void beginWidget(usize index, bool focused) noexcept { this->impl().beginWidgetImpl(index, focused); }
+    /// @param index Widget position in it's page
+    /// @param is_focused contrasting text region (higher visibility)
+    /// @param foreground Widget's text content color
+    /// @param background Widget's background color
+    void beginWidget(usize index, bool is_focused, Color foreground, Color background) noexcept {
+        this->impl().beginWidgetImpl(index, is_focused, foreground, background);
+    }
 
     /// @brief Finish rendering current widget
     void endWidget() noexcept { this->impl().endWidgetImpl(); }

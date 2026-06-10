@@ -138,8 +138,8 @@ private:
         writeChar('\n');
     }
 
-    void beginWidgetImpl(usize, bool focused) noexcept {
-        if (focused) {
+    void beginWidgetImpl(usize, bool is_focused, Color, Color) noexcept {
+        if (is_focused) {
             writeString("* ");
         }
     }
