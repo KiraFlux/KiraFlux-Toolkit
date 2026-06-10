@@ -170,12 +170,7 @@ public:
 
                 if (nullptr == widget) { continue; }
 
-                render.beginWidget(i);
-
-                const bool is_selected = (i == _cursor);
-                widget->render(render, is_selected);
-
-                render.endWidget();
+                widget->render(render, i, (i == _cursor));
             }
         }
 

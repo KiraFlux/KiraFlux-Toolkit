@@ -138,6 +138,16 @@ private:
         writeChar('\n');
     }
 
+    void beginWidgetImpl(usize, bool focused) noexcept {
+        if (focused) {
+            writeString("* ");
+        }
+    }
+
+    void endWidgetImpl() noexcept {
+        writeChar('\n');
+    }
+
     void checkboxImpl(bool enabled) noexcept {
         constexpr memory::StringView on{"==[ 1 ]"}, off{"[ 0 ]--"};
         writeString(enabled ? on : off);
@@ -209,10 +219,6 @@ private:
 
     void colonImpl() noexcept { writeString(": "); }
 
-    void beginFocusedImpl() noexcept { writeString("* "); }
-
-    void endFocusedImpl() noexcept {}
-
     void beginBlockImpl() noexcept { writeChar('['); }
 
     void endBlockImpl() noexcept { writeChar(']'); }
@@ -220,10 +226,6 @@ private:
     void beginAltBlockImpl() noexcept { writeChar('<'); }
 
     void endAltBlockImpl() noexcept { writeChar('>'); }
-
-    void beginWidgetImpl(usize) noexcept {}
-
-    void endWidgetImpl() noexcept { writeChar('\n'); }
 };
 
 }// namespace kf::ui::render

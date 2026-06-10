@@ -5,6 +5,7 @@
 
 #include "kf/Option.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/primitives.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
@@ -48,10 +49,10 @@ template<typename U> struct Widget :
     }
 
     /// @brief External widget rendering with focus handling
-    void render(typename U::RenderImpl &render, bool focused) const noexcept {
-        if (focused) { render.beginFocused(); }
+    void render(typename U::RenderImpl &render, usize index, bool focused) const noexcept {
+        render.beginWidget(index, focused);
         doRender(render);
-        if (focused) { render.endFocused(); }
+        render.endWidget();
     }
 
 private:

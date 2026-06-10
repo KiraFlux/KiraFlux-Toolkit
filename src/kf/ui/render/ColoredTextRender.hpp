@@ -11,12 +11,82 @@ template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
     using Wrapped = PlainTextRender<N>;
     using Config = typename Wrapped::Config;
 
+    enum class ASCII : u8 {
+        Black = 0x00,
+        DarkRed = 0x01,
+        DarkGreen = 0x02,
+        DarkYellow = 0x03,
+        DarkBlue = 0x04,
+        DarkPurple = 0x05,
+        DarkCyan = 0x06,
+        LightGray = 0x07,
+        DarkGray = 0x08,
+        LightRed = 0x09,
+        LightGreen = 0x0A,
+        LightYellow = 0x0B,
+        LightBlue = 0x0C,
+        LightPurple = 0x0D,
+        LightCyan = 0x0E,
+        White = 0x0F,
+    };
+
     explicit constexpr ColoredTextRender(const Config &config) noexcept : _wrapped{config} {}
 
     template<typename F> void callback(F &&callback) noexcept { _wrapped.callback(std::forward<F>(callback)); }
 
 private:
+    static constexpr ASCII normal_foreground_codes_table[8]{
+        ASCII::White,      // Normal
+        ASCII::LightBlue,  // Primary
+        ASCII::LightGray,  // Secondary
+        ASCII::LightGreen, // Success
+        ASCII::LightYellow,// Warning
+        ASCII::LightRed,   // Error
+        ASCII::LightCyan,  // Info
+        ASCII::DarkGray,   // Disabled
+    };
+
+    static constexpr ASCII focused_foreground_codes_table[8]{
+        ASCII::Black,    // Normal
+        ASCII::Black,    // Primary
+        ASCII::Black,    // Secondary
+        ASCII::Black,    // Success
+        ASCII::Black,    // Warning
+        ASCII::Black,    // Error
+        ASCII::Black,    // Info
+        ASCII::LightGray,// Disabled
+    };
+
+    static constexpr ASCII normal_background_codes_table[8]{
+        ASCII::Black,     // Normal
+        ASCII::LightBlue, // Primary
+        ASCII::DarkGray,  // Secondary
+        ASCII::DarkGreen, // Success
+        ASCII::DarkYellow,// Warning
+        ASCII::DarkRed,   // Error
+        ASCII::DarkCyan,  // Info
+        ASCII::LightGray, // Disabled
+    };
+
+    static constexpr ASCII focused_background_codes_table[8]{
+        ASCII::White,      // Normal
+        ASCII::DarkBlue,   // Primary
+        ASCII::LightGray,  // Secondary
+        ASCII::LightGreen, // Success
+        ASCII::LightYellow,// Warning
+        ASCII::LightRed,   // Error
+        ASCII::LightCyan,  // Info
+        ASCII::DarkGray,   // Disabled
+    };
+
     Wrapped _wrapped{};
+    bool _coloring_active{false};
+    bool _focus_active{false};
+
+    void writeColor(Color color, char base_code, const ASCII *code_from_color_table) noexcept {
+        _wrapped.writeChar(base_code + static_cast<char>(code_from_color_table[static_cast<u8>(color)]));
+        _coloring_active = true;
+    }
 
     KF_IMPL(Render<ColoredTextRender<N>>);
 
@@ -35,6 +105,25 @@ private:
         _wrapped.writeChar('\x80');
     }
 
+    void beginWidgetImpl(usize index, bool focused) noexcept {
+        _focus_active = focused;
+        this->foreground(Color::Normal);
+        this->background(Color::Normal);
+    }
+
+    void endWidgetImpl() noexcept {
+        if (_focus_active) { _wrapped.endWidget(); }
+
+        if (_coloring_active) {
+            _wrapped.writeChar('\x80');
+            _coloring_active = false;
+        }
+
+        if (not _focus_active) { _wrapped.endWidget(); }
+
+        _focus_active = false;
+    }
+
     void checkboxImpl(bool enabled) noexcept {
         this->background(enabled ? Color::Primary : Color::Secondary);
         _wrapped.checkbox(enabled);
@@ -51,31 +140,11 @@ private:
     // semantic color
 
     void setForegroundImpl(Color color) noexcept {
-        static constexpr char foreground_table[8] = {
-            '\xFF',// Normal -> bright white
-            '\xFC',// Primary -> bright blue
-            '\xF7',// Secondary -> white
-            '\xFA',// Success -> bright green
-            '\xFB',// Warning -> bright yellow
-            '\xF9',// Error -> bright red
-            '\xFE',// Info -> bright cyan
-            '\xF8',// Disabled -> bright black
-        };
-        _wrapped.writeChar(foreground_table[static_cast<char>(color)]);
+        writeColor(color, '\xF0', _focus_active ? focused_foreground_codes_table : normal_foreground_codes_table);
     }
 
     void setBackgroundImpl(Color color) noexcept {
-        static constexpr char background_table[8] = {
-            '\xB0',// Normal -> black
-            '\xBC',// Primary -> bright blue
-            '\xB8',// Secondary -> dim black
-            '\xB2',// Success -> green
-            '\xB3',// Warning -> yellow
-            '\xB1',// Error -> red
-            '\xB6',// Info -> cyan
-            '\xB7',// Disabled -> white
-        };
-        _wrapped.writeChar(background_table[static_cast<char>(color)]);
+        writeColor(color, '\xB0', _focus_active ? focused_background_codes_table : normal_background_codes_table);
     }
 
     // decoration
@@ -84,31 +153,13 @@ private:
 
     void colonImpl() noexcept { _wrapped.colon(); }
 
-    void beginFocusedImpl() noexcept {
-        _wrapped.writeChar('\x81');
-    }
-
-    void endFocusedImpl() noexcept {
-        _wrapped.endFocused();
-        _wrapped.writeChar('\x80');
-    }
-
-    void beginBlockImpl() noexcept {
-        _wrapped.beginBlock();
-    }
+    void beginBlockImpl() noexcept { _wrapped.beginBlock(); }
 
     void endBlockImpl() noexcept { _wrapped.endBlock(); }
 
     void beginAltBlockImpl() noexcept { _wrapped.beginAltBlock(); }
 
     void endAltBlockImpl() noexcept { _wrapped.endAltBlock(); }
-
-    void beginWidgetImpl(usize index) noexcept { _wrapped.beginWidget(index); }
-
-    void endWidgetImpl() noexcept { 
-        _wrapped.writeChar('\x80');
-        _wrapped.endWidget(); 
-    }
 };
 
 }// namespace kf::ui::render

@@ -39,7 +39,8 @@ template<typename Impl> struct Render :
 
     /// @brief Begin rendering specific widget
     /// @param index Widget index in UI hierarchy
-    void beginWidget(usize index) noexcept { this->impl().beginWidgetImpl(index); }
+    /// @brief focused contrasting text region (higher visibility)
+    void beginWidget(usize index, bool focused) noexcept { this->impl().beginWidgetImpl(index, focused); }
 
     /// @brief Finish rendering current widget
     void endWidget() noexcept { this->impl().endWidgetImpl(); }
@@ -85,12 +86,6 @@ template<typename Impl> struct Render :
 
     /// @brief Render colon separator
     void colon() noexcept { this->impl().colonImpl(); }
-
-    /// @brief Begin contrasting text region (higher visibility)
-    void beginFocused() noexcept { this->impl().beginFocusedImpl(); }
-
-    /// @brief End contrasting text region
-    void endFocused() noexcept { this->impl().endFocusedImpl(); }
 
     /// @brief Begin standard content block
     void beginBlock() noexcept { this->impl().beginBlockImpl(); }
