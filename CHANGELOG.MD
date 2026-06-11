@@ -109,12 +109,9 @@ All notable changes to the KiraFlux Toolkit from version 0.0.0 to 0.3.2 are docu
 - **`kf/core/bit_traits.hpp` and `function_traits.hpp`** (moved to `meta/`).
 - **`kf/gfx.hpp`** (removed; include individual graphics headers).
 
----
-
-[0.3.2]: https://github.com/KiraFlux/KiraFlux-Toolkit/compare/v0.3.1...v0.3.2
----
-
 [0.3.2]: https://github.com/KiraFlux/KiraFlux-Toolkit/releases/tag/v0.3.2
+
+---
 
 ## [0.3.1] – 2026-04-03
 
