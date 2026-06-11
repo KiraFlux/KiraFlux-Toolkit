@@ -77,16 +77,16 @@ struct PID final :
         } else {
             _current_derivative = 0.0f;
         }
-        _last_error = some(error);
+        _last_error = someTrivial(error);
 
         return this->config().calc(error, _current_integral, _current_derivative);
     }
 
 private:
-    FilterImpl _derivative_filter;///< Low-pass filter for derivative term
-    f32 _current_derivative{0};   ///< Current derivative value
-    f32 _current_integral{0};     ///< Current integral value
-    Option<f32> _last_error{none};///< Previous error value
+    FilterImpl _derivative_filter;       ///< Low-pass filter for derivative term
+    f32 _current_derivative{0};          ///< Current derivative value
+    f32 _current_integral{0};            ///< Current integral value
+    TrivialOption<f32> _last_error{none};///< Previous error value
 
     KF_IMPL_RESETTABLE(PID);
     void resetImpl() noexcept {
