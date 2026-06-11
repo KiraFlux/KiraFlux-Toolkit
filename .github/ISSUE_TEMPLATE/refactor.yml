@@ -1,6 +1,6 @@
-name: Refactor
+name: refactor
 description: Code cleanup or restructuring
-title: "Refactor: "
+title: "refactor: "
 labels: ["refactor"]
 body:
   - type: textarea

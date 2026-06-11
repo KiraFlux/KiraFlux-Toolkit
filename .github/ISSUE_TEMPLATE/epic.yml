@@ -1,6 +1,6 @@
-name: Epic
+name: epic
 description: A large task grouping several related issues
-title: "Epic: "
+title: "epic: "
 labels: ["epic"]
 body:
   - type: textarea
