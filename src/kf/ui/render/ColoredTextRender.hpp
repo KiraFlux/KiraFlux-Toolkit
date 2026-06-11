@@ -1,3 +1,6 @@
+// Copyright (c) 2026 KiraFlux
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #include "kf/ui/Color.hpp"
@@ -11,23 +14,32 @@ template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
     using Wrapped = PlainTextRender<N>;
     using Config = typename Wrapped::Config;
 
-    enum class ASCII : u8 {
-        Black = 0x00,
-        DarkRed = 0x01,
-        DarkGreen = 0x02,
-        DarkYellow = 0x03,
-        DarkBlue = 0x04,
-        DarkPurple = 0x05,
-        DarkCyan = 0x06,
-        LightGray = 0x07,
-        DarkGray = 0x08,
-        LightRed = 0x09,
-        LightGreen = 0x0A,
-        LightYellow = 0x0B,
-        LightBlue = 0x0C,
-        LightPurple = 0x0D,
-        LightCyan = 0x0E,
-        White = 0x0F,
+    struct Palette final {
+        enum Item : u8 {
+            Black = 0x00,
+            DarkRed = 0x01,
+            DarkGreen = 0x02,
+            DarkYellow = 0x03,
+            DarkBlue = 0x04,
+            DarkPurple = 0x05,
+            DarkCyan = 0x06,
+            LightGray = 0x07,
+            DarkGray = 0x08,
+            LightRed = 0x09,
+            LightGreen = 0x0A,
+            LightYellow = 0x0B,
+            LightBlue = 0x0C,
+            LightPurple = 0x0D,
+            LightCyan = 0x0E,
+            White = 0x0F,
+        };
+
+        /// @brief Semantic colors
+        Item normal, primary, secondary, success, warning, error, info, disabled;
+
+        constexpr Item get(Color color) const noexcept {
+            return reinterpret_cast<const Item *>(this)[static_cast<char>(color)];
+        }
     };
 
     explicit constexpr ColoredTextRender(const Config &config) noexcept : _wrapped{config} {}
@@ -37,63 +49,63 @@ template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
     }
 
 private:
-    static constexpr ASCII normal_foreground_codes_table[8]{
-        ASCII::White,      // Normal
-        ASCII::LightBlue,  // Primary
-        ASCII::LightGray,  // Secondary
-        ASCII::LightGreen, // Success
-        ASCII::LightYellow,// Warning
-        ASCII::LightRed,   // Error
-        ASCII::LightCyan,  // Info
-        ASCII::DarkGray,   // Disabled
+    static constexpr Palette normal_foreground_palette{
+        .normal = Palette::White,
+        .primary = Palette::LightBlue,
+        .secondary = Palette::LightGray,
+        .success = Palette::LightGreen,
+        .warning = Palette::LightYellow,
+        .error = Palette::LightRed,
+        .info = Palette::LightCyan,
+        .disabled = Palette::DarkGray,
     };
 
-    static constexpr ASCII focused_foreground_codes_table[8]{
-        ASCII::Black,    // Normal
-        ASCII::Black,    // Primary
-        ASCII::Black,    // Secondary
-        ASCII::Black,    // Success
-        ASCII::Black,    // Warning
-        ASCII::Black,    // Error
-        ASCII::Black,    // Info
-        ASCII::LightGray,// Disabled
+    static constexpr Palette focused_foreground_palette{
+        .normal = Palette::Black,
+        .primary = Palette::Black,
+        .secondary = Palette::Black,
+        .success = Palette::Black,
+        .warning = Palette::Black,
+        .error = Palette::Black,
+        .info = Palette::Black,
+        .disabled = Palette::LightGray,
     };
 
-    static constexpr ASCII normal_background_codes_table[8]{
-        ASCII::Black,     // Normal
-        ASCII::DarkBlue,  // Primary
-        ASCII::DarkGray,  // Secondary
-        ASCII::DarkGreen, // Success
-        ASCII::DarkYellow,// Warning
-        ASCII::DarkRed,   // Error
-        ASCII::DarkCyan,  // Info
-        ASCII::DarkGray,  // Disabled
+    static constexpr Palette normal_background_palette{
+        .normal = Palette::Black,
+        .primary = Palette::DarkBlue,
+        .secondary = Palette::DarkGray,
+        .success = Palette::DarkGreen,
+        .warning = Palette::DarkYellow,
+        .error = Palette::DarkRed,
+        .info = Palette::DarkCyan,
+        .disabled = Palette::DarkGray,
     };
 
-    static constexpr ASCII focused_background_codes_table[8]{
-        ASCII::White,      // Normal
-        ASCII::LightBlue,  // Primarysw
-        ASCII::LightGray,  // Secondary
-        ASCII::LightGreen, // Success
-        ASCII::LightYellow,// Warning
-        ASCII::LightRed,   // Error
-        ASCII::LightCyan,  // Info
-        ASCII::LightGray,  // Disabled
+    static constexpr Palette focused_background_palette{
+        .normal = Palette::White,
+        .primary = Palette::LightBlue,
+        .secondary = Palette::LightGray,
+        .success = Palette::LightGreen,
+        .warning = Palette::LightYellow,
+        .error = Palette::LightRed,
+        .info = Palette::LightCyan,
+        .disabled = Palette::LightGray,
     };
 
-    Wrapped _wrapped{};
+    Wrapped _wrapped;
     bool _focus_active{false};
 
-    void writeColor(Color color, char base_code, const ASCII *code_from_color_table) noexcept {
-        _wrapped.writeChar(base_code + static_cast<char>(code_from_color_table[static_cast<u8>(color)]));
+    void writeColor(Color color, char base_code, const Palette &palette) noexcept {
+        _wrapped.writeChar(base_code + static_cast<char>(palette.get(color)));
     }
 
-    void writeForegroundColor(Color color, const ASCII *code_from_color_table) noexcept {
-        writeColor(color, '\xF0', code_from_color_table);
+    void writeForegroundColor(Color color, const Palette &palette) noexcept {
+        writeColor(color, '\xF0', palette);
     }
 
-    void writeBackgroundColor(Color color, const ASCII *code_from_color_table) noexcept {
-        writeColor(color, '\xB0', code_from_color_table);
+    void writeBackgroundColor(Color color, const Palette &palette) noexcept {
+        writeColor(color, '\xB0', palette);
     }
 
     KF_IMPL(Render<ColoredTextRender<N>>);
@@ -113,8 +125,8 @@ private:
     }
 
     void titleImpl(memory::StringView title) noexcept {
-        writeForegroundColor(Color::Normal, focused_foreground_codes_table);
-        writeBackgroundColor(Color::Primary, focused_background_codes_table);
+        writeForegroundColor(Color::Normal, focused_foreground_palette);
+        writeBackgroundColor(Color::Primary, focused_background_palette);
         _wrapped.title(title);
     }
 
@@ -141,16 +153,18 @@ private:
 
     // value
 
-    template<typename T> void valueImpl(const T &value) { _wrapped.value(value); }
+    template<typename T> void valueImpl(const T &value) {
+        _wrapped.value(value);
+    }
 
     // semantic color
 
     void setForegroundImpl(Color color) noexcept {
-        writeForegroundColor(color, _focus_active ? focused_foreground_codes_table : normal_foreground_codes_table);
+        writeForegroundColor(color, _focus_active ? focused_foreground_palette : normal_foreground_palette);
     }
 
     void setBackgroundImpl(Color color) noexcept {
-        writeBackgroundColor(color, _focus_active ? focused_background_codes_table : normal_background_codes_table);
+        writeBackgroundColor(color, _focus_active ? focused_background_palette : normal_background_palette);
     }
 
     // decoration
