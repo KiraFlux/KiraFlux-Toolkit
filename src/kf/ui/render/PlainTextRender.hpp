@@ -11,6 +11,7 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -19,11 +20,21 @@ namespace kf::internal {
 using Glyph = u8;///< Text interface measurement unit in glyphs
 
 struct PlainTextRenderConfig final {
-    Glyph row_max_length{16}; ///< Maximum characters per row
-    Glyph rows_total{4};      ///< Total available rows in display
-    Glyph float_places{2};    ///< Decimal places for float
-    Glyph double_places{4};   ///< Decimal places for double
-    bool title_centered{true};///< Render Title centered
+    Glyph row_max_length;///< Maximum characters per row
+    Glyph rows_total;    ///< Total available rows in display
+    Glyph float_places;  ///< Decimal places for float
+    Glyph double_places; ///< Decimal places for double
+    bool title_centered; ///< Render Title centered
+
+    static constexpr auto defaults() noexcept {
+        return PlainTextRenderConfig{
+            .row_max_length = 16,
+            .rows_total = 4,
+            .float_places = 2,
+            .double_places = 4,
+            .title_centered = true,
+        };
+    }
 };
 
 /// @brief Cursor state for tracking rendering position
@@ -117,12 +128,12 @@ private:
         }
     }
 
-    void prepareImpl() noexcept {
+    void beginFrameImpl() noexcept {
         _buffer.clear();
         _cursor.reset();
     }
 
-    void finishImpl() noexcept {
+    void endFrameImpl() noexcept {
         this->invoke(_buffer.view());
     }
 
@@ -137,15 +148,23 @@ private:
         writeChar('\n');
     }
 
+    void beginWidgetImpl(usize, bool is_focused, Color, Color) noexcept {
+        if (is_focused) {
+            writeString("* ");
+        }
+    }
+
+    void endWidgetImpl() noexcept {
+        writeChar('\n');
+    }
+
     void checkboxImpl(bool enabled) noexcept {
-        constexpr memory::StringView on{"==( 1 )"};
-        constexpr memory::StringView off{"( 0 )--"};
+        constexpr memory::StringView on{"==[ 1 ]"}, off{"[ 0 ]--"};
         writeString(enabled ? on : off);
     }
 
-    template<typename T> void sliderImpl(T slider_value, Range<T> value_range,Placement placement) noexcept {
-
-        // Textual now supports only show/hide placement
+    template<typename T> void sliderImpl(const T &slider_value, const Range<T> &range, Placement placement) noexcept {
+        // Plain text does not support only 'show inside' placement yet
         if (Placement::Hidden != placement) {
             this->value(slider_value);
             writeChar(' ');
@@ -154,7 +173,7 @@ private:
         writeChar('[');
         const usize start_col = _cursor.col;
         const usize inner_width = this->config().row_max_length - start_col - 1;// -1 for closing char
-        const usize fill = (slider_value - value_range.start) * inner_width / (value_range.end - value_range.start);
+        const usize fill = (slider_value - range.start) * inner_width / (range.end - range.start);
 
         for (usize i = 0; i < fill; i += 1) {
             writeChar('=');
@@ -171,11 +190,16 @@ private:
 
     // Value rendering implementations
 
-    void valueImpl(memory::StringView str) noexcept { writeString(str); }
+    template<usize M> void valueImpl(const memory::StaticString<M> &str) noexcept {
+        writeString(str.view());
+    }
+
+    void valueImpl(memory::StringView str) noexcept {
+        writeString(str);
+    }
 
     void valueImpl(bool slider_value) noexcept {
-        constexpr memory::StringView label_true{"true"};
-        constexpr memory::StringView label_false{"false"};
+        constexpr memory::StringView label_true{"true"}, label_false{"false"};
         writeString(slider_value ? label_true : label_false);
     }
 
@@ -193,27 +217,37 @@ private:
         writeReal(real, this->config().double_places);
     }
 
+    // Semantic color (No-Op in plain text)
+
+    void setForegroundImpl(Color) noexcept {}
+
+    void setBackgroundImpl(Color) noexcept {}
+
     // Decoration rendering
 
-    void arrowImpl() noexcept { writeString("-> "); }
+    void arrowImpl() noexcept {
+        writeString("-> ");
+    }
 
-    void colonImpl() noexcept { writeString(": "); }
+    void colonImpl() noexcept {
+        writeString(": ");
+    }
 
-    void beginFocusedImpl() noexcept { writeString("* "); }
+    void beginBlockImpl() noexcept {
+        writeChar('[');
+    }
 
-    void endFocusedImpl() noexcept {}
+    void endBlockImpl() noexcept {
+        writeChar(']');
+    }
 
-    void beginBlockImpl() noexcept { writeChar('['); }
+    void beginAltBlockImpl() noexcept {
+        writeChar('<');
+    }
 
-    void endBlockImpl() noexcept { writeChar(']'); }
-
-    void beginAltBlockImpl() noexcept { writeChar('<'); }
-
-    void endAltBlockImpl() noexcept { writeChar('>'); }
-
-    void beginWidgetImpl(usize) noexcept {}
-
-    void endWidgetImpl() noexcept { writeChar('\n'); }
+    void endAltBlockImpl() noexcept {
+        writeChar('>');
+    }
 };
 
 }// namespace kf::ui::render

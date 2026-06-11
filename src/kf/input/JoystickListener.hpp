@@ -60,9 +60,13 @@ template<typename I> struct JoystickListener final :
     explicit JoystickListener(JoystickImpl &joystick, const Config &config) noexcept :
         _joystick{joystick}, mixin::Configurable<Config>{config} {}
 
-    [[nodiscard]] Direction direction() const noexcept { return _current_direction; }
+    [[nodiscard]] Direction direction() const noexcept {
+        return _current_direction;
+    }
 
-    [[nodiscard]] bool repeating() const noexcept { return _in_repeat_mode; }
+    [[nodiscard]] bool repeating() const noexcept {
+        return _in_repeat_mode;
+    }
 
     /// @note Resets has_changeda
     [[nodiscard]] bool changed() noexcept {

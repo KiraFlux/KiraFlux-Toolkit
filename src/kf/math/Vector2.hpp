@@ -58,13 +58,8 @@ template<typename T> struct Vector2 final {
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] TrivialOption<Vector2> divChecked(Scalar scalar) const noexcept {
-        if (scalar == 0) { return none; }
-
-        return someTrivial(Vector2{
-            .x = static_cast<Scalar>(x / scalar),
-            .y = static_cast<Scalar>(y / scalar),
-        });
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Vector2> {
+        return (scalar == 0) ? none : someTrivial(Vector2{static_cast<Scalar>(x / scalar), static_cast<Scalar>(y / scalar)});
     }
 
     /// @brief Scalar division
@@ -104,15 +99,9 @@ template<typename T> struct Vector2 final {
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] TrivialOption<Vector2> normalized() const noexcept {
+    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector2> {
         const auto len = length();
-
-        if (len == 0) { return none; }
-
-        return someTrivial(Vector2{
-            .x = static_cast<Scalar>(x / len),
-            .y = static_cast<Scalar>(y / len),
-        });
+        return (len == 0) ? none : someTrivial(Vector2{static_cast<Scalar>(x / len), static_cast<Scalar>(y / len)});
     }
 
     /// @brief Calculate dot product with another vector

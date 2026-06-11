@@ -19,7 +19,9 @@ template<typename Impl, typename T> struct Filter : FilterTag, mixin::NonCopyabl
     /// @brief Updates the filter with a new sample.
     /// @param value The new input value.
     /// @return The filtered value after the update.
-    [[nodiscard]] T calc(const T &value) noexcept { return this->impl().calcImpl(value); }
+    [[nodiscard]] T calc(const T &value) noexcept {
+        return this->impl().calcImpl(value);
+    }
 };
 
 }// namespace kf::math::filters

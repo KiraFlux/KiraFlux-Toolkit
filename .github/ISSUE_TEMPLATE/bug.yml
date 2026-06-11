@@ -1,6 +1,6 @@
-name: Bug
+name: bug
 description: Report a problem
-title: "Bug: "
+title: "bug: "
 labels: ["bug"]
 body:
   - type: textarea

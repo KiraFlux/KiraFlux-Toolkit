@@ -15,7 +15,12 @@ struct ImageTag {};
 /// @brief Image
 /// @tparam Impl Image implementation
 /// @tparam P Pixel implementation
-template<typename Impl, typename P> struct Image : ImageTag, meta::CRTP<Impl> {
+template<typename Impl, typename P> struct Image :
+
+    ImageTag,
+    meta::CRTP<Impl>
+
+{
     KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
 
     using BufferType = typename P::BufferType;
@@ -23,30 +28,46 @@ template<typename Impl, typename P> struct Image : ImageTag, meta::CRTP<Impl> {
     // Abstract properties
 
     /// @brief Get current width in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] math::Pixels width() const noexcept { return this->impl().getWidthImpl(); }
+    [[nodiscard]] math::Pixels width() const noexcept {
+        return this->impl().getWidthImpl();
+    }
 
     /// @brief Get current height in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] math::Pixels height() const noexcept { return this->impl().getHeightImpl(); }
+    [[nodiscard]] math::Pixels height() const noexcept {
+        return this->impl().getHeightImpl();
+    }
 
     /// @brief Get current full width in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] math::Pixels stride() const noexcept { return this->impl().getStrideImpl(); }
+    [[nodiscard]] math::Pixels stride() const noexcept {
+        return this->impl().getStrideImpl();
+    }
 
     /// @brief Get writable frame buffer
-    [[nodiscard]] Slice<BufferType> buffer() noexcept { return this->impl().getBufferImpl(); }
+    [[nodiscard]] Slice<BufferType> buffer() noexcept {
+        return this->impl().getBufferImpl();
+    }
 
     /// @brief Get readonly frame buffer
-    [[nodiscard]] Slice<const BufferType> buffer() const noexcept { return const_cast<Image *>(this)->impl().getBufferImpl(); }
+    [[nodiscard]] Slice<const BufferType> buffer() const noexcept {
+        return const_cast<Image *>(this)->impl().getBufferImpl();
+    }
 
     // properties
 
     /// @brief Get maximum valid X coordinate
-    [[nodiscard]] math::Pixels maxX() const noexcept { return width() - 1; }
+    [[nodiscard]] math::Pixels maxX() const noexcept {
+        return width() - 1;
+    }
 
     /// @brief Get maximum valid Y coordinate
-    [[nodiscard]] math::Pixels maxY() const noexcept { return height() - 1; }
+    [[nodiscard]] math::Pixels maxY() const noexcept {
+        return height() - 1;
+    }
 
     /// @brief Get image size in bytes
-    [[nodiscard]] usize size() const noexcept { return buffer().size() * sizeof(BufferType); }
+    [[nodiscard]] usize size() const noexcept {
+        return buffer().size() * sizeof(BufferType);
+    }
 };
 
 }// namespace kf::image

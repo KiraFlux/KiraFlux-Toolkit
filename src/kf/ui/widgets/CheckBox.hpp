@@ -12,7 +12,14 @@ namespace kf::ui::widgets {
 struct CheckBoxTag {};
 
 /// @brief Checkbox widget for boolean input
-template<typename U> struct CheckBox final : CheckBoxTag, Widget<U>, mixin::ValueCallbacked<bool> {
+/// @tparam U UI Traits Type
+template<typename U> struct CheckBox :
+
+    CheckBoxTag,
+    Widget<U>,
+    mixin::ValueCallbacked<bool>
+
+{
     using mixin::ValueCallbacked<bool>::ValueCallbacked;
 
     [[nodiscard]] bool onClick() noexcept override {
@@ -21,8 +28,13 @@ template<typename U> struct CheckBox final : CheckBoxTag, Widget<U>, mixin::Valu
     }
 
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
-        this->value(event_value > 0);
-        return true;
+        const bool new_value = event_value > 0;
+        if (this->value() != new_value) {
+            this->value(new_value);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {

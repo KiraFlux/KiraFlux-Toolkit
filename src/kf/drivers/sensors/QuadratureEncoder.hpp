@@ -64,16 +64,24 @@ template<typename T> struct QuadratureEncoder final :
     using mixin::Configurable<Config>::Configurable;
 
     /// @brief Current accumulated position in ticks
-    [[nodiscard]] typename Config::TickType positionTicks() const noexcept { return _position_ticks; }
+    [[nodiscard]] auto positionTicks() const noexcept -> typename Config::TickType {
+        return _position_ticks;
+    }
 
     /// @brief Overwrite the current tick count
-    void positionTicks(typename Config::TickType position) noexcept { _position_ticks = position; }
+    void positionTicks(typename Config::TickType position) noexcept {
+        _position_ticks = position;
+    }
 
     /// @brief Current position converted to physical units
-    [[nodiscard]] typename Config::UnitType positionUnits() const noexcept { return this->config().unitsFromTicks(_position_ticks); }
+    [[nodiscard]] auto positionUnits() const noexcept -> typename Config::UnitType {
+        return this->config().unitsFromTicks(_position_ticks);
+    }
 
     /// @brief Set position in physical units (converted to ticks)
-    void positionUnits(typename Config::UnitType position) noexcept { _position_ticks = this->config().ticksFromUnits(position); }
+    void positionUnits(typename Config::UnitType position) noexcept {
+        _position_ticks = this->config().ticksFromUnits(position);
+    }
 
 private:
     volatile typename Config::TickType _position_ticks{0};  ///< Accumulated step count

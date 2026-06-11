@@ -28,7 +28,9 @@ private:
     using This = Sharp<G>;
 
     KF_IMPL_INITABLE(This, void);
-    void initImpl() noexcept { _pin.init(); }
+    void initImpl() noexcept {
+        _pin.init();
+    }
 
     KF_IMPL(Sensor<This, math::Millimeters, void>);
     [[nodiscard]] math::Millimeters readImpl() noexcept {

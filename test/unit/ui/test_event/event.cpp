@@ -43,13 +43,13 @@ template<kf::u8 V> struct EventTester {
 
         Value widget_val = -1;
         auto val = Ev::widgetValue(widget_val);
-        TEST_ASSERT_EQUAL(Ev::Kind::WidgetValueChange, val.kind());
+        TEST_ASSERT_EQUAL(Ev::Kind::WidgetValue, val.kind());
         TEST_ASSERT_EQUAL(widget_val, val.value());
     }
 
     static void test_independence() {
-        Ev ev(Ev::Kind::WidgetValueChange, Ev::value_max);
-        TEST_ASSERT_EQUAL(Ev::Kind::WidgetValueChange, ev.kind());
+        Ev ev(Ev::Kind::WidgetValue, Ev::value_max);
+        TEST_ASSERT_EQUAL(Ev::Kind::WidgetValue, ev.kind());
         TEST_ASSERT_EQUAL(Ev::value_max, ev.value());
     }
 

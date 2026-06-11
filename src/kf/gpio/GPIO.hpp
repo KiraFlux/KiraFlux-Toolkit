@@ -23,7 +23,9 @@ struct GPIO final : GpioTag {
 
         /// @brief Reads the current input value.
         /// @return The value read from the hardware .
-        LevelType read() const noexcept { return static_cast<const Impl *>(this)->readImpl(); }
+        LevelType read() const noexcept {
+            return static_cast<const Impl *>(this)->readImpl();
+        }
     };
 
     struct DigitalInputTag {};
@@ -55,15 +57,21 @@ struct GPIO final : GpioTag {
 
         /// @brief Sets the ADC resolution globally.
         /// @param resolution_bits Number of bits (e.g., 10, 12).
-        static void resolution(u8 resolution_bits) noexcept { Impl::setResolutionImpl(resolution_bits); }
+        static void resolution(u8 resolution_bits) noexcept {
+            Impl::setResolutionImpl(resolution_bits);
+        }
 
         /// @brief Returns the current ADC resolution in bits.
         /// @return Number of bits used for analog readings.
-        [[nodiscard]] static u8 resolution() noexcept { return Impl::getResolutionImpl(); }
+        [[nodiscard]] static u8 resolution() noexcept {
+            return Impl::getResolutionImpl();
+        }
 
         /// @brief Returns the maximum possible ADC value (2^resolution - 1).
         /// @return Maximum value for the current resolution.
-        [[nodiscard]] static u16 maxValue() noexcept { return static_cast<u16>((1u << resolution()) - 1u); }
+        [[nodiscard]] static u16 maxValue() noexcept {
+            return static_cast<u16>((1u << resolution()) - 1u);
+        }
     };
 
     /// @brief CRTP base for output peripherals.
@@ -71,7 +79,9 @@ struct GPIO final : GpioTag {
     /// @tparam LevelType    Type of the output value (e.g., `bool`, `u16`).
     /// @tparam InitResult   Return type of the initialization.
     template<typename Impl, typename LevelType, typename InitResultType> struct Output : mixin::Initable<Impl, InitResultType>, mixin::NonCopyable {
-        void write(LevelType level) const noexcept { static_cast<const Impl *>(this)->writeImpl(level); }
+        void write(LevelType level) const noexcept {
+            static_cast<const Impl *>(this)->writeImpl(level);
+        }
     };
 
     struct DigitalOutputTag {};
@@ -90,13 +100,19 @@ struct GPIO final : GpioTag {
     template<typename Impl, typename InitResultType> struct PwmOutput : Output<Impl, u16, InitResultType>, PwmOutputTag {
 
         /// @brief Returns the PWM frequency in Hz.
-        [[nodiscard]] u32 frequency() const noexcept { return static_cast<const Impl *>(this)->getFrequencyImpl(); }
+        [[nodiscard]] u32 frequency() const noexcept {
+            return static_cast<const Impl *>(this)->getFrequencyImpl();
+        }
 
         /// @brief Returns the PWM resolution in bits.
-        [[nodiscard]] u8 resolution() const noexcept { return static_cast<const Impl *>(this)->getResolutionImpl(); }
+        [[nodiscard]] u8 resolution() const noexcept {
+            return static_cast<const Impl *>(this)->getResolutionImpl();
+        }
 
         /// @brief Returns the maximum duty cycle value (2^resolution - 1).
-        [[nodiscard]] u16 maxDuty() const noexcept { return static_cast<u16>((1u << resolution()) - 1u); }
+        [[nodiscard]] u16 maxDuty() const noexcept {
+            return static_cast<u16>((1u << resolution()) - 1u);
+        }
 
         /// @brief Converts a pulse width (microseconds) to a duty cycle value.
         /// @param pulse_width Pulse width in microseconds.

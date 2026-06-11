@@ -15,7 +15,9 @@ template<typename ConfigType> struct Configurable : ConfigurableTag {
 
     /// @brief Returns the stored configuration.
     /// @return Const reference to the configuration.
-    [[nodiscard]] constexpr const ConfigType &config() const noexcept { return _config; }
+    [[nodiscard]] constexpr const ConfigType &config() const noexcept {
+        return _config;
+    }
 
 private:
     const ConfigType &_config;

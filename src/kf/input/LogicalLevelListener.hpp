@@ -52,7 +52,9 @@ template<typename G> struct LogicalLevelListener :
 
     /// @brief Check current button state
     /// @return true if button is currently pressed (after debounce)
-    [[nodiscard]] bool pressed() const noexcept { return _last_stable; }
+    [[nodiscard]] bool pressed() const noexcept {
+        return _last_stable;
+    }
 
 private:
     math::Milliseconds _next{0};

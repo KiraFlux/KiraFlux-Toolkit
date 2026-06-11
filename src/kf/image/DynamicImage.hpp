@@ -57,9 +57,9 @@ template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
 
     /// @brief Creates validated sub-region
     /// @return Sub-view or error if out of bounds
-    [[nodiscard]] Result<DynamicImage, Error> sub(
+    [[nodiscard]] auto sub(
         math::Pixels sub_width, math::Pixels sub_height,
-        math::Pixels sub_offset_x, math::Pixels sub_offset_y) const noexcept {
+        math::Pixels sub_offset_x, math::Pixels sub_offset_y) const noexcept -> Result<DynamicImage, Error> {
         if (sub_offset_x >= _width or sub_offset_y >= _height) {
             return Error::OffsetOutOfBounds;
         }
@@ -91,16 +91,24 @@ template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
     }
 
     /// @brief Checks if X coordinate is within view bounds
-    [[nodiscard]] bool isInsideX(math::Pixels x_relative) const noexcept { return x_relative >= 0 and x_relative < _width; }
+    [[nodiscard]] bool isInsideX(math::Pixels x_relative) const noexcept {
+        return x_relative >= 0 and x_relative < _width;
+    }
 
     /// @brief Checks if Y coordinate is within view bounds
-    [[nodiscard]] bool isInsideY(math::Pixels y_relative) const noexcept { return y_relative >= 0 and y_relative < _height; }
+    [[nodiscard]] bool isInsideY(math::Pixels y_relative) const noexcept {
+        return y_relative >= 0 and y_relative < _height;
+    }
 
     /// @brief Converts relative X to absolute buffer coordinate
-    [[nodiscard]] math::Pixels toAbsoluteX(math::Pixels x) const noexcept { return static_cast<math::Pixels>(_offset_x + x); }
+    [[nodiscard]] math::Pixels toAbsoluteX(math::Pixels x) const noexcept {
+        return static_cast<math::Pixels>(_offset_x + x);
+    }
 
     /// @brief Converts relative Y to absolute buffer coordinate
-    [[nodiscard]] math::Pixels toAbsoluteY(math::Pixels y) const noexcept { return static_cast<math::Pixels>(_offset_y + y); }
+    [[nodiscard]] math::Pixels toAbsoluteY(math::Pixels y) const noexcept {
+        return static_cast<math::Pixels>(_offset_y + y);
+    }
 
     /// @brief Sets single pixel color
     void setPixel(math::Pixels x_relative, math::Pixels y_relative, ColorType color) const noexcept {
@@ -138,13 +146,13 @@ private:
 
     KF_IMPL(Image<DynamicImage<P>, P>);
 
-    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return _width; }
+    constexpr math::Pixels getWidthImpl() const noexcept { return _width; }
 
-    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept { return _height; }
+    constexpr math::Pixels getHeightImpl() const noexcept { return _height; }
 
-    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return _stride; }
+    constexpr math::Pixels getStrideImpl() const noexcept { return _stride; }
 
-    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
+    constexpr Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
 };
 
 }// namespace kf::image

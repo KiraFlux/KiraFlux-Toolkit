@@ -38,13 +38,19 @@ private:
 
     KF_IMPL(Image<StaticImage<P, W, H>, P>);
 
-    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return W; }
+    constexpr math::Pixels getWidthImpl() const noexcept {
+        return W;
+    }
 
-    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept { return H; }
+    constexpr math::Pixels getHeightImpl() const noexcept {
+        return H;
+    }
 
-    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return getWidthImpl(); }
+    constexpr math::Pixels getStrideImpl() const noexcept {
+        return getWidthImpl();
+    }
 
-    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
+    constexpr Slice<BufferType> getBufferImpl() noexcept {
         return {_buffer.data(), _buffer.size()};
     }
 };

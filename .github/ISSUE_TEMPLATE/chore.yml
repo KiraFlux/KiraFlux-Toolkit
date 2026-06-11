@@ -1,6 +1,6 @@
-name: Chore
+name: chore
 description: Maintenance tasks (CI, dependencies, configs, scripts)
-title: "Chore: "
+title: "chore: "
 labels: ["chore"]
 body:
   - type: textarea

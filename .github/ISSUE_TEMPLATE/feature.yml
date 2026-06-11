@@ -1,6 +1,6 @@
-name: Feature
+name: feature
 description: Suggest an idea
-title: "Feature: "
+title: "feat: "
 labels: ["feature"]
 body:
   - type: textarea

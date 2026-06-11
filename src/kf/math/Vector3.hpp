@@ -61,14 +61,8 @@ template<typename T> struct Vector3 final {
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] TrivialOption<Vector3> divChecked(Scalar scalar) const noexcept {
-        if (scalar == 0) { return none; }
-
-        return someTrivial(Vector3{
-            .x = static_cast<Scalar>(x / scalar),
-            .y = static_cast<Scalar>(y / scalar),
-            .z = static_cast<Scalar>(z / scalar),
-        });
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Vector3> {
+        return (scalar == 0) ? none : someTrivial(Vector3{static_cast<Scalar>(x / scalar), static_cast<Scalar>(y / scalar), static_cast<Scalar>(z / scalar)});
     }
 
     /// @brief Scalar division
@@ -111,16 +105,9 @@ template<typename T> struct Vector3 final {
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] TrivialOption<Vector3> normalized() const noexcept {
+    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector3> {
         const auto len = length();
-
-        if (len == 0) { return none; }
-
-        return someTrivial(Vector3{
-            .x = static_cast<Scalar>(x / len),
-            .y = static_cast<Scalar>(y / len),
-            .z = static_cast<Scalar>(z / len),
-        });
+        return (len == 0) ? none : someTrivial(Vector3{static_cast<Scalar>(x / len), static_cast<Scalar>(y / len), static_cast<Scalar>(z / len)});
     }
 
     /// @brief Calculate dot product with another vector

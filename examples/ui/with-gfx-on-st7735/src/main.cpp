@@ -24,9 +24,25 @@ using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::render::ColoredTextRender<256>,// Render implementation: colored text, buffered (256 Bytes)
-    kf::ui::Event<4>                       // Event type: 4-bit value
-    >;
+    kf::ui::UiTraits<                          // Traits Implementation
+        kf::ui::render::ColoredTextRender<256>,// Render implementation: colored text, buffered (256 Bytes)
+        kf::ui::Event<4>                       // Event type: 4-bit value
+        >>;
+
+// shortcusts
+using Event = MyUI::Traits::EventImpl;
+using Render = MyUI::Traits::RenderImpl;
+using Color = kf::ui::Color;
+
+static Render::Config my_render_config{Render::Config::defaults()};// will set in setup
+
+static Render my_render{
+    my_render_config,// by ref
+};
+
+static MyUI my_ui{
+    my_render,// by ref
+};
 
 // User-defined example pages
 
@@ -35,7 +51,7 @@ struct MainPage : MyUI::Page {
     int my_value{12345};
 
     MyUI::Button click_button{
-        "Test",// button label
+        "Button",// button label
     };
 
     MyUI::CheckBox check_box{
@@ -63,23 +79,49 @@ struct MainPage : MyUI::Page {
         slider_config,// by ref
     };
 
-    kf::memory::Array<MyUI::Widget *, 5> widgets_storage{
+    using ColorCombo = MyUI::ComboBox<Color>;
+
+    kf::memory::Array<ColorCombo::Item, 8> color_combo_items{{
+        {"Normal", Color::Normal},
+        {"Primary", Color::Primary},
+        {"Secondary", Color::Secondary},
+        {"Success", Color::Success},
+        {"Warning", Color::Warning},
+        {"Error", Color::Error},
+        {"Info", Color::Info},
+        {"Disabled", Color::Disabled},
+    }};
+
+    ColorCombo::Config color_combo_config{
+        .items = {color_combo_items.data(), color_combo_items.size()},
+    };
+
+    ColorCombo foreground_color_combo{color_combo_config};
+    ColorCombo background_color_combo{color_combo_config};
+
+    MyUI::Labeled labeled_foreground_color_combo{"FG", foreground_color_combo};
+    MyUI::Labeled labeled_background_color_combo{"BG", background_color_combo};
+
+    kf::memory::Array<MyUI::Widget *, 7> widgets_storage{
         {
             nullptr,// link widget will be init in setup()
             &click_button,
+            &labeled_foreground_color_combo,
+            &labeled_background_color_combo,
             &check_box,
             &value_display,
             &slider,
         },
     };
 
-    explicit MainPage() : Page{"Main"} {
+    explicit MainPage() : Page{my_ui, "Main"} {
         widgets({widgets_storage.data(), widgets_storage.size()});
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
             my_value += 1;
             value_display.value(my_value);
+            update();// add Update Event
         });
 
         check_box.callback([this](bool state) {
@@ -87,6 +129,14 @@ struct MainPage : MyUI::Page {
             Serial.println(state ? "ON" : "OFF");
             my_value *= -1;
             value_display.value(my_value);
+        });
+
+        background_color_combo.callback([this](auto color) {
+            click_button.background(color);
+        });
+
+        foreground_color_combo.callback([this](auto color) {
+            click_button.foreground(color);
         });
     }
 
@@ -167,7 +217,7 @@ struct SettingsPage : MyUI::Page {
         },
     };
 
-    explicit SettingsPage() : Page{"Settings"} {
+    explicit SettingsPage() : Page{my_ui, "Settings"} {
         widgets({widgets_storage.data(), widgets_storage.size()});
 
         ints_combo_box.callback([](int value) {
@@ -189,18 +239,16 @@ struct SettingsPage : MyUI::Page {
 } settings_page{};
 
 // Simple function for convertion from char to event
-MyUI::Event eventFromChar(char c) {
+Event eventFromChar(char c) {
     switch (c) {
-        case 'w': return MyUI::Event::pageCursorMove(-1);// Up
-        case 's': return MyUI::Event::pageCursorMove(+1);// Down
-        case 'a': return MyUI::Event::widgetValue(-1);   // Left
-        case 'd': return MyUI::Event::widgetValue(1);    // Right
-        case ' ': return MyUI::Event::widgetClick();     // Click
-        default: return MyUI::Event::update();           // Other: Force update
+        case 'w': return Event::pageCursorMove(-1);// Up
+        case 's': return Event::pageCursorMove(+1);// Down
+        case 'a': return Event::widgetValue(-1);   // Left
+        case 'd': return Event::widgetValue(1);    // Right
+        case ' ': return Event::widgetClick();     // Click
+        default: return Event::update();           // Other: Force update
     }
 }
-
-static auto &ui = MyUI::instance();
 
 static auto bus_config{ArduinoSPI::Config::create()};// use defauls
 
@@ -244,8 +292,6 @@ void setup() {
     }
 
     // render setup
-    MyUI::RenderConfig &config = ui.renderConfig();
-
     using CanvasImpl = kf::gfx::Canvas<P>;
 
     static CanvasImpl root_canvas{
@@ -259,36 +305,51 @@ void setup() {
     };
 
     // post-render procedure
-    ui.renderSystem().wrapped.callback([](kf::memory::StringView text) {
+    my_render.callback([](kf::memory::StringView text) {
         root_canvas.fill();
         root_canvas.text(0, 0, text);
 
         (void) display.send();// SPI cannot tell anything about error => ignoring
+
+        // show buffer content
+        for (auto c: text) {
+            if (c < 0x80) {
+                Serial.write(c);
+            } else {
+                Serial.write(' ');
+                Serial.print(c, 16);
+            }
+        }
     });
 
-    // misc
-    config.float_places = 3;                         // float rendering like:  1234.567
-    config.double_places = 6;                        // double rendering like: 1.234567
-    config.rows_total = root_canvas.heightInGlyphs();// all canvas area
-    config.row_max_length = root_canvas.widthInGlyphs();
+    // render config setup
+    my_render_config.text.float_places = 3;                         // float rendering like:  1234.567
+    my_render_config.text.double_places = 6;                        // double rendering like: 1.234567
+    my_render_config.text.rows_total = root_canvas.heightInGlyphs();// all canvas area
+    my_render_config.text.row_max_length = root_canvas.widthInGlyphs();
+
+    // my_render_config.normal_foreground_palette.normal = Render::Config::Palette::Black; // style configutation
+    // my_render_config.focused_foreground_palette
+    // my_render_config.normal_background_palette
+    // my_render_config.focused_background_palette
+    // fields mapping UI Semantic Color: normal, primary, secondary, success, warning, error, info, disabled
 
     // insert navigation button on both pages
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
 
-    ui.bindPage(main_page);// start ui with main page
-
-    ui.addEvent(MyUI::Event::update());// Force update for first ui rendering
+    my_ui.bindPage(main_page);      // start ui with main page
+    my_ui.addEvent(Event::update());// Force update for first ui rendering
 }
 
 void loop() {
     if (Serial.available()) {
         const char c = Serial.read();
-        ui.addEvent(eventFromChar(c));
+        my_ui.addEvent(eventFromChar(c));
     }
 
     const auto now = millis();
-    ui.poll(now);
+    my_ui.poll(now);
 
-    delay(20);// 50 hz
+    delay(10);// 100 hz
 }

@@ -7,6 +7,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
+#include "kf/ui/Color.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::internal {
@@ -23,8 +24,10 @@ namespace kf::ui::widgets {
 struct SpinBoxTag {};
 
 /// @brief Spin box for adjusting numeric values with different modes
+/// @tparam U UI Traits Type
 /// @tparam T Numeric type for spin box value (must be arithmetic)
-template<typename U, typename T, typename A> struct SpinBox final :
+/// @tparam A Adjuster type
+template<typename U, typename T, typename A> struct SpinBox :
 
     SpinBoxTag,
     Widget<U>,
@@ -33,6 +36,7 @@ template<typename U, typename T, typename A> struct SpinBox final :
 
 {
     KF_CHECK_IMPL(A, typename U::AdjusterTag);
+
     using AdjusterImpl = A;
     using Config = internal::SpinBoxConfig<T>;
 
@@ -59,10 +63,14 @@ template<typename U, typename T, typename A> struct SpinBox final :
 
     /// @brief Render current value or step size based on mode
     void doRender(typename U::RenderImpl &render) const noexcept override {
+        if (_is_step_setting_mode) {
+            render.background(Color::Warning);
+        }
+
         render.beginAltBlock();
 
         if (_is_step_setting_mode) {
-            render.arrow();
+            render.colon();
             render.value(_step);
         } else {
             render.value(this->value());

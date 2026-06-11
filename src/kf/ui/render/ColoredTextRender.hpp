@@ -1,71 +1,218 @@
+// Copyright (c) 2026 KiraFlux
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
+#include "kf/mixin/Configurable.hpp"
+#include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
 #include "kf/ui/render/PlainTextRender.hpp"
 #include "kf/ui/render/Render.hpp"
 
+namespace kf::internal {
+
+template<usize N> struct ColoredTextRenderConfig final {
+    using TextConfig = typename ui::render::PlainTextRender<N>::Config;
+
+    struct Palette final {
+
+        /// @brief Semantic colors
+        enum Item : u8 {
+            Black = 0x00,
+            DarkRed = 0x01,
+            DarkGreen = 0x02,
+            DarkYellow = 0x03,
+            DarkBlue = 0x04,
+            DarkPurple = 0x05,
+            DarkCyan = 0x06,
+            LightGray = 0x07,
+            DarkGray = 0x08,
+            LightRed = 0x09,
+            LightGreen = 0x0A,
+            LightYellow = 0x0B,
+            LightBlue = 0x0C,
+            LightPurple = 0x0D,
+            LightCyan = 0x0E,
+            White = 0x0F,
+        };
+
+        Item normal, primary, secondary, success, warning, error, info, disabled;
+
+        constexpr Item get(ui::Color color) const noexcept {
+            return reinterpret_cast<const Item *>(this)[static_cast<char>(color)];
+        }
+    };
+
+    TextConfig text;
+    Palette normal_foreground_palette, focused_foreground_palette, normal_background_palette, focused_background_palette;
+
+    [[nodiscard]] static constexpr auto defaults() noexcept {
+        return ColoredTextRenderConfig{
+            .text = TextConfig::defaults(),
+            .normal_foreground_palette = {
+                .normal = Palette::White,
+                .primary = Palette::LightBlue,
+                .secondary = Palette::LightGray,
+                .success = Palette::LightGreen,
+                .warning = Palette::LightYellow,
+                .error = Palette::LightRed,
+                .info = Palette::LightCyan,
+                .disabled = Palette::DarkGray,
+            },
+            .focused_foreground_palette = {
+                .normal = Palette::Black,
+                .primary = Palette::Black,
+                .secondary = Palette::Black,
+                .success = Palette::Black,
+                .warning = Palette::Black,
+                .error = Palette::Black,
+                .info = Palette::Black,
+                .disabled = Palette::LightGray,
+            },
+            .normal_background_palette = {
+                .normal = Palette::Black,
+                .primary = Palette::DarkBlue,
+                .secondary = Palette::DarkGray,
+                .success = Palette::DarkGreen,
+                .warning = Palette::DarkYellow,
+                .error = Palette::DarkRed,
+                .info = Palette::DarkCyan,
+                .disabled = Palette::DarkGray,
+            },
+            .focused_background_palette = {
+                .normal = Palette::White,
+                .primary = Palette::LightBlue,
+                .secondary = Palette::LightGray,
+                .success = Palette::LightGreen,
+                .warning = Palette::LightYellow,
+                .error = Palette::LightRed,
+                .info = Palette::LightCyan,
+                .disabled = Palette::LightGray,
+            },
+        };
+    }
+};
+
+};// namespace kf::internal
+
 namespace kf::ui::render {
 
-template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
+template<usize N> struct ColoredTextRender :
+
+    Render<ColoredTextRender<N>>,
+    mixin::Configurable<internal::ColoredTextRenderConfig<N>>
+
+{
     using Wrapped = PlainTextRender<N>;
-    using Config = typename Wrapped::Config;
+    using Config = internal::ColoredTextRenderConfig<N>;
 
-    Wrapped wrapped{};
+    explicit constexpr ColoredTextRender(const Config &config) noexcept :
+        mixin::Configurable<Config>{config}, _wrapped{config.text} {}
 
-    explicit constexpr ColoredTextRender(const Config &config) noexcept : wrapped{config} {}
+    template<typename F> void callback(F &&callback) noexcept {
+        _wrapped.callback(std::forward<F>(callback));
+    }
 
 private:
+    Wrapped _wrapped;
+    bool _focus_active{false};
+
+    void writeColor(Color color, char base_code, const typename Config::Palette &palette) noexcept {
+        _wrapped.writeChar(base_code + static_cast<char>(palette.get(color)));
+    }
+
+    void writeForegroundColor(Color color, const typename Config::Palette &palette) noexcept {
+        writeColor(color, '\xF0', palette);
+    }
+
+    void writeBackgroundColor(Color color, const typename Config::Palette &palette) noexcept {
+        writeColor(color, '\xB0', palette);
+    }
+
     KF_IMPL(Render<ColoredTextRender<N>>);
 
-    [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return wrapped.widgetsAvailable(); }
+    // control
 
-    void prepareImpl() noexcept { wrapped.prepare(); }
+    [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
+        return _wrapped.widgetsAvailable();
+    }
 
-    void finishImpl() noexcept { wrapped.finish(); }
+    void beginFrameImpl() noexcept {
+        _wrapped.beginFrame();
+    }
+
+    void endFrameImpl() noexcept {
+        _wrapped.endFrame();
+    }
 
     void titleImpl(memory::StringView title) noexcept {
-        wrapped.writeChar('\xF0');
-        wrapped.writeChar('\xBC');
-        wrapped.title(title);
-        wrapped.writeChar('\x80');
+        writeForegroundColor(Color::Normal, this->config().focused_foreground_palette);
+        writeBackgroundColor(Color::Primary, this->config().focused_background_palette);
+        _wrapped.title(title);
+    }
+
+    void beginWidgetImpl(usize index, bool is_focused, Color foreground, Color background) noexcept {
+        _focus_active = is_focused;
+        this->foreground(foreground);
+        this->background(background);
+    }
+
+    void endWidgetImpl() noexcept {
+        if (not _focus_active) { _wrapped.writeChar('\x80'); }
+        _wrapped.endWidget();
+        _focus_active = false;
     }
 
     void checkboxImpl(bool enabled) noexcept {
-        wrapped.writeChar(enabled ? '\xB2' : '\xB1');
-        wrapped.checkbox(enabled);
-        wrapped.writeChar('\x80');
+        this->background(enabled ? Color::Primary : Color::Secondary);
+        _wrapped.checkbox(enabled);
     }
 
-    template<typename T> void sliderImpl(T value, Range<T> value_range, Placement value_placement) noexcept {
-        wrapped.slider(value, value_range, value_placement);
+    template<typename T> void sliderImpl(const T &value, const Range<T> &range, Placement placement) noexcept {
+        _wrapped.slider(value, range, placement);
     }
 
-    template<typename T> void valueImpl(T v) { wrapped.value(v); }
+    // value
 
-    void arrowImpl() noexcept { wrapped.arrow(); }
-
-    void colonImpl() noexcept { wrapped.colon(); }
-
-    void beginFocusedImpl() noexcept {
-        wrapped.writeChar('\x81');
+    template<typename T> void valueImpl(const T &value) {
+        _wrapped.value(value);
     }
 
-    void endFocusedImpl() noexcept {
-        wrapped.endFocused();
-        wrapped.writeChar('\x80');
+    // semantic color
+
+    void setForegroundImpl(Color color) noexcept {
+        writeForegroundColor(color, _focus_active ? this->config().focused_foreground_palette : this->config().normal_foreground_palette);
     }
 
-    void beginBlockImpl() noexcept { wrapped.beginBlock(); }
+    void setBackgroundImpl(Color color) noexcept {
+        writeBackgroundColor(color, _focus_active ? this->config().focused_background_palette : this->config().normal_background_palette);
+    }
 
-    void endBlockImpl() noexcept { wrapped.endBlock(); }
+    // decoration
 
-    void beginAltBlockImpl() noexcept { wrapped.beginAltBlock(); }
+    void arrowImpl() noexcept {
+        _wrapped.arrow();
+    }
 
-    void endAltBlockImpl() noexcept { wrapped.endAltBlock(); }
+    void colonImpl() noexcept {
+        _wrapped.colon();
+    }
 
-    void beginWidgetImpl(usize index) noexcept { wrapped.beginWidget(index); }
+    void beginBlockImpl() noexcept {
+        _wrapped.beginBlock();
+    }
 
-    void endWidgetImpl() noexcept { wrapped.endWidget(); }
+    void endBlockImpl() noexcept {
+        _wrapped.endBlock();
+    }
+
+    void beginAltBlockImpl() noexcept {
+        _wrapped.beginAltBlock();
+    }
+
+    void endAltBlockImpl() noexcept {
+        _wrapped.endAltBlock();
+    }
 };
 
 }// namespace kf::ui::render

@@ -297,7 +297,7 @@ public:
 
     /// @brief Format string using printf-style syntax
     /// @note Always null-terminates the result
-    [[nodiscard]] Result<usize, Error> format(const char *format, ...) noexcept {
+    [[nodiscard]] auto format(const char *format, ...) noexcept -> Result<usize, Error> {
         va_list args;
         va_start(args, format);
         const int result = vsnprintf(_buffer.data(), N + 1, format, args);
@@ -358,7 +358,7 @@ public:
     /// @param ch Character to find
     /// @param pos Starting position
     /// @return Option containing position of character if found
-    [[nodiscard]] constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
+    [[nodiscard]] constexpr auto find(char ch, usize pos = 0) const noexcept -> Option<usize> {
         for (usize i = pos; i < _size; ++i) {
             if (_buffer[i] == ch) {
                 return some(i);
@@ -371,7 +371,7 @@ public:
     /// @param str Substring to find
     /// @param pos Starting position
     /// @return Option containing position of substring if found
-    [[nodiscard]] constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
+    [[nodiscard]] constexpr auto find(StringView str, usize pos = 0) const noexcept -> Option<usize> {
         if (str.size() > _size or pos > _size - str.size()) {
             return none;
         }

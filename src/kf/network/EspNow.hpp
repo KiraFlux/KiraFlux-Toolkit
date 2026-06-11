@@ -192,6 +192,8 @@ struct EspNow final :
         }
 
     private:
+        using WriteResult = Result<void, Error>;
+
         bool _owns;
 
         /// @brief Private constructor – creates a peer owned by this object
@@ -205,7 +207,7 @@ struct EspNow final :
         /// @param data Pointer to data buffer
         /// @param len Length in bytes
         /// @return Success or translated ESP‑NOW error
-        [[nodiscard]] Result<void, Error> processSend(const void *data, usize len) noexcept {
+        [[nodiscard]] WriteResult processSend(const void *data, usize len) noexcept {
             const auto result = esp_now_send(_mac_address.data(), static_cast<const u8 *>(data), len);
 
             if (ESP_OK == result) {
@@ -215,19 +217,19 @@ struct EspNow final :
             }
         }
 
-        KF_IMPL_WRITABLE(Peer, Result<void, Error>);
+        KF_IMPL_WRITABLE(Peer, WriteResult);
 
-        [[nodiscard]] Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept {
+        WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
             if (buffer.size() > ESP_NOW_MAX_DATA_LEN) { return error(Error::create(Error::TooBigMessage)); }
             return processSend(buffer.data(), buffer.size());
         }
 
-        template<typename T> [[nodiscard]] Result<void, Error> writePacketImpl(T &&packet) noexcept {
+        template<typename T> WriteResult writePacketImpl(T &&packet) noexcept {
             static_assert(sizeof(T) < ESP_NOW_MAX_DATA_LEN, "Message is too big!");
             return processSend(static_cast<const void *>(&packet), sizeof(T));
         }
 
-        template<typename T> [[nodiscard]] Result<void, Error> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
+        template<typename T> WriteResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
             const auto mixed_size = sizeof(T) + buffer.size();
             u8 mixed[mixed_size];
 
@@ -271,7 +273,7 @@ private:
     /// @brief Get peer context by MAC address
     /// @param target_mac_address MAC to search for
     /// @return Option containing const reference to peer, or none if not found
-    [[nodiscard]] Option<const Peer &> getPeer(const MacAddress &target_mac_address) noexcept {
+    [[nodiscard]] auto getPeer(const MacAddress &target_mac_address) noexcept -> Option<const Peer &> {
         for (auto &peer: _peers) {
             if (peer.isSome() and peer.unwrap().mac() == target_mac_address) {
                 return someRef(peer.unwrap());

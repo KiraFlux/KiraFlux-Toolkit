@@ -12,7 +12,9 @@ struct QuitableTag {};
 template<typename Impl> struct Quitable : QuitableTag {
 
     /// @brief Releases resources and shuts down the object.
-    void quit() noexcept { static_cast<Impl *>(this)->quitImpl(); }
+    void quit() noexcept {
+        static_cast<Impl *>(this)->quitImpl();
+    }
 };
 
 }// namespace kf::mixin

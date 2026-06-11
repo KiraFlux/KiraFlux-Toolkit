@@ -19,7 +19,9 @@ template<typename T> struct ValueCallbacked : ValueCallbackedTag, Callbacked<T> 
 
     /// @brief Returns the current value.
     /// @return The stored value
-    [[nodiscard]] constexpr T value() const noexcept { return _value; }
+    [[nodiscard]] constexpr T value() const noexcept {
+        return _value;
+    }
 
     /// @brief Sets a new value and invokes the callback if it changed.
     /// @param new_value The new value to set.
