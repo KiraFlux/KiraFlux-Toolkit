@@ -17,4 +17,4 @@ namespace kf::memory {
 template<typename K, typename V, typename C = std::less<K>, typename A = kf::memory::Allocator<std::pair<K, V>>>
 using Map = std::map<K, V, C, A>;
 
-}// namespace kf
+}// namespace kf::memory

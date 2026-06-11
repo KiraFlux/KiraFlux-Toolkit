@@ -6,7 +6,7 @@
 #include <cmath>
 
 #include "kf/Option.hpp"
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::math {
 
@@ -18,21 +18,20 @@ template<typename T> struct Vector2 final {
 
     Scalar x, y;
 
-    /// @brief Default constructor (initializes to zero)
-    constexpr Vector2() noexcept :
-        x{0}, y{0} {}
-
-    /// @brief Construct from x and y components
-    constexpr Vector2(Scalar x, Scalar y) noexcept :
-        x{x}, y{y} {}
+    [[nodiscard]] static constexpr Vector2 zero() noexcept {
+        return {
+            .x = 0,
+            .y = 0,
+        };
+    }
 
     /// @brief Vector addition
     /// @param other Vector to add
     /// @return Sum vector
     [[nodiscard]] constexpr Vector2 operator+(const Vector2 &other) const noexcept {
         return {
-            static_cast<Scalar>(x + other.x),
-            static_cast<Scalar>(y + other.y),
+            .x = static_cast<Scalar>(x + other.x),
+            .y = static_cast<Scalar>(y + other.y),
         };
     }
 
@@ -41,8 +40,8 @@ template<typename T> struct Vector2 final {
     /// @return Difference vector
     [[nodiscard]] constexpr Vector2 operator-(const Vector2 &other) const noexcept {
         return {
-            static_cast<Scalar>(x - other.x),
-            static_cast<Scalar>(y - other.y),
+            .x = static_cast<Scalar>(x - other.x),
+            .y = static_cast<Scalar>(y - other.y),
         };
     }
 
@@ -51,21 +50,16 @@ template<typename T> struct Vector2 final {
     /// @return Scaled vector
     [[nodiscard]] constexpr Vector2 operator*(Scalar scalar) const noexcept {
         return {
-            static_cast<Scalar>(x * scalar),
-            static_cast<Scalar>(y * scalar),
+            .x = static_cast<Scalar>(x * scalar),
+            .y = static_cast<Scalar>(y * scalar),
         };
     }
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] Option<Vector2> divChecked(Scalar scalar) const noexcept {
-        if (scalar == 0) { return {}; }
-
-        return {Vector2{
-            static_cast<Scalar>(x / scalar),
-            static_cast<Scalar>(y / scalar),
-        }};
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Vector2> {
+        return (scalar == 0) ? none : someTrivial(Vector2{static_cast<Scalar>(x / scalar), static_cast<Scalar>(y / scalar)});
     }
 
     /// @brief Scalar division
@@ -74,8 +68,8 @@ template<typename T> struct Vector2 final {
     /// @warning No zero-check (use divChecked for safe division)
     [[nodiscard]] constexpr Vector2 operator/(Scalar scalar) const noexcept {
         return {
-            static_cast<Scalar>(x / scalar),
-            static_cast<Scalar>(y / scalar),
+            .x = static_cast<Scalar>(x / scalar),
+            .y = static_cast<Scalar>(y / scalar),
         };
     }
 
@@ -105,15 +99,9 @@ template<typename T> struct Vector2 final {
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] Option<Vector2> normalized() const noexcept {
-        const Scalar len = length();
-
-        if (len == 0) { return {}; }
-
-        return {Vector2{
-            static_cast<Scalar>(x / len),
-            static_cast<Scalar>(y / len),
-        }};
+    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector2> {
+        const auto len = length();
+        return (len == 0) ? none : someTrivial(Vector2{static_cast<Scalar>(x / len), static_cast<Scalar>(y / len)});
     }
 
     /// @brief Calculate dot product with another vector

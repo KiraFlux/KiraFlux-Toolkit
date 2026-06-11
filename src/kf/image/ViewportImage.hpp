@@ -12,7 +12,7 @@
 namespace kf::image {
 
 template<typename P, usize W, usize H> struct ViewportImage final : Image<ViewportImage<P, W, H>, P> {
-    KF_CHECK_IMPL(P, pixel::PixelTag);
+    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
 
     using PixelImpl = P;
     using BufferType = typename PixelImpl::BufferType;
@@ -26,28 +26,29 @@ template<typename P, usize W, usize H> struct ViewportImage final : Image<Viewpo
     }
 
     /// @brief Is image is actually transposed?
-    [[nodiscard]] constexpr bool transposed() const noexcept { return W == _logical_width; }
+    [[nodiscard]] constexpr bool transposed() const noexcept {
+        return W == _logical_width;
+    }
 
 private:
     StaticImage<PixelImpl, W, H> _image{};///< Raw image buffer data
     math::Pixels _logical_width{W}, _logical_height{H};
 
-    // impl
-    using This = ViewportImage<P, W, H>;
+    KF_IMPL(Image<ViewportImage<P, W, H>, P>);
 
-    KF_IMPL(Image<This, P>);
-
-    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return _logical_width; }
-
-    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept { return _logical_height; }
-
-    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return _logical_width; }
-
-    [[nodiscard]] constexpr memory::Slice<BufferType> getBufferImpl() noexcept {
-        return _image.buffer().first(_logical_width * _logical_height);
+    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept {
+        return _logical_width;
     }
 
-    [[nodiscard]] constexpr memory::Slice<const BufferType> getBufferImpl() const noexcept {
+    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept {
+        return _logical_height;
+    }
+
+    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept {
+        return getWidthImpl();
+    }
+
+    [[nodiscard]] constexpr Slice<BufferType> getBufferImpl() noexcept {
         return _image.buffer().first(_logical_width * _logical_height);
     }
 };

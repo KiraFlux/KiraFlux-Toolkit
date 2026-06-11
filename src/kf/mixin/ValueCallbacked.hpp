@@ -15,11 +15,13 @@ template<typename T> struct ValueCallbacked : ValueCallbackedTag, Callbacked<T> 
 
     /// @brief Constructs with an initial value.
     /// @param value The initial value.
-    constexpr explicit ValueCallbacked(T value) noexcept : _value{value} {}
+    explicit constexpr ValueCallbacked(T value) noexcept : _value{value} {}
 
     /// @brief Returns the current value.
     /// @return The stored value
-    [[nodiscard]] constexpr T value() const noexcept { return _value; }
+    [[nodiscard]] constexpr T value() const noexcept {
+        return _value;
+    }
 
     /// @brief Sets a new value and invokes the callback if it changed.
     /// @param new_value The new value to set.

@@ -21,9 +21,6 @@ struct NonCopyable {
 protected:
     /// @brief Protected default constructor (ensures single instance)
     NonCopyable() = default;
-
-    /// @brief Protected destructor (ensures controlled lifetime)
-    ~NonCopyable() = default;
 };
 
 }// namespace kf::mixin

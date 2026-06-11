@@ -1,6 +1,6 @@
-name: Documentation
+name: documentation
 description: Improve documentation
-title: "Docs: "
+title: "docs: "
 labels: ["docs"]
 body:
   - type: textarea

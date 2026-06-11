@@ -5,43 +5,12 @@ on:
     branches: [dev, main]
 
 jobs:
-  generate-db:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-platformio   
-      - run: ./generate-compile-db.sh              
-      - uses: actions/upload-artifact@v4
-        with:
-          name: compile-db
-          path: compile_commands.json
-          retention-days: 1
-
-  collect-files:
-    runs-on: ubuntu-latest
-    outputs:
-      files: ${{ steps.collect.outputs.files }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0                           
-      - name: Collect files
-        id: collect
-        run: |
-          mode=$([[ "${{ github.base_ref }}" == "main" ]] && echo "full" || echo "diff")
-          echo "files=$(bash ./collect-files.sh $mode)" >> $GITHUB_OUTPUT
-
   lint:
-    needs: [generate-db, collect-files]
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        file: ${{ fromJson(needs.collect-files.outputs.files) }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: compile-db
-      - run: sudo apt-get update && sudo apt-get install -y clang-tidy
-      - run: bash ./lint-file.sh "${{ matrix.file }}"
+      - uses: ./.github/actions/setup-platformio
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy
+      - name: Run linter
+        run: ./lint.sh

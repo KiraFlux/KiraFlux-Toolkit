@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/memory/ArrayString.hpp"
+#include "kf/memory/StaticString.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
@@ -18,7 +18,7 @@ struct Logger final : mixin::NonCopyable {
 private:
     const memory::StringView _key;
 
-    constexpr explicit Logger(memory::StringView key) noexcept :
+    explicit constexpr Logger(memory::StringView key) noexcept :
         _key{key} {}
 
 public:
@@ -45,7 +45,7 @@ private:
     void write(const memory::StringView level, const memory::StringView message) const noexcept {
         if (writer == nullptr) { return; }
 
-        memory::ArrayString<32> buffer{};
+        memory::StaticString<32> buffer{};
 
         (void) buffer.append(" [");
         (void) buffer.append(_key);

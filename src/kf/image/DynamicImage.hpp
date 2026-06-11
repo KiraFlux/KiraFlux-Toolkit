@@ -15,65 +15,51 @@ namespace kf::image {
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam P Pixel implementation
 template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
-    KF_CHECK_IMPL(P, pixel::PixelTag);
+    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
 
     using PixelImpl = P;
     using BufferType = typename P::BufferType;
     using ColorType = typename P::ColorType;
 
-    /// @brief Possible errors when creating FrameView
+    /// @brief Possible errors when creating DynamicImage
     enum class Error : u8 {
-        BufferNotInit,    ///< Buffer pointer is null
+        BufferTooSmall,   ///< Buffer size too small for this region
         SizeTooSmall,     ///< Region dimensions are less than 1 pixel
         SizeTooLarge,     ///< Sub-region exceeds parent bounds
         OffsetOutOfBounds,///< Offset falls outside parent region
     };
 
-private:
-    memory::Slice<BufferType> _buffer;///< display buffer memory view
-    math::Pixels _width, _height;     ///< Region size in pixels
-    math::Pixels _stride;             ///< Row stride (full display width)
-    math::Pixels _offset_x, _offset_y;///< Absolute offset from buffer origin
-
-public:
-    /// @brief Creates FrameView with validation
+    /// @brief Creates DynamicImage with validation
     [[nodiscard]] static Result<DynamicImage, Error> create(
-        memory::Slice<BufferType> buffer, math::Pixels stride,
+        Slice<BufferType> buffer, math::Pixels stride,
         math::Pixels width, math::Pixels height,
         math::Pixels offset_x, math::Pixels offset_y) noexcept {
-        if (nullptr == buffer.data()) {
-            return Error::BufferNotInit;
-        }
 
-        if (width < 1 or height < 1) {
-            return Error::SizeTooSmall;
-        }
+        if (buffer.size() >= PixelImpl::bufferSize(width, height)) { return Error::BufferTooSmall; }
 
-        return DynamicImage(buffer, stride, width, height, offset_x, offset_y);
+        if (width < 1 or height < 1) { return Error::SizeTooSmall; }
+
+        return DynamicImage{buffer, stride, width, height, offset_x, offset_y};
     }
 
-    /// @brief Default constructor - invalid view
-    DynamicImage() noexcept :
-        _buffer{}, _stride{0}, _offset_x{0}, _offset_y{0}, _width{0}, _height{0} {};
-
-    /// @brief Creates FrameView without validation
+    /// @brief Creates DynamicImage without validation
     /// @warning Caller must ensure parameters are valid
     explicit DynamicImage(
-        memory::Slice<BufferType> buffer, math::Pixels stride,
+        Slice<BufferType> buffer, math::Pixels stride,
         math::Pixels width, math::Pixels height,
         math::Pixels offset_x, math::Pixels offset_y) noexcept :
         _buffer{buffer}, _stride{stride}, _width{width}, _height{height}, _offset_x{offset_x}, _offset_y{offset_y} {}
 
     template<typename I> explicit DynamicImage(I &image) noexcept :
         _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, _offset_x{0}, _offset_y{0} {
-        KF_CHECK_IMPL(I, image::ImageTag);
+        KF_CHECK_IMPL(I, ::kf::image::ImageTag);
     }
 
     /// @brief Creates validated sub-region
     /// @return Sub-view or error if out of bounds
-    [[nodiscard]] Result<DynamicImage, Error> sub(
+    [[nodiscard]] auto sub(
         math::Pixels sub_width, math::Pixels sub_height,
-        math::Pixels sub_offset_x, math::Pixels sub_offset_y) const noexcept {
+        math::Pixels sub_offset_x, math::Pixels sub_offset_y) const noexcept -> Result<DynamicImage, Error> {
         if (sub_offset_x >= _width or sub_offset_y >= _height) {
             return Error::OffsetOutOfBounds;
         }
@@ -81,10 +67,12 @@ public:
         if (sub_width > _width - sub_offset_x or sub_height > _height - sub_offset_y) {
             return Error::SizeTooLarge;
         }
+
         return create(
             _buffer, _stride,
             sub_width, sub_height,
-            static_cast<math::Pixels>(_offset_x + sub_offset_x), static_cast<math::Pixels>(_offset_y + sub_offset_y));
+            static_cast<math::Pixels>(_offset_x + sub_offset_x),
+            static_cast<math::Pixels>(_offset_y + sub_offset_y));
     }
 
     /// @brief Creates sub-region without validation
@@ -93,25 +81,34 @@ public:
         math::Pixels sub_width, math::Pixels sub_height,
         math::Pixels sub_offset_x, math::Pixels sub_offset_y) noexcept {
         return DynamicImage{
-            _buffer, _stride, sub_width, sub_height,
+            _buffer,
+            _stride,
+            sub_width,
+            sub_height,
             static_cast<math::Pixels>(_offset_x + sub_offset_x),
-            static_cast<math::Pixels>(_offset_y + sub_offset_y)};
+            static_cast<math::Pixels>(_offset_y + sub_offset_y),
+        };
     }
 
-    /// @brief Checks if view references valid buffer
-    [[nodiscard]] bool isValid() const noexcept { return nullptr != _buffer.data(); }
-
     /// @brief Checks if X coordinate is within view bounds
-    [[nodiscard]] bool isInsideX(math::Pixels x_relative) const noexcept { return x_relative >= 0 and x_relative < _width; }
+    [[nodiscard]] bool isInsideX(math::Pixels x_relative) const noexcept {
+        return x_relative >= 0 and x_relative < _width;
+    }
 
     /// @brief Checks if Y coordinate is within view bounds
-    [[nodiscard]] bool isInsideY(math::Pixels y_relative) const noexcept { return y_relative >= 0 and y_relative < _height; }
+    [[nodiscard]] bool isInsideY(math::Pixels y_relative) const noexcept {
+        return y_relative >= 0 and y_relative < _height;
+    }
 
     /// @brief Converts relative X to absolute buffer coordinate
-    [[nodiscard]] math::Pixels toAbsoluteX(math::Pixels x) const noexcept { return static_cast<math::Pixels>(_offset_x + x); }
+    [[nodiscard]] math::Pixels toAbsoluteX(math::Pixels x) const noexcept {
+        return static_cast<math::Pixels>(_offset_x + x);
+    }
 
     /// @brief Converts relative Y to absolute buffer coordinate
-    [[nodiscard]] math::Pixels toAbsoluteY(math::Pixels y) const noexcept { return static_cast<math::Pixels>(_offset_y + y); }
+    [[nodiscard]] math::Pixels toAbsoluteY(math::Pixels y) const noexcept {
+        return static_cast<math::Pixels>(_offset_y + y);
+    }
 
     /// @brief Sets single pixel color
     void setPixel(math::Pixels x_relative, math::Pixels y_relative, ColorType color) const noexcept {
@@ -142,20 +139,20 @@ public:
     }
 
 private:
-    // impl
-    using This = DynamicImage<P>;
+    Slice<BufferType> _buffer;        ///< display buffer memory view
+    math::Pixels _width, _height;     ///< Region size in pixels
+    math::Pixels _stride;             ///< Row stride (full display width)
+    math::Pixels _offset_x, _offset_y;///< Absolute offset from buffer origin
 
-    KF_IMPL(Image<This, P>);
+    KF_IMPL(Image<DynamicImage<P>, P>);
 
-    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept { return _width; }
+    constexpr math::Pixels getWidthImpl() const noexcept { return _width; }
 
-    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept { return _height; }
+    constexpr math::Pixels getHeightImpl() const noexcept { return _height; }
 
-    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept { return _stride; }
+    constexpr math::Pixels getStrideImpl() const noexcept { return _stride; }
 
-    [[nodiscard]] constexpr memory::Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
-
-    [[nodiscard]] constexpr memory::Slice<const BufferType> getBufferImpl() const noexcept { return _buffer; }
+    constexpr Slice<BufferType> getBufferImpl() noexcept { return _buffer; }
 };
 
 }// namespace kf::image

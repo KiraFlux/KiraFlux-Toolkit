@@ -4,8 +4,8 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/aliases.hpp"
 #include "kf/meta/BitTraits.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::ui {
 
@@ -34,10 +34,10 @@ template<usize N> struct Event : EventTag {
         Update = static_cast<Storage>(Storage{0} << value_bits),
         PageCursorMove = static_cast<Storage>(Storage{1} << value_bits),
         WidgetClick = static_cast<Storage>(Storage{2} << value_bits),
-        WidgetValueChange = static_cast<Storage>(Storage{3} << value_bits),
+        WidgetValue = static_cast<Storage>(Storage{3} << value_bits),
     };
 
-    constexpr explicit Event(Kind kind, Value value = 0) noexcept :
+    explicit constexpr Event(Kind kind, Value value = 0) noexcept :
         _storage{static_cast<Storage>((static_cast<Storage>(kind) & type_mask) | static_cast<Storage>((clamp(value, value_min, value_max)) & value_mask))} {}
 
     [[nodiscard]] constexpr Kind kind() const noexcept {
@@ -49,13 +49,20 @@ template<usize N> struct Event : EventTag {
         return (raw & sign_bit_mask) ? static_cast<Value>(raw | ~value_mask) : raw;
     }
 
-    [[nodiscard]] static constexpr Event update() noexcept { return Event{Kind::Update}; }
+    [[nodiscard]] static constexpr Event update() noexcept {
+        return Event{Kind::Update};
+    }
+
     [[nodiscard]] static constexpr Event pageCursorMove(Value offset) noexcept {
         return Event{Kind::PageCursorMove, offset};
     }
-    [[nodiscard]] static constexpr Event widgetClick() noexcept { return Event{Kind::WidgetClick}; }
+
+    [[nodiscard]] static constexpr Event widgetClick() noexcept {
+        return Event{Kind::WidgetClick};
+    }
+
     [[nodiscard]] static constexpr Event widgetValue(Value value) noexcept {
-        return Event{Kind::WidgetValueChange, value};
+        return Event{Kind::WidgetValue, value};
     }
 
 private:

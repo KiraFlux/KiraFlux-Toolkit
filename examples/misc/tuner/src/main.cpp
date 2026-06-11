@@ -125,7 +125,7 @@ void setup() {
         delay(1);
     }
 
-    // arter this all tuners are done
+    // after this all tuners are done
 
     config_1.print();
     config_2.print();

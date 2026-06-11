@@ -6,11 +6,11 @@
 // target files for this demo
 #include <kf/drivers/sensors/Joystick.hpp>
 #include <kf/drivers/sensors/NormalizedAdcInput.hpp>
-#include <kf/gpio/arduino.hpp>
+#include <kf/gpio/ArduinoGPIO.hpp>
 
 #include <kf/input/JoystickListener.hpp>
 
-using kf::gpio::arduino::AdcInput;
+using AdcInput = kf::gpio::ArduinoGPIO::AdcInput;
 using NormalizedAdcInput = kf::drivers::sensors::NormalizedAdcInput<AdcInput>;
 using Joystick = kf::drivers::sensors::Joystick<NormalizedAdcInput>;
 using JoystickListener = kf::input::JoystickListener<Joystick>;
@@ -36,16 +36,20 @@ NormalizedAdcInput::FilterImpl::Config axis_filter_config{
 
 // Joystick – must outlive listener instance (referenced)
 Joystick my_joystick{
-    my_joystick_config,// referenced, must stay alive
-    axis_filter_config,// referenced, must stay alive
-    AdcInput{GPIO_NUM_34},
-    AdcInput{GPIO_NUM_35},
+    my_joystick_config,   // referenced, must stay alive
+    axis_filter_config,   // referenced, must stay alive
+    AdcInput{GPIO_NUM_34},// moved
+    AdcInput{GPIO_NUM_35},// moved
 };
 
 JoystickListener::Config my_listener_config{
-    .threshold = 0.5f,    // neutral zone threshold (normalized value)
-    .repeat_timeout = 100,// ms
-    .delay = 400,         // ms
+    .repeat_timer = {
+        .period = 100,// ms
+    },
+    .delay_timer = {
+        .period = 100,// ms
+    },
+    .threshold = 0.5f,// neutral zone threshold (normalized value)
 };
 
 JoystickListener my_listener{
@@ -82,7 +86,11 @@ void tune(Joystick::Config &config) {
     }
 }
 
-static kf::math::Timer log_timer{kf::math::Milliseconds(500)};// print every 500 ms
+static kf::math::Timer::Config log_timer_config{
+    .period = 500,// print every 500 ms
+};
+
+static kf::math::Timer log_timer{log_timer_config};
 
 void setup() {
     Serial.begin(115200);

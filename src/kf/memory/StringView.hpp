@@ -6,19 +6,15 @@
 #include <type_traits>
 
 #include "kf/Option.hpp"
+#include "kf/Slice.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/memory/Slice.hpp"
 
 namespace kf::memory {
 
 /// @brief Lightweight non-owning string view (similar to std::string_view)
 /// @note UTF-8 compatible, supports both null-terminated and sized strings
 struct StringView {
-private:
-    const char *_data;
-    usize _size;
 
-public:
     /// @brief Default constructor (empty string)
     constexpr StringView() noexcept :
         _data{nullptr}, _size{0} {}
@@ -42,17 +38,23 @@ public:
 
     /// @brief Construct from Slice<const char>
     /// @param slice Slice containing string data
-    constexpr explicit StringView(Slice<const char> slice) noexcept :
+    explicit constexpr StringView(Slice<const char> slice) noexcept :
         _data{slice.data()}, _size{slice.size()} {}
 
     /// @brief Get pointer to string data
-    [[nodiscard]] constexpr const char *data() const noexcept { return _data; }
+    [[nodiscard]] constexpr const char *data() const {
+        return _data;
+    }
 
     /// @brief Get string size (excluding null terminator)
-    [[nodiscard]] constexpr usize size() const noexcept { return _size; }
+    [[nodiscard]] constexpr usize size() const noexcept {
+        return _size;
+    }
 
     /// @brief Check if string is empty
-    [[nodiscard]] constexpr bool empty() const noexcept { return _size == 0; }
+    [[nodiscard]] constexpr bool empty() const noexcept {
+        return _size == 0;
+    }
 
     /// @brief Get character at index (no bounds checking)
     [[nodiscard]] constexpr char operator[](usize index) const noexcept {
@@ -70,10 +72,14 @@ public:
     }
 
     /// @brief Get iterator to beginning
-    [[nodiscard]] constexpr const char *begin() const noexcept { return _data; }
+    [[nodiscard]] constexpr const char *begin() const noexcept {
+        return _data;
+    }
 
     /// @brief Get iterator to end
-    [[nodiscard]] constexpr const char *end() const noexcept { return _data + _size; }
+    [[nodiscard]] constexpr const char *end() const noexcept {
+        return _data + _size;
+    }
 
     /// @brief Get string as Slice
     [[nodiscard]] constexpr Slice<const char> slice() const noexcept {
@@ -138,19 +144,19 @@ public:
     /// @param ch Character to find
     /// @param pos Starting position
     /// @return Option containing position of character if found, empty otherwise
-    [[nodiscard]] constexpr Option<usize> find(char ch, usize pos = 0) const noexcept {
+    [[nodiscard]] auto find(char ch, usize pos = 0) const noexcept -> Option<usize> {
         for (usize i = pos; i < _size; ++i) {
-            if (_data[i] == ch) { return i; }
+            if (_data[i] == ch) { return some(i); }
         }
-        return {};
+        return none;
     }
 
     /// @brief Find substring
     /// @param str Substring to find
     /// @param pos Starting position
     /// @return Option containing position of substring if found, empty otherwise
-    [[nodiscard]] constexpr Option<usize> find(StringView str, usize pos = 0) const noexcept {
-        if (str.size() > _size or pos > _size - str.size()) { return {}; }
+    [[nodiscard]] auto find(StringView str, usize pos = 0) const noexcept -> Option<usize> {
+        if (str.size() > _size or pos > _size - str.size()) { return none; }
         for (usize i = pos; i <= _size - str.size(); ++i) {
             bool found = true;
             for (usize j = 0; j < str.size(); ++j) {
@@ -159,23 +165,23 @@ public:
                     break;
                 }
             }
-            if (found) { return i; }
+            if (found) { return some(i); }
         }
-        return {};
+        return none;
     }
 
     /// @brief Find last occurrence of character
     /// @param ch Character to find
     /// @param pos Starting position (search backwards from this position)
     /// @return Option containing position of character if found, empty otherwise
-    [[nodiscard]] constexpr Option<usize> rfind(char ch, usize pos = static_cast<usize>(-1)) const noexcept {
-        if (_size == 0) { return {}; }
+    [[nodiscard]] auto rfind(char ch, usize pos = static_cast<usize>(-1)) const noexcept -> Option<usize> {
+        if (_size == 0) { return none; }
 
         usize start = (pos >= _size) ? _size - 1 : pos;
         for (usize i = start; i != static_cast<usize>(-1); --i) {
-            if (_data[i] == ch) { return i; }
+            if (_data[i] == ch) { return some(i); }
         }
-        return {};
+        return none;
     }
 
     /// @brief Remove prefix
@@ -217,6 +223,9 @@ public:
     }
 
 private:
+    const char *_data;
+    usize _size;
+
     /// @brief Calculate string length (safe for null pointers)
     static constexpr usize calculateSize(const char *str) noexcept {
         if (!str) { return 0; }
@@ -261,4 +270,4 @@ constexpr bool operator>=(StringView lhs, StringView rhs) noexcept {
     return lhs.compare(rhs) >= 0;
 }
 
-}// namespace kf
+}// namespace kf::memory

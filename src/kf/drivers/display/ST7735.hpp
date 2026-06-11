@@ -5,36 +5,43 @@
 
 #include <Arduino.h>// for delay
 
-#include "kf/aliases.hpp"
 #include "kf/bus/spi/SPI.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/image/ViewportImage.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
+#include "kf/primitives.hpp"
 
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/drivers/display/Orientation.hpp"
 
-namespace kf::drivers::display {
-
-namespace internal {
+namespace kf::internal {
 
 using ST7735Image = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
 
-struct ST7735Config final : mixin::NonCopyable {
-    Orientation init_orientation;
+struct ST7735Config final {
+    drivers::display::Orientation init_orientation;
 };
 
-}// namespace internal
+}// namespace kf::internal
+
+namespace kf::drivers::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<Ib, Ido>, internal::ST7735Image>, mixin::Configurable<internal::ST7735Config> {
-    KF_CHECK_IMPL(Ib, kf::bus::spi::SpiNodeTag);
-    KF_CHECK_IMPL(Ido, kf::gpio::DigitalOutputTag);
+/// @tparam N Implementation of SPI bus Node 
+/// @tparam G Implementation of GPIO with digital input support 
+template<typename N, typename G> struct ST7735 final :
 
-    using NodeImpl = Ib;
-    using DigitalOutputPinImpl = Ido;
+    DisplayDriver<ST7735<N, G>, internal::ST7735Image>,
+    mixin::Configurable<internal::ST7735Config>
+
+{
+    KF_CHECK_IMPL(N, ::kf::bus::spi::SpiNodeTag);
+    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::DigitalOutputTag);
+
+    using SpiBusNodeImpl = N;
+    using DigitalOutputImpl = G;
     using PixelImpl = typename internal::ST7735Image::PixelImpl;
 
     /// @brief Hardware configuration for ST7735
@@ -69,19 +76,19 @@ template<typename Ib, typename Ido> struct ST7735 final : DisplayDriver<ST7735<I
         COLMOD = 0x3A ///< Color mode setting
     };
 
-    explicit ST7735(const Config &config, NodeImpl &&node, DigitalOutputPinImpl &&pin_data_command, DigitalOutputPinImpl &&pin_reset) noexcept :
+    explicit ST7735(const Config &config, SpiBusNodeImpl &&node, DigitalOutputImpl &&pin_data_command, DigitalOutputImpl &&pin_reset) noexcept :
         mixin::Configurable<internal::ST7735Config>{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
 
 private:
-    NodeImpl _node;
-    DigitalOutputPinImpl _pin_data_command;
-    DigitalOutputPinImpl _pin_reset;
+    SpiBusNodeImpl _node;
+    DigitalOutputImpl _pin_data_command;
+    DigitalOutputImpl _pin_reset;
 
     u8 _madctl_base_mode{0};///< Base MADCTL value
 
     // Low-level communication
 
-    void sendBuffer(memory::Slice<const u8> buffer) noexcept {
+    void sendBuffer(Slice<const u8> buffer) noexcept {
         _pin_data_command.write(true);
         (void) _node.writeBuffer(buffer);
     }
@@ -97,7 +104,7 @@ private:
     }
 
     // impl
-    using This = ST7735<Ib, Ido>;
+    using This = ST7735<N, G>;
 
     KF_IMPL_INITABLE(This, bool);
     bool initImpl() noexcept {

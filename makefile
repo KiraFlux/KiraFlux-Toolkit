@@ -1,4 +1,4 @@
-.PHONY: all monitor test build-examples be shapshot ss lint new-example ne new-test nt changelog
+.PHONY: all monitor test build-examples be snapshot s lint new-example ne new-test nt diff
 
 name ?= unnamed # target example/test name
 group ?= common # target example/test group
@@ -16,10 +16,15 @@ build-examples:
 
 be: build-examples
 
-shapshot:
-	python shapshot.py
+snapshot:
+	python snapshot.py
 
-ss: shapshot
+s: snapshot
+
+format:
+	./clang-format-all.sh
+
+f: format
 
 lint:
 	./lint.sh
@@ -34,5 +39,5 @@ new-test:
 
 nt: new-test
 
-changelog:
+diff:
 	git log main..dev > log.txt && git diff main..dev > diff.txt

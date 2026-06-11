@@ -3,29 +3,22 @@
 
 #pragma once
 
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 
-namespace kf::memory {
+namespace kf {
 
 /// @brief Non-owning view of a contiguous memory region
 /// @tparam T Element type
 /// @note Similar to std::span but for embedded use without exceptions
 template<typename T> struct Slice {
 
-private:
-    T *_ptr;    ///< Pointer to the first element
-    usize _size;///< Number of elements in the slice
-
-public:
-    /// @brief Default constructor (empty slice)
-    constexpr Slice() noexcept :
-        _ptr{nullptr}, _size{0} {}
+    /// @brief Construct empty slice
+    constexpr Slice() noexcept : _ptr{nullptr}, _size{0} {}
 
     /// @brief Construct slice from pointer and size
     /// @param ptr Pointer to first element
     /// @param size Number of elements
-    constexpr Slice(T *ptr, usize size) noexcept :
-        _ptr{ptr}, _size{size} {}
+    constexpr Slice(T *ptr, usize size) noexcept : _ptr{ptr}, _size{size} {}
 
     /// @brief Array constructor
     /// @tparam N auto-deducted array length
@@ -85,7 +78,7 @@ public:
     /// @return Slice covering specified range
     /// @note No bounds checking - caller must ensure valid range
     [[nodiscard]] Slice sub(usize offset, usize count) const noexcept {
-        return Slice(_ptr + offset, count);
+        return Slice{_ptr + offset, count};
     }
 
     /// @brief Get first N elements of slice
@@ -115,6 +108,10 @@ public:
     constexpr operator Slice<const T>() const noexcept {
         return Slice<const T>{_ptr, _size};
     }
+
+private:
+    T *_ptr;    ///< Pointer to the first element
+    usize _size;///< Number of elements in the slice
 };
 
 }// namespace kf

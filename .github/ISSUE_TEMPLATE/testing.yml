@@ -1,6 +1,6 @@
-name: Testing
+name: testing
 description: Add or improve tests
-title: "Test: "
+title: "test: "
 labels: ["testing"]
 body:
   - type: textarea

@@ -15,7 +15,9 @@ template<typename Impl> struct TimedPollable : TimedPollableTag {
 
     /// @brief Performs time‑aware polling.
     /// @param now Current timestamp (milliseconds).
-    void poll(kf::math::Milliseconds now) noexcept { static_cast<Impl *>(this)->pollImpl(now); }
+    void poll(kf::math::Milliseconds now) noexcept {
+        static_cast<Impl *>(this)->pollImpl(now);
+    }
 };
 
 }// namespace kf::mixin

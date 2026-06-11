@@ -7,12 +7,12 @@
 
 #include "kf/Function.hpp"
 #include "kf/Result.hpp"
-#include "kf/aliases.hpp"
+#include "kf/Slice.hpp"
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
-#include "kf/memory/Slice.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::network {
 
@@ -40,7 +40,7 @@ template<typename R, typename W, typename Tlc, typename Trc = Tlc> struct MizLan
 
     using SendFunctionType = Function<Result<void, Error>(WritableImpl &, void *)>;
     using ReceiveFunctionType = Function<Result<void, Error>(ReadableImpl &)>;
-    using InstructionTableType = memory::Slice<ReceiveFunctionType>;
+    using InstructionTableType = Slice<ReceiveFunctionType>;
 
     explicit MizLangBridge(ReadableImpl &&input_stream, WritableImpl &&output_stream, InstructionTableType instructions) noexcept :
         _input_stream{std::move(input_stream)}, _output_stream{std::move(output_stream)}, _instructions{instructions} {}
@@ -54,8 +54,8 @@ template<typename R, typename W, typename Tlc, typename Trc = Tlc> struct MizLan
             _output_stream{other._output_stream}, _sender{std::move(other._sender)}, _code{other._code} {}
 
         [[nodiscard]] Result<void, Error> send(void *args) noexcept {
-            if (not _sender) { return {Error::Sender_FunctionNotReady}; }
-            if (_output_stream.writePacket(_code).isError()) { return {Error::Sender_CodeWriteFail}; }
+            // if (_sender) { return error(Error::Sender_FunctionNotReady); }
+            if (_output_stream.writePacket(_code).isError()) { return error(Error::Sender_CodeWriteFail); }
             return _sender(_output_stream, args);
         }
 
@@ -74,10 +74,10 @@ template<typename R, typename W, typename Tlc, typename Trc = Tlc> struct MizLan
     ///   - Error if reading the instruction code fails, the code is unknown, or argument reading fails.
     [[nodiscard]] Result<void, Error> poll() noexcept {
         const auto code_result = _input_stream.template readPacket<LocalCodeType>();
-        if (code_result.isError()) { return {Error::Receiver_CodeReadFail}; }
+        if (code_result.isError()) { return error(Error::Receiver_CodeReadFail); }
 
-        const auto code = code_result.value();
-        if (code >= _instructions.size()) { return {Error::Receiver_CodeNotExists}; }
+        const auto code = code_result.ok();
+        if (code >= _instructions.size()) { return error(Error::Receiver_CodeNotExists); }
 
         return _instructions[code](_input_stream);
     }

@@ -6,6 +6,7 @@
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Labeled.hpp"
 
+#include "kf/Option.hpp"
 #include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::ui::widgets {
@@ -13,7 +14,15 @@ namespace kf::ui::widgets {
 struct ButtonTag {};
 
 /// @brief Button widget for triggering actions on click
-template<typename U> struct Button final : ButtonTag, Widget<U>, mixin::Callbacked<void>, mixin::Labeled {
+/// @tparam U UI Traits Type
+template<typename U> struct Button :
+
+    ButtonTag,
+    Widget<U>,
+    mixin::Labeled,
+    mixin::Callbacked<>
+
+{
     using mixin::Labeled::Labeled;
 
     /// @brief Handle button click event

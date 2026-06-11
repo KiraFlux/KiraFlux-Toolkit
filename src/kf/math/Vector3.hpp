@@ -6,7 +6,7 @@
 #include <cmath>
 
 #include "kf/Option.hpp"
-#include "kf/aliases.hpp"
+#include "kf/primitives.hpp"
 
 namespace kf::math {
 
@@ -17,22 +17,22 @@ template<typename T> struct Vector3 final {
 
     Scalar x, y, z;
 
-    /// @brief Default constructor (initializes to zero)
-    constexpr Vector3() noexcept :
-        x{0}, y{0}, z{0} {}
-
-    /// @brief Construct from x, y, z components
-    constexpr Vector3(Scalar x, Scalar y, Scalar z) noexcept :
-        x{x}, y{y}, z{z} {}
+    [[nodiscard]] static constexpr Vector3 zero() noexcept {
+        return {
+            .x = 0,
+            .y = 0,
+            .z = 0,
+        };
+    }
 
     /// @brief Vector addition
     /// @param other Vector to add
     /// @return Sum vector
     [[nodiscard]] constexpr Vector3 operator+(const Vector3 &other) const noexcept {
         return {
-            static_cast<Scalar>(x + other.x),
-            static_cast<Scalar>(y + other.y),
-            static_cast<Scalar>(z + other.z),
+            .x = static_cast<Scalar>(x + other.x),
+            .y = static_cast<Scalar>(y + other.y),
+            .z = static_cast<Scalar>(z + other.z),
         };
     }
 
@@ -41,9 +41,9 @@ template<typename T> struct Vector3 final {
     /// @return Difference vector
     [[nodiscard]] constexpr Vector3 operator-(const Vector3 &other) const noexcept {
         return {
-            static_cast<Scalar>(x - other.x),
-            static_cast<Scalar>(y - other.y),
-            static_cast<Scalar>(z - other.z),
+            .x = static_cast<Scalar>(x - other.x),
+            .y = static_cast<Scalar>(y - other.y),
+            .z = static_cast<Scalar>(z - other.z),
         };
     }
 
@@ -52,23 +52,17 @@ template<typename T> struct Vector3 final {
     /// @return Scaled vector
     [[nodiscard]] constexpr Vector3 operator*(Scalar scalar) const noexcept {
         return {
-            static_cast<Scalar>(x * scalar),
-            static_cast<Scalar>(y * scalar),
-            static_cast<Scalar>(z * scalar),
+            .x = static_cast<Scalar>(x * scalar),
+            .y = static_cast<Scalar>(y * scalar),
+            .z = static_cast<Scalar>(z * scalar),
         };
     }
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] Option<Vector3> divChecked(Scalar scalar) const noexcept {
-        if (scalar == 0) { return {}; }
-
-        return {Vector3{
-            static_cast<Scalar>(x / scalar),
-            static_cast<Scalar>(y / scalar),
-            static_cast<Scalar>(z / scalar),
-        }};
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Vector3> {
+        return (scalar == 0) ? none : someTrivial(Vector3{static_cast<Scalar>(x / scalar), static_cast<Scalar>(y / scalar), static_cast<Scalar>(z / scalar)});
     }
 
     /// @brief Scalar division
@@ -77,9 +71,9 @@ template<typename T> struct Vector3 final {
     /// @warning No zero-check (use divChecked for safe division)
     [[nodiscard]] constexpr Vector3 operator/(Scalar scalar) const noexcept {
         return {
-            static_cast<Scalar>(x / scalar),
-            static_cast<Scalar>(y / scalar),
-            static_cast<Scalar>(z / scalar),
+            .x = static_cast<Scalar>(x / scalar),
+            .y = static_cast<Scalar>(y / scalar),
+            .z = static_cast<Scalar>(z / scalar),
         };
     }
 
@@ -111,16 +105,9 @@ template<typename T> struct Vector3 final {
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] Option<Vector3> normalized() const noexcept {
+    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector3> {
         const auto len = length();
-
-        if (len == 0) { return {}; }
-
-        return {Vector3{
-            static_cast<Scalar>(x / len),
-            static_cast<Scalar>(y / len),
-            static_cast<Scalar>(z / len),
-        }};
+        return (len == 0) ? none : someTrivial(Vector3{static_cast<Scalar>(x / len), static_cast<Scalar>(y / len), static_cast<Scalar>(z / len)});
     }
 
     /// @brief Calculate dot product with another vector
@@ -135,9 +122,9 @@ template<typename T> struct Vector3 final {
     /// @return Cross product vector (perpendicular to both inputs)
     [[nodiscard]] constexpr Vector3 cross(const Vector3 &other) const noexcept {
         return {
-            static_cast<Scalar>(y * other.z - z * other.y),
-            static_cast<Scalar>(z * other.x - x * other.z),
-            static_cast<Scalar>(x * other.y - y * other.x),
+            .x = static_cast<Scalar>(y * other.z - z * other.y),
+            .y = static_cast<Scalar>(z * other.x - x * other.z),
+            .z = static_cast<Scalar>(x * other.y - y * other.x),
         };
     }
 
