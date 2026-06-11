@@ -323,10 +323,10 @@ void setup() {
     });
 
     // render config setup
-    my_render_config.float_places = 3;                         // float rendering like:  1234.567
-    my_render_config.double_places = 6;                        // double rendering like: 1.234567
-    my_render_config.rows_total = root_canvas.heightInGlyphs();// all canvas area
-    my_render_config.row_max_length = root_canvas.widthInGlyphs();
+    my_render_config.text.float_places = 3;                         // float rendering like:  1234.567
+    my_render_config.text.double_places = 6;                        // double rendering like: 1.234567
+    my_render_config.text.rows_total = root_canvas.heightInGlyphs();// all canvas area
+    my_render_config.text.row_max_length = root_canvas.widthInGlyphs();
 
     // insert navigation button on both pages
     main_page.widgets()[0] = &settings_page.link();
