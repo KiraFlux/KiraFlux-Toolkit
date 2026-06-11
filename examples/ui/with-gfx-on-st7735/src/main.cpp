@@ -328,6 +328,12 @@ void setup() {
     my_render_config.text.rows_total = root_canvas.heightInGlyphs();// all canvas area
     my_render_config.text.row_max_length = root_canvas.widthInGlyphs();
 
+    // my_render_config.normal_foreground_palette.normal = Render::Config::Palette::Black; // style configutation
+    // my_render_config.focused_foreground_palette
+    // my_render_config.normal_background_palette
+    // my_render_config.focused_background_palette
+    // fields mapping UI Semantic Color: normal, primary, secondary, success, warning, error, info, disabled
+
     // insert navigation button on both pages
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
