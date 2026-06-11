@@ -23,7 +23,9 @@ struct TunerTag {};
 template<typename Impl> struct Tuner : TunerTag, mixin::NonCopyable, mixin::Resettable<Impl>, mixin::Pollable<Impl> {
 
     /// @brief Check if the tuner is still running (collecting or calculating).
-    [[nodiscard]] bool running() const noexcept { return static_cast<const Impl *>(this)->runningImpl(); }
+    [[nodiscard]] bool running() const noexcept {
+        return static_cast<const Impl *>(this)->runningImpl();
+    }
 };
 
 }// namespace kf::tuner

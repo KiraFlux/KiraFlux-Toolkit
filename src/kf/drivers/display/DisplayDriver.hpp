@@ -30,19 +30,27 @@ template<typename DriverImpl, typename ImageImpl> struct DisplayDriver :
     KF_CHECK_IMPL(ImageImpl, ::kf::image::ImageTag);
 
     /// @brief Mutable access at image buffer
-    [[nodiscard]] ImageImpl &image() noexcept { return _screen_image; }
+    [[nodiscard]] ImageImpl &image() noexcept {
+        return _screen_image;
+    }
 
     /// @brief Readobly access at image buffer
-    [[nodiscard]] const ImageImpl &image() const noexcept { return _screen_image; }
+    [[nodiscard]] const ImageImpl &image() const noexcept {
+        return _screen_image;
+    }
 
     /// @brief Transfer software buffer to display hardware
     /// @return true if success
-    [[nodiscard]] bool send() noexcept { return this->impl().sendImpl(); }
+    [[nodiscard]] bool send() noexcept {
+        return this->impl().sendImpl();
+    }
 
     /// @brief Set display orientation.
     /// @param new_orientation New orientation value.
     /// @return true if success, false if orientation not supported.
-    [[nodiscard]] bool orientation(Orientation new_orientation) noexcept { return this->impl().setOrientationImpl(new_orientation); }
+    [[nodiscard]] bool orientation(Orientation new_orientation) noexcept {
+        return this->impl().setOrientationImpl(new_orientation);
+    }
 
 private:
     ImageImpl _screen_image{};///<  Software frame buffer for display operations

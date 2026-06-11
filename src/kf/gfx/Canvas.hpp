@@ -125,7 +125,7 @@ template<typename P> struct Canvas {
     void swapColors() noexcept { std::swap(_state.foreground_color, _state.background_color); }
 
     /// @brief Split canvas into weighted sub-canvases
-    template<usize N> memory::Array<Canvas, N> split(memory::Array<usize, N> weights, bool horizontal = true) noexcept {
+    template<usize N> auto split(memory::Array<usize, N> weights, bool horizontal = true) noexcept -> memory::Array<Canvas, N> {
         static_assert(N > 0, "Cannot split with zero items");
         for (auto &w: weights) {
             if (w == 0) { w = 1; }

@@ -32,7 +32,9 @@ template<usize N> struct ColoredTextRender : Render<ColoredTextRender<N>> {
 
     explicit constexpr ColoredTextRender(const Config &config) noexcept : _wrapped{config} {}
 
-    template<typename F> void callback(F &&callback) noexcept { _wrapped.callback(std::forward<F>(callback)); }
+    template<typename F> void callback(F &&callback) noexcept {
+        _wrapped.callback(std::forward<F>(callback));
+    }
 
 private:
     static constexpr ASCII normal_foreground_codes_table[8]{
@@ -98,11 +100,17 @@ private:
 
     // control
 
-    [[nodiscard]] usize widgetsAvailableImpl() const noexcept { return _wrapped.widgetsAvailable(); }
+    [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
+        return _wrapped.widgetsAvailable();
+    }
 
-    void beginFrameImpl() noexcept { _wrapped.beginFrame(); }
+    void beginFrameImpl() noexcept {
+        _wrapped.beginFrame();
+    }
 
-    void endFrameImpl() noexcept { _wrapped.endFrame(); }
+    void endFrameImpl() noexcept {
+        _wrapped.endFrame();
+    }
 
     void titleImpl(memory::StringView title) noexcept {
         writeForegroundColor(Color::Normal, focused_foreground_codes_table);
@@ -147,17 +155,29 @@ private:
 
     // decoration
 
-    void arrowImpl() noexcept { _wrapped.arrow(); }
+    void arrowImpl() noexcept {
+        _wrapped.arrow();
+    }
 
-    void colonImpl() noexcept { _wrapped.colon(); }
+    void colonImpl() noexcept {
+        _wrapped.colon();
+    }
 
-    void beginBlockImpl() noexcept { _wrapped.beginBlock(); }
+    void beginBlockImpl() noexcept {
+        _wrapped.beginBlock();
+    }
 
-    void endBlockImpl() noexcept { _wrapped.endBlock(); }
+    void endBlockImpl() noexcept {
+        _wrapped.endBlock();
+    }
 
-    void beginAltBlockImpl() noexcept { _wrapped.beginAltBlock(); }
+    void beginAltBlockImpl() noexcept {
+        _wrapped.beginAltBlock();
+    }
 
-    void endAltBlockImpl() noexcept { _wrapped.endAltBlock(); }
+    void endAltBlockImpl() noexcept {
+        _wrapped.endAltBlock();
+    }
 };
 
 }// namespace kf::ui::render

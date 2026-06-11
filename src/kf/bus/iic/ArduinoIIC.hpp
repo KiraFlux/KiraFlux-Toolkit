@@ -125,7 +125,7 @@ private:
 
     // interface impl
 
-    Result<Slice<const u8>, ArduinoIicError> readBufferImpl(Slice<u8> buffer) noexcept {
+    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, ArduinoIicError> {
         const usize received = request(buffer.size());
         if (received == 0) { return error(ArduinoIicError::Timeout); }
 
@@ -133,7 +133,7 @@ private:
         return ok(Slice<const u8>{buffer.data(), received});
     }
 
-    template<typename T> [[nodiscard]] Result<T, ArduinoIicError> readPacketImpl() noexcept {
+    template<typename T> [[nodiscard]] auto readPacketImpl() noexcept -> Result<T, ArduinoIicError> {
         constexpr usize requested = sizeof(T);
         const usize received = request(requested);
         if (received == 0) { return error(ArduinoIicError::Timeout); }
@@ -153,12 +153,13 @@ private:
     }
 
     //
-
-    KF_IMPL_WRITABLE(This, Result<void, ArduinoIicError>);
+    using WriteResult = Result<void, ArduinoIicError>;
 
     /// @brief Begin an I2C transmission (send START condition).
     /// @note Must be called before writing any data.
-    void beginTransmission() noexcept { _wire.beginTransmission(this->config().address); }
+    void beginTransmission() noexcept {
+        _wire.beginTransmission(this->config().address);
+    }
 
     /// @brief Write raw bytes to the I2C device (must be between begin/endTransmission).
     /// @return number of bytes actually placed in the internal transmit buffer (may be less than `length` if buffer full).
@@ -171,7 +172,7 @@ private:
     /// @param to_write Total number of bytes that were intended to be written.
     /// @return Success or specific I2C error.
     /// @note Possible errors: AddressNack, DataNack, Timeout, BufferTooLong, Unknown.
-    [[nodiscard]] Result<void, ArduinoIicError> endTransmission(usize written, usize to_write) noexcept {
+    [[nodiscard]] WriteResult endTransmission(usize written, usize to_write) noexcept {
         const u8 code = _wire.endTransmission();
 
         if (written != to_write) { return error(ArduinoIicError::BufferTooLong); }
@@ -187,12 +188,6 @@ private:
         }
     }
 
-    [[nodiscard]] Result<void, ArduinoIicError> writeBufferImpl(Slice<const u8> buffer) noexcept {
-        beginTransmission();
-        const usize written = writeBytes(buffer.data(), buffer.size());
-        return endTransmission(written, buffer.size());
-    }
-
     /// @brief Write a single‑byte packet without checking (used internally for small writes).
     [[nodiscard]] usize writePacketUnchecked(u8 packet) noexcept {
         return _wire.write(packet);
@@ -204,14 +199,21 @@ private:
     }
 
     // interface impl
+    KF_IMPL_WRITABLE(This, WriteResult);
 
-    template<typename T> [[nodiscard]] Result<void, ArduinoIicError> writePacketImpl(T &&packet) noexcept {
+    WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
+        beginTransmission();
+        const usize written = writeBytes(buffer.data(), buffer.size());
+        return endTransmission(written, buffer.size());
+    }
+
+    template<typename T> WriteResult writePacketImpl(T &&packet) noexcept {
         beginTransmission();
         const usize written = writePacketUnchecked(std::forward<T>(packet));
         return endTransmission(written, sizeof(T));
     }
 
-    template<typename T> [[nodiscard]] Result<void, ArduinoIicError> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
+    template<typename T> WriteResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
         beginTransmission();
         const usize header_written = writePacketUnchecked(std::forward<T>(header));
         const usize buffer_written = writeBytes(buffer.data(), buffer.size());
@@ -242,7 +244,7 @@ private:
     TwoWire &_wire;
 
     KF_IMPL_INITABLE(ArduinoIIC, Result<void, Error>);
-    Result<void, Error> initImpl() noexcept {
+    auto initImpl() noexcept -> Result<void, Error> {
         if (not _wire.begin()) {
             return error(Error::BeginFailed);
         }

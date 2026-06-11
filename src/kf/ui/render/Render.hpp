@@ -32,10 +32,14 @@ template<typename Impl> struct Render :
     // Control operations
 
     /// @brief Prepare render buffer for new frame
-    void beginFrame() noexcept { this->impl().beginFrameImpl(); }
+    void beginFrame() noexcept {
+        this->impl().beginFrameImpl();
+    }
 
     /// @brief Finalize frame after rendering
-    void endFrame() noexcept { this->impl().endFrameImpl(); }
+    void endFrame() noexcept {
+        this->impl().endFrameImpl();
+    }
 
     /// @brief Begin rendering specific widget
     /// @param index Widget position in it's page
@@ -47,19 +51,27 @@ template<typename Impl> struct Render :
     }
 
     /// @brief Finish rendering current widget
-    void endWidget() noexcept { this->impl().endWidgetImpl(); }
+    void endWidget() noexcept {
+        this->impl().endWidgetImpl();
+    }
 
     /// @brief Get remaining widget rendering capacity
     /// @return Number of widgets that can still be rendered in current frame
-    [[nodiscard]] usize widgetsAvailable() const noexcept { return this->impl().widgetsAvailableImpl(); }
+    [[nodiscard]] usize widgetsAvailable() const noexcept {
+        return this->impl().widgetsAvailableImpl();
+    }
 
     // Value rendering
 
     /// @brief Render page title
-    void title(memory::StringView title) noexcept { this->impl().titleImpl(title); }
+    void title(memory::StringView title) noexcept {
+        this->impl().titleImpl(title);
+    }
 
     /// @brief Render checkbox
-    void checkbox(bool enabled) noexcept { this->impl().checkboxImpl(enabled); }
+    void checkbox(bool enabled) noexcept {
+        this->impl().checkboxImpl(enabled);
+    }
 
     /// @brief Render slider
     template<typename T> void slider(const T &v, const Range<T> &range, Placement placement) noexcept {
@@ -78,30 +90,46 @@ template<typename Impl> struct Render :
     // Semantic color
 
     /// @brief Set foreground Semantic color
-    void foreground(Color color) noexcept { this->impl().setForegroundImpl(color); }
+    void foreground(Color color) noexcept {
+        this->impl().setForegroundImpl(color);
+    }
 
     /// @brief Set background Semantic color
-    void background(Color color) noexcept { this->impl().setBackgroundImpl(color); }
+    void background(Color color) noexcept {
+        this->impl().setBackgroundImpl(color);
+    }
 
     // Decoration and layout
 
     /// @brief Render arrow pointing from edge to widget
-    void arrow() noexcept { this->impl().arrowImpl(); }
+    void arrow() noexcept {
+        this->impl().arrowImpl();
+    }
 
     /// @brief Render colon separator
-    void colon() noexcept { this->impl().colonImpl(); }
+    void colon() noexcept {
+        this->impl().colonImpl();
+    }
 
     /// @brief Begin standard content block
-    void beginBlock() noexcept { this->impl().beginBlockImpl(); }
+    void beginBlock() noexcept {
+        this->impl().beginBlockImpl();
+    }
 
     /// @brief End standard content block
-    void endBlock() noexcept { this->impl().endBlockImpl(); }
+    void endBlock() noexcept {
+        this->impl().endBlockImpl();
+    }
 
     /// @brief Begin alternative content block (different styling)
-    void beginAltBlock() noexcept { this->impl().beginAltBlockImpl(); }
+    void beginAltBlock() noexcept {
+        this->impl().beginAltBlockImpl();
+    }
 
     /// @brief End alternative content block
-    void endAltBlock() noexcept { this->impl().endAltBlockImpl(); }
+    void endAltBlock() noexcept {
+        this->impl().endAltBlockImpl();
+    }
 };
 
 }// namespace kf::ui::render

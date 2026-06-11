@@ -12,7 +12,9 @@ struct ResettableTag {};
 template<typename Impl> struct Resettable : ResettableTag {
 
     /// @brief Reset: full state-reset
-    void reset() noexcept { static_cast<Impl *>(this)->resetImpl(); }
+    void reset() noexcept {
+        static_cast<Impl *>(this)->resetImpl();
+    }
 };
 
 }// namespace kf::mixin

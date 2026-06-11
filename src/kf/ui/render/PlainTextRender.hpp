@@ -215,17 +215,29 @@ private:
 
     // Decoration rendering
 
-    void arrowImpl() noexcept { writeString("-> "); }
+    void arrowImpl() noexcept {
+        writeString("-> ");
+    }
 
-    void colonImpl() noexcept { writeString(": "); }
+    void colonImpl() noexcept {
+        writeString(": ");
+    }
 
-    void beginBlockImpl() noexcept { writeChar('['); }
+    void beginBlockImpl() noexcept {
+        writeChar('[');
+    }
 
-    void endBlockImpl() noexcept { writeChar(']'); }
+    void endBlockImpl() noexcept {
+        writeChar(']');
+    }
 
-    void beginAltBlockImpl() noexcept { writeChar('<'); }
+    void beginAltBlockImpl() noexcept {
+        writeChar('<');
+    }
 
-    void endAltBlockImpl() noexcept { writeChar('>'); }
+    void endAltBlockImpl() noexcept {
+        writeChar('>');
+    }
 };
 
 }// namespace kf::ui::render

@@ -82,11 +82,15 @@ template<typename U> struct UI : mixin::Singleton<UI<U>>, mixin::TimedPollable<U
 
     /// @brief Access renderer configuration
     /// @return Mutable reference to renderer config structure
-    [[nodiscard]] typename Traits::RenderImpl::Config &renderConfig() noexcept { return _render_config; }
+    [[nodiscard]] auto renderConfig() noexcept -> typename Traits::RenderImpl::Config & {
+        return _render_config;
+    }
 
     /// @brief Access renderer instance
-    /// @return Mutable  Reference to renderer
-    [[nodiscard]] typename Traits::RenderImpl &renderSystem() noexcept { return _render_system; }
+    /// @return Mutable reference to render system
+    [[nodiscard]] auto renderSystem() noexcept -> typename Traits::RenderImpl & {
+        return _render_system;
+    }
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
@@ -146,10 +150,12 @@ public:
         virtual void onUpdate(math::Milliseconds now) noexcept {}
 
         /// @brief Get 'go to this page' Widget
-        [[nodiscard]] constexpr Widget &link() noexcept { return _to_this; }
+        [[nodiscard]] constexpr Widget &link() noexcept {
+            return _to_this;
+        }
 
         /// @brief Get selected widget
-        [[nodiscard]] constexpr Option<const Widget &> selectedWidget() const noexcept {
+        [[nodiscard]] constexpr auto selectedWidget() const noexcept -> Option<const Widget &> {
             return _widgets.empty() ? none : someRef(_widgets[_cursor]);
         }
 
@@ -200,7 +206,9 @@ public:
         }
 
         /// @brief Get widgets on page
-        [[nodiscard]] Slice<Widget *> widgets() noexcept { return _widgets; }
+        [[nodiscard]] auto widgets() noexcept -> Slice<Widget *> {
+            return _widgets;
+        }
 
     protected:
         /// @brief Set widgets on page

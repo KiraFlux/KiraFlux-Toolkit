@@ -24,14 +24,20 @@ struct Timer final : mixin::NonCopyable, mixin::Configurable<internal::TimerConf
     using ::kf::mixin::Configurable<Config>::Configurable;
 
     /// @brief Start (restart) timer
-    void start(Milliseconds now) noexcept { _last = now; }
+    void start(Milliseconds now) noexcept {
+        _last = now;
+    }
 
     /// @brief Expired check
     /// @note Do not automaticly reset
-    [[nodiscard]] bool expired(Milliseconds now) noexcept { return elapsed(now) >= this->config().period; }
+    [[nodiscard]] bool expired(Milliseconds now) noexcept {
+        return elapsed(now) >= this->config().period;
+    }
 
     /// @brief Get Time since last start()
-    [[nodiscard]] Milliseconds elapsed(Milliseconds now) noexcept { return now - _last; }
+    [[nodiscard]] Milliseconds elapsed(Milliseconds now) noexcept {
+        return now - _last;
+    }
 
     /// @brief Get Time before Timer expire
     [[nodiscard]] Milliseconds remaining(Milliseconds now) noexcept {

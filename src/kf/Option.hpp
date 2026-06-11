@@ -31,15 +31,15 @@ namespace internal {
 /// @details Provides a static method `create` that bypasses the private constructor.
 struct SomeCreator final {
 
-    template<typename T> [[nodiscard]] static constexpr Option<std::decay_t<T>> create(T &&value) noexcept {
+    template<typename T> [[nodiscard]] static constexpr auto create(T &&value) noexcept {
         return Option<std::decay_t<T>>{std::forward<T>(value)};
     }
 
-    template<typename T> [[nodiscard]] static constexpr Option<T &> createRef(T &ref) noexcept {
+    template<typename T> [[nodiscard]] static constexpr auto createRef(T &ref) noexcept {
         return Option<T &>{ref};
     }
 
-    template<typename T> [[nodiscard]] static constexpr TrivialOption<T> createTrivial(const T &value) noexcept {
+    template<typename T> [[nodiscard]] static constexpr auto createTrivial(const T &value) noexcept {
         return TrivialOption<T>{value};
     }
 };
@@ -62,7 +62,9 @@ template<typename T> struct RealValueOption :
         return _value;
     }
 
-    [[nodiscard]] const T &unwrap() const noexcept { return const_cast<RealValueOption *>(this)->unwrap(); }
+    [[nodiscard]] const T &unwrap() const noexcept {
+        return const_cast<RealValueOption *>(this)->unwrap();
+    }
 
     [[nodiscard]] T unwrapOr(T default_value) const noexcept {
         return this->isSome() ? _value : default_value;
@@ -78,10 +80,14 @@ private:
     using This = RealValueOption<T>;
 
     KF_IMPL_INVARIANT(This);
-    bool isSomeImpl() const noexcept { return not std::isnan(_value); }
+    bool isSomeImpl() const noexcept {
+        return not std::isnan(_value);
+    }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept { _value = nan; }
+    void resetImpl() noexcept {
+        _value = nan;
+    }
 };
 
 }// namespace internal
@@ -114,7 +120,9 @@ private:
     using This = Option<void>;
 
     KF_IMPL_INVARIANT(This);
-    constexpr bool isSomeImpl() const noexcept { return _is_some; }
+    constexpr bool isSomeImpl() const noexcept {
+        return _is_some;
+    }
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
@@ -129,13 +137,13 @@ private:
 /// @param value The value to store (copied or moved)
 /// @return `Option<std::decay_t<T>>`
 /// @note This is the only way to create a non‑empty Option for value types
-template<typename T> [[nodiscard]] constexpr Option<std::decay_t<T>> some(T &&value) noexcept {
+template<typename T> [[nodiscard]] constexpr auto some(T &&value) noexcept -> Option<std::decay_t<T>> {
     return internal::SomeCreator::create(std::forward<T>(value));
 }
 
 /// @brief Create `Option<void>`
 /// @return `Option<void>`
-[[nodiscard]] constexpr Option<void> some() noexcept {
+[[nodiscard]] constexpr auto some() noexcept -> Option<void> {
     return Option<void>{internal::SomeCreator{}};
 }
 
@@ -144,7 +152,7 @@ template<typename T> [[nodiscard]] constexpr Option<std::decay_t<T>> some(T &&va
 /// @param ref Reference to store
 /// @return `Option<T&>`
 /// @note The reference must remain valid throughout Option lifetime
-template<typename T> [[nodiscard]] constexpr Option<T &> someRef(T &ref) noexcept {
+template<typename T> [[nodiscard]] constexpr auto someRef(T &ref) noexcept -> Option<T &> {
     return internal::SomeCreator::createRef(ref);
 }
 
@@ -153,7 +161,7 @@ template<typename T> [[nodiscard]] constexpr Option<T &> someRef(T &ref) noexcep
 /// @param value The value to store (copied)
 /// @return `TrivialOption<T>`
 /// @note This is the only way to create a non‑empty TrivialOption
-template<typename T> [[nodiscard]] constexpr TrivialOption<T> someTrivial(const T &value) noexcept {
+template<typename T> [[nodiscard]] constexpr auto someTrivial(const T &value) noexcept -> TrivialOption<T> {
     return internal::SomeCreator::createTrivial(value);
 }
 
@@ -234,7 +242,9 @@ template<typename T> struct Option final :
     }
 
     /// @brief Destructor - destroys stored value if any
-    ~Option() noexcept { this->reset(); }
+    ~Option() noexcept {
+        this->reset();
+    }
 
     /// @brief Unwrap the stored value (lvalue Option)
     /// @return Mutable reference to stored value
@@ -247,7 +257,9 @@ template<typename T> struct Option final :
     /// @brief Unwrap the stored value (const lvalue Option)
     /// @return Const reference to stored value
     /// @note Aborts if None
-    [[nodiscard]] const T &unwrap() const & noexcept { return const_cast<Option *>(this)->unwrap(); }
+    [[nodiscard]] const T &unwrap() const & noexcept {
+        return const_cast<Option *>(this)->unwrap();
+    }
 
     /// @brief Unwrap the stored value (rvalue Option)
     /// @return Rvalue reference to stored value (allows moving out)
@@ -311,21 +323,29 @@ private:
 
     /// @brief Private constructor for a value (called by some())
     template<typename U, typename = std::enable_if_t<not std::is_same_v<std::decay_t<U>, Option>>>
-    explicit constexpr Option(U &&value) noexcept { construct(std::forward<U>(value)); }
+    explicit constexpr Option(U &&value) noexcept {
+        construct(std::forward<U>(value));
+    }
 
     template<typename U> void construct(U &&value) noexcept {
         new (static_cast<void *>(_storage)) T(std::forward<U>(value));
         _is_some = true;
     }
 
-    [[nodiscard]] T &value() noexcept { return *reinterpret_cast<T *>(_storage); }
+    [[nodiscard]] T &value() noexcept {
+        return *reinterpret_cast<T *>(_storage);
+    }
 
-    [[nodiscard]] const T &value() const noexcept { return const_cast<Option *>(this)->value(); }
+    [[nodiscard]] const T &value() const noexcept {
+        return const_cast<Option *>(this)->value();
+    }
 
     using This = Option<T>;
 
     KF_IMPL_INVARIANT(This);
-    constexpr bool isSomeImpl() const noexcept { return _is_some; }
+    constexpr bool isSomeImpl() const noexcept {
+        return _is_some;
+    }
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
@@ -390,10 +410,14 @@ private:
     using This = Option<T &>;
 
     KF_IMPL_INVARIANT(This);
-    constexpr bool isSomeImpl() const noexcept { return _ptr != nullptr; }
+    constexpr bool isSomeImpl() const noexcept {
+        return _ptr != nullptr;
+    }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept { _ptr = nullptr; }
+    void resetImpl() noexcept {
+        _ptr = nullptr;
+    }
 };
 
 /// @brief Optional slice container
@@ -441,7 +465,9 @@ private:
     using This = Option<Slice<T>>;
 
     KF_IMPL_INVARIANT(This);
-    constexpr bool isSomeImpl() const noexcept { return _size != is_none_mark; }
+    constexpr bool isSomeImpl() const noexcept {
+        return _size != is_none_mark;
+    }
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
@@ -516,7 +542,9 @@ private:
     using This = Option<FunctionType>;
 
     KF_IMPL_INVARIANT(This);
-    constexpr bool isSomeImpl() const noexcept { return nullptr != _function._func; }
+    constexpr bool isSomeImpl() const noexcept {
+        return nullptr != _function._func;
+    }
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
@@ -560,7 +588,9 @@ template<typename T> struct TrivialOption final :
     /// @brief Unwrap the stored value (const lvalue Option)
     /// @return Const reference to stored value
     /// @note Aborts if None
-    [[nodiscard]] const T &unwrap() const & noexcept { return const_cast<TrivialOption *>(this)->unwrap(); }
+    [[nodiscard]] const T &unwrap() const & noexcept {
+        return const_cast<TrivialOption *>(this)->unwrap();
+    }
 
     /// @brief Unwrap the stored value (rvalue Option)
     /// @return Rvalue reference to stored value (allows moving out)
@@ -589,10 +619,14 @@ private:
     using This = TrivialOption<T>;
 
     KF_IMPL_INVARIANT(This);
-    constexpr bool isSomeImpl() const noexcept { return _is_some; }
+    constexpr bool isSomeImpl() const noexcept {
+        return _is_some;
+    }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept { _is_some = false; }
+    void resetImpl() noexcept {
+        _is_some = false;
+    }
 };
 
 template<> struct TrivialOption<float> final : internal::RealValueOption<float> {

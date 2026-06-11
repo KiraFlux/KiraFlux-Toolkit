@@ -105,7 +105,7 @@ template<typename T> struct Quaternion final {
 
     /// @brief Get normalized (unit) quaternion
     /// @return Option containing unit quaternion, or empty if zero length
-    [[nodiscard]] TrivialOption<Quaternion> normalized() const noexcept {
+    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Quaternion> {
         auto n = length();
 
         if (n == 0) { return none; }
@@ -120,7 +120,7 @@ template<typename T> struct Quaternion final {
 
     /// @brief Inverse of the quaternion
     /// @return Option containing inverse, or empty if zero length (non‑invertible)
-    [[nodiscard]] TrivialOption<Quaternion> inverse() const noexcept {
+    [[nodiscard]] auto inverse() const noexcept -> TrivialOption<Quaternion> {
         const auto n2 = lengthSquared();
 
         if (n2 == 0) { return none; }
@@ -139,7 +139,7 @@ template<typename T> struct Quaternion final {
     /// @tparam U Arithmetic type of input vector components
     /// @param v Vector to rotate
     /// @return Rotated vector (component type Scalar)
-    template<typename U> [[nodiscard]] Vector3<Scalar> rotate(const Vector3<U> &v) const noexcept {
+    template<typename U> [[nodiscard]] auto rotate(const Vector3<U> &v) const noexcept -> Vector3<Scalar> {
         const auto
             vx = static_cast<Scalar>(v.x),
             vy = static_cast<Scalar>(v.y),

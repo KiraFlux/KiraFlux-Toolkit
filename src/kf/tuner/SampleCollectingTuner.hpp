@@ -82,11 +82,18 @@ private:
     }
 
     KF_IMPL_TUNER(This);
-    [[nodiscard]] bool runningImpl() const noexcept { return _state != State::Idle; }
+    [[nodiscard]] bool runningImpl() const noexcept {
+        return _state != State::Idle;
+    }
 
     // CRTP
-    Impl &impl() noexcept { return *static_cast<Impl *>(this); }
-    const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
+    Impl &impl() noexcept {
+        return *static_cast<Impl *>(this);
+    }
+
+    const Impl &impl() const noexcept {
+        return *static_cast<const Impl *>(this);
+    }
 };
 
 }// namespace kf::tuner

@@ -144,16 +144,24 @@ private:
     }
 
     /// @brief Write a single‑byte packet (optimised).
-    void writePacketUnchecked(u8 packet) noexcept { _spi.write(packet); }
+    void writePacketUnchecked(u8 packet) noexcept {
+        _spi.write(packet);
+    }
 
     /// @brief Write a 2‑byte packet (optimised).
-    void writePacketUnchecked(u16 packet) noexcept { _spi.write16(packet); }
+    void writePacketUnchecked(u16 packet) noexcept {
+        _spi.write16(packet);
+    }
 
     /// @brief Write a 4‑byte packet (optimised).
-    void writePacketUnchecked(u32 packet) noexcept { _spi.write32(packet); }
+    void writePacketUnchecked(u32 packet) noexcept {
+        _spi.write32(packet);
+    }
 
     /// @brief Write a packet of arbitrary size (generic fallback).
-    template<typename T> void writePacketUnchecked(T &&packet) noexcept { writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(T)); }
+    template<typename T> void writePacketUnchecked(T &&packet) noexcept {
+        writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(T));
+    }
 
     /// @brief Read a 1/2/4‑byte packet using dedicated SPI transfer functions (faster than generic loop).
     /// @tparam T Must be exactly 1, 2 or 4 bytes.
@@ -186,14 +194,14 @@ private:
         _spi.transferBytes(nullptr, buffer, length);
     }
 
-    Result<Slice<const u8>, ArduinoSpiError> readBufferImpl(Slice<u8> buffer) noexcept {
+    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, ArduinoSpiError> {
         beginTransaction();
         readBytes(buffer.data(), buffer.size());
         endTransaction();
         return ok(Slice<const u8>{const_cast<const u8 *>(buffer.data()), buffer.size()});
     }
 
-    template<typename T> Result<T, ArduinoSpiError> readPacketImpl() noexcept {
+    template<typename T> auto readPacketImpl() noexcept -> Result<T, ArduinoSpiError> {
         constexpr usize to_read = sizeof(T);
 
         beginTransaction();
@@ -211,23 +219,24 @@ private:
         return ok(value);
     }
 
-    KF_IMPL_WRITABLE(This, Result<void, ArduinoSpiError>);
+    using WriteResult = Result<void, ArduinoSpiError>;
+    KF_IMPL_WRITABLE(This, WriteResult);
 
-    [[nodiscard]] Result<void, ArduinoSpiError> writeBufferImpl(Slice<const u8> buffer) noexcept {
+    WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
         beginTransaction();
         writeBytes(buffer.data(), buffer.size());
         endTransaction();
         return ok();
     }
 
-    template<typename T> [[nodiscard]] Result<void, ArduinoSpiError> writePacketImpl(T &&packet) noexcept {
+    template<typename T> WriteResult writePacketImpl(T &&packet) noexcept {
         beginTransaction();
         writePacketUnchecked(std::forward<T>(packet));
         endTransaction();
         return ok();
     }
 
-    template<typename T> [[nodiscard]] Result<void, ArduinoSpiError> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
+    template<typename T> WriteResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
         beginTransaction();
         writePacketUnchecked(std::forward<T>(header));
         writeBytes(buffer.data(), buffer.size());

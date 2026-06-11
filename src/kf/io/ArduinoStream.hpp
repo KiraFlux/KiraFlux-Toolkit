@@ -39,11 +39,9 @@ struct ArduinoStream final :
 private:
     Stream &_stream;
 
-    using This = ArduinoStream;
+    KF_IMPL_READABLE(ArduinoStream, Error);
 
-    KF_IMPL_READABLE(This, Error);
-
-    Result<Slice<const u8>, Error> readBufferImpl(Slice<u8> dest) noexcept {
+    auto readBufferImpl(Slice<u8> dest) noexcept -> Result<Slice<const u8>, Error> {
         constexpr auto min_available{1u};
 
         if (_stream.available() < min_available) { return error(Error::ReadNotAvailable); }
@@ -54,7 +52,7 @@ private:
         return ok(Slice<const u8>{dest.data(), readed});
     }
 
-    template<typename T> Result<T, Error> readPacketImpl() noexcept {
+    template<typename T> auto readPacketImpl() noexcept -> Result<T, Error> {
         constexpr auto to_read{sizeof(T)};
         if (_stream.available() < to_read) { return error(Error::ReadNotAvailable); }
 
@@ -76,9 +74,11 @@ private:
         }
     }
 
-    KF_IMPL_WRITABLE(This, Result<void, Error>);
+    using WriteResult = Result<void, Error>;
 
-    Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept {
+    KF_IMPL_WRITABLE(ArduinoStream, WriteResult);
+
+    WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
         const auto to_write = buffer.size();
         // _stream.availableForWrite() ?
         if (_stream.write(buffer.data(), to_write) != to_write) { return error(Error::WriteFailed); }
@@ -86,7 +86,7 @@ private:
         return ok();
     }
 
-    template<typename T> Result<void, Error> writePacketImpl(T &&packet) noexcept {
+    template<typename T> WriteResult writePacketImpl(T &&packet) noexcept {
         constexpr auto to_write = sizeof(packet);
         usize written;
 
@@ -101,7 +101,7 @@ private:
         return ok();
     }
 
-    template<typename T> Result<void, Error> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
+    template<typename T> WriteResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
         const auto header_result = this->writePacket(std::forward<T>(header));
         if (header_result.isError()) { return header_result; }
 

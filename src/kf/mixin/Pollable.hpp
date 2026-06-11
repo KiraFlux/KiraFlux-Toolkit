@@ -12,7 +12,9 @@ struct PollableTag {};
 template<typename Impl> struct Pollable : PollableTag {
 
     /// @brief Performs periodic polling.
-    void poll() noexcept { static_cast<Impl *>(this)->pollImpl(); }
+    void poll() noexcept {
+        static_cast<Impl *>(this)->pollImpl();
+    }
 };
 
 }// namespace kf::mixin

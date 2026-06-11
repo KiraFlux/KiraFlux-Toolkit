@@ -18,7 +18,9 @@ struct SensorTag {};
 template<typename Impl, typename Measurement, typename InitResult>
 struct Sensor : SensorTag, meta::CRTP<Impl>, mixin::Initable<Impl, InitResult>, mixin::NonCopyable {
 
-    [[nodiscard]] Measurement read() noexcept { return this->impl().readImpl(); }
+    [[nodiscard]] Measurement read() noexcept {
+        return this->impl().readImpl();
+    }
 };
 
 }// namespace kf::drivers::sensors

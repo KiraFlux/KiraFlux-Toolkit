@@ -38,7 +38,13 @@ namespace kf::math {
 
 /// @brief PID controller implementation
 /// @note Includes derivative filtering and integral anti-windup
-struct PID final : mixin::Configurable<internal::PidConfig>, mixin::NonCopyable, mixin::Resettable<PID> {
+struct PID final :
+
+    mixin::NonCopyable,
+    mixin::Resettable<PID>,
+    mixin::Configurable<internal::PidConfig>
+
+{
 
     using FilterImpl = internal::PidFilterImpl;
 
