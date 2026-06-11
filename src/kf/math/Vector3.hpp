@@ -105,8 +105,8 @@ template<typename T> struct Vector3 final {
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] constexpr auto normalized() const noexcept -> TrivialOption<Vector3> {
-        constexpr auto len = length();
+    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector3> {
+        const auto len = length();
         return (len == 0) ? none : someTrivial(Vector3{static_cast<Scalar>(x / len), static_cast<Scalar>(y / len), static_cast<Scalar>(z / len)});
     }
 
