@@ -7,63 +7,61 @@ A pragmatic blend of static polymorphism (CRTP) and dynamic polymorphism for emb
 
 KiraFlux Toolkit provides a collection of modular components for ESP32, built around:
 
-- **CRTP (Curiously Recurring Template Pattern)** – for zero‑cost abstractions where the type is known at compile time (GPIO, buses, drivers, filters, mixins).
-- **Dynamic polymorphism (virtual functions)** – where runtime flexibility is genuinely required (UI widgets, page navigation, type‑erased callables via `kf::Function`).
+- **CRTP** - for zero‑cost abstractions (GPIO, buses, drivers, filters, mixins).
+- **Dynamic polymorphism** - where runtime flexibility is required (UI widgets, type‑erased callables via `kf::Function`).
 
-The library is **header‑only**, written in **C++17**, and currently targets the **ESP32 with the Arduino framework**. Many core modules are platform‑agnostic.
+The library is **header‑only**, **C++17**, targets **ESP32 + Arduino framework**. Many core modules are platform‑agnostic.
 
 **Key principles:**
-- No exceptions, errno, or ignore – error handling via `Result<T, E>` and `Option<T>`.
-- `[[nodiscard]]`, `constexpr`, `const`, `noexcept` where applicable.
-- Minimal dependencies on `Arduino.h` – hardware‑independent code stays portable.
-- Make testable as possible – implement unit tests run natively, hardware tests are separated.
+- No exceptions - error handling via return values (always)
+- `[[nodiscard]]`, `constexpr`, `noexcept` where applicable.
+- Minimal hardware-specific dependencies.
+- Make everything as testable as possible - unit tests run natively.
 
 ## Status
 
-**Experimental** – APIs are subject to change as we explore the limits of static polymorphism in embedded systems. Feedback and contributions are welcome.
+**Experimental** - APIs change between minor versions. Feedback and contributions welcome.
 
 ## Modules
 
-| Module           | Location           | Description                                                                                                     |
-| ---------------- | ------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Core utilities   | `kf/` (root files) | Fundamental types: `Option`, `Result`, `Range`, `Logger`, `Function`, algorithms, type aliases, and validation. |
-| GPIO             | `kf/gpio`          | Digital, analog, and PWM I/O abstractions with Arduino implementation.                                          |
-| I/O streams      | `kf/io`            | Byte stream interfaces (`Readable`, `Writable`) and Arduino `Serial` wrapper.                                   |
-| Buses            | `kf/bus`           | IIC and SPI bus abstractions with Arduino adapters.                                                             |
-| Input processing | `kf/input`         | Button debouncing, rotary encoder, joystick direction handling.                                                 |
-| Networking       | `kf/network`       | ESP‑NOW peer management and structured serial protocol (`MizLangBridge`).                                       |
-| Drivers          | `kf/drivers`       | Actuators (servo, motor), sensors (Sharp, joystick, normalized ADC), display drivers (SSD1306, ST7735).         |
-| Controllers      | `kf/controllers`   | Compositions of actuators (e.g., 2‑DOF manipulator).                                                            |
-| Graphics         | `kf/gfx`           | Drawing canvas, bitmap fonts, color palettes.                                                                   |
-| Images           | `kf/image`         | Static, dynamic, and viewport image buffers.                                                                    |
-| Pixel formats    | `kf/pixel`         | Pixel format definitions (monochrome, RGB565) and operations.                                                   |
-| UI               | `kf/ui`            | Widget‑based user interface with text renderers.                                                                |
-| Math             | `kf/math`          | Vectors, timers, filters (EMA, low‑pass, complementary), PID controller.                                        |
-| Memory           | `kf/memory`        | Lightweight containers (`Slice`, `StaticString`, `Storage`) and STL container aliases.                           |
-| Mixins           | `kf/mixin`         | Reusable CRTP mixins (`Resettable`, `Pollable`, `Initable`, `Configurable`, etc.).                              |
-| Tuners           | `kf/tuner`         | Sensor calibration via sample collection and state machines.                                                    |
-| Metaprogramming  | `kf/meta`          | CRTP base, bit/byte traits, function traits.                                                                    |
+| Module           | Location                               | Description                                                                                  |
+| ---------------- | -------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Core utilities   | [`kf/`](src/kf)                        | `Option`, `Result`, `Range`, `Logger`, `Function`, algorithms, validation.                   |
+| GPIO             | [`kf/gpio`](src/kf/gpio)               | Digital, analog, PWM I/O abstractions with Arduino backend.                                  |
+| I/O streams      | [`kf/io`](src/kf/io)                   | `Readable`, `Writable`, `ArduinoStream` wrapper.                                             |
+| Buses            | [`kf/bus`](src/kf/bus)                 | IIC and SPI abstractions with Arduino adapters.                                              |
+| Input processing | [`kf/input`](src/kf/input)             | Button debouncing, joystick direction, encoders.                                             |
+| Networking       | [`kf/network`](src/kf/network)         | ESP‑NOW peer management, structured serial protocol.                                         |
+| Drivers          | [`kf/drivers`](src/kf/drivers)         | Actuators (servo, motor), sensors (Sharp, joystick, ADC), display drivers (SSD1306, ST7735). |
+| Controllers      | [`kf/controllers`](src/kf/controllers) | Compositions of actuators (e.g., 2‑DOF manipulator).                                         |
+| Graphics         | [`kf/gfx`](src/kf/gfx)                 | Drawing canvas, bitmap fonts, color palettes.                                                |
+| Images           | [`kf/image`](src/kf/image)             | Static, dynamic, viewport image buffers.                                                     |
+| Pixel formats    | [`kf/pixel`](src/kf/pixel)             | Monochrome, RGB565 pixel operations.                                                         |
+| UI               | [`kf/ui`](src/kf/ui)                   | Widget‑based UI with configurable render backend.                                            |
+| Math             | [`kf/math`](src/kf/math)               | Vectors, quaternion, timers, filters, PID.                                                   |
+| Memory           | [`kf/memory`](src/kf/memory)           | Lightweight containers (`Slice`, `StaticString`, `Storage`) and STL aliases.                 |
+| Mixins           | [`kf/mixin`](src/kf/mixin)             | Reusable CRTP mixins (`Resettable`, `Pollable`, `Callbacked`, etc.).                         |
+| Tuners           | [`kf/tuner`](src/kf/tuner)             | Sensor calibration via sample collection.                                                    |
+| Metaprogramming  | [`kf/meta`](src/kf/meta)               | CRTP base, bit/function traits.                                                              |
 
 ## Quick Start
 
 ### PlatformIO
 
-Add the library to your `platformio.ini`:
-
 ```ini
-lib_deps = https://github.com/KiraFlux/KiraFlux-Toolkit.git
+lib_deps = https://github.com/KiraFlux/KiraFlux-Toolkit.git#0.3.2
 ```
 
-Examples can be found in the [`examples`](examples) directory.
+Examples are in the [`examples`](examples) directory.
 
 ## Documentation
 
-Public APIs are documented with **Doxygen comments** directly in the header files.
+Public APIs are documented with **Doxygen comments** in the headers.
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.MD](CONTRIBUTING.MD) for guidelines.
+See [CONTRIBUTING.MD](CONTRIBUTING.MD).
 
 ## License
 
-MIT License – see [LICENSE](LICENSE) file.
+MIT - see [LICENSE](LICENSE) file.
