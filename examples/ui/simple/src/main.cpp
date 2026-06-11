@@ -18,6 +18,7 @@ static MyUI::Traits::RenderImpl::Config my_render_config{
     .rows_total = 5,     // only 5 rows available (for scrolling)
     .float_places = 3,   // float rendering like:  1234.567
     .double_places = 6,  // double rendering like: 1.234567
+    .title_centered = false,
 };
 
 static MyUI::Traits::RenderImpl my_render{

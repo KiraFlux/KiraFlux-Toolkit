@@ -29,11 +29,14 @@ using MyUI = kf::ui::UI<
         kf::ui::Event<4>                       // Event type: 4-bit value
         >>;
 
+// shortcusts
 using Event = MyUI::Traits::EventImpl;
+using Render = MyUI::Traits::RenderImpl;
+using Color = kf::ui::Color;
 
-static MyUI::Traits::RenderImpl::Config my_render_config{};// will set in setup
+static Render::Config my_render_config{Render::Config::defaults()};// will set in setup
 
-static MyUI::Traits::RenderImpl my_render{
+static Render my_render{
     my_render_config,// by ref
 };
 
@@ -76,17 +79,17 @@ struct MainPage : MyUI::Page {
         slider_config,// by ref
     };
 
-    using ColorCombo = MyUI::ComboBox<kf::ui::Color>;
+    using ColorCombo = MyUI::ComboBox<Color>;
 
     kf::memory::Array<ColorCombo::Item, 8> color_combo_items{{
-        {"Normal", kf::ui::Color::Normal},
-        {"Primary", kf::ui::Color::Primary},
-        {"Secondary", kf::ui::Color::Secondary},
-        {"Success", kf::ui::Color::Success},
-        {"Warning", kf::ui::Color::Warning},
-        {"Error", kf::ui::Color::Error},
-        {"Info", kf::ui::Color::Info},
-        {"Disabled", kf::ui::Color::Disabled},
+        {"Normal", Color::Normal},
+        {"Primary", Color::Primary},
+        {"Secondary", Color::Secondary},
+        {"Success", Color::Success},
+        {"Warning", Color::Warning},
+        {"Error", Color::Error},
+        {"Info", Color::Info},
+        {"Disabled", Color::Disabled},
     }};
 
     ColorCombo::Config color_combo_config{
