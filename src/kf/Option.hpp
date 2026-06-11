@@ -28,7 +28,7 @@ template<typename> struct TrivialOption;
 namespace internal {
 
 /// @brief Helper for constructing Option with a value
-/// @details Provides a static method `create` that bypasses the private constructor.
+/// @note Provides a static method `create` that bypasses the private constructor.
 struct SomeCreator final {
 
     template<typename T> [[nodiscard]] static constexpr auto create(T &&value) noexcept {

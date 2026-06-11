@@ -20,7 +20,7 @@ namespace kf::tuner {
 ///
 ///       - `void calculateImpl(T&) noexcept` – called after all samples are collected; updates the configuration.
 ///
-/// @details This class manages a state machine (Idle -> Running -> Calculating -> Idle).
+/// @note This class manages a state machine (Idle -> Running -> Calculating -> Idle).
 ///          After `reset()`, the caller must repeatedly call `poll()` until `running()` returns false.
 ///          The `poll()` implementation of this class will invoke the derived class's `pollImpl()`
 ///          for each sample and, once the required number of samples is reached, transition to

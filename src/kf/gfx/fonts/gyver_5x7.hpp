@@ -486,7 +486,7 @@ static constexpr u8 gyver_5x7_en_data[] = {
 };
 
 /// @brief GyverOLED 5×7 English font
-/// @details Optimized for 128×64 OLED displays. Contains ASCII characters
+/// @note Optimized for 128×64 OLED displays. Contains ASCII characters
 /// from space (0x20) to tilde (0x7E). Each glyph is 5 pixels wide and 7 pixels high.
 /// Font data format: 5 bytes per glyph, each byte = 1 vertical column (8 bits, bits 0-6 used).
 /// Total glyphs: 126 - 32 + 1 = 95 characters.
