@@ -1,6 +1,120 @@
 # Changelog
 
-All notable changes to the KiraFlux Toolkit from version 0.0.0 to 0.3.1 are documented in this file.
+All notable changes to the KiraFlux Toolkit from version 0.0.0 to 0.3.2 are documented in this file.
+
+## [0.3.2] – 2026-06-11
+
+### Breaking Changes
+
+- **UI is no longer a singleton** – `kf::ui::UI` must be instantiated explicitly with a renderer reference. The `instance()` method has been removed. ([#187](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/187))
+- **`Canvas` and `DynamicImage` lost default constructors** – both classes now require explicit initialisation with a framebuffer or parent image. ([#183](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/183), [#184](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/184))
+- **`ArrayString` renamed to `StaticString`** – `kf::memory::ArrayString<N>` is now `kf::memory::StaticString<N>`. All uses must be updated.
+- **`L298nMotor` removed** – replaced by `kf::drivers::actuators::DRV8871` which uses two PWM outputs instead of PWM+digital direction.
+- **`Button` removed** – replaced by `kf::input::LogicalLevelListener` (debounced digital input with click detection).
+- **`Encoder` removed** – replaced by `kf::drivers::sensors::QuadratureEncoder` (4X decoding with interrupt support).
+- **`kf/gpio/arduino.hpp` moved to `ArduinoGPIO.hpp`** – all GPIO types are now under `kf::gpio::ArduinoGPIO`.
+- **`Timer` now requires a `Config` struct** – constructor `Timer(period)` is gone; use `Timer::Config{.period = ms}` instead. ([#161](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/161))
+- **`JoystickListener` configuration changed** – `repeat_timeout` and `delay` are now nested `repeat_timer` and `delay_timer` of type `Timer::Config`.
+- **`Option` and `Result` API overhaul** – construct via `kf::some()`, `kf::none`, `kf::someRef()`, `kf::someTrivial()`, `kf::ok()`, `kf::error()`. Methods renamed: `hasValue()` → `isSome()`, `value()` → `unwrap()`, `valueOr()` → `unwrapOr()`. Added `map()` for `Option` and `map()`/`mapError()` for `Result`. Support for move‑only and non‑trivial types. **Trivial types** (including floats) should use `TrivialOption<T>` created with `kf::someTrivial()`. ([#171](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/171), [#172](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/172), [#178](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/178), [#179](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/179))
+- **`ColoredTextRender` palette reworked** – now has configurable palettes (`normal_foreground_palette`, `focused_foreground_palette`, `normal_background_palette`, `focused_background_palette`). The previous hard‑coded ANSI mapping is gone.
+- **`Function` is never empty** – default constructor removed; use `Option<Function<...>>` for optional callables. ([#181](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/181))
+- **`io::Writable` template parameter changed** – now accepts a `ResultType` (usually `Result<void, Error>`) instead of `ErrorImpl`. ([#166](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/166))
+
+### Added
+
+#### Core & Utilities
+- **`kf::Quaternion`** – quaternion for 3D rotations ([`src/kf/math/Quaternion.hpp`](src/kf/math/Quaternion.hpp)).
+- **`kf::drivers::sensors::QuadratureEncoder`** – rotary encoder with 4X decoding and ISR support ([`src/kf/drivers/sensors/QuadratureEncoder.hpp`](src/kf/drivers/sensors/QuadratureEncoder.hpp)).
+- **`kf::drivers::actuators::DRV8871`** – H‑bridge motor driver using two PWM outputs ([`src/kf/drivers/actuators/DRV8871.hpp`](src/kf/drivers/actuators/DRV8871.hpp)).
+- **Option specialisations** – `Option<Slice<T>>`, `Option<Function<R(Args...)>>`, `Option<T&>` (reference), `TrivialOption<T>` for trivially copyable types, and real‑number specialisations for `float`, `double`, `long double`. Factory functions: `kf::some()`, `kf::someRef()`, `kf::someTrivial()`, `kf::none`.
+- **`kf::NoneType` and `kf::none` constant** – tag type for constructing empty `Option` ([`src/kf/NoneType.hpp`](src/kf/NoneType.hpp)).
+- **New mixins** – `mixin::Invariant` (adds `isSome()`/`isNone()`), `mixin::StringRepresentable` (adds `toString()`), `mixin::MacAddressed` (for objects with a MAC address).
+- **`Callbacked` now supports variable arguments** – `Callbacked<Args...>`.
+- **`kf::Range`** – validated closed interval with `clamp()` ([`src/kf/Range.hpp`](src/kf/Range.hpp)).
+- **`kf::linearMap`** – linear interpolation between ranges ([`src/kf/algorithm.hpp`](src/kf/algorithm.hpp)).
+- **Validation framework** – `Validator` and `Validatable` CRTP with `KF_VALIDATOR_CHECK` macro ([`src/kf/validation.hpp`](src/kf/validation.hpp)).
+- **`make format` / `make f` target** – runs `clang-format-all.sh` to format code.
+
+#### UI & Graphics
+- **`ColoredTextRender` – configurable palettes** – four palettes for normal/focused state, foreground/background.
+- **`Page::selectedWidget()`** – returns the currently focused widget as an `Option<const Widget &>` ([#177](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/177)).
+- **UI ignores duplicate `Update` events** – adding consecutive `Update` events no longer floods the queue ([#156](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/156)).
+- **`Widget::hint()` and colour properties** – widgets now store a hint string and foreground/background colours (semantic `Color`).
+- **`Canvas::glyph()`** – draw a single glyph at specified position ([#154](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/154)).
+- **`Canvas::State`** – groups active font, colours, and auto‑wrap flag; removed default constructor ([#183](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/183)).
+- **Named colours in `gfx::Palette`** – `black`, `red`, `green`, `blue`, `bright_white`, etc.
+
+#### Documentation & Examples
+- **Updated `CONTRIBUTING.MD`** – added rules for inheritance formatting, trailing return types, `Impl` suffix, single `kf::internal` namespace, and other conventions.
+- **Updated `README.MD`** – fixed module table, added quaternion entry, fixed `lib_deps` to pin version `#0.3.2`.
+- **Renamed example** – `examples/actuators/motor-l293n/` → `examples/actuators/motor-drv8871/` (new example using `DRV8871`).
+- **All examples updated to new API** – use `kf::some()`, `unwrap()`, `ok()`, `error()`, new `Timer`, `JoystickListener`, `EspNow`, `LogicalLevelListener` syntax, etc.
+
+#### CI & Tooling
+- **Simplified `lint.yml`** – removed `generate-db` and `collect-files` jobs; linting now runs a single `./lint.sh`.
+- **Fixed script name** – `shapshot.py` → `snapshot.py`; corresponding make target `snapshot` (was `shapshot`).
+- **Added `clang-format-all.sh`** – for bulk code formatting.
+
+### Changed
+
+- **`kf::Function`** – now never empty; use `Option<Function<...>>` for optional callbacks. Improved small‑buffer handling (2 words).
+- **`kf::Slice`** – moved from `kf::memory::Slice` to `kf::Slice` (top‑level).
+- **`kf::ui::Placement`** – moved from `internal::Placement` to `kf::ui::Placement`.
+- **`kf::input::LogicalLevelListener`** – fixed first sample logic; now correctly debounces without initial false click.
+- **`kf::math::PID`** – replaced `NaN` sentinel with `TrivialOption<f32>` for previous error value.
+- **`kf::network::EspNow`** – `Peer::add()` replaced by `Peer::create()`; callbacks use `Callbacked` mixin; unknown peer callback via `EspNow::instance().callback(...)`. Added `MacAddress` type and `EspNowError` with `toString()`.
+- **`kf::network::MizLangBridge`** – `poll()` now correctly returns error only on actual failure (fixed inverted condition) ([#148](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/148)).
+- **`kf::memory::Storage`** – fixed return status for `load()`/`save()`/`erase()`.
+- **`kf::io::Writable`** – template parameter changed to `ResultType` (e.g., `Result<void, Error>`).
+- **Internal namespaces** – unified under `kf::internal` (no more nested `internal` inside modules).
+- **`kf::gfx::Font`** – font data moved to `kf/gfx/fonts/gyver_5x7.hpp`; removed `extern` declaration (now `constexpr` in header).
+- **`kf::image::DynamicImage`** – error `BufferNotInit` replaced by `BufferTooSmall`; removed `isValid()` method.
+- **`kf::math::Vector2`/`Vector3`** – now use `TrivialOption` for `divChecked()` and `normalized()`; added `zero()` static method.
+- **`kf::Logger`** – writer is now a static callback; removed dependency on `millis()`; uses `StaticString` internally.
+
+### Fixed
+
+- **`UI::Page::cursor` not clamped after layout change** – cursor now respects new widget list bounds ([#158](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/158)).
+- **`ArithmeticPositiveOnlyAdjuster` missing return** – fixed fall‑through that caused undefined behaviour ([#147](https://github.com/KiraFlux/KiraFlux-Toolkit/issues/147)).
+- **`Canvas` and `DynamicImage` compilation without default constructor** – all code updated to construct explicitly.
+- **`EspNow` strict‑aliasing violation** – fixed by copying MAC address bytes instead of reinterpreting pointers.
+- **`PID::calc`** – replaced `isnan` macro with `std::isnan`.
+- **`DynamicImage::fill`** – coordinate swapping corrected.
+- **`SSD1306`** – buffer overflow in `sendImpl()` fixed.
+- **`kf::linearMap`** – correct implementation and tests added.
+- **`kf::ui::PlainTextRender`** – title centering, newline handling, and slider value placement fixes.
+- **`kf::gpio::ArduinoGPIO::DigitalInput`** – inversion logic corrected.
+- **`kf::tuner::SampleCollectingTuner`** – state machine transition fixed.
+- **`kf::image::DynamicImage::sub`** – bounds checking corrected.
+- **`kf::memory::Storage`** – `load()`/`save()`/`erase()` now correctly return success status.
+- **`kf::io::ArduinoStream`** – fixed error handling in `readBufferImpl()`.
+
+### Removed
+
+- **`L298nMotor`** (use `DRV8871` instead).
+- **`Button`** (use `LogicalLevelListener` instead).
+- **`Encoder`** (use `QuadratureEncoder` instead).
+- **`ArrayString`** (renamed to `StaticString`; old name removed).
+- **`kf/gpio/arduino.hpp`** (use `ArduinoGPIO.hpp`).
+- **Default constructors of `Canvas` and `DynamicImage`**.
+- **`kf/ui/StepMode.hpp`, `StepAdjuster.hpp`, `ValueAdjuster.hpp`** (integrated into `Adjuster` hierarchy).
+- **`kf/ui/TextBufferRender.hpp`** (renamed to `PlainTextRender.hpp`).
+- **Old timer classes** – `kf/math/time/Chronometer.hpp`, `TimeoutManager.hpp`, `Timer.hpp` (replaced by single `kf::math::Timer`).
+- **`kf/Tuner.hpp`** (replaced by `kf/tuner/Tuner.hpp` and `SampleCollectingTuner.hpp`).
+- **`kf/input/AnalogAxis.hpp`** (superseded by `NormalizedAdcInput`).
+- **`kf/input/Joystick.hpp`** (moved to `drivers/sensors`).
+- **`kf/drivers/zms/`** (renamed to `actuators`).
+- **`kf/pattern/Singleton.hpp`** (moved to `mixin/Singleton.hpp`).
+- **`kf/memory/io/InputStream.hpp` and `OutputStream.hpp`** (replaced by `Readable`/`Writable`).
+- **`kf/core/bit_traits.hpp` and `function_traits.hpp`** (moved to `meta/`).
+- **`kf/gfx.hpp`** (removed; include individual graphics headers).
+
+---
+
+[0.3.2]: https://github.com/KiraFlux/KiraFlux-Toolkit/compare/v0.3.1...v0.3.2
+---
+
+[0.3.2]: https://github.com/KiraFlux/KiraFlux-Toolkit/releases/tag/v0.3.2
 
 ## [0.3.1] – 2026-04-03
 
