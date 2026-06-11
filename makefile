@@ -1,4 +1,4 @@
-.PHONY: all monitor test build-examples be snapshot s lint new-example ne new-test nt changelog
+.PHONY: all monitor test build-examples be snapshot s lint new-example ne new-test nt diff
 
 name ?= unnamed # target example/test name
 group ?= common # target example/test group
@@ -39,5 +39,5 @@ new-test:
 
 nt: new-test
 
-changelog:
+diff:
 	git log main..dev > log.txt && git diff main..dev > diff.txt
