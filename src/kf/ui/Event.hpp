@@ -34,7 +34,7 @@ template<usize N> struct Event : EventTag {
         Update = static_cast<Storage>(Storage{0} << value_bits),
         PageCursorMove = static_cast<Storage>(Storage{1} << value_bits),
         WidgetClick = static_cast<Storage>(Storage{2} << value_bits),
-        WidgetValueChange = static_cast<Storage>(Storage{3} << value_bits),
+        WidgetValue = static_cast<Storage>(Storage{3} << value_bits),
     };
 
     explicit constexpr Event(Kind kind, Value value = 0) noexcept :
@@ -62,7 +62,7 @@ template<usize N> struct Event : EventTag {
     }
 
     [[nodiscard]] static constexpr Event widgetValue(Value value) noexcept {
-        return Event{Kind::WidgetValueChange, value};
+        return Event{Kind::WidgetValue, value};
     }
 
 private:

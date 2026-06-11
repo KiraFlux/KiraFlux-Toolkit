@@ -11,6 +11,23 @@ using MyUI = kf::ui::UI<
         kf::ui::Event<4>                     // Event type: 4-bit value
         >>;
 
+using Event = MyUI::Traits::EventImpl;
+
+static MyUI::Traits::RenderImpl::Config my_render_config{
+    .row_max_length = 50,// console width = 50 chars
+    .rows_total = 5,     // only 5 rows available (for scrolling)
+    .float_places = 3,   // float rendering like:  1234.567
+    .double_places = 6,  // double rendering like: 1.234567
+};
+
+static MyUI::Traits::RenderImpl my_render{
+    my_render_config,// by ref
+};
+
+static MyUI my_ui{
+    my_render,// by ref
+};
+
 // User-defined example pages
 
 struct MainPage : MyUI::Page {
@@ -56,13 +73,14 @@ struct MainPage : MyUI::Page {
         },
     };
 
-    explicit MainPage() : Page{"Main"} {
+    explicit MainPage() : Page{my_ui, "Main"} {
         widgets({widgets_storage.data(), widgets_storage.size()});
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
             my_value += 1;
             value_display.value(my_value);
+            update();// add Update Event
         });
 
         check_box.callback([this](bool state) {
@@ -150,7 +168,7 @@ struct SettingsPage : MyUI::Page {
         },
     };
 
-    explicit SettingsPage() : Page{"Settings"} {
+    explicit SettingsPage() : Page{my_ui, "Settings"} {
         widgets({widgets_storage.data(), widgets_storage.size()});
 
         ints_combo_box.callback([](int value) {
@@ -172,54 +190,43 @@ struct SettingsPage : MyUI::Page {
 } settings_page{};
 
 // Simple function for convertion from char to event
-MyUI::Traits::EventImpl eventFromChar(char c) {
+Event eventFromChar(char c) {
     switch (c) {
-        case 'w': return MyUI::Traits::EventImpl::pageCursorMove(-1);// Up
-        case 's': return MyUI::Traits::EventImpl::pageCursorMove(+1);// Down
-        case 'a': return MyUI::Traits::EventImpl::widgetValue(-1);   // Left
-        case 'd': return MyUI::Traits::EventImpl::widgetValue(+1);   // Right
-        case ' ': return MyUI::Traits::EventImpl::widgetClick();     // Click
-        default: return MyUI::Traits::EventImpl::update();           // Other: Force update
+        case 'w': return Event::pageCursorMove(-1);// Up
+        case 's': return Event::pageCursorMove(+1);// Down
+        case 'a': return Event::widgetValue(-1);   // Left
+        case 'd': return Event::widgetValue(+1);   // Right
+        case ' ': return Event::widgetClick();     // Click
+        default: return Event::update();           // Other: Force update
     }
 }
-
-static auto &ui = MyUI::instance();
 
 void setup() {
     Serial.begin(115200);
 
-    // render setup
-    auto &config = ui.renderConfig();
-
     // post-render procedure
-    ui.renderSystem().callback([](kf::memory::StringView text) {
+    my_render.callback([](kf::memory::StringView text) {
         Serial.println("---");
         Serial.print(text.data());
     });
-
-    // misc
-    config.float_places = 3;   // float rendering like:  1234.567
-    config.double_places = 6;  // double rendering like: 1.234567
-    config.rows_total = 5;     // only 5 rows available (for scrolling)
-    config.row_max_length = 50;// console width = 50 chars
 
     // insert navigation button on both pages
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
 
-    ui.bindPage(main_page);// start ui with main page
+    my_ui.bindPage(main_page);// start ui with main page
 
-    ui.addEvent(MyUI::Traits::EventImpl::update());// Force update for first ui rendering
+    my_ui.addEvent(Event::update());// Force update for first ui rendering
 }
 
 void loop() {
     if (Serial.available()) {
         const char c = Serial.read();
-        ui.addEvent(eventFromChar(c));
+        my_ui.addEvent(eventFromChar(c));
     }
 
     const auto now = millis();
-    ui.poll(now);
+    my_ui.poll(now);
 
-    delay(20);// 50 hz
+    delay(10);// 100 hz
 }

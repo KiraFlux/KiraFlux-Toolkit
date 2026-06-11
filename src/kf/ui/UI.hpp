@@ -10,7 +10,6 @@
 #include "kf/memory/StringView.hpp"
 #include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/NonCopyable.hpp"
-#include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 #include "kf/primitives.hpp"
 
@@ -29,8 +28,12 @@ namespace kf::ui {
 
 /// @brief User interface framework with widget-based rendering
 /// @tparam U UI Traits implementation
-/// @note Singleton pattern ensures single UI instance with event queue and page management
-template<typename U> struct UI : mixin::Singleton<UI<U>>, mixin::TimedPollable<UI<U>> {
+template<typename U> struct UI :
+
+    mixin::NonCopyable,
+    mixin::TimedPollable<UI<U>>
+
+{
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     /// @brief UI Traits implementation
@@ -80,17 +83,7 @@ template<typename U> struct UI : mixin::Singleton<UI<U>>, mixin::TimedPollable<U
 
     struct Page;// forward declaration
 
-    /// @brief Access renderer configuration
-    /// @return Mutable reference to renderer config structure
-    [[nodiscard]] auto renderConfig() noexcept -> typename Traits::RenderImpl::Config & {
-        return _render_config;
-    }
-
-    /// @brief Access renderer instance
-    /// @return Mutable reference to render system
-    [[nodiscard]] auto renderSystem() noexcept -> typename Traits::RenderImpl & {
-        return _render_system;
-    }
+    explicit constexpr UI(typename Traits::RenderImpl &render_system) noexcept : _render_system{render_system} {}
 
     /// @brief Set active page for display
     /// @param page Page to make active (must remain valid)
@@ -114,14 +107,13 @@ private:
     /// @brief Special widget for creating page navigation buttons
     /// @note Internal use only - use Page::link() for page navigation
     struct PageSetter : Widget {
-
         explicit PageSetter(Page &target) noexcept : _target{target} {
             this->hint("Navigate to page..");
         }
 
         /// @brief Set target page as active on click
         [[nodiscard]] bool onClick() noexcept override {
-            UI::instance().bindPage(_target);
+            _target._ui.bindPage(_target);
             return true;// redraw always required after page change
         }
 
@@ -137,8 +129,9 @@ private:
 public:
     /// @brief UI page containing widgets and label
     struct Page : mixin::NonCopyable, mixin::Labeled {
+        friend struct PageSetter;
 
-        using mixin::Labeled::Labeled;
+        explicit constexpr Page(UI &ui, memory::StringView label) noexcept : mixin::Labeled::Labeled{label}, _ui{ui} {}
 
         /// @brief Page behavior on entry
         virtual void onEntry() noexcept {}
@@ -196,7 +189,7 @@ public:
                         return _widgets[_cursor]->onClick();
                     }
                 }
-                case Kind::WidgetValueChange: {
+                case Kind::WidgetValue: {
                     if (_widgets.size() > 0) {
                         return _widgets[_cursor]->onEventValue(event.value());
                     }
@@ -217,9 +210,15 @@ public:
             _cursor = clamp<isize>(_cursor, 0, _widgets.size() - 1);
         }
 
+        /// @brief Add Update event
+        void update() noexcept {
+            _ui.addEvent(Traits::EventImpl::update());
+        }
+
     private:
-        Slice<Widget *> _widgets{};///< Widgets on this page
         PageSetter _to_this{*this};///< Navigation widget to this page
+        UI &_ui;
+        Slice<Widget *> _widgets{};///< Widgets on this page
         isize _cursor{0};          ///< Current widget cursor position (focused widget index)
 
         /// @brief Move cursor within page bounds
@@ -237,10 +236,9 @@ public:
     };
 
 private:
-    memory::Queue<typename Traits::EventImpl> _events{};       ///< Event queue for pending UI events
-    typename Traits::RenderImpl::Config _render_config{};      ///< Render Configuration
-    typename Traits::RenderImpl _render_system{_render_config};///< Renderer system implementation instance
-    Option<Page &> _active_page{none};                         ///< Currently active page for rendering
+    memory::Queue<typename Traits::EventImpl> _events{};///< Event queue for pending UI events
+    typename Traits::RenderImpl &_render_system;        ///< Renderer system implementation
+    Option<Page &> _active_page{none};                  ///< Currently active page for rendering
 
     using This = UI<U>;
 
