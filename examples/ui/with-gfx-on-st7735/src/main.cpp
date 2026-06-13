@@ -16,6 +16,8 @@
 #include <kf/ui/render/ColoredTextRender.hpp>
 #include <kf/ui/widgets/Widget.hpp>
 
+#include <kf/Option.hpp>
+
 using kf::bus::spi::ArduinoSPI;
 using kf::drivers::display::Orientation;
 using kf::gpio::ArduinoGPIO;
@@ -52,7 +54,9 @@ static MyUI my_ui{
 
 struct MainPage : MyUI::Page {
 
-    int my_value{12345};
+    using MyValueType = kf::TrivialOption<int>;
+
+    MyValueType my_value{kf::someTrivial(12345)};
 
     MyUI::Button click_button{
         "Button",// button label
@@ -69,7 +73,7 @@ struct MainPage : MyUI::Page {
         true,// default: true
     };
 
-    MyUI::Display<int> value_display{
+    MyUI::Display<MyValueType> value_display{
         my_value,// initial value
     };
 
@@ -147,9 +151,12 @@ struct MainPage : MyUI::Page {
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
-            my_value += 1;
-            value_display.value(my_value);
-            update();// add Update Event
+
+            if (my_value.isSome()) {
+                my_value.unwrap() += 1;
+                value_display.value(my_value);
+                update();// add Update Event
+            }
         });
 
         // style
@@ -166,7 +173,13 @@ struct MainPage : MyUI::Page {
         check_box.callback([this](bool state) {
             Serial.print("Checkbox changed to: ");
             Serial.println(state ? "ON" : "OFF");
-            my_value *= -1;
+
+            if (my_value.isSome()) {
+                my_value = kf::none;
+            } else {
+                my_value = kf::someTrivial(12345);
+            }
+
             value_display.value(my_value);
         });
 

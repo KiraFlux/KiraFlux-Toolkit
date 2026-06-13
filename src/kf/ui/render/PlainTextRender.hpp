@@ -191,17 +191,29 @@ private:
 
     // Value rendering implementations
 
-    template<usize M> void valueImpl(const memory::StaticString<M> &str) noexcept {
-        writeString(str.view());
+    void valueImpl(NoneType) noexcept {
+        writeString(memory::StringView{"none"});
+    }
+
+    void valueImpl(char c) noexcept {
+        writeChar(c);
     }
 
     void valueImpl(memory::StringView str) noexcept {
         writeString(str);
     }
 
-    void valueImpl(bool slider_value) noexcept {
+    template<usize M> void valueImpl(const memory::StaticString<M> &str) noexcept {
+        writeString(str.view());
+    }
+
+    void valueImpl(const char *str) noexcept {
+        writeString(memory::StringView{str});
+    }
+
+    void valueImpl(bool b) noexcept {
         constexpr memory::StringView label_true{"true"}, label_false{"false"};
-        writeString(slider_value ? label_true : label_false);
+        writeString(b ? label_true : label_false);
     }
 
     void valueImpl(i32 integer) noexcept {

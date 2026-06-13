@@ -5,6 +5,7 @@
 
 #include <type_traits>
 
+#include "kf/Option.hpp"
 #include "kf/Range.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
@@ -81,7 +82,15 @@ template<typename Impl> struct Render :
     /// @brief Render value
     template<typename T> void value(const T &v) noexcept {
         if constexpr (std::is_base_of_v<mixin::StringRepresentableTag, T>) {
-            this->impl().valueImpl(v.toString());
+            this->value(v.toString());
+        } else if constexpr (std::is_base_of_v<OptionTag, T>) {
+            
+            if (v.isSome()) {
+                this->value(v.unwrap());
+            } else {
+                this->impl().valueImpl(none);
+            }
+
         } else {
             this->impl().valueImpl(v);
         }
