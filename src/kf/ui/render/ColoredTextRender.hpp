@@ -195,12 +195,8 @@ private:
 
     // decoration
 
-    void arrowImpl() noexcept {
-        _wrapped.arrow();
-    }
-
-    void colonImpl() noexcept {
-        _wrapped.colon();
+    void decorationImpl(Decoration decoration) noexcept {
+        _wrapped.decoration(decoration);
     }
 
     void beginBlockImpl(Block block_type) noexcept {

@@ -13,6 +13,7 @@
 #include "kf/mixin/TimedPollable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Decoration.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
@@ -123,7 +124,7 @@ private:
         }
 
         void doRender(typename Traits::RenderImpl &render) const noexcept override {
-            render.arrow();
+            render.decoration(Decoration::Arrow);
             render.value(_target.label());
         }
 

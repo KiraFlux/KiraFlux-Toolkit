@@ -9,6 +9,7 @@
 
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
+#include "kf/ui/Decoration.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
@@ -72,7 +73,7 @@ template<typename U, typename T, typename A> struct SpinBox :
         render.beginBlock(Block::Alternative);
 
         if (_is_step_setting_mode) {
-            render.colon();
+            render.decoration(Decoration::Colon);
             render.value(_step);
         } else {
             render.value(this->value());

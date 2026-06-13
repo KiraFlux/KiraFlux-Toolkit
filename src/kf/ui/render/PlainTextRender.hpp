@@ -239,12 +239,18 @@ private:
 
     // Decoration rendering
 
-    void arrowImpl() noexcept {
-        writeString("-> ");
-    }
+    void decorationImpl(Decoration decoration) noexcept {
+        switch (decoration) {
+            case Decoration::Arrow:
+                writeString("-> ");
+                return;
 
-    void colonImpl() noexcept {
-        writeString(": ");
+            case Decoration::Colon:
+                writeString(": ");
+
+            default:
+                break;
+        }
     }
 
     void beginBlockImpl(Block block_type) noexcept {

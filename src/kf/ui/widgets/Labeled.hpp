@@ -6,6 +6,7 @@
 #include "kf/mixin/Labeled.hpp"
 
 #include "kf/ui/Style.hpp"
+#include "kf/ui/Decoration.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
@@ -40,7 +41,7 @@ template<typename U> struct Labeled :
 
     void doRender(typename U::RenderImpl &render) const noexcept override {
         render.value(this->label());
-        render.colon();
+        render.decoration(Decoration::Colon);
         _wrapped.doRender(render);
         // restore color
         render.foreground(this->foreground());

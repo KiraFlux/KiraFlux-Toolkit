@@ -15,6 +15,7 @@
 
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
+#include "kf/ui/Decoration.hpp"
 #include "kf/ui/Placement.hpp"
 #include "kf/ui/Style.hpp"
 
@@ -111,14 +112,11 @@ template<typename Impl> struct Render :
 
     // Decoration and layout
 
-    /// @brief Render arrow pointing from edge to widget
-    void arrow() noexcept {
-        this->impl().arrowImpl();
-    }
-
-    /// @brief Render colon separator
-    void colon() noexcept {
-        this->impl().colonImpl();
+    /// @brief Render a semantic decoration element
+    /// @param decoration The type of decoration to render
+    /// @note Decorations are lightweight markers that help users interpret the UI.
+    void decoration(Decoration decoration) noexcept {
+        this->impl().decorationImpl(decoration);
     }
 
     /// @brief Begin content block
