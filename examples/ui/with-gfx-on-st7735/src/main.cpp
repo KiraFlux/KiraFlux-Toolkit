@@ -345,7 +345,7 @@ void setup() {
     (void) bus.init();
 
     // display setup
-    if (not display.init()) {
+    if (display.init().isError()) {
         Serial.println("Failed to init display. halting...");
 
         while (true) {}

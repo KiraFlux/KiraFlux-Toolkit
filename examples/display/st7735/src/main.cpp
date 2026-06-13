@@ -114,13 +114,13 @@ void setup() {
     static ST7735 display{
         driver_config,
         bus.createNode(node_config),
-        ArduinoGPIO::DigitalOutput{GPIO_NUM_2},
-        ArduinoGPIO::DigitalOutput{GPIO_NUM_15},
+        ArduinoGPIO::DigitalOutput{GPIO_NUM_22},// DC
+        ArduinoGPIO::DigitalOutput{GPIO_NUM_17},// RESET
     };
 
     (void) bus.init();
 
-    if (not display.init()) {
+    if (display.init().isError()) {
         Serial.println("Display init failed!");
         return;
     }
