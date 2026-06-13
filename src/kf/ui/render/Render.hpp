@@ -14,6 +14,7 @@
 
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
+#include "kf/ui/Styled.hpp"
 
 namespace kf::ui::render {
 
@@ -44,10 +45,9 @@ template<typename Impl> struct Render :
     /// @brief Begin rendering specific widget
     /// @param index Widget position in it's page
     /// @param is_focused contrasting text region (higher visibility)
-    /// @param foreground Widget's text content color
-    /// @param background Widget's background color
-    void beginWidget(usize index, bool is_focused, Color foreground, Color background) noexcept {
-        this->impl().beginWidgetImpl(index, is_focused, foreground, background);
+    /// @param style Widget's style
+    void beginWidget(usize index, bool is_focused, const Styled::Style &style) noexcept {
+        this->impl().beginWidgetImpl(index, is_focused, style);
     }
 
     /// @brief Finish rendering current widget

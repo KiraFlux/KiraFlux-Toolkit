@@ -62,7 +62,7 @@ template<typename R, typename E> struct Widget :
 
     /// @brief External widget rendering with focus handling
     void render(RenderImpl &render, usize index, bool focused) const noexcept {
-        render.beginWidget(index, focused, this->style().foreground_color, this->style().background_color);
+        render.beginWidget(index, focused, this->style());
         doRender(render);
         render.endWidget();
     }

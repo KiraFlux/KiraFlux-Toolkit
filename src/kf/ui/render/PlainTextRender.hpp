@@ -148,7 +148,7 @@ private:
         writeChar('\n');
     }
 
-    void beginWidgetImpl(usize, bool is_focused, Color, Color) noexcept {
+    void beginWidgetImpl(usize, bool is_focused, const Styled::Style &) noexcept {
         if (is_focused) {
             writeString("* ");
         }

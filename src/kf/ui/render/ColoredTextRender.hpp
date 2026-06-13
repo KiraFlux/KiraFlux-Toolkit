@@ -155,10 +155,10 @@ private:
         _wrapped.title(title);
     }
 
-    void beginWidgetImpl(usize index, bool is_focused, Color foreground, Color background) noexcept {
+    void beginWidgetImpl(usize index, bool is_focused, const Styled::Style &style) noexcept {
         _focus_active = is_focused;
-        this->foreground(foreground);
-        this->background(background);
+        this->foreground(style.foreground_color);
+        this->background(style.foreground_color);
     }
 
     void endWidgetImpl() noexcept {
