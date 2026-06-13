@@ -17,7 +17,10 @@ kf::Option<EspNow::Peer> broadcast_peer{kf::none}, target_peer{kf::none};
 
 // Factory returning Option<Peer>. Not Result - absence is a valid state (not an error).
 kf::Option<EspNow::Peer> createPeer(const MacAddress &mac_address) noexcept {
-    auto peer_add_result = EspNow::Peer::create(mac_address);
+    auto peer_add_result = EspNow::Peer::create(EspNow::Peer::Config{
+        .mac_address = mac_address,
+        .wifi_interface_sta = true,
+    });
     if (peer_add_result.isOk()) {
         return kf::some(std::move(peer_add_result.ok()));
     } else {
@@ -27,14 +30,13 @@ kf::Option<EspNow::Peer> createPeer(const MacAddress &mac_address) noexcept {
     }
 }
 
-// Callback for unknown peers - registered via onReceiveFromUnknown.
-void onUnknown(const MacAddress &mac, kf::Slice<const kf::u8> data) {
-    Serial.printf("(unknown): from [%s] got %d bytes\n", mac.toString().data(), data.size());
-}
+// Callback for unknown peers - registered via EspNow::callback.
+void onReceive(const MacAddress &mac, kf::Slice<const kf::u8> data) {
+    if (target_peer.isSome() and target_peer.unwrap().mac() == mac) {
+        Serial.printf("target: got %d bytes\n", data.size());
+    }
 
-// Callback for the target peer - set via Peer::callback.
-void onTarget(kf::Slice<const kf::u8> data) {
-    Serial.printf("target: got %d bytes\n", data.size());
+    Serial.printf("(unknown): from [%s] got %d bytes\n", mac.toString().data(), data.size());
 }
 
 void setup() {
@@ -55,15 +57,10 @@ void setup() {
     const MacAddress &self_mac_address = EspNow::instance().mac();
     Serial.printf("Self: %s\n", self_mac_address.toString().data());
 
-    // Direct overload used - no Option wrapper needed here.
-    EspNow::instance().callback(onUnknown);
+    // Callback accepts Function, Option or none; passing none would clear it.
+    EspNow::instance().callback(onReceive);
     broadcast_peer = createPeer({0xff, 0xff, 0xff, 0xff, 0xff, 0xff});
-
     target_peer = createPeer({0x01, 0x02, 0x03, 0x04, 0x05, 0x06});// replace with real MAC
-    if (target_peer.isSome()) {
-        // Callback accepts Option; passing none would clear it.
-        target_peer.unwrap().callback(onTarget);
-    }
 }
 
 void loop() {
