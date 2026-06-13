@@ -8,7 +8,7 @@
 #include "kf/mixin/ValueCallbacked.hpp"
 
 #include "kf/ui/Color.hpp"
-#include "kf/ui/widgets/Widget.hpp"
+#include "kf/ui/UiTraits.hpp"
 
 namespace kf::internal {
 
@@ -30,7 +30,7 @@ struct SpinBoxTag {};
 template<typename U, typename T, typename A> struct SpinBox :
 
     SpinBoxTag,
-    Widget<U>,
+    U::Widget,
     mixin::ValueCallbacked<T>,
     mixin::Configurable<internal::SpinBoxConfig<T>>
 
@@ -40,8 +40,8 @@ template<typename U, typename T, typename A> struct SpinBox :
     using AdjusterImpl = A;
     using Config = internal::SpinBoxConfig<T>;
 
-    explicit constexpr SpinBox(const Config &config, T default_value = T{}) noexcept :
-        mixin::ValueCallbacked<T>{default_value}, mixin::Configurable<Config>{config}, _step(config.default_step) {}
+    explicit constexpr SpinBox(const Config &config, T default_value = T{}, typename U::Widget::Style style = U::Widget::Style::defaults()) noexcept :
+        U::Widget{style}, mixin::ValueCallbacked<T>{default_value}, mixin::Configurable<Config>{config}, _step(config.default_step) {}
 
     /// @brief Toggle between value adjustment and step adjustment modes
     /// @return true (redraw required after mode change)

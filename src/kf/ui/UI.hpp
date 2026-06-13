@@ -22,7 +22,6 @@
 #include "kf/ui/widgets/Labeled.hpp"
 #include "kf/ui/widgets/Slider.hpp"
 #include "kf/ui/widgets/SpinBox.hpp"
-#include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::ui {
 
@@ -39,7 +38,7 @@ template<typename U> struct UI :
     /// @brief UI Traits implementation
     struct Traits : U {};
 
-    using Widget = widgets::Widget<Traits>;
+    using Widget = typename U::Widget;
 
     /// @brief Button widget with click handler
     struct Button : widgets::Button<Traits> {
@@ -112,7 +111,7 @@ private:
     /// @brief Special widget for creating page navigation buttons
     /// @note Internal use only - use Page::link() for page navigation
     struct PageSetter : Widget {
-        explicit PageSetter(Page &target) noexcept : _target{target} {
+        explicit PageSetter(Page &target) noexcept : _target{target}, Widget{Widget::Style::defaults()} {
             this->hint("Navigate to page..");
         }
 

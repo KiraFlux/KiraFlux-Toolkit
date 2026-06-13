@@ -3,15 +3,16 @@
 #include <kf/ui/Event.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/PlainTextRender.hpp>
+#include <kf/ui/widgets/Widget.hpp>
+
+using MyEvent = kf::ui::Event<4>;// Event type: 4-bit value
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                        // Traits Implementation
-        kf::ui::render::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes)
-        kf::ui::Event<4>                     // Event type: 4-bit value
-        >>;
-
-using Event = MyUI::Traits::EventImpl;
+    kf::ui::UiTraits<                            // Traits Implementation
+        kf::ui::widgets::Widget<                 // Base widget class
+            kf::ui::render::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes),
+            MyEvent>>>;
 
 static MyUI::Traits::RenderImpl::Config my_render_config{
     .row_max_length = 50,// console width = 50 chars
@@ -37,6 +38,11 @@ struct MainPage : MyUI::Page {
 
     MyUI::Button click_button{
         "Test",// button label
+        // setup style (all widget has style as last parameter)
+        // MyUI::Widget::Style{
+        //     .foreground_color = kf::ui::Color::Primary,
+        //     .background_color = kf::ui::Color::Primary,
+        // }
     };
 
     MyUI::CheckBox check_box{
@@ -192,14 +198,14 @@ struct SettingsPage : MyUI::Page {
 } settings_page{};
 
 // Simple function for convertion from char to event
-Event eventFromChar(char c) {
+MyEvent eventFromChar(char c) {
     switch (c) {
-        case 'w': return Event::pageCursorMove(-1);// Up
-        case 's': return Event::pageCursorMove(+1);// Down
-        case 'a': return Event::widgetValue(-1);   // Left
-        case 'd': return Event::widgetValue(+1);   // Right
-        case ' ': return Event::widgetClick();     // Click
-        default: return Event::update();           // Other: Force update
+        case 'w': return MyEvent::pageCursorMove(-1);// Up
+        case 's': return MyEvent::pageCursorMove(+1);// Down
+        case 'a': return MyEvent::widgetValue(-1);   // Left
+        case 'd': return MyEvent::widgetValue(+1);   // Right
+        case ' ': return MyEvent::widgetClick();     // Click
+        default: return MyEvent::update();           // Other: Force update
     }
 }
 
@@ -228,7 +234,7 @@ void setup() {
 
     my_ui.activePage(main_page);// start ui with main page
 
-    my_ui.addEvent(Event::update());// Force update for first ui rendering
+    my_ui.addEvent(MyEvent::update());// Force update for first ui rendering
 }
 
 void loop() {

@@ -5,8 +5,7 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/meta/CRTP.hpp"
-#include "kf/ui/Event.hpp"
-#include "kf/ui/render/Render.hpp"
+#include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::internal {
 
@@ -30,16 +29,25 @@ namespace kf::ui {
 
 struct UiTraitsTag {};
 
-template<typename R, typename E> struct UiTraits : UiTraitsTag {
-    KF_CHECK_IMPL(R, ::kf::ui::render::RenderTag);
-    using RenderImpl = R;
+/// @brief UI Traits
+/// @tparam W Widget Base implementation (Must inherit from `::kf::ui::widgets::WidgetTag` and should be like `::kf::ui::widgets::Widget<R, E>`)
+template<typename W> struct UiTraits : UiTraitsTag {
+    KF_CHECK_IMPL(W, ::kf::ui::widgets::WidgetTag);
 
-    KF_CHECK_IMPL(E, ::kf::ui::EventTag);
-    using EventImpl = E;
+    /// @brief Widget Base class
+    struct Widget : W {
+        using W::W;
+    };
+
+    /// @brief Render system implementation
+    using RenderImpl = typename Widget::RenderImpl;
+
+    /// @brief Event type
+    using EventImpl = typename Widget::EventImpl;
 
     struct AdjusterTag {};
 
-    /// @brief CRTP base for value adjustment strategies used by SpinBox.
+    /// @brief CRTP base for value adjustment strategies
     /// @tparam Impl The derived adjustment class.
     /// @tparam T   The numeric type to adjust.
     template<typename Impl, typename T> struct Adjuster : AdjusterTag {

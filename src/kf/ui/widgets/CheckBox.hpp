@@ -5,7 +5,7 @@
 
 #include "kf/mixin/ValueCallbacked.hpp"
 
-#include "kf/ui/widgets/Widget.hpp"
+#include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
 
@@ -16,11 +16,14 @@ struct CheckBoxTag {};
 template<typename U> struct CheckBox :
 
     CheckBoxTag,
-    Widget<U>,
+    U::Widget,
     mixin::ValueCallbacked<bool>
 
 {
-    using mixin::ValueCallbacked<bool>::ValueCallbacked;
+    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
+
+    explicit constexpr CheckBox(bool value, typename U::Widget::Style style = U::Widget::Style::defaults()) noexcept :
+        U::Widget{style}, mixin::ValueCallbacked<bool>{value} {}
 
     [[nodiscard]] bool onClick() noexcept override {
         this->value(not this->value());
@@ -28,13 +31,10 @@ template<typename U> struct CheckBox :
     }
 
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
-        const bool new_value = event_value > 0;
-        if (this->value() != new_value) {
-            this->value(new_value);
-            return true;
-        } else {
-            return false;
-        }
+        const bool new_value = (event_value > 0);
+        const bool value_changed = (this->value() != new_value);
+        this->value(new_value);
+        return value_changed;
     }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {

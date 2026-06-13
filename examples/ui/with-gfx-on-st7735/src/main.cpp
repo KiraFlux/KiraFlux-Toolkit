@@ -13,6 +13,7 @@
 #include <kf/ui/Event.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/ColoredTextRender.hpp>
+#include <kf/ui/widgets/Widget.hpp>
 
 using kf::bus::spi::ArduinoSPI;
 using kf::drivers::display::Orientation;
@@ -24,10 +25,11 @@ using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                          // Traits Implementation
-        kf::ui::render::ColoredTextRender<256>,// Render implementation: colored text, buffered (256 Bytes)
-        kf::ui::Event<4>                       // Event type: 4-bit value
-        >>;
+    kf::ui::UiTraits<                              // Traits Implementation
+        kf::ui::widgets::Widget<                   // Base widget class
+            kf::ui::render::ColoredTextRender<256>,// Render implementation: plain text, buffered (256 Bytes),
+            kf::ui::Event<4>                       // Event type: 4-bit value
+            >>>;
 
 // shortcusts
 using Event = MyUI::Traits::EventImpl;
@@ -52,6 +54,13 @@ struct MainPage : MyUI::Page {
 
     MyUI::Button click_button{
         "Button",// button label
+
+        // style setup (all widget has style as last parameter)
+
+        // MyUI::Widget::Style{
+        //     .foreground_color = kf::ui::Color::Primary,
+        //     .background_color = kf::ui::Color::Primary,
+        // }
     };
 
     MyUI::CheckBox check_box{
@@ -123,6 +132,17 @@ struct MainPage : MyUI::Page {
             value_display.value(my_value);
             update();// add Update Event
         });
+
+        // style
+        const auto style = click_button.style(); 
+        click_button.style(MyUI::Widget::Style{
+            .foreground_color = kf::ui::Color::Normal,
+            .background_color = kf::ui::Color::Normal,
+        });
+        click_button.foreground(kf::ui::Color::Normal);
+        const auto fg = click_button.foreground();
+        click_button.background(kf::ui::Color::Normal);
+        const auto bg = click_button.background();
 
         check_box.callback([this](bool state) {
             Serial.print("Checkbox changed to: ");
@@ -338,7 +358,7 @@ void setup() {
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
 
-    my_ui.activePage(main_page);      // start ui with main page
+    my_ui.activePage(main_page);    // start ui with main page
     my_ui.addEvent(Event::update());// Force update for first ui rendering
 }
 

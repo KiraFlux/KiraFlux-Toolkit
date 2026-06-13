@@ -4,8 +4,7 @@
 #pragma once
 
 #include "kf/mixin/Labeled.hpp"
-
-#include "kf/ui/widgets/Widget.hpp"
+#include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
 
@@ -16,12 +15,14 @@ struct LabeledTag {};
 template<typename U> struct Labeled :
 
     LabeledTag,
-    Widget<U>,
+    U::Widget,
     mixin::Labeled
 
 {
-    explicit constexpr Labeled(memory::StringView label, Widget<U> &wrapped) noexcept :
-        mixin::Labeled{label}, _wrapped{wrapped} {}
+    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
+
+    explicit constexpr Labeled(memory::StringView label, typename U::Widget &wrapped, typename U::Widget::Style style = U::Widget::Style::defaults()) noexcept :
+        U::Widget{style}, mixin::Labeled{label}, _wrapped{wrapped} {}
 
     /// @brief Forward click event to wrapped widget
     /// @return Result from wrapped widget's onClick()
@@ -42,7 +43,7 @@ template<typename U> struct Labeled :
     }
 
 private:
-    Widget<U> &_wrapped;
+    typename U::Widget &_wrapped;
 };
 
 }// namespace kf::ui::widgets
