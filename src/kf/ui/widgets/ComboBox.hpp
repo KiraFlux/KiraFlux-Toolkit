@@ -8,16 +8,17 @@
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Labeled.hpp"
+#include "kf/mixin/Styled.hpp"
 
-#include "kf/ui/Styled.hpp"
+#include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::internal {
 
-template<typename T> struct ComboBoxItem final : mixin::Labeled {
+template<typename T> struct ComboBoxItem final : mixin::Labeled, mixin::Styled {
 
-    constexpr ComboBoxItem(memory::StringView label, T value) noexcept :
-        mixin::Labeled{label}, _value{value} {}
+    constexpr ComboBoxItem(memory::StringView label, T value, ui::Style style = ui::Style::defaults()) noexcept :
+        mixin::Labeled{label}, mixin::Styled{style}, _value{value} {}
 
     [[nodiscard]] T value() const noexcept {
         return _value;
@@ -31,10 +32,10 @@ private:
     T _value;
 };
 
-template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled {
+template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled, mixin::Styled {
 
-    template<usize N> constexpr ComboBoxItem(const char (&str)[N]) noexcept :// NOLINT(*-explicit-constructor)
-        mixin::Labeled{str} {}
+    template<usize N> constexpr ComboBoxItem(const char (&str)[N], ui::Style style = ui::Style::defaults()) noexcept :
+        mixin::Labeled{str}, mixin::Styled{style} {}
 
     [[nodiscard]] memory::StringView value() const noexcept {
         return this->label();
@@ -72,7 +73,7 @@ template<typename U, typename T> struct ComboBox :
 
     using Config = internal::ComboBoxConfig<T>;
 
-    explicit constexpr ComboBox(const Config &config, Styled::Style style = Styled::Style::defaults()) noexcept :
+    explicit constexpr ComboBox(const Config &config, Style style = Style::defaults()) noexcept :
         U::Widget{style}, mixin::Configurable<Config>::Configurable{config} {}
 
     /// @brief Set selection to the first item whose value equals `new_value`
@@ -103,10 +104,18 @@ template<typename U, typename T> struct ComboBox :
     }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {
+        const auto &item = this->config().items[_cursor];
+
         render.beginAltBlock();
-        if (_cursor < totalItems()) {
-            render.value(this->config().items[_cursor].label());
-        }
+
+        render.foreground(item.foreground());
+        render.background(item.background());
+
+        render.value(item.label());
+
+        render.foreground(this->foreground());
+        render.background(this->background());
+
         render.endAltBlock();
     }
 

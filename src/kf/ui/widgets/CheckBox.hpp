@@ -5,7 +5,7 @@
 
 #include "kf/mixin/ValueCallbacked.hpp"
 
-#include "kf/ui/Styled.hpp"
+#include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
@@ -23,7 +23,7 @@ template<typename U> struct CheckBox :
 {
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
-    explicit constexpr CheckBox(bool value, Styled::Style style = Styled::Style::defaults()) noexcept :
+    explicit constexpr CheckBox(bool value, Style style = Style::defaults()) noexcept :
         U::Widget{style}, mixin::ValueCallbacked<bool>{value} {}
 
     [[nodiscard]] bool onClick() noexcept override {

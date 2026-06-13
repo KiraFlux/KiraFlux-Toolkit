@@ -8,7 +8,7 @@
 #include "kf/mixin/ValueCallbacked.hpp"
 
 #include "kf/ui/Placement.hpp"
-#include "kf/ui/Styled.hpp"
+#include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::internal {
@@ -41,7 +41,7 @@ template<typename U, typename T> struct Slider :
 
     using Config = internal::SliderConfig<T>;
 
-    explicit constexpr Slider(const Config &config, Styled::Style style = Styled::Style::defaults()) noexcept :
+    explicit constexpr Slider(const Config &config, Style style = Style::defaults()) noexcept :
         U::Widget{style},
         mixin::ValueCallbacked<T>{config.value_range.clamped(config.default_value)},
         mixin::Configurable<Config>{config}, _show_value{config.init_show_value} {}

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include <kf/ui/Event.hpp>
+#include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/PlainTextRender.hpp>
 #include <kf/ui/widgets/Widget.hpp>
@@ -39,7 +40,7 @@ struct MainPage : MyUI::Page {
     MyUI::Button click_button{
         "Test",// button label
         // setup style (all widget has style as last parameter)
-        // MyUI::Widget::Style{
+        // kf::ui::Style{
         //     .foreground_color = kf::ui::Color::Primary,
         //     .background_color = kf::ui::Color::Primary,
         // }

@@ -13,6 +13,7 @@
 #include "kf/mixin/TimedPollable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
 #include "kf/ui/widgets/Button.hpp"
@@ -111,7 +112,7 @@ private:
     /// @brief Special widget for creating page navigation buttons
     /// @note Internal use only - use Page::link() for page navigation
     struct PageSetter : Widget {
-        explicit PageSetter(Page &target) noexcept : _target{target}, Widget{Widget::Style::defaults()} {
+        explicit PageSetter(Page &target) noexcept : _target{target}, Widget{Style::defaults()} {
             this->hint("Navigate to page..");
         }
 

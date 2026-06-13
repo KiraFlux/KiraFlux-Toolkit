@@ -5,11 +5,12 @@
 
 #include "kf/Option.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/mixin/Styled.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Event.hpp"
-#include "kf/ui/Styled.hpp"
+#include "kf/ui/Style.hpp"
 #include "kf/ui/render/Render.hpp"
 
 namespace kf::ui::widgets {
@@ -24,7 +25,7 @@ template<typename R, typename E> struct Widget :
 
     WidgetTag,
     mixin::NonCopyable,
-    Styled
+    mixin::Styled
 
 {
     KF_CHECK_IMPL(R, ::kf::ui::render::RenderTag);
@@ -48,7 +49,7 @@ template<typename R, typename E> struct Widget :
         return false;
     }
 
-    using Styled::Styled;
+    using mixin::Styled::Styled;
 
     /// @brief Get Contextual hint about this widget
     [[nodiscard]] memory::StringView hint() const noexcept {

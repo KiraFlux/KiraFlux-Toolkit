@@ -11,6 +11,7 @@
 #include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/ui/Event.hpp>
+#include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/ColoredTextRender.hpp>
 #include <kf/ui/widgets/Widget.hpp>
@@ -35,6 +36,7 @@ using MyUI = kf::ui::UI<
 using Event = MyUI::Traits::EventImpl;
 using Render = MyUI::Traits::RenderImpl;
 using Color = kf::ui::Color;
+using Style = kf::ui::Style;
 
 static Render::Config my_render_config{Render::Config::defaults()};// will set in setup
 
@@ -57,7 +59,7 @@ struct MainPage : MyUI::Page {
 
         // style setup (all widget has style as last parameter)
 
-        // MyUI::Widget::Style{
+        // kf::ui::Style{
         //     .foreground_color = kf::ui::Color::Primary,
         //     .background_color = kf::ui::Color::Primary,
         // }
@@ -92,8 +94,23 @@ struct MainPage : MyUI::Page {
 
     kf::memory::Array<ColorCombo::Config::Item, 9> color_combo_items{{
         {"Normal", Color::Normal},
-        {"Primary", Color::Primary},
-        {"Secondary", Color::Secondary},
+        // combo option implements Styled
+        {
+            "Primary",
+            Color::Primary,
+            Style{
+                .foreground_color = Color::Primary,
+                // .background_color = Color::Secondary,
+            },
+        },
+        {
+            "Secondary",
+            Color::Secondary,
+            Style{
+                // .foreground_color = Color::Primary,
+                .background_color = Color::Secondary,
+            },
+        },
         {"Success", Color::Success},
         {"Warning", Color::Warning},
         {"Error", Color::Error},
@@ -137,7 +154,7 @@ struct MainPage : MyUI::Page {
 
         // style
         const auto style = click_button.style();
-        click_button.style(MyUI::Widget::Style{
+        click_button.style(Style{
             .foreground_color = kf::ui::Color::Normal,
             .background_color = kf::ui::Color::Normal,
         });
@@ -206,9 +223,17 @@ struct SettingsPage : MyUI::Page {
 
     using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
 
-    kf::memory::Array<MyCombo::Config::Item, 3> strings_combo_box_items{
-        {"Alpha", "Beta", "Gamma"},// StringView-typed combo item implicit constructs from string literal
-    };
+    kf::memory::Array<MyCombo::Config::Item, 3> strings_combo_box_items{{
+        // StringView-typed combo item implicit constructs from string literal
+        "Alpha",
+        "Beta",
+        {
+            "Gamma",
+            Style{
+                .foreground_color = Color::Highlight,
+            },
+        },
+    }};
 
     MyCombo::Config strings_combo_box_config{
         .items = {strings_combo_box_items.data(), strings_combo_box_items.size()},// Slice
