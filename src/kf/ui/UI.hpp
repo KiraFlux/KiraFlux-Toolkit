@@ -85,14 +85,19 @@ template<typename U> struct UI :
 
     explicit constexpr UI(typename Traits::RenderImpl &render_system) noexcept : _render_system{render_system} {}
 
-    /// @brief Set active page for display
+    /// @brief Set active page
     /// @param page Page to make active (must remain valid)
-    void bindPage(Page &page) noexcept {
+    void activePage(Page &page) noexcept {
         if (_active_page.isSome()) {
             _active_page.unwrap().onExit();
         }
         page.onEntry();
         _active_page = someRef(page);
+    }
+
+    /// @brief Get readobly access to active page
+    auto activePage() const noexcept -> kf::Option<Page &> {
+        return _active_page;
     }
 
     /// @brief Add event to processing queue
@@ -113,7 +118,7 @@ private:
 
         /// @brief Set target page as active on click
         [[nodiscard]] bool onClick() noexcept override {
-            _target._ui.bindPage(_target);
+            _target._ui.activePage(_target);
             return true;// redraw always required after page change
         }
 
@@ -149,7 +154,7 @@ public:
 
         /// @brief Get selected widget
         [[nodiscard]] constexpr auto selectedWidget() const noexcept -> Option<const Widget &> {
-            return _widgets.empty() ? none : someRef(_widgets[_cursor]);
+            return _widgets.empty() ? none : someRef<const Widget &>(*_widgets[_cursor]);
         }
 
         /// @brief Render page content to display.
@@ -215,9 +220,10 @@ public:
             _ui.addEvent(Traits::EventImpl::update());
         }
 
+        UI &_ui;
+
     private:
         PageSetter _to_this{*this};///< Navigation widget to this page
-        UI &_ui;
         Slice<Widget *> _widgets{};///< Widgets on this page
         isize _cursor{0};          ///< Current widget cursor position (focused widget index)
 
