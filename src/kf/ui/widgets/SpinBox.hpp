@@ -7,6 +7,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
+#include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
@@ -68,7 +69,7 @@ template<typename U, typename T, typename A> struct SpinBox :
             render.background(Color::Warning);
         }
 
-        render.beginAltBlock();
+        render.beginBlock(Block::Alternative);
 
         if (_is_step_setting_mode) {
             render.colon();
@@ -77,7 +78,7 @@ template<typename U, typename T, typename A> struct SpinBox :
             render.value(this->value());
         }
 
-        render.endAltBlock();
+        render.endBlock(Block::Alternative);
     }
 
 private:

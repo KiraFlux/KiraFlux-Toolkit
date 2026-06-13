@@ -13,6 +13,7 @@
 #include "kf/mixin/StringRepresentable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
 #include "kf/ui/Style.hpp"
@@ -84,7 +85,7 @@ template<typename Impl> struct Render :
         if constexpr (std::is_base_of_v<mixin::StringRepresentableTag, T>) {
             this->value(v.toString());
         } else if constexpr (std::is_base_of_v<OptionTag, T>) {
-            
+
             if (v.isSome()) {
                 this->value(v.unwrap());
             } else {
@@ -120,24 +121,14 @@ template<typename Impl> struct Render :
         this->impl().colonImpl();
     }
 
-    /// @brief Begin standard content block
-    void beginBlock() noexcept {
-        this->impl().beginBlockImpl();
+    /// @brief Begin content block
+    void beginBlock(Block block_type = Block::Standart) noexcept {
+        this->impl().beginBlockImpl(block_type);
     }
 
-    /// @brief End standard content block
-    void endBlock() noexcept {
-        this->impl().endBlockImpl();
-    }
-
-    /// @brief Begin alternative content block (different styling)
-    void beginAltBlock() noexcept {
-        this->impl().beginAltBlockImpl();
-    }
-
-    /// @brief End alternative content block
-    void endAltBlock() noexcept {
-        this->impl().endAltBlockImpl();
+    /// @brief End content block
+    void endBlock(Block block_type = Block::Standart) noexcept {
+        this->impl().endBlockImpl(block_type);
     }
 };
 

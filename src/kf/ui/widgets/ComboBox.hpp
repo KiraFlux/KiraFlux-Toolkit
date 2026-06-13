@@ -10,6 +10,7 @@
 #include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/Styled.hpp"
 
+#include "kf/ui/Block.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
@@ -106,7 +107,7 @@ template<typename U, typename T> struct ComboBox :
     void doRender(typename U::RenderImpl &render) const noexcept override {
         const auto &item = this->config().items[_cursor];
 
-        render.beginAltBlock();
+        render.beginBlock(Block::Alternative);
 
         render.foreground(item.foreground());
         render.background(item.background());
@@ -116,7 +117,7 @@ template<typename U, typename T> struct ComboBox :
         render.foreground(this->foreground());
         render.background(this->background());
 
-        render.endAltBlock();
+        render.endBlock(Block::Alternative);
     }
 
 private:

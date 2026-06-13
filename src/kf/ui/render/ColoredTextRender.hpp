@@ -203,20 +203,12 @@ private:
         _wrapped.colon();
     }
 
-    void beginBlockImpl() noexcept {
-        _wrapped.beginBlock();
+    void beginBlockImpl(Block block_type) noexcept {
+        _wrapped.beginBlock(block_type);
     }
 
-    void endBlockImpl() noexcept {
-        _wrapped.endBlock();
-    }
-
-    void beginAltBlockImpl() noexcept {
-        _wrapped.beginAltBlock();
-    }
-
-    void endAltBlockImpl() noexcept {
-        _wrapped.endAltBlock();
+    void endBlockImpl(Block block_type) noexcept {
+        _wrapped.endBlock(block_type);
     }
 };
 

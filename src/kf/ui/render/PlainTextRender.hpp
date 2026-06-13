@@ -11,6 +11,7 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
 #include "kf/ui/Style.hpp"
@@ -246,20 +247,12 @@ private:
         writeString(": ");
     }
 
-    void beginBlockImpl() noexcept {
-        writeChar('[');
+    void beginBlockImpl(Block block_type) noexcept {
+        writeChar((block_type == Block::Standart) ? '[' : '<');
     }
 
-    void endBlockImpl() noexcept {
-        writeChar(']');
-    }
-
-    void beginAltBlockImpl() noexcept {
-        writeChar('<');
-    }
-
-    void endAltBlockImpl() noexcept {
-        writeChar('>');
+    void endBlockImpl(Block block_type) noexcept {
+        writeChar((block_type == Block::Standart) ? ']' : '>');
     }
 };
 
