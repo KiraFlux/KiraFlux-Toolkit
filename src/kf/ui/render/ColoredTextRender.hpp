@@ -70,7 +70,7 @@ template<usize N> struct ColoredTextRenderConfig final {
                 .error = Palette::Black,
                 .info = Palette::Black,
                 .disabled = Palette::LightGray,
-                .highlight = Palette::Black,
+                .highlight = Palette::DarkPurple,
             },
             .normal_background_palette = {
                 .normal = Palette::Black,
