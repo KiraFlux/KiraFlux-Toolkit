@@ -254,11 +254,11 @@ private:
     }
 
     void beginBlockImpl(Block block_type) noexcept {
-        writeChar((block_type == Block::Standart) ? '[' : '<');
+        writeChar((block_type == Block::Standard) ? '[' : '<');
     }
 
     void endBlockImpl(Block block_type) noexcept {
-        writeChar((block_type == Block::Standart) ? ']' : '>');
+        writeChar((block_type == Block::Standard) ? ']' : '>');
     }
 };
 

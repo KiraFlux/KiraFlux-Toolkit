@@ -120,12 +120,12 @@ template<typename Impl> struct Render :
     }
 
     /// @brief Begin content block
-    void beginBlock(Block block_type = Block::Standart) noexcept {
+    void beginBlock(Block block_type = Block::Standard) noexcept {
         this->impl().beginBlockImpl(block_type);
     }
 
     /// @brief End content block
-    void endBlock(Block block_type = Block::Standart) noexcept {
+    void endBlock(Block block_type = Block::Standard) noexcept {
         this->impl().endBlockImpl(block_type);
     }
 };

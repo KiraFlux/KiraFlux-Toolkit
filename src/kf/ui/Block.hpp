@@ -10,7 +10,7 @@ namespace kf::ui {
 /// The renderer maps each block type to an appropriate visual representation.
 /// For monochrome or limited displays, the renderer may ignore or substitute styles.
 enum class Block : char {
-    Standart,     ///< Standard content block (default appearance)
+    Standard,     ///< Standard content block (default appearance)
     Alternative,///< Visually distinct block (e.g., inset, highlight, secondary)
 };
 
