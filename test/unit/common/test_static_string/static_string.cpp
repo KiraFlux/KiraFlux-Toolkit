@@ -33,7 +33,7 @@ void formatted() {
 }
 }// namespace constructors
 
-namespace access {
+namespace test_access {
 void index() {
     StaticString<10> s{"abc"};
     TEST_ASSERT_EQUAL_CHAR('b', s[1]);
@@ -52,7 +52,7 @@ void conversion() {
     const char *p = s.data();
     TEST_ASSERT_EQUAL_STRING("hello", p);
 }
-}// namespace access
+}// namespace test_access
 
 namespace push_pop {
 void sequence() {
@@ -236,9 +236,9 @@ int main() {
     RUN_TEST(constructors::literal);
     RUN_TEST(constructors::truncated);
     RUN_TEST(constructors::formatted);
-    RUN_TEST(access::index);
-    RUN_TEST(access::view);
-    RUN_TEST(access::conversion);
+    RUN_TEST(test_access::index);
+    RUN_TEST(test_access::view);
+    RUN_TEST(test_access::conversion);
     RUN_TEST(push_pop::sequence);
     RUN_TEST(append::string);
     RUN_TEST(append::integer);
