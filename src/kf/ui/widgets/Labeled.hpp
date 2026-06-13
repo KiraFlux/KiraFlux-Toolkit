@@ -40,6 +40,9 @@ template<typename U> struct Labeled :
         render.value(this->label());
         render.colon();
         _wrapped.doRender(render);
+        // restore color
+        render.foreground(this->foreground());
+        render.background(this->background());
     }
 
 private:

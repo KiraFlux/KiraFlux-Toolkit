@@ -111,6 +111,7 @@ struct MainPage : MyUI::Page {
 
     MyUI::Labeled labeled_foreground_color_combo{"FG", foreground_color_combo};
     MyUI::Labeled labeled_background_color_combo{"BG", background_color_combo};
+    MyUI::Labeled labeled_check_box{"Check Box", check_box};
 
     kf::memory::Array<MyUI::Widget *, 7> widgets_storage{
         {
@@ -118,7 +119,7 @@ struct MainPage : MyUI::Page {
             &click_button,
             &labeled_foreground_color_combo,
             &labeled_background_color_combo,
-            &check_box,
+            &labeled_check_box,
             &value_display,
             &slider,
         },
