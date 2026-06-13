@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/Option.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
@@ -36,27 +37,25 @@ template<typename T> struct LowFrequencyFilter :
     using mixin::Configurable<Config>::Configurable;
 
 private:
-    ValueType _filtered{};  ///< Current filtered value
-    bool _first_step{false};///< First sample flag for initialization
+    TrivialOption<ValueType> _filtered{none};
 
     using This = LowFrequencyFilter<ValueType>;
 
     KF_IMPL(Filter<This, ValueType>);
     ValueType calcImpl(const ValueType &x) noexcept {
-        if (_first_step) {
-            _first_step = false;
+        if (_filtered.isNone()) {
             goto set;
         }
 
         if (this->config().factor == 1.0f) { goto set; }
 
-        _filtered = _filtered * (1.0f - this->config().factor) + x * this->config().factor;
+        _filtered.unwrap() = _filtered.unwrap() * (1.0f - this->config().factor) + x * this->config().factor;
         goto ret;
 
     set:
-        _filtered = x;
+        _filtered = someTrivial(x);
     ret:
-        return _filtered;
+        return _filtered.unwrap();
     }
 
     KF_IMPL_RESETTABLE(This);
