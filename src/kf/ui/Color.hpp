@@ -54,7 +54,10 @@ enum class Color : unsigned char {
     /// @brief Indicates an inactive or disabled element
     /// @note For foreground: disabled buttons, inactive menu items, placeholders.
     /// @note For background: disabled controls or read‑only fields.
-    Disabled = 0x07
+    Disabled = 0x07,
+
+    /// @brief Rare, high-impact accent color for special actions or highlights
+    Highlight = 0x08,
 };
 
 }// namespace kf::ui

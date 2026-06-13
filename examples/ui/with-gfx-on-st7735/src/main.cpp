@@ -90,7 +90,7 @@ struct MainPage : MyUI::Page {
 
     using ColorCombo = MyUI::ComboBox<Color>;
 
-    kf::memory::Array<ColorCombo::Item, 8> color_combo_items{{
+    kf::memory::Array<ColorCombo::Item, 9> color_combo_items{{
         {"Normal", Color::Normal},
         {"Primary", Color::Primary},
         {"Secondary", Color::Secondary},
@@ -99,6 +99,7 @@ struct MainPage : MyUI::Page {
         {"Error", Color::Error},
         {"Info", Color::Info},
         {"Disabled", Color::Disabled},
+        {"Highlight", Color::Highlight},
     }};
 
     ColorCombo::Config color_combo_config{
@@ -134,7 +135,7 @@ struct MainPage : MyUI::Page {
         });
 
         // style
-        const auto style = click_button.style(); 
+        const auto style = click_button.style();
         click_button.style(MyUI::Widget::Style{
             .foreground_color = kf::ui::Color::Normal,
             .background_color = kf::ui::Color::Normal,
