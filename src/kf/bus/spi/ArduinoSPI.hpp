@@ -107,6 +107,7 @@ template<typename I> struct ArduinoSpiNode :
 
 {
     using BusImpl = I;
+    using Error = ArduinoSpiError;
 
     /// @brief Bit order for SPI transfers.
     using Config = ArduinoSpiNodeConfig;
@@ -187,21 +188,21 @@ private:
         digitalWrite(this->config().pin_cs, HIGH);
     }
 
-    KF_IMPL_READABLE(This, ArduinoSpiError);
+    KF_IMPL_READABLE(This, Error);
 
     void readBytes(u8 *buffer, usize length) noexcept {
         // Read length bytes from the device while sending zeros (full‑duplex)
         _spi.transferBytes(nullptr, buffer, length);
     }
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, ArduinoSpiError> {
+    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, Error> {
         beginTransaction();
         readBytes(buffer.data(), buffer.size());
         endTransaction();
         return ok(Slice<const u8>{const_cast<const u8 *>(buffer.data()), buffer.size()});
     }
 
-    template<typename T> auto readPacketImpl() noexcept -> Result<T, ArduinoSpiError> {
+    template<typename T> auto readPacketImpl() noexcept -> Result<T, Error> {
         constexpr usize to_read = sizeof(T);
 
         beginTransaction();
@@ -219,7 +220,7 @@ private:
         return ok(value);
     }
 
-    using WriteResult = Result<void, ArduinoSpiError>;
+    using WriteResult = Result<void, Error>;
     KF_IMPL_WRITABLE(This, WriteResult);
 
     WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
