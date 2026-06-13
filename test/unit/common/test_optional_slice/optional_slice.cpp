@@ -1,6 +1,7 @@
+#include <runner.hpp>
+
 #include <kf/Option.hpp>
 #include <kf/Slice.hpp>
-#include <unity.h>
 
 using kf::Option;
 using kf::Slice;
@@ -114,10 +115,6 @@ template<typename T> struct TestOptionalSlice {
     RUN_TEST(TestOptionalSlice<__type__>::reassign);        \
     RUN_TEST(TestOptionalSlice<__type__>::reset)
 
-int main() {
-    UNITY_BEGIN();
-
+void run_tests() {
     RUN_OPTIONAL_SLICE_TESTS(int);
-
-    return UNITY_END();
 }

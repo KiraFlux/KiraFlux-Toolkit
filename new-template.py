@@ -6,6 +6,9 @@ from typing import Sequence
 REPO_DIR = Path(".").resolve()
 
 PLATFORMIO_INI = """
+[platformio]
+build_cache_dir = .pio/build_cache
+
 [env:esp32dev]
 platform = espressif32
 board = esp32dev

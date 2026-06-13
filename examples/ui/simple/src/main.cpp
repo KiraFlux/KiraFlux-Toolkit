@@ -1,17 +1,19 @@
 #include <Arduino.h>
 
 #include <kf/ui/Event.hpp>
+#include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/PlainTextRender.hpp>
+#include <kf/ui/widgets/Widget.hpp>
+
+using MyEvent = kf::ui::Event<4>;// Event type: 4-bit value
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                        // Traits Implementation
-        kf::ui::render::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes)
-        kf::ui::Event<4>                     // Event type: 4-bit value
-        >>;
-
-using Event = MyUI::Traits::EventImpl;
+    kf::ui::UiTraits<                            // Traits Implementation
+        kf::ui::widgets::Widget<                 // Base widget class
+            kf::ui::render::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes),
+            MyEvent>>>;
 
 static MyUI::Traits::RenderImpl::Config my_render_config{
     .row_max_length = 50,// console width = 50 chars
@@ -37,6 +39,11 @@ struct MainPage : MyUI::Page {
 
     MyUI::Button click_button{
         "Test",// button label
+        // setup style (all widget has style as last parameter)
+        // kf::ui::Style{
+        //     .foreground_color = kf::ui::Color::Primary,
+        //     .background_color = kf::ui::Color::Primary,
+        // }
     };
 
     MyUI::CheckBox check_box{
@@ -105,7 +112,7 @@ struct MainPage : MyUI::Page {
     }
 
     // behavior on UI polling
-    void onUpdate(kf::math::Milliseconds now) noexcept override {}
+    void onPoll(kf::math::Milliseconds now) noexcept override {}
 
 } main_page{};
 
@@ -113,7 +120,7 @@ struct SettingsPage : MyUI::Page {
 
     using PresetInput = MyUI::ComboBox<int>;
 
-    kf::memory::Array<PresetInput::Item, 3> ints_combo_box_items{
+    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{
         {
             {/* label: */ "Normal", /* value: int */ 100},
             {"Sport", 200},
@@ -136,7 +143,7 @@ struct SettingsPage : MyUI::Page {
 
     using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
 
-    kf::memory::Array<MyCombo::Item, 3> strings_combo_box_items{
+    kf::memory::Array<MyCombo::Config::Item, 3> strings_combo_box_items{
         {"Alpha", "Beta", "Gamma"},// StringView-typed combo item implicit constructs from string literal
     };
 
@@ -176,6 +183,7 @@ struct SettingsPage : MyUI::Page {
             Serial.print("Int Combo selected: ");
             Serial.println(value);
         });
+        labeled_ints_combo_box.hint("Hint: this is int combo box for some this example");
 
         strings_combo_box.callback([](kf::memory::StringView value) {
             Serial.print("String Combo selected: ");
@@ -191,14 +199,14 @@ struct SettingsPage : MyUI::Page {
 } settings_page{};
 
 // Simple function for convertion from char to event
-Event eventFromChar(char c) {
+MyEvent eventFromChar(char c) {
     switch (c) {
-        case 'w': return Event::pageCursorMove(-1);// Up
-        case 's': return Event::pageCursorMove(+1);// Down
-        case 'a': return Event::widgetValue(-1);   // Left
-        case 'd': return Event::widgetValue(+1);   // Right
-        case ' ': return Event::widgetClick();     // Click
-        default: return Event::update();           // Other: Force update
+        case 'w': return MyEvent::pageCursorMove(-1);// Up
+        case 's': return MyEvent::pageCursorMove(+1);// Down
+        case 'a': return MyEvent::widgetValue(-1);   // Left
+        case 'd': return MyEvent::widgetValue(+1);   // Right
+        case ' ': return MyEvent::widgetClick();     // Click
+        default: return MyEvent::update();           // Other: Force update
     }
 }
 
@@ -208,6 +216,16 @@ void setup() {
     // post-render procedure
     my_render.callback([](kf::memory::StringView text) {
         Serial.println("---");
+
+        const auto &active_page = my_ui.activePage();
+        if (active_page.isSome()) {
+            const auto &selected_widget = active_page.unwrap().selectedWidget();
+
+            if (selected_widget.isSome()) {
+                Serial.println(selected_widget.unwrap().hint().data());
+            }
+        }
+
         Serial.print(text.data());
     });
 
@@ -215,9 +233,9 @@ void setup() {
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
 
-    my_ui.bindPage(main_page);// start ui with main page
+    my_ui.activePage(main_page);// start ui with main page
 
-    my_ui.addEvent(Event::update());// Force update for first ui rendering
+    my_ui.addEvent(MyEvent::update());// Force update for first ui rendering
 }
 
 void loop() {

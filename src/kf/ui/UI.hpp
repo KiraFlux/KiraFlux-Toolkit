@@ -13,6 +13,8 @@
 #include "kf/mixin/TimedPollable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Decoration.hpp"
+#include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
 #include "kf/ui/widgets/Button.hpp"
@@ -22,7 +24,6 @@
 #include "kf/ui/widgets/Labeled.hpp"
 #include "kf/ui/widgets/Slider.hpp"
 #include "kf/ui/widgets/SpinBox.hpp"
-#include "kf/ui/widgets/Widget.hpp"
 
 namespace kf::ui {
 
@@ -39,7 +40,7 @@ template<typename U> struct UI :
     /// @brief UI Traits implementation
     struct Traits : U {};
 
-    using Widget = widgets::Widget<Traits>;
+    using Widget = typename U::Widget;
 
     /// @brief Button widget with click handler
     struct Button : widgets::Button<Traits> {
@@ -85,14 +86,19 @@ template<typename U> struct UI :
 
     explicit constexpr UI(typename Traits::RenderImpl &render_system) noexcept : _render_system{render_system} {}
 
-    /// @brief Set active page for display
+    /// @brief Set active page
     /// @param page Page to make active (must remain valid)
-    void bindPage(Page &page) noexcept {
+    void activePage(Page &page) noexcept {
         if (_active_page.isSome()) {
             _active_page.unwrap().onExit();
         }
         page.onEntry();
         _active_page = someRef(page);
+    }
+
+    /// @brief Get readobly access to active page
+    auto activePage() const noexcept -> kf::Option<Page &> {
+        return _active_page;
     }
 
     /// @brief Add event to processing queue
@@ -107,18 +113,18 @@ private:
     /// @brief Special widget for creating page navigation buttons
     /// @note Internal use only - use Page::link() for page navigation
     struct PageSetter : Widget {
-        explicit PageSetter(Page &target) noexcept : _target{target} {
+        explicit PageSetter(Page &target) noexcept : _target{target}, Widget{Style::defaults()} {
             this->hint("Navigate to page..");
         }
 
         /// @brief Set target page as active on click
         [[nodiscard]] bool onClick() noexcept override {
-            _target._ui.bindPage(_target);
+            _target._ui.activePage(_target);
             return true;// redraw always required after page change
         }
 
         void doRender(typename Traits::RenderImpl &render) const noexcept override {
-            render.arrow();
+            render.decoration(Decoration::Arrow);
             render.value(_target.label());
         }
 
@@ -140,16 +146,21 @@ public:
         virtual void onExit() noexcept {}
 
         /// @brief Page behavior on UI polling
-        virtual void onUpdate(math::Milliseconds now) noexcept {}
+        virtual void onPoll(math::Milliseconds now) noexcept {}
 
-        /// @brief Get 'go to this page' Widget
+        /// @brief Get Mutable access to 'go to this page' Widget
         [[nodiscard]] constexpr Widget &link() noexcept {
+            return _to_this;
+        }
+
+        /// @brief Get Readobly access to 'go to this page' Widget
+        [[nodiscard]] constexpr const Widget &link() const noexcept {
             return _to_this;
         }
 
         /// @brief Get selected widget
         [[nodiscard]] constexpr auto selectedWidget() const noexcept -> Option<const Widget &> {
-            return _widgets.empty() ? none : someRef(_widgets[_cursor]);
+            return _widgets.empty() ? none : someRef<const Widget &>(*_widgets[_cursor]);
         }
 
         /// @brief Render page content to display.
@@ -215,9 +226,10 @@ public:
             _ui.addEvent(Traits::EventImpl::update());
         }
 
+        UI &_ui;
+
     private:
         PageSetter _to_this{*this};///< Navigation widget to this page
-        UI &_ui;
         Slice<Widget *> _widgets{};///< Widgets on this page
         isize _cursor{0};          ///< Current widget cursor position (focused widget index)
 
@@ -247,7 +259,7 @@ private:
     void pollImpl(math::Milliseconds now) noexcept {
         if (_active_page.isNone()) { return; }
 
-        _active_page.unwrap().onUpdate(now);
+        _active_page.unwrap().onPoll(now);
 
         if (_events.empty()) { return; }
 

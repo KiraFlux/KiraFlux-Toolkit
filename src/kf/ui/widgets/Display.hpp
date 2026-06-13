@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include "kf/ui/widgets/Widget.hpp"
+#include "kf/ui/Style.hpp"
+#include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
 
@@ -15,11 +16,13 @@ struct DisplayTag {};
 template<typename U, typename T> struct Display :
 
     DisplayTag,
-    Widget<U>
+    U::Widget
 
 {
-    explicit constexpr Display(const T &value) noexcept :
-        _value{value} {}
+    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
+
+    explicit constexpr Display(const T &value, Style style = Style::defaults()) noexcept :
+        U::Widget{style}, _value{value} {}
 
     /// @brief Get the current displayed value
     [[nodiscard]] const T &value() const noexcept {

@@ -1,7 +1,7 @@
+#include <runner.hpp>
+
 #include <kf/Function.hpp>
 #include <kf/Option.hpp>
-
-#include <unity.h>
 
 using kf::Function;
 using kf::Option;
@@ -73,10 +73,6 @@ template<typename T> struct TestOptionalFunction {
     RUN_TEST(TestOptionalFunction<__type__>::reset);             \
     RUN_TEST(TestOptionalFunction<__type__>::value_invocation)
 
-int main() {
-    UNITY_BEGIN();
-
+void run_tests() {
     RUN_OPTIONAL_FUNCTION_TESTS(int);
-
-    return UNITY_END();
 }

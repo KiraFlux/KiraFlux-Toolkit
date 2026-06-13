@@ -5,6 +5,7 @@
 
 #include <Arduino.h>// for delay
 
+#include "kf/Result.hpp"
 #include "kf/bus/spi/SPI.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/image/ViewportImage.hpp"
@@ -15,6 +16,9 @@
 
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/drivers/display/Orientation.hpp"
+
+#define TRY(__x__) \
+    if (const auto result = __x__; result.isError()) { return result; }
 
 namespace kf::internal {
 
@@ -29,11 +33,11 @@ struct ST7735Config final {
 namespace kf::drivers::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-/// @tparam N Implementation of SPI bus Node 
-/// @tparam G Implementation of GPIO with digital input support 
+/// @tparam N Implementation of SPI bus Node
+/// @tparam G Implementation of GPIO with digital input support
 template<typename N, typename G> struct ST7735 final :
 
-    DisplayDriver<ST7735<N, G>, internal::ST7735Image>,
+    DisplayDriver<ST7735<N, G>, internal::ST7735Image, Result<void, typename N::Error>>,
     mixin::Configurable<internal::ST7735Config>
 
 {
@@ -43,6 +47,8 @@ template<typename N, typename G> struct ST7735 final :
     using SpiBusNodeImpl = N;
     using DigitalOutputImpl = G;
     using PixelImpl = typename internal::ST7735Image::PixelImpl;
+    using Error = typename SpiBusNodeImpl::Error;
+    using SpiOperationResult = Result<void, Error>;
 
     /// @brief Hardware configuration for ST7735
     using Config = internal::ST7735Config;
@@ -77,10 +83,10 @@ template<typename N, typename G> struct ST7735 final :
     };
 
     explicit ST7735(const Config &config, SpiBusNodeImpl &&node, DigitalOutputImpl &&pin_data_command, DigitalOutputImpl &&pin_reset) noexcept :
-        mixin::Configurable<internal::ST7735Config>{config}, _node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
+        mixin::Configurable<internal::ST7735Config>{config}, _spi_node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
 
 private:
-    SpiBusNodeImpl _node;
+    SpiBusNodeImpl _spi_node;
     DigitalOutputImpl _pin_data_command;
     DigitalOutputImpl _pin_reset;
 
@@ -88,48 +94,49 @@ private:
 
     // Low-level communication
 
-    void sendBuffer(Slice<const u8> buffer) noexcept {
+    SpiOperationResult sendBuffer(Slice<const u8> buffer) noexcept {
         _pin_data_command.write(true);
-        (void) _node.writeBuffer(buffer);
+        return _spi_node.writeBuffer(buffer);
     }
 
-    template<typename T> void sendPacket(T &&packet) noexcept {
+    template<typename T> SpiOperationResult sendPacket(T &&packet) noexcept {
         _pin_data_command.write(true);
-        (void) _node.writePacket(std::forward<T>(packet));
+        return _spi_node.writePacket(std::forward<T>(packet));
     }
 
-    void sendCommand(Command c) noexcept {
+    SpiOperationResult sendCommand(Command c) noexcept {
         _pin_data_command.write(false);
-        (void) _node.writeByte(static_cast<u8>(c));
+        return _spi_node.writeByte(static_cast<u8>(c));
     }
 
     // impl
     using This = ST7735<N, G>;
 
-    KF_IMPL_INITABLE(This, bool);
-    bool initImpl() noexcept {
-        _node.init();
+    KF_IMPL_INITABLE(This, SpiOperationResult);
+    SpiOperationResult initImpl() noexcept {
+        _spi_node.init();
         _pin_data_command.init();
         _pin_reset.init();
 
         this->reset();
 
-        sendCommand(Command::SWRESET);
+        TRY(sendCommand(Command::SWRESET));
         delay(150);
 
-        sendCommand(Command::SLPOUT);
+        TRY(sendCommand(Command::SLPOUT));
         delay(255);
 
-        sendCommand(Command::COLMOD);
+        TRY(sendCommand(Command::COLMOD));
+
         constexpr u8 color_mode{0x05};// 16-bit color (RGB565)
-        sendPacket(color_mode);
+        TRY(sendPacket(color_mode));
 
-        (void) this->orientation(this->config().init_orientation);// Ignored becauce always true
+        TRY(this->orientation(this->config().init_orientation));
+        TRY(sendCommand(Command::DISPON));
 
-        sendCommand(Command::DISPON);
         delay(100);
 
-        return true;// Always returns true (hardware errors not checked)
+        return ok();
     }
 
     KF_IMPL_RESETTABLE(This);
@@ -141,14 +148,13 @@ private:
         delay(120);
     }
 
-    KF_IMPL(DisplayDriver<This, internal::ST7735Image>);
-    bool sendImpl() noexcept {
-        sendCommand(Command::RAMWR);
-        sendBuffer({reinterpret_cast<const u8 *>(this->image().buffer().data()), this->image().size()});
-        return true;// Arduino SPI cannot tell anything about errors
+    KF_IMPL(DisplayDriver<This, internal::ST7735Image, SpiOperationResult>);
+    SpiOperationResult sendImpl() noexcept {
+        TRY(sendCommand(Command::RAMWR));
+        return sendBuffer({reinterpret_cast<const u8 *>(this->image().buffer().data()), this->image().size()});
     }
 
-    bool setOrientationImpl(Orientation orientation) noexcept {
+    SpiOperationResult setOrientationImpl(Orientation orientation) noexcept {
         // full 6-way support
         constexpr u8 orient_to_transform[]{
             0,                                        // Orientation::Normal
@@ -163,19 +169,19 @@ private:
 
         this->image().transposed((madctl & MadCtl::MirrorTranspose) != 0);
 
-        sendCommand(Command::MADCTL);
-        sendPacket(madctl);
-
         const u8 data_x[4]{0, 0, 0, static_cast<u8>(this->image().maxX())};
-        sendCommand(Command::CASET);
-        sendPacket(data_x);
-
         const u8 data_y[4]{0, 0, 0, static_cast<u8>(this->image().maxY())};
-        sendCommand(Command::RASET);
-        sendPacket(data_y);
 
-        return true;
+        TRY(sendCommand(Command::MADCTL))
+        TRY(sendPacket(madctl))
+        TRY(sendCommand(Command::CASET))
+        TRY(sendPacket(data_x))
+        TRY(sendCommand(Command::RASET))
+        TRY(sendPacket(data_y))
+        return ok();
     }
 };
 
 }// namespace kf::drivers::display
+
+#undef TRY

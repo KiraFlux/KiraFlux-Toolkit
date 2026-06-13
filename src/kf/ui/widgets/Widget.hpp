@@ -5,10 +5,13 @@
 
 #include "kf/Option.hpp"
 #include "kf/memory/StringView.hpp"
+#include "kf/mixin/Styled.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Color.hpp"
-#include "kf/ui/UiTraits.hpp"
+#include "kf/ui/Event.hpp"
+#include "kf/ui/Style.hpp"
+#include "kf/ui/render/Render.hpp"
 
 namespace kf::ui::widgets {
 
@@ -16,17 +19,23 @@ struct WidgetTag {};
 
 /// @brief Base widget class for all UI components
 /// @note All interactive UI elements inherit from this class
-/// @tparam U UI Traits Type
-template<typename U> struct Widget :
+/// @tparam R Render system implementation (Must inherit from `::kf::ui::render::RenderTag`)
+/// @tparam E Event type (Must inherit from `::kf::ui::EventTag`)
+template<typename R, typename E> struct Widget :
 
     WidgetTag,
-    mixin::NonCopyable
+    mixin::NonCopyable,
+    mixin::Styled
 
 {
-    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
+    KF_CHECK_IMPL(R, ::kf::ui::render::RenderTag);
+    KF_CHECK_IMPL(E, ::kf::ui::EventTag);
+
+    using RenderImpl = R;
+    using EventImpl = E;
 
     /// @brief Render widget content (must be implemented by derived classes)
-    virtual void doRender(typename U::RenderImpl &render) const noexcept = 0;
+    virtual void doRender(RenderImpl &render) const noexcept = 0;
 
     /// @brief Handle click event
     /// @return true if redraw required, false otherwise
@@ -36,9 +45,11 @@ template<typename U> struct Widget :
 
     /// @brief Handle Event value
     /// @return true if redraw required, false otherwise
-    [[nodiscard]] virtual bool onEventValue(typename U::EventImpl::Value event_value) noexcept {
+    [[nodiscard]] virtual bool onEventValue(typename EventImpl::Value event_value) noexcept {
         return false;
     }
+
+    using mixin::Styled::Styled;
 
     /// @brief Get Contextual hint about this widget
     [[nodiscard]] memory::StringView hint() const noexcept {
@@ -50,36 +61,15 @@ template<typename U> struct Widget :
         _hint = new_hint;
     }
 
-    /// @brief Get Foreground color
-    [[nodiscard]] Color foreground() const noexcept {
-        return _foreground_color;
-    }
-
-    /// @brief Set Foreground color
-    void foreground(Color new_color) noexcept {
-        _foreground_color = new_color;
-    }
-
-    /// @brief Get Background color
-    [[nodiscard]] Color background() const noexcept {
-        return _background_color;
-    }
-
-    /// @brief Set Background color
-    void background(Color new_color) noexcept {
-        _background_color = new_color;
-    }
-
     /// @brief External widget rendering with focus handling
-    void render(typename U::RenderImpl &render, usize index, bool focused) const noexcept {
-        render.beginWidget(index, focused, _foreground_color, _background_color);
+    void render(RenderImpl &render, usize index, bool focused) const noexcept {
+        render.beginWidget(index, focused, this->style());
         doRender(render);
         render.endWidget();
     }
 
 private:
     memory::StringView _hint{};
-    Color _foreground_color{Color::Normal}, _background_color{Color::Normal};
 };
 
 }// namespace kf::ui::widgets

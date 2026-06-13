@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/Result.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/bus/iic/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
@@ -22,11 +23,12 @@ namespace kf::drivers::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
 /// @tparam N Implementation of IIC bus Node
-template<typename N> struct SSD1306 final : DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl> {
+template<typename N> struct SSD1306 final : DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl, Result<void, typename N::Error>> {
     KF_CHECK_IMPL(N, ::kf::bus::iic::IicNodeTag);
 
     using IicNodeImpl = N;
     using PixelImpl = typename internal::SSD1306ImageImpl::PixelImpl;
+    using IicOperationResult = Result<void, typename IicNodeImpl::Error>;
 
     /// @brief SSD1306 command set
     enum Command : u8 {
@@ -65,21 +67,18 @@ template<typename N> struct SSD1306 final : DisplayDriver<SSD1306<N>, internal::
     explicit SSD1306(IicNodeImpl &&node) noexcept : _node{std::move(node)} {}
 
     /// @brief Set display contrast level (0..255)
-    /// @returns true - operation success
-    [[nodiscard]] bool setContrast(u8 value) noexcept {
+    [[nodiscard]] IicOperationResult setContrast(u8 value) noexcept {
         const u8 packet[]{CommandMode, Contrast, value};
-        return _node.writePacket(packet).isOk();
+        return _node.writePacket(packet);
     }
 
     /// @brief Enable or disable display power
-    /// @returns true - operation success
-    [[nodiscard]] bool setPower(bool on) noexcept {
+    [[nodiscard]] IicOperationResult setPower(bool on) noexcept {
         return sendCommand(on ? DisplayOn : DisplayOff);
     }
 
     /// @brief Invert display colors
-    /// @returns true - operation success
-    [[nodiscard]] bool invert(bool invert) noexcept {
+    [[nodiscard]] IicOperationResult invert(bool invert) noexcept {
         return sendCommand(invert ? InvertDisplay : NormalDisplay);
     }
 
@@ -91,17 +90,17 @@ private:
     IicNodeImpl _node;
 
     /// @brief Send single command to display
-    [[nodiscard]] bool sendCommand(Command c) noexcept {
+    [[nodiscard]] IicOperationResult sendCommand(Command c) noexcept {
         const u8 packet[]{OneCommandMode, static_cast<u8>(c)};
-        return _node.writePacket(packet).isOk();
+        return _node.writePacket(packet);
     }
 
     // impl
     using This = SSD1306<N>;
 
-    KF_IMPL_INITABLE(This, bool);
+    KF_IMPL_INITABLE(This, IicOperationResult);
     /// @brief Initialize display hardware via I2C
-    bool initImpl() noexcept {
+    IicOperationResult initImpl() noexcept {
         static constexpr u8 init_commands[] = {
             CommandMode,
 
@@ -144,14 +143,14 @@ private:
             0x3F,
         };
 
-        return _node.writePacket(init_commands).isOk();
+        return _node.writePacket(init_commands);
     }
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() const noexcept {}
 
-    KF_IMPL(DisplayDriver<This, internal::SSD1306ImageImpl>);
-    bool sendImpl() noexcept {
+    KF_IMPL(DisplayDriver<This, internal::SSD1306ImageImpl, IicOperationResult>);
+    IicOperationResult sendImpl() noexcept {
         // Transfer software buffer to display via I2C
 
         static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
@@ -167,38 +166,45 @@ private:
             PixelImpl::template pages<64> - 1,
         };
 
+        if (const auto result = _node.writePacket(set_area_commands); result.isError()) {
+            return result;
+        }
+
         auto p = this->image().buffer().data();
         auto remaining = this->image().buffer().size();
-
-        if (_node.writePacket(set_area_commands).isError()) { goto fail; }
 
         while (remaining > 0) {
             const auto chunk = min(packet_size, remaining);
 
-            if (_node.writeMixed(Command::DataMode, {p, chunk}).isError()) { goto fail; }
+            if (const auto result = _node.writeMixed(Command::DataMode, {p, chunk}); result.isError()) {
+                return result;
+            }
 
             p += chunk;
             remaining -= chunk;
         }
 
-        return true;
-    fail:
-        return false;
+        return ok();
     }
 
-    bool setOrientationImpl(Orientation orientation) noexcept {
-        if (not supportOrientation(orientation)) { return false; }
+    IicOperationResult setOrientationImpl(Orientation orientation) noexcept {
+        if (not supportOrientation(orientation)) {
+            return ok();
+        }
 
         constexpr auto flip_x = 0b01;
         constexpr auto flip_y = 0b10;
         const auto flags = static_cast<u8>(orientation);
 
-        if (not sendCommand((flags & flip_x) ? FlipH : NormalH)) { goto fail; }
-        if (not sendCommand((flags & flip_y) ? FlipV : NormalV)) { goto fail; }
+        if (const auto result = sendCommand((flags & flip_x) ? FlipH : NormalH); result.isError()) {
+            return result;
+        }
 
-        return true;
-    fail:
-        return false;
+        if (const auto result = sendCommand((flags & flip_y) ? FlipV : NormalV); result.isError()) {
+            return result;
+        }
+
+        return ok();
     }
 };
 

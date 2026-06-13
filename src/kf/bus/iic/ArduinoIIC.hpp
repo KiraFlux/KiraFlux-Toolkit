@@ -87,6 +87,7 @@ template<typename I> struct ArduinoIicNode :
 
 {
     using BusImpl = I;
+    using Error = ArduinoIicError;
 
     /// @brief Configuration for an Arduino Wire I2C node.
     using Config = NodeConfig;
@@ -100,7 +101,7 @@ private:
     // impl
     using This = ArduinoIicNode<BusImpl>;
 
-    KF_IMPL_READABLE(This, ArduinoIicError);
+    KF_IMPL_READABLE(This, Error);
 
     /// @brief Request `requested` bytes from the I2C device.
     /// @return Number of bytes actually available.
@@ -125,22 +126,22 @@ private:
 
     // interface impl
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, ArduinoIicError> {
+    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, Error> {
         const usize received = request(buffer.size());
-        if (received == 0) { return error(ArduinoIicError::Timeout); }
+        if (received == 0) { return error(Error::Timeout); }
 
         readBytesUnchecked(buffer.data(), received);
         return ok(Slice<const u8>{buffer.data(), received});
     }
 
-    template<typename T> [[nodiscard]] auto readPacketImpl() noexcept -> Result<T, ArduinoIicError> {
+    template<typename T> [[nodiscard]] auto readPacketImpl() noexcept -> Result<T, Error> {
         constexpr usize requested = sizeof(T);
         const usize received = request(requested);
-        if (received == 0) { return error(ArduinoIicError::Timeout); }
+        if (received == 0) { return error(Error::Timeout); }
 
         if (received != requested) {
             discardReceiveBuffer();
-            return error(ArduinoIicError::IncompletePacket);
+            return error(Error::IncompletePacket);
         }
 
         if constexpr (requested == sizeof(u8)) {
@@ -153,7 +154,7 @@ private:
     }
 
     //
-    using WriteResult = Result<void, ArduinoIicError>;
+    using WriteResult = Result<void, Error>;
 
     /// @brief Begin an I2C transmission (send START condition).
     /// @note Must be called before writing any data.
@@ -175,16 +176,16 @@ private:
     [[nodiscard]] WriteResult endTransmission(usize written, usize to_write) noexcept {
         const u8 code = _wire.endTransmission();
 
-        if (written != to_write) { return error(ArduinoIicError::BufferTooLong); }
+        if (written != to_write) { return error(Error::BufferTooLong); }
 
         switch (code) {
             case 0: return ok();
-            case 1: return error(ArduinoIicError::BufferTooLong);
-            case 2: return error(ArduinoIicError::AddressNack);
-            case 3: return error(ArduinoIicError::DataNack);
-            case 4: return error(ArduinoIicError::Unknown);
-            case 5: return error(ArduinoIicError::Timeout);
-            default: return error(ArduinoIicError::Unknown);
+            case 1: return error(Error::BufferTooLong);
+            case 2: return error(Error::AddressNack);
+            case 3: return error(Error::DataNack);
+            case 4: return error(Error::Unknown);
+            case 5: return error(Error::Timeout);
+            default: return error(Error::Unknown);
         }
     }
 

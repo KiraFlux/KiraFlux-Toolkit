@@ -1,6 +1,6 @@
-#include <kf/validation.hpp>
+#include <runner.hpp>
 
-#include <unity.h>
+#include <kf/validation.hpp>
 
 using kf::Validator;
 
@@ -77,9 +77,7 @@ void bad() {
 
 }// namespace test_validatable
 
-int main() {
-    UNITY_BEGIN();
-
+void run_tests() {
     RUN_TEST(test_validator::empty);
     RUN_TEST(test_validator::single_ok);
     RUN_TEST(test_validator::single_fail);
@@ -88,6 +86,4 @@ int main() {
 
     RUN_TEST(test_validatable::good);
     RUN_TEST(test_validatable::bad);
-
-    return UNITY_END();
 }

@@ -8,22 +8,24 @@
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Labeled.hpp"
-#include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Styled.hpp"
 
-#include "kf/ui/widgets/Widget.hpp"
+#include "kf/ui/Block.hpp"
+#include "kf/ui/Style.hpp"
+#include "kf/ui/UiTraits.hpp"
 
 namespace kf::internal {
 
-template<typename T> struct ComboBoxItem final : mixin::Labeled {
+template<typename T> struct ComboBoxItem final : mixin::Labeled, mixin::Styled {
 
-    constexpr ComboBoxItem(memory::StringView label, const T &value) noexcept :
-        mixin::Labeled{label}, _value{value} {}
+    constexpr ComboBoxItem(memory::StringView label, T value, ui::Style style = ui::Style::defaults()) noexcept :
+        mixin::Labeled{label}, mixin::Styled{style}, _value{value} {}
 
-    [[nodiscard]] const T &value() const noexcept {
+    [[nodiscard]] T value() const noexcept {
         return _value;
     }
 
-    void value(const T &new_value) noexcept {
+    void value(T new_value) noexcept {
         _value = new_value;
     }
 
@@ -31,10 +33,10 @@ private:
     T _value;
 };
 
-template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled {
+template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled, mixin::Styled {
 
-    template<usize N> constexpr ComboBoxItem(const char (&str)[N]) noexcept :// NOLINT(*-explicit-constructor)
-        mixin::Labeled{str} {}
+    template<usize N> constexpr ComboBoxItem(const char (&str)[N], ui::Style style = ui::Style::defaults()) noexcept :
+        mixin::Labeled{str}, mixin::Styled{style} {}
 
     [[nodiscard]] memory::StringView value() const noexcept {
         return this->label();
@@ -63,15 +65,17 @@ struct ComboBoxTag {};
 template<typename U, typename T> struct ComboBox :
 
     ComboBoxTag,
-    Widget<U>,
+    U::Widget,
     mixin::Callbacked<T>,
     mixin::Configurable<internal::ComboBoxConfig<T>>
 
 {
-    using Config = internal::ComboBoxConfig<T>;
-    using Item = typename Config::Item;
+    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
-    using mixin::Configurable<Config>::Configurable;
+    using Config = internal::ComboBoxConfig<T>;
+
+    explicit constexpr ComboBox(const Config &config, Style style = Style::defaults()) noexcept :
+        U::Widget{style}, mixin::Configurable<Config>::Configurable{config} {}
 
     /// @brief Set selection to the first item whose value equals `new_value`
     /// @param new_value Value to match against items
@@ -87,6 +91,7 @@ template<typename U, typename T> struct ComboBox :
     }
 
     /// @return Reference to selected item's value
+    /// @note undefined behavior if `config().items` is empty
     const T &value() const noexcept {
         return this->config().items[_cursor].value();
     }
@@ -100,11 +105,19 @@ template<typename U, typename T> struct ComboBox :
     }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {
-        render.beginAltBlock();
-        if (_cursor < totalItems()) {
-            render.value(this->config().items[_cursor].label());
-        }
-        render.endAltBlock();
+        const auto &item = this->config().items[_cursor];
+
+        render.beginBlock(Block::Alternative);
+
+        render.foreground(item.foreground());
+        render.background(item.background());
+
+        render.value(item.label());
+
+        render.foreground(this->foreground());
+        render.background(this->background());
+
+        render.endBlock(Block::Alternative);
     }
 
 private:

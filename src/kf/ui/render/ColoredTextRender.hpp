@@ -6,6 +6,7 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
+#include "kf/ui/Style.hpp"
 #include "kf/ui/render/PlainTextRender.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -36,7 +37,7 @@ template<usize N> struct ColoredTextRenderConfig final {
             White = 0x0F,
         };
 
-        Item normal, primary, secondary, success, warning, error, info, disabled;
+        Item normal, primary, secondary, success, warning, error, info, disabled, highlight;
 
         constexpr Item get(ui::Color color) const noexcept {
             return reinterpret_cast<const Item *>(this)[static_cast<char>(color)];
@@ -58,6 +59,7 @@ template<usize N> struct ColoredTextRenderConfig final {
                 .error = Palette::LightRed,
                 .info = Palette::LightCyan,
                 .disabled = Palette::DarkGray,
+                .highlight = Palette::LightPurple,
             },
             .focused_foreground_palette = {
                 .normal = Palette::Black,
@@ -68,6 +70,7 @@ template<usize N> struct ColoredTextRenderConfig final {
                 .error = Palette::Black,
                 .info = Palette::Black,
                 .disabled = Palette::LightGray,
+                .highlight = Palette::DarkPurple,
             },
             .normal_background_palette = {
                 .normal = Palette::Black,
@@ -78,6 +81,7 @@ template<usize N> struct ColoredTextRenderConfig final {
                 .error = Palette::DarkRed,
                 .info = Palette::DarkCyan,
                 .disabled = Palette::DarkGray,
+                .highlight = Palette::DarkPurple,
             },
             .focused_background_palette = {
                 .normal = Palette::White,
@@ -88,6 +92,7 @@ template<usize N> struct ColoredTextRenderConfig final {
                 .error = Palette::LightRed,
                 .info = Palette::LightCyan,
                 .disabled = Palette::LightGray,
+                .highlight = Palette::LightPurple,
             },
         };
     }
@@ -151,10 +156,10 @@ private:
         _wrapped.title(title);
     }
 
-    void beginWidgetImpl(usize index, bool is_focused, Color foreground, Color background) noexcept {
+    void beginWidgetImpl(usize index, bool is_focused, const Style &style) noexcept {
         _focus_active = is_focused;
-        this->foreground(foreground);
-        this->background(background);
+        this->foreground(style.foreground_color);
+        this->background(style.background_color);
     }
 
     void endWidgetImpl() noexcept {
@@ -190,28 +195,16 @@ private:
 
     // decoration
 
-    void arrowImpl() noexcept {
-        _wrapped.arrow();
+    void decorationImpl(Decoration decoration) noexcept {
+        _wrapped.decoration(decoration);
     }
 
-    void colonImpl() noexcept {
-        _wrapped.colon();
+    void beginBlockImpl(Block block_type) noexcept {
+        _wrapped.beginBlock(block_type);
     }
 
-    void beginBlockImpl() noexcept {
-        _wrapped.beginBlock();
-    }
-
-    void endBlockImpl() noexcept {
-        _wrapped.endBlock();
-    }
-
-    void beginAltBlockImpl() noexcept {
-        _wrapped.beginAltBlock();
-    }
-
-    void endAltBlockImpl() noexcept {
-        _wrapped.endAltBlock();
+    void endBlockImpl(Block block_type) noexcept {
+        _wrapped.endBlock(block_type);
     }
 };
 

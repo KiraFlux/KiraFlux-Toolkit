@@ -11,8 +11,12 @@
 #include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/ui/Event.hpp>
+#include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/ColoredTextRender.hpp>
+#include <kf/ui/widgets/Widget.hpp>
+
+#include <kf/Option.hpp>
 
 using kf::bus::spi::ArduinoSPI;
 using kf::drivers::display::Orientation;
@@ -24,15 +28,17 @@ using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                          // Traits Implementation
-        kf::ui::render::ColoredTextRender<256>,// Render implementation: colored text, buffered (256 Bytes)
-        kf::ui::Event<4>                       // Event type: 4-bit value
-        >>;
+    kf::ui::UiTraits<                              // Traits Implementation
+        kf::ui::widgets::Widget<                   // Base widget class
+            kf::ui::render::ColoredTextRender<256>,// Render implementation: plain text, buffered (256 Bytes),
+            kf::ui::Event<4>                       // Event type: 4-bit value
+            >>>;
 
 // shortcusts
 using Event = MyUI::Traits::EventImpl;
 using Render = MyUI::Traits::RenderImpl;
 using Color = kf::ui::Color;
+using Style = kf::ui::Style;
 
 static Render::Config my_render_config{Render::Config::defaults()};// will set in setup
 
@@ -48,17 +54,26 @@ static MyUI my_ui{
 
 struct MainPage : MyUI::Page {
 
-    int my_value{12345};
+    using MyValueType = kf::TrivialOption<int>;
+
+    MyValueType my_value{kf::someTrivial(12345)};
 
     MyUI::Button click_button{
         "Button",// button label
+
+        // style setup (all widget has style as last parameter)
+
+        // kf::ui::Style{
+        //     .foreground_color = kf::ui::Color::Primary,
+        //     .background_color = kf::ui::Color::Primary,
+        // }
     };
 
     MyUI::CheckBox check_box{
         true,// default: true
     };
 
-    MyUI::Display<int> value_display{
+    MyUI::Display<MyValueType> value_display{
         my_value,// initial value
     };
 
@@ -81,15 +96,31 @@ struct MainPage : MyUI::Page {
 
     using ColorCombo = MyUI::ComboBox<Color>;
 
-    kf::memory::Array<ColorCombo::Item, 8> color_combo_items{{
+    kf::memory::Array<ColorCombo::Config::Item, 9> color_combo_items{{
         {"Normal", Color::Normal},
-        {"Primary", Color::Primary},
-        {"Secondary", Color::Secondary},
+        // combo option implements Styled
+        {
+            "Primary",
+            Color::Primary,
+            Style{
+                .foreground_color = Color::Primary,
+                // .background_color = Color::Secondary,
+            },
+        },
+        {
+            "Secondary",
+            Color::Secondary,
+            Style{
+                // .foreground_color = Color::Primary,
+                .background_color = Color::Secondary,
+            },
+        },
         {"Success", Color::Success},
         {"Warning", Color::Warning},
         {"Error", Color::Error},
         {"Info", Color::Info},
         {"Disabled", Color::Disabled},
+        {"Highlight", Color::Highlight},
     }};
 
     ColorCombo::Config color_combo_config{
@@ -101,6 +132,7 @@ struct MainPage : MyUI::Page {
 
     MyUI::Labeled labeled_foreground_color_combo{"FG", foreground_color_combo};
     MyUI::Labeled labeled_background_color_combo{"BG", background_color_combo};
+    MyUI::Labeled labeled_check_box{"Check Box", check_box};
 
     kf::memory::Array<MyUI::Widget *, 7> widgets_storage{
         {
@@ -108,7 +140,7 @@ struct MainPage : MyUI::Page {
             &click_button,
             &labeled_foreground_color_combo,
             &labeled_background_color_combo,
-            &check_box,
+            &labeled_check_box,
             &value_display,
             &slider,
         },
@@ -119,15 +151,35 @@ struct MainPage : MyUI::Page {
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
-            my_value += 1;
-            value_display.value(my_value);
-            update();// add Update Event
+
+            if (my_value.isSome()) {
+                my_value.unwrap() += 1;
+                value_display.value(my_value);
+                update();// add Update Event
+            }
         });
+
+        // style
+        const auto style = click_button.style();
+        click_button.style(Style{
+            .foreground_color = kf::ui::Color::Normal,
+            .background_color = kf::ui::Color::Normal,
+        });
+        click_button.foreground(kf::ui::Color::Normal);
+        const auto fg = click_button.foreground();
+        click_button.background(kf::ui::Color::Normal);
+        const auto bg = click_button.background();
 
         check_box.callback([this](bool state) {
             Serial.print("Checkbox changed to: ");
             Serial.println(state ? "ON" : "OFF");
-            my_value *= -1;
+
+            if (my_value.isSome()) {
+                my_value = kf::none;
+            } else {
+                my_value = kf::someTrivial(12345);
+            }
+
             value_display.value(my_value);
         });
 
@@ -153,7 +205,7 @@ struct MainPage : MyUI::Page {
     }
 
     // behavior on UI polling
-    void onUpdate(kf::math::Milliseconds now) noexcept override {}
+    void onPoll(kf::math::Milliseconds now) noexcept override {}
 
 } main_page{};
 
@@ -161,7 +213,7 @@ struct SettingsPage : MyUI::Page {
 
     using PresetInput = MyUI::ComboBox<int>;
 
-    kf::memory::Array<PresetInput::Item, 3> ints_combo_box_items{
+    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{
         {
             {/* label: */ "Normal", /* value: int */ 100},
             {"Sport", 200},
@@ -184,9 +236,17 @@ struct SettingsPage : MyUI::Page {
 
     using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
 
-    kf::memory::Array<MyCombo::Item, 3> strings_combo_box_items{
-        {"Alpha", "Beta", "Gamma"},// StringView-typed combo item implicit constructs from string literal
-    };
+    kf::memory::Array<MyCombo::Config::Item, 3> strings_combo_box_items{{
+        // StringView-typed combo item implicit constructs from string literal
+        "Alpha",
+        "Beta",
+        {
+            "Gamma",
+            Style{
+                .foreground_color = Color::Highlight,
+            },
+        },
+    }};
 
     MyCombo::Config strings_combo_box_config{
         .items = {strings_combo_box_items.data(), strings_combo_box_items.size()},// Slice
@@ -285,7 +345,7 @@ void setup() {
     (void) bus.init();
 
     // display setup
-    if (not display.init()) {
+    if (display.init().isError()) {
         Serial.println("Failed to init display. halting...");
 
         while (true) {}
@@ -298,7 +358,7 @@ void setup() {
         kf::image::DynamicImage<P>{display.image()},
         CanvasImpl::State{
             .active_font = kf::someRef(kf::gfx::fonts::gyver_5x7_en),
-            .foreground_color = CanvasImpl::PaletteType::bright_white,
+            .foreground_color = CanvasImpl::PaletteType::white,
             .background_color = CanvasImpl::PaletteType::black,
             .auto_next_line = true,
         },
@@ -338,7 +398,7 @@ void setup() {
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
 
-    my_ui.bindPage(main_page);      // start ui with main page
+    my_ui.activePage(main_page);    // start ui with main page
     my_ui.addEvent(Event::update());// Force update for first ui rendering
 }
 

@@ -1,5 +1,5 @@
 #include <kf/Function.hpp>
-#include <unity.h>
+#include <runner.hpp>
 
 using kf::Function;
 
@@ -60,14 +60,20 @@ void test_call_with_void_return() {
     TEST_ASSERT_TRUE(called);
 }
 
+void test_capture_max() {
+    char buffer[(2 * sizeof(void *))]{};
+    Function<void()> f = [buffer]() {};
+    f();
+}
+
 // large capture should fail (uncomment to test)
 // void test_large_capture_should_not_compile() {
 //     int big_array[10] = {0};
 //     Function<void()> f = [big_array]() {};
 // }
 
-int main() {
-    UNITY_BEGIN();
+void run_tests() {
+    test_capture_max();
 
     RUN_TEST(test_construct_from_lambda_without_capture);
     RUN_TEST(test_construct_from_lambda_with_capture);
@@ -77,6 +83,4 @@ int main() {
     RUN_TEST(test_move_assignment);
     RUN_TEST(test_call_with_reference_argument);
     RUN_TEST(test_call_with_void_return);
-
-    return UNITY_END();
 }

@@ -37,7 +37,7 @@ constexpr P::ColorType red = P::fromRgb(0xFF, 0x00, 0x00);
 constexpr P::ColorType green = P::fromRgb(0x00, 0xFF, 0x00);
 constexpr P::ColorType blue = P::fromRgb(0x00, 0x00, 0xFF);
 constexpr P::ColorType black = Palette::black;
-constexpr P::ColorType white = Palette::bright_white;
+constexpr P::ColorType white = Palette::white;
 
 void demo(ST7735 &display, const char *orientation_name) {
     // Wrap the display's framebuffer (ViewportImage) into a Canvas.
@@ -114,13 +114,13 @@ void setup() {
     static ST7735 display{
         driver_config,
         bus.createNode(node_config),
-        ArduinoGPIO::DigitalOutput{GPIO_NUM_2},
-        ArduinoGPIO::DigitalOutput{GPIO_NUM_15},
+        ArduinoGPIO::DigitalOutput{GPIO_NUM_22},// DC
+        ArduinoGPIO::DigitalOutput{GPIO_NUM_17},// RESET
     };
 
     (void) bus.init();
 
-    if (not display.init()) {
+    if (display.init().isError()) {
         Serial.println("Display init failed!");
         return;
     }

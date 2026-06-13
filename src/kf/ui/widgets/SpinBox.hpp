@@ -7,8 +7,11 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
+#include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
-#include "kf/ui/widgets/Widget.hpp"
+#include "kf/ui/Decoration.hpp"
+#include "kf/ui/Style.hpp"
+#include "kf/ui/UiTraits.hpp"
 
 namespace kf::internal {
 
@@ -30,7 +33,7 @@ struct SpinBoxTag {};
 template<typename U, typename T, typename A> struct SpinBox :
 
     SpinBoxTag,
-    Widget<U>,
+    U::Widget,
     mixin::ValueCallbacked<T>,
     mixin::Configurable<internal::SpinBoxConfig<T>>
 
@@ -40,8 +43,8 @@ template<typename U, typename T, typename A> struct SpinBox :
     using AdjusterImpl = A;
     using Config = internal::SpinBoxConfig<T>;
 
-    explicit constexpr SpinBox(const Config &config, T default_value = T{}) noexcept :
-        mixin::ValueCallbacked<T>{default_value}, mixin::Configurable<Config>{config}, _step(config.default_step) {}
+    explicit constexpr SpinBox(const Config &config, T default_value = T{}, Style style = Style::defaults()) noexcept :
+        U::Widget{style}, mixin::ValueCallbacked<T>{default_value}, mixin::Configurable<Config>{config}, _step(config.default_step) {}
 
     /// @brief Toggle between value adjustment and step adjustment modes
     /// @return true (redraw required after mode change)
@@ -67,16 +70,16 @@ template<typename U, typename T, typename A> struct SpinBox :
             render.background(Color::Warning);
         }
 
-        render.beginAltBlock();
+        render.beginBlock(Block::Alternative);
 
         if (_is_step_setting_mode) {
-            render.colon();
+            render.decoration(Decoration::Colon);
             render.value(_step);
         } else {
             render.value(this->value());
         }
 
-        render.endAltBlock();
+        render.endBlock(Block::Alternative);
     }
 
 private:

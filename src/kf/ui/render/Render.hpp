@@ -5,6 +5,7 @@
 
 #include <type_traits>
 
+#include "kf/Option.hpp"
 #include "kf/Range.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
@@ -12,8 +13,11 @@
 #include "kf/mixin/StringRepresentable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
+#include "kf/ui/Decoration.hpp"
 #include "kf/ui/Placement.hpp"
+#include "kf/ui/Style.hpp"
 
 namespace kf::ui::render {
 
@@ -44,10 +48,9 @@ template<typename Impl> struct Render :
     /// @brief Begin rendering specific widget
     /// @param index Widget position in it's page
     /// @param is_focused contrasting text region (higher visibility)
-    /// @param foreground Widget's text content color
-    /// @param background Widget's background color
-    void beginWidget(usize index, bool is_focused, Color foreground, Color background) noexcept {
-        this->impl().beginWidgetImpl(index, is_focused, foreground, background);
+    /// @param style Widget's style
+    void beginWidget(usize index, bool is_focused, const Style &style) noexcept {
+        this->impl().beginWidgetImpl(index, is_focused, style);
     }
 
     /// @brief Finish rendering current widget
@@ -81,7 +84,15 @@ template<typename Impl> struct Render :
     /// @brief Render value
     template<typename T> void value(const T &v) noexcept {
         if constexpr (std::is_base_of_v<mixin::StringRepresentableTag, T>) {
-            this->impl().valueImpl(v.toString());
+            this->value(v.toString());
+        } else if constexpr (std::is_base_of_v<OptionTag, T>) {
+
+            if (v.isSome()) {
+                this->value(v.unwrap());
+            } else {
+                this->impl().valueImpl(none);
+            }
+
         } else {
             this->impl().valueImpl(v);
         }
@@ -101,34 +112,21 @@ template<typename Impl> struct Render :
 
     // Decoration and layout
 
-    /// @brief Render arrow pointing from edge to widget
-    void arrow() noexcept {
-        this->impl().arrowImpl();
+    /// @brief Render a semantic decoration element
+    /// @param decoration The type of decoration to render
+    /// @note Decorations are lightweight markers that help users interpret the UI.
+    void decoration(Decoration decoration) noexcept {
+        this->impl().decorationImpl(decoration);
     }
 
-    /// @brief Render colon separator
-    void colon() noexcept {
-        this->impl().colonImpl();
+    /// @brief Begin content block
+    void beginBlock(Block block_type = Block::Standard) noexcept {
+        this->impl().beginBlockImpl(block_type);
     }
 
-    /// @brief Begin standard content block
-    void beginBlock() noexcept {
-        this->impl().beginBlockImpl();
-    }
-
-    /// @brief End standard content block
-    void endBlock() noexcept {
-        this->impl().endBlockImpl();
-    }
-
-    /// @brief Begin alternative content block (different styling)
-    void beginAltBlock() noexcept {
-        this->impl().beginAltBlockImpl();
-    }
-
-    /// @brief End alternative content block
-    void endAltBlock() noexcept {
-        this->impl().endAltBlockImpl();
+    /// @brief End content block
+    void endBlock(Block block_type = Block::Standard) noexcept {
+        this->impl().endBlockImpl(block_type);
     }
 };
 

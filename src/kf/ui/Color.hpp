@@ -23,8 +23,8 @@ enum class Color : unsigned char {
     /// @note For background: rarely used; prefer using Primary for foreground only.
     Primary = 0x01,
 
-    /// @brief Secondary accent, less prominent than Primary
-    /// @note For foreground: secondary buttons, less important links, disabled state text.
+    /// @brief For secondary buttons, less important links, supporting elements
+    /// @note For foreground: secondary buttons, less important links.
     /// @note For background: subtle highlights or borders.
     Secondary = 0x02,
 
@@ -43,6 +43,9 @@ enum class Color : unsigned char {
     /// @note For background: error alerts, red badges (text should be readable).
     Error = 0x05,
 
+    /// @brief Alias for Error, used for destructive actions (e.g., Delete, Reset)
+    Danger = Error,
+
     /// @brief Neutral informational content
     /// @note For foreground: help text, tooltips, info panels.
     /// @note For background: information boxes, notifications.
@@ -51,7 +54,10 @@ enum class Color : unsigned char {
     /// @brief Indicates an inactive or disabled element
     /// @note For foreground: disabled buttons, inactive menu items, placeholders.
     /// @note For background: disabled controls or read‑only fields.
-    Disabled = 0x07
+    Disabled = 0x07,
+
+    /// @brief Rare, high-impact accent color for special actions or highlights
+    Highlight = 0x08,
 };
 
 }// namespace kf::ui

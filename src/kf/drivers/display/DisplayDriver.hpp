@@ -18,12 +18,12 @@ struct DisplayDriverTag {};
 /// @brief CRTP base class for display driver implementations
 /// @tparam DriverImpl Concrete driver implementation type
 /// @tparam ImageImpl Image buffer type
-template<typename DriverImpl, typename ImageImpl> struct DisplayDriver :
+template<typename DriverImpl, typename ImageImpl, typename ResultType> struct DisplayDriver :
 
     DisplayDriverTag,
     meta::CRTP<DriverImpl>,
     mixin::NonCopyable,
-    mixin::Initable<DriverImpl, bool>,
+    mixin::Initable<DriverImpl, ResultType>,
     mixin::Resettable<DriverImpl>
 
 {
@@ -40,15 +40,13 @@ template<typename DriverImpl, typename ImageImpl> struct DisplayDriver :
     }
 
     /// @brief Transfer software buffer to display hardware
-    /// @return true if success
-    [[nodiscard]] bool send() noexcept {
+    [[nodiscard]] ResultType send() noexcept {
         return this->impl().sendImpl();
     }
 
     /// @brief Set display orientation.
     /// @param new_orientation New orientation value.
-    /// @return true if success, false if orientation not supported.
-    [[nodiscard]] bool orientation(Orientation new_orientation) noexcept {
+    [[nodiscard]] ResultType orientation(Orientation new_orientation) noexcept {
         return this->impl().setOrientationImpl(new_orientation);
     }
 

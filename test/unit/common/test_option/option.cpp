@@ -1,4 +1,4 @@
-#include <unity.h>
+#include <runner.hpp>
 
 #include <type_traits>
 
@@ -232,15 +232,11 @@ template<typename T> struct TestOption {
     RESET_AND_RUN_TEST_IF(movable, __type__, move);             \
     RESET_AND_RUN_TEST_IF(movable, __type__, move_assignment);
 
-int main() {
-    UNITY_BEGIN();
-
+void run_tests() {
     using namespace kf::test;
 
     RUN_OPTION_TESTS(TrivialType);
     RUN_OPTION_TESTS(OnlyMovable);
     RUN_OPTION_TESTS(OnlyCopyable);
     RUN_OPTION_TESTS(CopyableMovable);
-
-    return UNITY_END();
 }

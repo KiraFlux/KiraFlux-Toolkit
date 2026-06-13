@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/Option.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
@@ -34,24 +35,23 @@ template<typename T> struct ExponentialFilter :
     using mixin::Configurable<Config>::Configurable;
 
 private:
-    ValueType _current_filtered{};
-    bool _first_step{true};
+    TrivialOption<ValueType> _filtered{none};
 
     using This = ExponentialFilter<ValueType>;
 
     KF_IMPL(Filter<This, ValueType>);
     ValueType calcImpl(const ValueType &value) noexcept {
-        if (_first_step) {
-            _current_filtered = value;
+        if (_filtered.isNone()) {
+            _filtered = someTrivial(value);
         } else {
-            _current_filtered += (value - _current_filtered) * this->config().factor;
+            _filtered.unwrap() += (value - _filtered.unwrap()) * this->config().factor;
         }
-        return _current_filtered;
+        return _filtered.unwrap();
     }
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
-        _first_step = true;
+        _filtered = none;
     }
 };
 

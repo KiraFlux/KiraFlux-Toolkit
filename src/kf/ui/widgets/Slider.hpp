@@ -5,11 +5,11 @@
 
 #include "kf/Range.hpp"
 #include "kf/mixin/Configurable.hpp"
-#include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
 #include "kf/ui/Placement.hpp"
-#include "kf/ui/widgets/Widget.hpp"
+#include "kf/ui/Style.hpp"
+#include "kf/ui/UiTraits.hpp"
 
 namespace kf::internal {
 
@@ -28,17 +28,21 @@ namespace kf::ui::widgets {
 struct SliderTag {};
 
 /// @tparam U UI Traits Type
+/// @tparam T Type of slider Value
 template<typename U, typename T> struct Slider :
 
     SliderTag,
-    Widget<U>,
+    U::Widget,
     mixin::ValueCallbacked<T>,
     mixin::Configurable<internal::SliderConfig<T>>
 
 {
+    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
+
     using Config = internal::SliderConfig<T>;
 
-    explicit constexpr Slider(const Config &config) noexcept :
+    explicit constexpr Slider(const Config &config, Style style = Style::defaults()) noexcept :
+        U::Widget{style},
         mixin::ValueCallbacked<T>{config.value_range.clamped(config.default_value)},
         mixin::Configurable<Config>{config}, _show_value{config.init_show_value} {}
 

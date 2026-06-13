@@ -11,8 +11,10 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
+#include "kf/ui/Style.hpp"
 #include "kf/ui/render/Render.hpp"
 
 namespace kf::internal {
@@ -148,7 +150,7 @@ private:
         writeChar('\n');
     }
 
-    void beginWidgetImpl(usize, bool is_focused, Color, Color) noexcept {
+    void beginWidgetImpl(usize, bool is_focused, const Style &) noexcept {
         if (is_focused) {
             writeString("* ");
         }
@@ -190,17 +192,29 @@ private:
 
     // Value rendering implementations
 
-    template<usize M> void valueImpl(const memory::StaticString<M> &str) noexcept {
-        writeString(str.view());
+    void valueImpl(NoneType) noexcept {
+        writeString(memory::StringView{"none"});
+    }
+
+    void valueImpl(char c) noexcept {
+        writeChar(c);
     }
 
     void valueImpl(memory::StringView str) noexcept {
         writeString(str);
     }
 
-    void valueImpl(bool slider_value) noexcept {
+    template<usize M> void valueImpl(const memory::StaticString<M> &str) noexcept {
+        writeString(str.view());
+    }
+
+    void valueImpl(const char *str) noexcept {
+        writeString(memory::StringView{str});
+    }
+
+    void valueImpl(bool b) noexcept {
         constexpr memory::StringView label_true{"true"}, label_false{"false"};
-        writeString(slider_value ? label_true : label_false);
+        writeString(b ? label_true : label_false);
     }
 
     void valueImpl(i32 integer) noexcept {
@@ -225,28 +239,26 @@ private:
 
     // Decoration rendering
 
-    void arrowImpl() noexcept {
-        writeString("-> ");
+    void decorationImpl(Decoration decoration) noexcept {
+        switch (decoration) {
+            case Decoration::Arrow:
+                writeString("-> ");
+                return;
+
+            case Decoration::Colon:
+                writeString(": ");
+
+            default:
+                break;
+        }
     }
 
-    void colonImpl() noexcept {
-        writeString(": ");
+    void beginBlockImpl(Block block_type) noexcept {
+        writeChar((block_type == Block::Standard) ? '[' : '<');
     }
 
-    void beginBlockImpl() noexcept {
-        writeChar('[');
-    }
-
-    void endBlockImpl() noexcept {
-        writeChar(']');
-    }
-
-    void beginAltBlockImpl() noexcept {
-        writeChar('<');
-    }
-
-    void endAltBlockImpl() noexcept {
-        writeChar('>');
+    void endBlockImpl(Block block_type) noexcept {
+        writeChar((block_type == Block::Standard) ? ']' : '>');
     }
 };
 
