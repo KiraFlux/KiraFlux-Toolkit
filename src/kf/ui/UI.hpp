@@ -145,7 +145,7 @@ public:
         virtual void onExit() noexcept {}
 
         /// @brief Page behavior on UI polling
-        virtual void onUpdate(math::Milliseconds now) noexcept {}
+        virtual void onPoll(math::Milliseconds now) noexcept {}
 
         /// @brief Get 'go to this page' Widget
         [[nodiscard]] constexpr Widget &link() noexcept {
@@ -253,7 +253,7 @@ private:
     void pollImpl(math::Milliseconds now) noexcept {
         if (_active_page.isNone()) { return; }
 
-        _active_page.unwrap().onUpdate(now);
+        _active_page.unwrap().onPoll(now);
 
         if (_events.empty()) { return; }
 
