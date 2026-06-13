@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/Option.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -40,26 +41,24 @@ template<typename T> struct ComplementaryFilter final :
     /// @param dt Time step in seconds since last update
     /// @return Filtered value combining prediction and measurement
     [[nodiscard]] const ValueType &calc(ValueType x, ValueType dx, Seconds dt) noexcept {
-        if (_first_step) {
-            _first_step = false;
-            _filtered = x;
+        if (_filtered.isNone()) {
+            _filtered = someTrivial(x);
         } else {
             const auto prediction = _filtered + dx * dt;
-            _filtered = this->config().factor * prediction + (1.0f - this->config().factor) * x;
+            _filtered = someTrivial(this->config().factor * prediction + (1.0f - this->config().factor) * x);
         }
 
-        return _filtered;
+        return _filtered.unwrap();
     }
 
 private:
-    ValueType _filtered{}; ///< Current filtered value
-    bool _first_step{true};///< First iteration flag for initialization
+    TrivialOption<ValueType> _filtered{none};
 
     using This = ComplementaryFilter<ValueType>;
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
-        _first_step = true;// Reset filter state (next calc will reinitialize with measurement)
+        _filtered = none;
     }
 };
 
