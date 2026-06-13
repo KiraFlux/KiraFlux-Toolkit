@@ -9,6 +9,7 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Labeled.hpp"
 
+#include "kf/ui/Styled.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::internal {
@@ -71,7 +72,7 @@ template<typename U, typename T> struct ComboBox :
 
     using Config = internal::ComboBoxConfig<T>;
 
-    explicit constexpr ComboBox(const Config &config, typename U::Widget::Style style = U::Widget::Style::defaults()) noexcept :
+    explicit constexpr ComboBox(const Config &config, Styled::Style style = Styled::Style::defaults()) noexcept :
         U::Widget{style}, mixin::Configurable<Config>::Configurable{config} {}
 
     /// @brief Set selection to the first item whose value equals `new_value`

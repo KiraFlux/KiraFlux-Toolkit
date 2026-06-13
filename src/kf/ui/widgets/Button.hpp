@@ -7,6 +7,7 @@
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Labeled.hpp"
 
+#include "kf/ui/Styled.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
@@ -25,7 +26,7 @@ template<typename U> struct Button :
 {
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
-    explicit constexpr Button(memory::StringView label, typename U::Widget::Style style = U::Widget::Style::defaults()) noexcept :
+    explicit constexpr Button(memory::StringView label, Styled::Style style = Styled::Style::defaults()) noexcept :
         U::Widget{style}, mixin::Labeled::Labeled{label} {}
 
     /// @brief Handle button click event
