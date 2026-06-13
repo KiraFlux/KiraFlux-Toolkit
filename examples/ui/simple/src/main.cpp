@@ -176,6 +176,7 @@ struct SettingsPage : MyUI::Page {
             Serial.print("Int Combo selected: ");
             Serial.println(value);
         });
+        labeled_ints_combo_box.hint("Hint: this is int combo box for some this example");
 
         strings_combo_box.callback([](kf::memory::StringView value) {
             Serial.print("String Combo selected: ");
@@ -208,6 +209,16 @@ void setup() {
     // post-render procedure
     my_render.callback([](kf::memory::StringView text) {
         Serial.println("---");
+
+        const auto &active_page = my_ui.activePage();
+        if (active_page.isSome()) {
+            const auto &selected_widget = active_page.unwrap().selectedWidget();
+
+            if (selected_widget.isSome()) {
+                Serial.println(selected_widget.unwrap().hint().data());
+            }
+        }
+
         Serial.print(text.data());
     });
 
@@ -215,7 +226,7 @@ void setup() {
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
 
-    my_ui.bindPage(main_page);// start ui with main page
+    my_ui.activePage(main_page);// start ui with main page
 
     my_ui.addEvent(Event::update());// Force update for first ui rendering
 }

@@ -338,7 +338,7 @@ void setup() {
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
 
-    my_ui.bindPage(main_page);      // start ui with main page
+    my_ui.activePage(main_page);      // start ui with main page
     my_ui.addEvent(Event::update());// Force update for first ui rendering
 }
 
