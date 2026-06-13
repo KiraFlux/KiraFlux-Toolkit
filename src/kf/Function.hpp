@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdlib>
 #include <new>
 #include <type_traits>
 #include <utility>
@@ -27,14 +28,17 @@ template<typename R, typename... Args> struct Function<R(Args...)> : mixin::NonC
     template<typename _F> Function(_F &&f) noexcept {
         using Decayed = std::decay_t<_F>;
         static_assert(not std::is_same_v<Decayed, Function>, "Cannot construct Function from another Function (use move)");
-        static_assert(sizeof(Impl<Decayed>) <= buffer_size, "Callable object too large for Function buffer");
+        static_assert(sizeof(Impl<Decayed>) <= (buffer_size - 1), "Callable object too large for Function buffer");
         static_assert(alignof(Impl<Decayed>) <= alignment, "Callable alignment too strict");
         static_assert(std::is_invocable_r<R, _F, Args...>::value, "Callable not invocable with given arguments");
 
-        _func = new (static_cast<void *>(_storage)) Impl<Decayed>{std::forward<_F>(f)};
+        new (static_cast<void *>(_storage)) Impl<Decayed>{std::forward<_F>(f)};
+        isSome(true);
     }
 
-    Function(Function &&other) noexcept { moveFrom(std::move(other)); }
+    Function(Function &&other) noexcept {
+        moveFrom(std::move(other));
+    }
 
     Function &operator=(Function &&other) noexcept {
         if (this != &other) {
@@ -49,9 +53,9 @@ template<typename R, typename... Args> struct Function<R(Args...)> : mixin::NonC
     /// @brief Invoke the stored callable.
     template<typename... CallArgs> R operator()(CallArgs &&...args) const noexcept {
         if constexpr (std::is_void_v<R>) {
-            _func->invoke(std::forward<CallArgs>(args)...);
+            func().invoke(std::forward<CallArgs>(args)...);
         } else {
-            return _func->invoke(std::forward<CallArgs>(args)...);
+            return func().invoke(std::forward<CallArgs>(args)...);
         }
     }
 
@@ -69,30 +73,52 @@ private:
 
         template<typename G> explicit Impl(G &&func) noexcept : f(std::forward<G>(func)) {}
 
-        R invoke(Args... args) const noexcept override { return f(std::forward<Args>(args)...); }
+        R invoke(Args... args) const noexcept override {
+            return f(std::forward<Args>(args)...);
+        }
 
-        void moveTo(void *dest) noexcept override { new (dest) Impl{std::move(f)}; }
+        void moveTo(void *dest) noexcept override {
+            new (dest) Impl{std::move(f)};
+        }
     };
 
-    static constexpr usize buffer_size{2 * sizeof(void *)}, alignment{alignof(std::max_align_t)};
+    static constexpr usize buffer_size{4 * sizeof(void *)}, alignment{alignof(std::max_align_t)};
 
-    Base *_func{nullptr};
     alignas(alignment) u8 _storage[buffer_size]{};
 
-    constexpr Function() noexcept {}// access to default contructor only for Option
+    // access to default contructor only for Option
+    constexpr Function() noexcept {
+        isSome(false);
+    }
+
+    [[nodiscard]] bool isSome() const noexcept {
+        return static_cast<bool>(_storage[buffer_size - 1]);
+    }
+
+    void isSome(bool is_isSome) noexcept {
+        _storage[buffer_size - 1] = static_cast<u8>(is_isSome);
+    }
+
+    [[nodiscard]] Base &func() noexcept {
+        return *reinterpret_cast<Base *>(_storage);
+    }
+
+    [[nodiscard]] const Base &func() const noexcept {
+        return *reinterpret_cast<const Base *>(_storage);
+    }
 
     void destroy() noexcept {
-        if (nullptr != _func) {
-            _func->~Base();
-            _func = nullptr;
+        if (isSome()) {
+            func().~Base();
+            isSome(false);
         }
     }
 
     void moveFrom(Function &&other) noexcept {
-        if (nullptr != other._func) {
-            other._func->moveTo(static_cast<void *>(_storage));
-            _func = reinterpret_cast<Base *>(_storage);
-            other._func = nullptr;
+        if (other.isSome()) {
+            other.func().moveTo(static_cast<void *>(_storage));
+            isSome(true);
+            other.isSome(false);
         }
     }
 };

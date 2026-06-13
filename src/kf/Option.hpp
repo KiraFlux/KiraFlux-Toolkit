@@ -543,7 +543,7 @@ private:
 
     KF_IMPL_INVARIANT(This);
     constexpr bool isSomeImpl() const noexcept {
-        return nullptr != _function._func;
+        return _function.isSome();
     }
 
     KF_IMPL_RESETTABLE(This);
