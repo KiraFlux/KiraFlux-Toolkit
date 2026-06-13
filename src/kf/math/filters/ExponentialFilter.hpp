@@ -44,7 +44,7 @@ private:
         if (_filtered.isNone()) {
             _filtered = someTrivial(value);
         } else {
-            _filtered.unwrap() += (value - _filteredunwrap()) * this->config().factor;
+            _filtered.unwrap() += (value - _filtered.unwrap()) * this->config().factor;
         }
         return _filtered.unwrap();
     }
