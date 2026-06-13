@@ -147,8 +147,13 @@ public:
         /// @brief Page behavior on UI polling
         virtual void onPoll(math::Milliseconds now) noexcept {}
 
-        /// @brief Get 'go to this page' Widget
+        /// @brief Get Mutable access to 'go to this page' Widget
         [[nodiscard]] constexpr Widget &link() noexcept {
+            return _to_this;
+        }
+
+        /// @brief Get Readobly access to 'go to this page' Widget
+        [[nodiscard]] constexpr const Widget &link() const noexcept {
             return _to_this;
         }
 
