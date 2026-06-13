@@ -90,7 +90,7 @@ struct MainPage : MyUI::Page {
 
     using ColorCombo = MyUI::ComboBox<Color>;
 
-    kf::memory::Array<ColorCombo::Item, 9> color_combo_items{{
+    kf::memory::Array<ColorCombo::Config::Item, 9> color_combo_items{{
         {"Normal", Color::Normal},
         {"Primary", Color::Primary},
         {"Secondary", Color::Secondary},
@@ -182,7 +182,7 @@ struct SettingsPage : MyUI::Page {
 
     using PresetInput = MyUI::ComboBox<int>;
 
-    kf::memory::Array<PresetInput::Item, 3> ints_combo_box_items{
+    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{
         {
             {/* label: */ "Normal", /* value: int */ 100},
             {"Sport", 200},
@@ -205,7 +205,7 @@ struct SettingsPage : MyUI::Page {
 
     using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
 
-    kf::memory::Array<MyCombo::Item, 3> strings_combo_box_items{
+    kf::memory::Array<MyCombo::Config::Item, 3> strings_combo_box_items{
         {"Alpha", "Beta", "Gamma"},// StringView-typed combo item implicit constructs from string literal
     };
 

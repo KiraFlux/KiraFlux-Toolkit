@@ -70,7 +70,6 @@ template<typename U, typename T> struct ComboBox :
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     using Config = internal::ComboBoxConfig<T>;
-    using Item = typename Config::Item;//TODO: remove (use Config::Item)
 
     explicit constexpr ComboBox(const Config &config, typename U::Widget::Style style = U::Widget::Style::defaults()) noexcept :
         U::Widget{style}, mixin::Configurable<Config>::Configurable{config} {}
