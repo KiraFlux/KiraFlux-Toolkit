@@ -81,6 +81,42 @@ template<typename T> struct Quaternion final {
         };
     }
 
+    /// @brief Convert quaternion to Euler angles (roll, pitch, yaw) in radians
+    /// @return Vector3<T> containing (roll, pitch, yaw)
+    /// @note Uses ZYX extrinsic rotation order (roll around X, pitch around Y, yaw around Z).
+    ///       Handles gimbal lock (pitch = +-90 deg) by setting yaw = 0 and adjusting roll.
+    template<typename U = T> [[nodiscard]] Vector3<U> toEulers() const noexcept {
+        // sin(pitch) term (sarg)
+        const auto sarg = -2 * (x * z - w * y) / lengthSquared();
+
+        constexpr auto lim = T{0.99999};
+
+        // North pole (pitch = +90 deg)
+        if (sarg >= lim) {
+            return Vector3<U>{
+                static_cast<U>(0),                   // roll
+                static_cast<U>(M_PI_2),              // pitch
+                static_cast<U>(2 * std::atan2(y, x)),// yaw
+            };
+        }
+
+        // South pole (pitch = -90 deg)
+        if (sarg <= -lim) {
+            return Vector3<U>{
+                static_cast<U>(0),                    // roll
+                static_cast<U>(-M_PI_2),              // pitch
+                static_cast<U>(-2 * std::atan2(y, x)),// yaw
+            };
+        }
+
+        // Regular case
+        return Vector3<U>{
+            static_cast<U>(std::atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))),// roll
+            static_cast<U>(std::asin(sarg)),                                         // pitch
+            static_cast<U>(std::atan2(2 * (x * y + w * z), 1 - 2 * (y * y + z * z))),// yaw
+        };
+    }
+
     /// @brief Squared length (magnitude squared)
     [[nodiscard]] constexpr Scalar lengthSquared() const noexcept {
         return static_cast<Scalar>(x * x + y * y + z * z + w * w);
