@@ -37,7 +37,7 @@ constexpr P::ColorType red = P::fromRgb(0xFF, 0x00, 0x00);
 constexpr P::ColorType green = P::fromRgb(0x00, 0xFF, 0x00);
 constexpr P::ColorType blue = P::fromRgb(0x00, 0x00, 0xFF);
 constexpr P::ColorType black = Palette::black;
-constexpr P::ColorType white = Palette::bright_white;
+constexpr P::ColorType white = Palette::white;
 
 void demo(ST7735 &display, const char *orientation_name) {
     // Wrap the display's framebuffer (ViewportImage) into a Canvas.

@@ -318,7 +318,7 @@ void setup() {
         kf::image::DynamicImage<P>{display.image()},
         CanvasImpl::State{
             .active_font = kf::someRef(kf::gfx::fonts::gyver_5x7_en),
-            .foreground_color = CanvasImpl::PaletteType::bright_white,
+            .foreground_color = CanvasImpl::PaletteType::white,
             .background_color = CanvasImpl::PaletteType::black,
             .auto_next_line = true,
         },
