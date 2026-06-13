@@ -1,6 +1,6 @@
-#include <kf/Result.hpp>
+#include <runner.hpp>
 
-#include <unity.h>
+#include <kf/Result.hpp>
 
 using kf::Result;
 
@@ -191,9 +191,7 @@ void test_void_mapError_error() {
     RUN_TEST(ResultTester<T>::mapError_ok);     \
     RUN_TEST(ResultTester<T>::mapError_error)
 
-int main() {
-    UNITY_BEGIN();
-
+void run_tests() {
     RUN_RESULT_TESTS(int);
     RUN_RESULT_TESTS(float);
 
@@ -206,6 +204,4 @@ int main() {
     RUN_TEST(test_void_const);
     RUN_TEST(test_void_mapError_ok);
     RUN_TEST(test_void_mapError_error);
-
-    return UNITY_END();
 }

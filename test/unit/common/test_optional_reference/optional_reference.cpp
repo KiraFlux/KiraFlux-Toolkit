@@ -1,5 +1,5 @@
 #include <kf/Option.hpp>
-#include <unity.h>
+#include <runner.hpp>
 
 using kf::Option;
 
@@ -103,10 +103,6 @@ template<typename T> struct TestOptionalReference {
     RUN_TEST(TestOptionalReference<__type__>::reassign);        \
     RUN_TEST(TestOptionalReference<__type__>::reset)
 
-int main() {
-    UNITY_BEGIN();
-
+void run_tests() {
     RUN_OPTIONAL_REFERENCE_TESTS(int, 12345);
-
-    return UNITY_END();
 }

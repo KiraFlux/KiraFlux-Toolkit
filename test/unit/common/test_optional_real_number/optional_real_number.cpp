@@ -1,6 +1,6 @@
-#include <kf/Option.hpp>
+#include <runner.hpp>
 
-#include <unity.h>
+#include <kf/Option.hpp>
 
 using kf::TrivialOption;
 
@@ -52,14 +52,10 @@ template<typename T> struct TestOptionalRealNumber {
     RUN_TEST(TestOptionalRealNumber<__type__>::unwrap_or); \
     RUN_TEST(TestOptionalRealNumber<__type__>::reset);
 
-int main() {
-    UNITY_BEGIN();
-
+void run_tests() {
     using long_double = long double;
 
     RUN_OPTIONAL_REAL_NUMBER_TESTS(float);
     RUN_OPTIONAL_REAL_NUMBER_TESTS(double);
     RUN_OPTIONAL_REAL_NUMBER_TESTS(long_double);
-
-    return UNITY_END();
 }

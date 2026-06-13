@@ -1,6 +1,7 @@
+#include <runner.hpp>
+
 #include <cmath>
 #include <kf/memory/StaticString.hpp>
-#include <unity.h>
 
 using kf::memory::StaticString;
 using kf::memory::StringView;
@@ -230,8 +231,7 @@ void equality() {
 }
 }// namespace operators
 
-int main() {
-    UNITY_BEGIN();
+void run_tests() {
     RUN_TEST(constructors::empty);
     RUN_TEST(constructors::literal);
     RUN_TEST(constructors::truncated);
@@ -263,5 +263,4 @@ int main() {
     RUN_TEST(assign::from_string);
     RUN_TEST(assign::from_view);
     RUN_TEST(operators::equality);
-    return UNITY_END();
 }

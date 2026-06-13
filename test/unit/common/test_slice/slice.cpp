@@ -1,5 +1,6 @@
+#include <runner.hpp>
+
 #include <kf/Slice.hpp>
-#include <unity.h>
 
 using kf::Slice;
 
@@ -72,7 +73,7 @@ void array_empty() {
 }
 }// namespace constructors
 
-namespace access {
+namespace test_access {
 void element() {
     int data[] = {10, 20, 30};
     Slice<int> s{data, 3};
@@ -107,7 +108,7 @@ void iterators() {
     }
     TEST_ASSERT_EQUAL(5 + 6 + 7 + 8, sum);
 }
-}// namespace access
+}// namespace test_access
 
 namespace sub_slice {
 void sub() {
@@ -226,9 +227,7 @@ void different_types() {
 }
 }// namespace misc
 
-int main() {
-    UNITY_BEGIN();
-
+void run_tests() {
     RUN_TEST(constructors::default_ctor);
     RUN_TEST(constructors::ptr_size_ctor);
     RUN_TEST(constructors::array_int);
@@ -237,9 +236,9 @@ int main() {
     RUN_TEST(constructors::array_modify);
     RUN_TEST(constructors::array_empty);
 
-    RUN_TEST(access::element);
-    RUN_TEST(access::const_slice);
-    RUN_TEST(access::iterators);
+    RUN_TEST(test_access::element);
+    RUN_TEST(test_access::const_slice);
+    RUN_TEST(test_access::iterators);
 
     RUN_TEST(sub_slice::sub);
     RUN_TEST(sub_slice::first);
@@ -253,6 +252,4 @@ int main() {
     RUN_TEST(misc::empty);
     RUN_TEST(misc::copy_assign);
     RUN_TEST(misc::different_types);
-
-    return UNITY_END();
 }

@@ -1,5 +1,5 @@
+#include <runner.hpp>
 #include <kf/algorithm.hpp>
-#include <unity.h>
 
 using kf::clamp;
 using kf::linearMap;
@@ -69,11 +69,9 @@ template<typename T> struct AlgorithmTester {
     RUN_TEST(AlgorithmTester<T>::test_clamp); \
     RUN_TEST(AlgorithmTester<T>::test_linearMap)
 
-int main() {
-    UNITY_BEGIN();
+void run_tests() {
     RUN_ALGORITHM_TESTS(int);
     RUN_ALGORITHM_TESTS(unsigned int);
     RUN_ALGORITHM_TESTS(float);
     RUN_ALGORITHM_TESTS(double);
-    return UNITY_END();
 }

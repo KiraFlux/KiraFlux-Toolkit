@@ -1,5 +1,6 @@
+#include <runner.hpp>
+
 #include <kf/memory/StringView.hpp>
-#include <unity.h>
 
 using kf::Slice;
 using kf::memory::StringView;
@@ -59,7 +60,7 @@ void null_cstring() {
 }
 }// namespace constructors
 
-namespace access {
+namespace test_access {
 void index_and_front_back() {
     StringView sv("abcde");
     TEST_ASSERT_EQUAL('a', sv[0]);
@@ -78,7 +79,7 @@ void iterators() {
     TEST_ASSERT_EQUAL('5', *it++);
     TEST_ASSERT_EQUAL(sv.end(), it);
 }
-}// namespace access
+}// namespace test_access
 
 namespace compare {
 void equality() {
@@ -213,9 +214,7 @@ void test() {
 }
 }// namespace to_slice
 
-int main() {
-    UNITY_BEGIN();
-
+void run_tests() {
     RUN_TEST(constructors::default_);
     RUN_TEST(constructors::cstring);
     RUN_TEST(constructors::ptr_size);
@@ -223,8 +222,8 @@ int main() {
     RUN_TEST(constructors::slice);
     RUN_TEST(constructors::null_cstring);
 
-    RUN_TEST(access::index_and_front_back);
-    RUN_TEST(access::iterators);
+    RUN_TEST(test_access::index_and_front_back);
+    RUN_TEST(test_access::iterators);
 
     RUN_TEST(compare::equality);
     RUN_TEST(compare::ordering);
@@ -247,6 +246,4 @@ int main() {
     RUN_TEST(trim::both);
 
     RUN_TEST(to_slice::test);
-
-    return UNITY_END();
 }

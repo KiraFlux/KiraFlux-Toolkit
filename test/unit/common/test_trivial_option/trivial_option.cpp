@@ -1,7 +1,8 @@
-#include <kf/Option.hpp>
-#include <unity.h>
+#include <runner.hpp>
+#include <structures.hpp>
 
-#include "structures.hpp"
+#include <kf/Option.hpp>
+
 
 using kf::TrivialOption;
 
@@ -48,12 +49,8 @@ template<typename T> struct TestTrivialOption {
     RUN_TEST(TestTrivialOption<__type__>::unwrap_or); \
     RUN_TEST(TestTrivialOption<__type__>::reset);
 
-int main() {
-    UNITY_BEGIN();
-
+void runner() {
     using namespace kf::test;
 
     RUN_TRIVIAL_OPTION_TESTS(TrivialType);
-
-    return UNITY_END();
 }
