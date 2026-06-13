@@ -159,7 +159,7 @@ private:
     void beginWidgetImpl(usize index, bool is_focused, const Style &style) noexcept {
         _focus_active = is_focused;
         this->foreground(style.foreground_color);
-        this->background(style.foreground_color);
+        this->background(style.background_color);
     }
 
     void endWidgetImpl() noexcept {
