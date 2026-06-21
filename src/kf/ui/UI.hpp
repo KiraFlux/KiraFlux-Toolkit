@@ -138,6 +138,8 @@ public:
     struct Page : mixin::NonCopyable, mixin::Labeled {
         friend struct PageSetter;
 
+        using WidgetsView = Slice<Widget *>;
+
         explicit constexpr Page(UI &ui, Layout layout = Layout::Vertical) noexcept :
             _ui{ui}, _layout{layout} {}
 
@@ -222,7 +224,7 @@ public:
         }
 
         /// @brief Get widgets on page
-        [[nodiscard]] auto widgets() noexcept -> Slice<Widget *> {
+        [[nodiscard]] WidgetsView widgets() noexcept {
             return _widgets;
         }
 
@@ -233,7 +235,7 @@ public:
         }
 
         /// @brief Set widgets on page
-        void widgets(Slice<Widget *> new_widgets) noexcept {
+        void widgets(WidgetsView new_widgets) noexcept {
             _widgets = new_widgets;
             _cursor = clamp<isize>(_cursor, 0, _widgets.size() - 1);
         }
@@ -247,7 +249,7 @@ public:
 
     private:
         PageSetter _to_this{*this};///< Navigation widget to this page
-        Slice<Widget *> _widgets{};///< Widgets on this page
+        WidgetsView _widgets{};    ///< Widgets on this page
         isize _cursor{0};          ///< Current widget cursor position (focused widget index)
         Layout _layout;            ///< Current layout
 
