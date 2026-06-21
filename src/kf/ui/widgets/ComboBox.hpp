@@ -66,7 +66,7 @@ template<typename U, typename T> struct ComboBox :
 
     ComboBoxTag,
     U::Widget,
-    mixin::Callbacked<T>,
+    mixin::Callbacked<internal::ComboBoxItem<T>>,
     mixin::Configurable<internal::ComboBoxConfig<T>>
 
 {
@@ -100,7 +100,7 @@ template<typename U, typename T> struct ComboBox :
     /// @param value Navigation direction (positive/negative)
     [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
         moveCursor(event_value);
-        this->invoke(this->config().items[_cursor].value());
+        this->invoke(this->config().items[_cursor]);
         return true;// redraw required after selection change
     }
 
