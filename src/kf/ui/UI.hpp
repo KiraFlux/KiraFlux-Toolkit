@@ -198,8 +198,8 @@ public:
             render.endPage();
         }
 
-        /// @brief Add event to processing queue.
-        /// @param event The event to be processed.
+        /// @brief Add event to processing queue
+        /// @param event The event to be processed
         [[nodiscard]] bool onEvent(typename Traits::EventImpl event) noexcept {
             using Kind = typename Traits::EventImpl::Kind;
             switch (event.kind()) {
@@ -210,12 +210,12 @@ public:
                     return moveCursor(event.value());
                 }
                 case Kind::WidgetClick: {
-                    if (_widgets.size() > 0) {
+                    if (not _widgets.empty()) {
                         return _widgets[_cursor]->onClick();
                     }
                 }
                 case Kind::WidgetValue: {
-                    if (_widgets.size() > 0) {
+                    if (not _widgets.empty()) {
                         return _widgets[_cursor]->onEventValue(event.value());
                     }
                 }
