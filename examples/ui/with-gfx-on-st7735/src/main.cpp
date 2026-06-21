@@ -86,7 +86,6 @@ struct MainPage : MyUI::Page {
         },
         .default_value = 0,
         .step = 25,
-        .placement = kf::ui::Placement::Outside,
         .init_show_value = true,
     };
 
@@ -153,7 +152,8 @@ struct MainPage : MyUI::Page {
         },
     };
 
-    explicit MainPage() : Page{my_ui, "Main"} {
+    explicit MainPage() : Page{my_ui, /* layout = kf::ui::Layout::Vertical */} {
+        this->label("Main");
         widgets({widgets_storage.data(), widgets_storage.size()});
 
         for (auto i = 0u; i < array_widgets; i += 1) {
@@ -198,12 +198,12 @@ struct MainPage : MyUI::Page {
             value_display.value(my_value);
         });
 
-        background_color_combo.callback([this](auto color) {
-            click_button.background(color);
+        background_color_combo.callback([this](auto item) {
+            click_button.background(item.value());
         });
 
-        foreground_color_combo.callback([this](auto color) {
-            click_button.foreground(color);
+        foreground_color_combo.callback([this](auto item) {
+            click_button.foreground(item.value());
         });
     }
 
@@ -226,49 +226,28 @@ struct MainPage : MyUI::Page {
 
 struct SettingsPage : MyUI::Page {
 
-    using PresetInput = MyUI::ComboBox<int>;
+    using MyCombo = MyUI::ComboBox<kf::ui::Layout>;
 
-    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{
+    kf::memory::Array<MyCombo::Config::Item, 2> layout_combo_box_items{{
         {
-            {/* label: */ "Normal", /* value: int */ 100},
-            {"Sport", 200},
-            {"Quiet", 20},
-        },// initializer list
-    };
-
-    PresetInput::Config ints_combo_box_config{
-        .items = {ints_combo_box_items.data(), ints_combo_box_items.size()},// Slice
-    };
-
-    PresetInput ints_combo_box{
-        ints_combo_box_config,// by ref
-    };
-
-    MyUI::Labeled labeled_ints_combo_box{
-        "Preset",      // label
-        ints_combo_box,// by ref
-    };
-
-    using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
-
-    kf::memory::Array<MyCombo::Config::Item, 3> strings_combo_box_items{{
-        // StringView-typed combo item implicit constructs from string literal
-        "Alpha",
-        "Beta",
+            "Vertical", 
+            kf::ui::Layout::Vertical
+        },
         {
-            "Gamma",
+            "Horizontal",
+            kf::ui::Layout::Horizontal,
             Style{
                 .foreground_color = Color::Highlight,
             },
         },
     }};
 
-    MyCombo::Config strings_combo_box_config{
-        .items = {strings_combo_box_items.data(), strings_combo_box_items.size()},// Slice
+    MyCombo::Config layout_combo_box_config{
+        .items = {layout_combo_box_items.data(), layout_combo_box_items.size()},// Slice
     };
 
-    MyCombo strings_combo_box{
-        strings_combo_box_config,// by ref
+    MyCombo layout_combo_box{
+        layout_combo_box_config,// by ref
     };
 
     using MySpinBox = MyUI::SpinBox<int, MyUI::Traits::GeometricAdjuster<int>>;
@@ -283,26 +262,22 @@ struct SettingsPage : MyUI::Page {
         10,             // = default value
     };
 
-    kf::memory::Array<MyUI::Widget *, 4> widgets_storage{
+    kf::memory::Array<MyUI::Widget *, 3> widgets_storage{
         {
             nullptr,// link widget will be init in setup()
-            &labeled_ints_combo_box,
-            &strings_combo_box,
+            &layout_combo_box,
             &spin_box,
         },
     };
 
-    explicit SettingsPage() : Page{my_ui, "Settings"} {
+    explicit SettingsPage() : Page{my_ui} {
+        this->label("Settings");
         widgets({widgets_storage.data(), widgets_storage.size()});
 
-        ints_combo_box.callback([](int value) {
-            Serial.print("Int Combo selected: ");
-            Serial.println(value);
-        });
-
-        strings_combo_box.callback([](kf::memory::StringView value) {
-            Serial.print("String Combo selected: ");
-            Serial.println(value.data());
+        layout_combo_box.callback([this](MyCombo::Config::Item item) {
+            this->layout(item.value());
+            Serial.print("Combo selected: ");
+            Serial.println(item.label().data());
         });
 
         spin_box.callback([](int value) {

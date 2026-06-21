@@ -63,7 +63,6 @@ struct MainPage : MyUI::Page {
         },
         .default_value = 0,
         .step = 25,
-        .placement = kf::ui::Placement::Outside,
         .init_show_value = true,
     };
 
@@ -81,7 +80,8 @@ struct MainPage : MyUI::Page {
         },
     };
 
-    explicit MainPage() : Page{my_ui, "Main"} {
+    explicit MainPage() : Page{my_ui} {
+        this->label("Main");
         widgets({widgets_storage.data(), widgets_storage.size()});
 
         click_button.callback([this]() {
@@ -176,18 +176,19 @@ struct SettingsPage : MyUI::Page {
         },
     };
 
-    explicit SettingsPage() : Page{my_ui, "Settings"} {
+    explicit SettingsPage() : Page{my_ui} {
+        this->label("Settings");
         widgets({widgets_storage.data(), widgets_storage.size()});
 
-        ints_combo_box.callback([](int value) {
+        ints_combo_box.callback([](auto item) {
             Serial.print("Int Combo selected: ");
-            Serial.println(value);
+            Serial.println(item.value());
         });
         labeled_ints_combo_box.hint("Hint: this is int combo box for some this example");
 
-        strings_combo_box.callback([](kf::memory::StringView value) {
+        strings_combo_box.callback([](auto item) {
             Serial.print("String Combo selected: ");
-            Serial.println(value.data());
+            Serial.println(item.value().data());
         });
 
         spin_box.callback([](int value) {
