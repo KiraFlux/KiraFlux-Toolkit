@@ -234,10 +234,15 @@ public:
             _layout = new_layout;
         }
 
+        /// @brief Set page cursor
+        void cursor(usize new_cursor) noexcept {
+            _cursor = clamp<isize>(new_cursor, 0, _widgets.size() - 1);
+        }
+
         /// @brief Set widgets on page
         void widgets(WidgetsView new_widgets) noexcept {
             _widgets = new_widgets;
-            _cursor = clamp<isize>(_cursor, 0, _widgets.size() - 1);
+            cursor(_cursor);
         }
 
         /// @brief Add Update event
