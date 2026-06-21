@@ -9,7 +9,6 @@
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Event.hpp"
-#include "kf/ui/Style.hpp"
 #include "kf/ui/render/Render.hpp"
 
 namespace kf::ui::widgets {
@@ -62,7 +61,9 @@ template<typename R, typename E> struct Widget :
 
     /// @brief External widget rendering with focus handling
     void render(RenderImpl &render, usize index, bool focused) const noexcept {
-        render.beginWidget(index, focused, this->style());
+        render.beginWidget(index, focused);
+        render.foreground(this->style().foreground_color);
+        render.background(this->style().background_color);
         doRender(render);
         render.endWidget();
     }
