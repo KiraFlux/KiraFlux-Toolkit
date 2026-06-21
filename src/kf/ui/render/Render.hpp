@@ -16,6 +16,7 @@
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Decoration.hpp"
+#include "kf/ui/Layout.hpp"
 #include "kf/ui/Placement.hpp"
 
 namespace kf::ui::render {
@@ -44,10 +45,22 @@ template<typename Impl> struct Render :
         this->impl().endFrameImpl();
     }
 
+    /// @brief Begin rendering page
+    /// @param title Page title
+    /// @param layout Page layout hint
+    /// @return Number of widgets that can still be rendered in current frame
+    [[nodiscard]] usize beginPage(memory::StringView title, Layout layout) noexcept {
+        return this->impl().beginPageImpl(title, layout);
+    }
+
+    /// @brief Finish rendering page
+    void endPage() noexcept {
+        this->impl().endPageImpl();
+    }
+
     /// @brief Begin rendering specific widget
-    /// @param index Widget position in it's page
+    /// @param index Widget position on page
     /// @param is_focused contrasting text region (higher visibility)
-    /// @param style Widget's style
     void beginWidget(usize index, bool is_focused) noexcept {
         this->impl().beginWidgetImpl(index, is_focused);
     }
@@ -57,17 +70,23 @@ template<typename Impl> struct Render :
         this->impl().endWidgetImpl();
     }
 
-    /// @brief Get remaining widget rendering capacity
-    /// @return Number of widgets that can still be rendered in current frame
-    [[nodiscard]] usize widgetsAvailable() const noexcept {
-        return this->impl().widgetsAvailableImpl();
+    /// @brief Begin content block
+    void beginBlock(Block block_type = Block::Standard) noexcept {
+        this->impl().beginBlockImpl(block_type);
+    }
+
+    /// @brief End content block
+    void endBlock(Block block_type = Block::Standard) noexcept {
+        this->impl().endBlockImpl(block_type);
     }
 
     // Value rendering
 
-    /// @brief Render page title
-    void title(memory::StringView title) noexcept {
-        this->impl().titleImpl(title);
+    /// @brief Render a semantic decoration element
+    /// @param decoration The type of decoration to render
+    /// @note Decorations are lightweight markers that help users interpret the UI.
+    void decoration(Decoration decoration) noexcept {
+        this->impl().decorationImpl(decoration);
     }
 
     /// @brief Render checkbox
@@ -107,25 +126,6 @@ template<typename Impl> struct Render :
     /// @brief Set background Semantic color
     void background(Color color) noexcept {
         this->impl().setBackgroundImpl(color);
-    }
-
-    // Decoration and layout
-
-    /// @brief Render a semantic decoration element
-    /// @param decoration The type of decoration to render
-    /// @note Decorations are lightweight markers that help users interpret the UI.
-    void decoration(Decoration decoration) noexcept {
-        this->impl().decorationImpl(decoration);
-    }
-
-    /// @brief Begin content block
-    void beginBlock(Block block_type = Block::Standard) noexcept {
-        this->impl().beginBlockImpl(block_type);
-    }
-
-    /// @brief End content block
-    void endBlock(Block block_type = Block::Standard) noexcept {
-        this->impl().endBlockImpl(block_type);
     }
 };
 

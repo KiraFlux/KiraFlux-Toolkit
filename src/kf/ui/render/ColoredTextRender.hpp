@@ -5,6 +5,7 @@
 
 #include "kf/mixin/Configurable.hpp"
 #include "kf/ui/Color.hpp"
+#include "kf/ui/Layout.hpp"
 #include "kf/ui/Placement.hpp"
 #include "kf/ui/render/PlainTextRender.hpp"
 #include "kf/ui/render/Render.hpp"
@@ -137,10 +138,6 @@ private:
 
     // control
 
-    [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
-        return _wrapped.widgetsAvailable();
-    }
-
     void beginFrameImpl() noexcept {
         _wrapped.beginFrame();
     }
@@ -149,10 +146,14 @@ private:
         _wrapped.endFrame();
     }
 
-    void titleImpl(memory::StringView title) noexcept {
+    usize beginPageImpl(memory::StringView title, Layout layout) noexcept {
         writeForegroundColor(Color::Normal, this->config().focused_foreground_palette);
         writeBackgroundColor(Color::Primary, this->config().focused_background_palette);
-        _wrapped.title(title);
+        return _wrapped.beginPage(title, layout);
+    }
+
+    void endPageImpl() noexcept {
+        _wrapped.endPage();
     }
 
     void beginWidgetImpl(usize index, bool is_focused) noexcept {
@@ -163,6 +164,18 @@ private:
         if (not _focus_active) { _wrapped.writeChar('\x80'); }
         _wrapped.endWidget();
         _focus_active = false;
+    }
+
+    void beginBlockImpl(Block block_type) noexcept {
+        _wrapped.beginBlock(block_type);
+    }
+
+    void endBlockImpl(Block block_type) noexcept {
+        _wrapped.endBlock(block_type);
+    }
+
+    void decorationImpl(Decoration decoration) noexcept {
+        _wrapped.decoration(decoration);
     }
 
     void checkboxImpl(bool enabled) noexcept {
@@ -188,20 +201,6 @@ private:
 
     void setBackgroundImpl(Color color) noexcept {
         writeBackgroundColor(color, _focus_active ? this->config().focused_background_palette : this->config().normal_background_palette);
-    }
-
-    // decoration
-
-    void decorationImpl(Decoration decoration) noexcept {
-        _wrapped.decoration(decoration);
-    }
-
-    void beginBlockImpl(Block block_type) noexcept {
-        _wrapped.beginBlock(block_type);
-    }
-
-    void endBlockImpl(Block block_type) noexcept {
-        _wrapped.endBlock(block_type);
     }
 };
 

@@ -13,6 +13,7 @@
 
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
+#include "kf/ui/Layout.hpp"
 #include "kf/ui/Placement.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -117,17 +118,9 @@ template<usize N> struct PlainTextRender :
 private:
     memory::StaticString<N> _buffer{};///< Output buffer for rendered text
     internal::PlainTextRenderCursor _cursor{};
+    Layout _layout{Layout::Vertical};
 
     KF_IMPL(Render<PlainTextRender<N>>);
-
-    [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
-        // Subtract 1 for title row
-        if (this->config().rows_total > _cursor.row + 1) {
-            return this->config().rows_total - _cursor.row - 1;
-        } else {
-            return 0;
-        }
-    }
 
     void beginFrameImpl() noexcept {
         _buffer.clear();
@@ -138,7 +131,9 @@ private:
         this->invoke(_buffer.view());
     }
 
-    void titleImpl(memory::StringView title) noexcept {
+    usize beginPageImpl(memory::StringView title, Layout layout) noexcept {
+        _layout = layout;
+
         if (this->config().title_centered) {
             const auto spaces = kf::max(0, (int(this->config().row_max_length) - int(title.size())) / 2);
             for (int i = 0; i < spaces; i += 1) {
@@ -147,7 +142,11 @@ private:
         }
         writeString(title);
         writeChar('\n');
+
+        return this->config().rows_total - _cursor.row;
     }
+
+    void endPageImpl() noexcept {}
 
     void beginWidgetImpl(usize, bool is_focused) noexcept {
         if (is_focused) {
@@ -157,6 +156,28 @@ private:
 
     void endWidgetImpl() noexcept {
         writeChar('\n');
+    }
+
+    void beginBlockImpl(Block block_type) noexcept {
+        writeChar((block_type == Block::Standard) ? '[' : '<');
+    }
+
+    void endBlockImpl(Block block_type) noexcept {
+        writeChar((block_type == Block::Standard) ? ']' : '>');
+    }
+
+    void decorationImpl(Decoration decoration) noexcept {
+        switch (decoration) {
+            case Decoration::Arrow:
+                writeString("-> ");
+                return;
+
+            case Decoration::Colon:
+                writeString(": ");
+
+            default:
+                break;
+        }
     }
 
     void checkboxImpl(bool enabled) noexcept {
@@ -235,30 +256,6 @@ private:
     void setForegroundImpl(Color) noexcept {}
 
     void setBackgroundImpl(Color) noexcept {}
-
-    // Decoration rendering
-
-    void decorationImpl(Decoration decoration) noexcept {
-        switch (decoration) {
-            case Decoration::Arrow:
-                writeString("-> ");
-                return;
-
-            case Decoration::Colon:
-                writeString(": ");
-
-            default:
-                break;
-        }
-    }
-
-    void beginBlockImpl(Block block_type) noexcept {
-        writeChar((block_type == Block::Standard) ? '[' : '<');
-    }
-
-    void endBlockImpl(Block block_type) noexcept {
-        writeChar((block_type == Block::Standard) ? ']' : '>');
-    }
 };
 
 }// namespace kf::ui::render

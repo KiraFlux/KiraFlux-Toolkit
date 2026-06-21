@@ -14,6 +14,7 @@
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Decoration.hpp"
+#include "kf/ui/Layout.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 #include "kf/ui/render/Render.hpp"
@@ -167,21 +168,26 @@ public:
         /// @param render Renderer instance.
         /// @note Handles cursor positioning and widget focus.
         void render(typename Traits::RenderImpl &render) noexcept {
-            render.title(this->label());
+            const usize available = render.beginPage(this->label(), Layout::Vertical);
 
-            if (nullptr == _widgets.data()) { return; }
+            if (_widgets.empty()) {
+                // TODO: render placeholder page content
+            } else {
+                const usize start = (_widgets.size() > available) ? kf::min(static_cast<usize>(_cursor), _widgets.size() - available) : 0;
+                const usize end = kf::min(start + available, _widgets.size());
 
-            const usize available = render.widgetsAvailable();
-            const usize start = (_widgets.size() > available) ? kf::min(static_cast<usize>(_cursor), _widgets.size() - available) : 0;
-            const usize end = kf::min(start + available, _widgets.size());
+                for (auto i = start; i < end; i += 1) {
+                    auto widget = _widgets[i];
 
-            for (auto i = start; i < end; i += 1) {
-                auto widget = _widgets[i];
-
-                if (nullptr == widget) { continue; }
-
-                widget->render(render, i, (i == _cursor));
+                    if (nullptr == widget) {
+                        // TODO: render placeholder widget
+                    } else {
+                        widget->render(render, i, (i == _cursor));
+                    }
+                }
             }
+
+            render.endPage();
         }
 
         /// @brief Add event to processing queue.
