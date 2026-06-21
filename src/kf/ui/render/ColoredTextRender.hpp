@@ -6,7 +6,6 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
-#include "kf/ui/Style.hpp"
 #include "kf/ui/render/PlainTextRender.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -156,10 +155,8 @@ private:
         _wrapped.title(title);
     }
 
-    void beginWidgetImpl(usize index, bool is_focused, const Style &style) noexcept {
+    void beginWidgetImpl(usize index, bool is_focused) noexcept {
         _focus_active = is_focused;
-        this->foreground(style.foreground_color);
-        this->background(style.background_color);
     }
 
     void endWidgetImpl() noexcept {

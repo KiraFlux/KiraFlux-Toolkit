@@ -14,7 +14,6 @@
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Placement.hpp"
-#include "kf/ui/Style.hpp"
 #include "kf/ui/render/Render.hpp"
 
 namespace kf::internal {
@@ -150,7 +149,7 @@ private:
         writeChar('\n');
     }
 
-    void beginWidgetImpl(usize, bool is_focused, const Style &) noexcept {
+    void beginWidgetImpl(usize, bool is_focused) noexcept {
         if (is_focused) {
             writeString("* ");
         }
