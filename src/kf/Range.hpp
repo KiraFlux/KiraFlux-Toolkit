@@ -13,11 +13,16 @@ namespace kf {
 /// @note The range is valid when `start <= end`. Invalid ranges fail validation.
 template<typename T> struct Range final : Validatable<Range<T>> {
 
-    T start;///< Lower bound (inclusive).
-    T end;  ///< Upper bound (inclusive).
+    T start;///< Lower bound (inclusive)
+    T end;  ///< Upper bound (inclusive)
 
-    /// @brief Constrains a value to the interval [start, end].
-    /// @param value The value to clamp.
+    /// @brief Get interval length
+    [[nodiscard]] constexpr T length() const noexcept {
+        return end - start;
+    }
+
+    /// @brief Constrains a value to the interval [start, end]
+    /// @param value The value to clamp
     [[nodiscard]] constexpr T clamped(T value) const noexcept {
         return clamp(value, start, end);
     }
