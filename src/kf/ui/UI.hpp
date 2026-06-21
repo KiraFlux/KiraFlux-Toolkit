@@ -138,7 +138,8 @@ public:
     struct Page : mixin::NonCopyable, mixin::Labeled {
         friend struct PageSetter;
 
-        explicit constexpr Page(UI &ui, memory::StringView label) noexcept : mixin::Labeled::Labeled{label}, _ui{ui} {}
+        explicit constexpr Page(UI &ui, Layout layout = Layout::Vertical) noexcept :
+            _ui{ui}, _layout{layout} {}
 
         /// @brief Page behavior on entry
         virtual void onEntry() noexcept {}
@@ -148,6 +149,11 @@ public:
 
         /// @brief Page behavior on UI polling
         virtual void onPoll(math::Milliseconds now) noexcept {}
+
+        /// @brief Get page layout
+        [[nodiscard]] constexpr Layout layout() noexcept {
+            return _layout;
+        }
 
         /// @brief Get Mutable access to 'go to this page' Widget
         [[nodiscard]] constexpr Widget &link() noexcept {
@@ -168,7 +174,7 @@ public:
         /// @param render Renderer instance.
         /// @note Handles cursor positioning and widget focus.
         void render(typename Traits::RenderImpl &render) noexcept {
-            const usize available = render.beginPage(this->label(), Layout::Vertical);
+            const usize available = render.beginPage(this->label(), _layout);
 
             if (_widgets.empty()) {
                 // TODO: render placeholder page content
@@ -221,6 +227,11 @@ public:
         }
 
     protected:
+        /// @brief Set page layout
+        void layout(Layout new_layout) noexcept {
+            _layout = new_layout;
+        }
+
         /// @brief Set widgets on page
         void widgets(Slice<Widget *> new_widgets) noexcept {
             _widgets = new_widgets;
@@ -238,6 +249,7 @@ public:
         PageSetter _to_this{*this};///< Navigation widget to this page
         Slice<Widget *> _widgets{};///< Widgets on this page
         isize _cursor{0};          ///< Current widget cursor position (focused widget index)
+        Layout _layout;            ///< Current layout
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
