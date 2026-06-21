@@ -21,6 +21,9 @@ template<typename U, typename T> struct Display :
 {
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
+    constexpr Display() noexcept :
+        U::Widget{Style::defaults()}, _value{} {}
+
     explicit constexpr Display(const T &value, Style style = Style::defaults()) noexcept :
         U::Widget{style}, _value{value} {}
 
