@@ -134,7 +134,14 @@ struct MainPage : MyUI::Page {
     MyUI::Labeled labeled_background_color_combo{"BG", background_color_combo};
     MyUI::Labeled labeled_check_box{"Check Box", check_box};
 
-    kf::memory::Array<MyUI::Widget *, 7> widgets_storage{
+    using Display = MyUI::Display<kf::u8>;
+
+    static constexpr auto regular_widgets{7}, array_widgets{20};
+
+    // Many widgets for scroll check
+    kf::memory::Array<Display, array_widgets> displays{};
+
+    kf::memory::Array<MyUI::Widget *, (regular_widgets + array_widgets)> widgets_storage{
         {
             nullptr,// link widget will be init in setup()
             &click_button,
@@ -148,6 +155,14 @@ struct MainPage : MyUI::Page {
 
     explicit MainPage() : Page{my_ui, "Main"} {
         widgets({widgets_storage.data(), widgets_storage.size()});
+
+        for (auto i = 0u; i < array_widgets; i += 1) {
+            auto &d = displays[i];
+            
+            widgets_storage[i + regular_widgets] = &d;
+            d.value(i);
+            d.background((i % 2 == 0) ? Color::Secondary : Color::Primary);
+        }        
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
