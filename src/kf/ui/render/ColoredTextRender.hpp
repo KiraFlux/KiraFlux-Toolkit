@@ -6,7 +6,6 @@
 #include "kf/mixin/Configurable.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Layout.hpp"
-#include "kf/ui/Placement.hpp"
 #include "kf/ui/render/PlainTextRender.hpp"
 #include "kf/ui/render/Render.hpp"
 
@@ -183,8 +182,8 @@ private:
         _wrapped.checkbox(enabled);
     }
 
-    template<typename T> void sliderImpl(const T &value, const Range<T> &range, Placement placement) noexcept {
-        _wrapped.slider(value, range, placement);
+    void sliderImpl(f32 fill) noexcept {
+        _wrapped.slider(fill);
     }
 
     // value

@@ -17,7 +17,6 @@
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Decoration.hpp"
 #include "kf/ui/Layout.hpp"
-#include "kf/ui/Placement.hpp"
 
 namespace kf::ui::render {
 
@@ -95,8 +94,9 @@ template<typename Impl> struct Render :
     }
 
     /// @brief Render slider
-    template<typename T> void slider(const T &v, const Range<T> &range, Placement placement) noexcept {
-        this->impl().sliderImpl(v, range, placement);
+    /// @brief fill slider fill value [0..1]
+    void slider(f32 fill) noexcept {
+        this->impl().sliderImpl(fill);
     }
 
     /// @brief Render value

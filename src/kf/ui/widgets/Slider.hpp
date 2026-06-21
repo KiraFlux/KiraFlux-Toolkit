@@ -6,19 +6,19 @@
 #include "kf/Range.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
+#include "kf/primitives.hpp"
 
-#include "kf/ui/Placement.hpp"
+#include "kf/ui/Decoration.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::internal {
 
 template<typename T> struct SliderConfig final {
-    Range<T> value_range;   ///< value range (slider value will clamped at this value)
-    T default_value;        ///< slider value by default
-    T step;                 ///< slider value adjust step
-    ui::Placement placement;///< placement of slider value
-    bool init_show_value;   ///< show value by default
+    Range<T> value_range;///< value range (slider value will clamped at this value)
+    T default_value;     ///< slider value by default
+    T step;              ///< slider value adjust step
+    bool init_show_value;///< show value by default
 };
 
 }// namespace kf::internal
@@ -60,8 +60,12 @@ template<typename U, typename T> struct Slider :
     }
 
     void doRender(typename U::RenderImpl &render) const noexcept override {
-        const auto placement = _show_value ? this->config().placement : Placement::Hidden;
-        render.slider(this->value(), this->config().value_range, placement);
+        if (_show_value) {
+            render.value(this->value());
+            render.decoration(Decoration::Space);
+        }
+
+        render.slider(static_cast<kf::f32>(this->value()) / this->config().value_range.length());
     }
 
 private:

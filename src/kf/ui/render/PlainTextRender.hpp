@@ -14,7 +14,6 @@
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Layout.hpp"
-#include "kf/ui/Placement.hpp"
 #include "kf/ui/render/Render.hpp"
 
 namespace kf::internal {
@@ -168,12 +167,17 @@ private:
 
     void decorationImpl(Decoration decoration) noexcept {
         switch (decoration) {
+            case Decoration::Space:
+                writeChar(' ');
+                return;
+
             case Decoration::Arrow:
                 writeString("-> ");
                 return;
 
             case Decoration::Colon:
                 writeString(": ");
+                return;
 
             default:
                 break;
@@ -185,25 +189,20 @@ private:
         writeString(enabled ? on : off);
     }
 
-    template<typename T> void sliderImpl(const T &slider_value, const Range<T> &range, Placement placement) noexcept {
-        // Plain text does not support only 'show inside' placement yet
-        if (Placement::Hidden != placement) {
-            this->value(slider_value);
-            writeChar(' ');
-        }
-
-        writeChar('[');
+    void sliderImpl(f32 fill) noexcept {
         const usize start_col = _cursor.col;
         const usize inner_width = this->config().row_max_length - start_col - 1;// -1 for closing char
-        const usize fill = (slider_value - range.start) * inner_width / (range.end - range.start);
+        const usize fill_chars = fill * inner_width;
 
-        for (usize i = 0; i < fill; i += 1) {
+        writeChar('[');
+
+        for (auto i = 0; i < fill_chars; i += 1) {
             writeChar('=');
         }
 
         writeChar('@');
 
-        for (usize i = _cursor.col - start_col; i < inner_width; i += 1) {
+        for (auto i = _cursor.col - start_col; i < inner_width; i += 1) {
             writeChar('-');
         }
 
