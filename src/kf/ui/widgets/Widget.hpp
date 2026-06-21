@@ -8,7 +8,6 @@
 #include "kf/mixin/Styled.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/ui/Color.hpp"
 #include "kf/ui/Event.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/render/Render.hpp"
