@@ -1,6 +1,54 @@
 # Changelog
 
-All notable changes to the KiraFlux Toolkit from version 0.0.0 to 0.3.3 are documented in this file.
+All notable changes to the KiraFlux Toolkit from version 0.0.0 to 0.3.4 are documented in this file.
+
+## [0.3.4] - 2026-06-22
+
+### Breaking Changes
+
+- **Renamed `Render` to `Renderer`** – all renderer classes, types, and variables have been renamed. Custom renderers must update their inheritance and usage.
+- **Renderer constructor changed** – the template parameter `N` is removed; renderers now accept a `Slice<char>` buffer in their constructor. Custom renderers must be updated accordingly.
+- **Initable mixin generalized** – the `Initable` mixin now uses a function signature (e.g., `bool()`) instead of just a return type. This allows `init()` to accept arguments. All classes using `Initable` must update the template parameter (e.g., `Initable<Impl, bool()>` instead of `Initable<Impl, bool>`).
+- **UI event system**: `Event::update()` has been removed; use `UI::requestRender()` to trigger redraws.
+- **Placement removed** – `kf::ui::Placement` is gone. Slider no longer uses it; the display of the value is now toggled via click.
+- **Layout added** – `kf::ui::Layout` enum introduced for page layout hints. Pages now have a `layout` property.
+- **`beginWidget()` signature changed** – the `Style` parameter is removed; set colors separately via `foreground()`/`background()`.
+- **ComboBox callback argument changed** – callback now receives `ComboBoxItem<T>` instead of just `T`, giving access to both label and value.
+
+### Added
+
+- `KF_TRY` macro for error propagation from `Result`.
+- `Range::length()` method.
+- `Array::slice()` method.
+- `Decoration::Space` for horizontal spacing.
+- `Page::layout()`, `Page::cursor()` setters, and `WidgetsView` alias.
+- `UI::requestRender()` to request a redraw.
+- `Layout` enum with `Vertical`, `Horizontal`, and grid layouts.
+- `ComboBox` callback now provides item with label and value.
+- Default constructor for `Display` widget.
+- Default parameter for `mixin::Labeled` constructor.
+
+### Changed
+
+- Renamed internal `OkWrapper`/`ErrorWrapper` to `ResultValueWrapper`/`ResultErrorWrapper`.
+- `PlainTextRender` and `ColoredTextRender` renamed to `PlainTextRenderer` and `ColoredTextRenderer`.
+- Slider rendering simplified; value visibility toggles on click.
+- Examples updated to use new API.
+
+### Fixed
+
+- `UI::Page::onEvent` now correctly uses `empty()` check.
+- `Result` KF_TRY macro now supports void result.
+- `Initable` mixin now properly derived from tag struct.
+- Minor fixes in examples.
+
+### Removed
+
+- `Placement` enum.
+- `Event::update()`.
+- Template parameter `N` from renderer classes.
+
+[0.3.4]: https://github.com/KiraFlux/KiraFlux-Toolkit/releases/tag/v0.3.4
 
 ## [0.3.3] - 2026-06-14
 
