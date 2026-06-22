@@ -14,7 +14,7 @@ struct InitableTag {};
 /// @tparam Signature  Function signature `R(Args...)` - return type and arguments
 template<typename Impl, typename Signature> struct Initable;
 
-template<typename Impl, typename... Args> struct Initable<Impl, void(Args...)> {
+template<typename Impl, typename... Args> struct Initable<Impl, void(Args...)> : InitableTag {
 
     /// @brief Initializes the object with given arguments
     /// @param args Arguments forwarded to `initImpl`
@@ -23,7 +23,7 @@ template<typename Impl, typename... Args> struct Initable<Impl, void(Args...)> {
     }
 };
 
-template<typename Impl, typename R, typename... Args> struct Initable<Impl, R(Args...)> {
+template<typename Impl, typename R, typename... Args> struct Initable<Impl, R(Args...)> : InitableTag {
 
     /// @brief Initializes the object with given arguments
     /// @param args Arguments forwarded to `initImpl`
