@@ -48,11 +48,11 @@ struct EspNowError final : mixin::StringRepresentable<EspNowError, memory::Strin
         TooBigMessage,                                      ///< Message size exceeds ESP_NOW_MAX_DATA_LEN
     } kind;
 
-    [[nodiscard]] static constexpr auto create(Kind kind) noexcept -> ErrorWrapper<EspNowError> {
+    [[nodiscard]] static constexpr auto create(Kind kind) noexcept -> ResultErrorWrapper<EspNowError> {
         return error(EspNowError{.kind = kind});
     }
 
-    [[nodiscard]] static constexpr auto fromEspErr(esp_err_t e) noexcept -> ErrorWrapper<EspNowError> {
+    [[nodiscard]] static constexpr auto fromEspErr(esp_err_t e) noexcept -> ResultErrorWrapper<EspNowError> {
         return create((ESP_ERR_ESPNOW_BASE <= e and e <= ESP_ERR_ESPNOW_IF) ? UnknownError : static_cast<Kind>(e - ESP_ERR_ESPNOW_BASE));
     }
 

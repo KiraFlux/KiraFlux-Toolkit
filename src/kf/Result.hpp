@@ -37,7 +37,7 @@ template<typename T> struct OkWrapper {
 template<> struct OkWrapper<void> {};
 
 /// @brief Internal wrapper for an error value (used with kf::error)
-template<typename E> struct ErrorWrapper {
+template<typename E> struct ResultErrorWrapper {
     E value;
 };
 
@@ -64,9 +64,9 @@ template<typename T, typename E> struct Result final :
     constexpr Result(internal::OkWrapper<T> ok) noexcept :
         _is_ok{true}, _ok{std::move(ok.value)} {}
 
-    /// @brief Construct from ErrorWrapper
+    /// @brief Construct from ResultErrorWrapper
     /// @see kf::error(E)
-    constexpr Result(internal::ErrorWrapper<E> error) noexcept :
+    constexpr Result(internal::ResultErrorWrapper<E> error) noexcept :
         _is_ok{false}, _error{std::move(error.value)} {}
 
     ~Result() noexcept {
@@ -110,7 +110,7 @@ template<typename T, typename E> struct Result final :
                 return {internal::OkWrapper<decltype(f(std::declval<T>()))>{f(_ok)}};
             }
         } else {
-            return {internal::ErrorWrapper<E>{_error}};
+            return {internal::ResultErrorWrapper<E>{_error}};
         }
     }
 
@@ -123,7 +123,7 @@ template<typename T, typename E> struct Result final :
         if (_is_ok) {
             return {internal::OkWrapper<T>{_ok}};
         } else {
-            return {internal::ErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
+            return {internal::ResultErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
         }
     }
 
@@ -160,9 +160,9 @@ template<typename E> struct Result<void, E> final :
     constexpr Result(internal::OkWrapper<void>) noexcept :
         _is_error{false} {}
 
-    /// @brief Construct from ErrorWrapper
+    /// @brief Construct from ResultErrorWrapper
     /// @see kf::error(E)
-    constexpr Result(internal::ErrorWrapper<E> error) noexcept :
+    constexpr Result(internal::ResultErrorWrapper<E> error) noexcept :
         _is_error{true}, _error{std::move(error.value)} {}
 
     ~Result() noexcept {
@@ -183,7 +183,7 @@ template<typename E> struct Result<void, E> final :
     ///         otherwise the original success value.
     template<typename F> [[nodiscard]] auto mapError(F &&f) const noexcept -> Result<void, decltype(f(std::declval<E>()))> {
         if (_is_error) {
-            return {internal::ErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
+            return {internal::ResultErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
         } else {
             return {internal::OkWrapper<void>{}};
         }
@@ -221,8 +221,8 @@ constexpr auto ok() noexcept -> internal::OkWrapper<void> {
 /// @brief Create an error Result
 /// @tparam E Type of the error (auto‑deduced)
 /// @param error The error value
-/// @return internal::ErrorWrapper<E> for implicit conversion to Result<T, E>
-template<typename E> constexpr auto error(E &&error) noexcept -> internal::ErrorWrapper<std::decay_t<E>> {
+/// @return internal::ResultErrorWrapper<E> for implicit conversion to Result<T, E>
+template<typename E> constexpr auto error(E &&error) noexcept -> internal::ResultErrorWrapper<std::decay_t<E>> {
     return {std::forward<E>(error)};
 }
 
