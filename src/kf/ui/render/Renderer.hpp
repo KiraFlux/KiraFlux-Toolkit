@@ -25,7 +25,7 @@ struct RenderTag {};
 /// @brief CRTP base class for UI rendering systems
 /// @tparam Impl Concrete renderer implementation type
 /// @note Delegates all rendering operations to derived class implementation
-template<typename Impl> struct Render :
+template<typename Impl> struct Renderer :
 
     RenderTag,
     meta::CRTP<Impl>,

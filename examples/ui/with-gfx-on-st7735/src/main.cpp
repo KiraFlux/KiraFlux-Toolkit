@@ -14,7 +14,7 @@
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
-#include <kf/ui/render/ColoredTextRender.hpp>
+#include <kf/ui/render/ColoredTextRenderer.hpp>
 #include <kf/ui/widgets/Widget.hpp>
 
 using kf::bus::spi::ArduinoSPI;
@@ -34,8 +34,8 @@ using MyUI = kf::ui::UI<
         // Base widget class
         kf::ui::widgets::Widget<
 
-            // Render implementation: plain text
-            kf::ui::render::ColoredTextRender,
+            // Renderer implementation: plain text
+            kf::ui::render::ColoredTextRenderer,
             // Event type: 4-bit value
             kf::ui::Event<4>
             //
@@ -47,21 +47,21 @@ using MyUI = kf::ui::UI<
 
 // shortcusts
 using Event = MyUI::Traits::EventImpl;
-using Render = MyUI::Traits::RenderImpl;
+using Render = MyUI::Traits::RendererImpl;
 using Color = kf::ui::Color;
 using Style = kf::ui::Style;
 
-static kf::memory::Array<char, 256> my_render_buffer{};
+static kf::memory::Array<char, 256> my_renderer_buffer{};
 
-static Render::Config my_render_config{Render::Config::defaults()};// will set in setup
+static Render::Config my_renderer_config{Render::Config::defaults()};// will set in setup
 
-static Render my_render{
-    my_render_config,// by ref
-    my_render_buffer.slice(),
+static Render my_renderer{
+    my_renderer_config,// by ref
+    my_renderer_buffer.slice(),
 };
 
 static MyUI my_ui{
-    my_render,// by ref
+    my_renderer,// by ref
 };
 
 // User-defined example pages
@@ -364,7 +364,7 @@ void setup() {
     };
 
     // post-render procedure
-    my_render.callback([](kf::memory::StringView text) {
+    my_renderer.callback([](kf::memory::StringView text) {
         root_canvas.fill();
         root_canvas.text(0, 0, text);
 
@@ -382,12 +382,12 @@ void setup() {
     });
 
     // render config setup
-    my_render_config.text.float_places = 3;                         // float rendering like:  1234.567
-    my_render_config.text.double_places = 6;                        // double rendering like: 1.234567
-    my_render_config.text.rows_total = root_canvas.heightInGlyphs();// all canvas area
-    my_render_config.text.row_max_length = root_canvas.widthInGlyphs();
+    my_renderer_config.text.float_places = 3;                         // float rendering like:  1234.567
+    my_renderer_config.text.double_places = 6;                        // double rendering like: 1.234567
+    my_renderer_config.text.rows_total = root_canvas.heightInGlyphs();// all canvas area
+    my_renderer_config.text.row_max_length = root_canvas.widthInGlyphs();
 
-    // my_render_config.normal_foreground_palette.normal = Render::Config::Palette::Black; // style configutation
+    // my_render_config.normal_foreground_palette.normal = Renderer::Config::Palette::Black; // style configutation
     // my_render_config.focused_foreground_palette
     // my_render_config.normal_background_palette
     // my_render_config.focused_background_palette

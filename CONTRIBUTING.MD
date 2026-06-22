@@ -68,7 +68,7 @@ Thank you for your interest in contributing! This document provides comprehensiv
 - Functions, variables, fields – `camelCase`.
 - Private fields – leading underscore (`_field`).
 - Constants and macros – `UPPER_SNAKE_CASE`.
-- **Type aliases for concrete implementations** – suffix `Impl` (e.g., `NodeImpl`, `PinImpl`, `RenderImpl`, `PixelImpl`).
+- **Type aliases for concrete implementations** – suffix `Impl` (e.g., `NodeImpl`, `PinImpl`, `RendererImpl`, `PixelImpl`).
 - **Tag structs for CRTP interfaces** – suffix `Tag` (e.g., `GpioTag`, `SensorTag`).
 - **Configuration instances in examples** – suffix `_config` (e.g., `pwm_config`, `bus_config`).
 

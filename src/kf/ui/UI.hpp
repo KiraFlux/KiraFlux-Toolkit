@@ -17,7 +17,7 @@
 #include "kf/ui/Layout.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
-#include "kf/ui/render/Render.hpp"
+#include "kf/ui/render/Renderer.hpp"
 #include "kf/ui/widgets/Button.hpp"
 #include "kf/ui/widgets/CheckBox.hpp"
 #include "kf/ui/widgets/ComboBox.hpp"
@@ -85,7 +85,7 @@ template<typename U> struct UI :
 
     struct Page;// forward declaration
 
-    explicit constexpr UI(typename Traits::RenderImpl &render_system) noexcept : _render_system{render_system} {}
+    explicit constexpr UI(typename Traits::RendererImpl &renderer) noexcept : _renderer{renderer} {}
 
     /// @brief Set active page
     /// @param page Page to make active (must remain valid)
@@ -99,7 +99,7 @@ template<typename U> struct UI :
 
     /// @brief Requests a UI redraw on the next poll cycle
     void requestRender() noexcept {
-        _render_system.requestRender();
+        _renderer.requestRender();
     }
 
     /// @brief Get readobly access to active page
@@ -126,7 +126,7 @@ private:
             return true;// redraw always required after page change
         }
 
-        void doRender(typename Traits::RenderImpl &render) const noexcept override {
+        void doRender(typename Traits::RendererImpl &render) const noexcept override {
             render.decoration(Decoration::Arrow);
             render.value(_target.label());
         }
@@ -177,7 +177,7 @@ public:
         /// @brief Render page content to display.
         /// @param render Renderer instance.
         /// @note Handles cursor positioning and widget focus.
-        void render(typename Traits::RenderImpl &render) noexcept {
+        void render(typename Traits::RendererImpl &render) noexcept {
             const usize available = render.beginPage(this->label(), _layout);
 
             if (_widgets.empty()) {
@@ -271,7 +271,7 @@ public:
 
 private:
     memory::Queue<typename Traits::EventImpl> _events{};///< Event queue for pending UI events
-    typename Traits::RenderImpl &_render_system;        ///< Renderer system implementation
+    typename Traits::RendererImpl &_renderer;        ///< Renderer system implementation
     Option<Page &> _active_page{none};                  ///< Currently active page for rendering
 
     using This = UI<U>;
@@ -295,10 +295,10 @@ private:
             }
         }
 
-        if (_render_system.renderRequested()) {
-            _render_system.beginFrame();
-            _active_page.unwrap().render(_render_system);
-            _render_system.endFrame();
+        if (_renderer.renderRequested()) {
+            _renderer.beginFrame();
+            _active_page.unwrap().render(_renderer);
+            _renderer.endFrame();
         }
     }
 };

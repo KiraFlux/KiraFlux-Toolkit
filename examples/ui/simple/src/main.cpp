@@ -4,19 +4,19 @@
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
-#include <kf/ui/render/PlainTextRender.hpp>
+#include <kf/ui/render/PlainTextRenderer.hpp>
 #include <kf/ui/widgets/Widget.hpp>
 
 using MyEvent = kf::ui::Event<4>;// Event type: 4-bit value
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                       // Traits Implementation
-        kf::ui::widgets::Widget<            // Base widget class
-            kf::ui::render::PlainTextRender,// Render implementation: plain text
+    kf::ui::UiTraits<                         // Traits Implementation
+        kf::ui::widgets::Widget<              // Base widget class
+            kf::ui::render::PlainTextRenderer,// Renderer implementation: plain text
             MyEvent>>>;
 
-static MyUI::Traits::RenderImpl::Config my_render_config{
+static MyUI::Traits::RendererImpl::Config my_renderer_config{
     .row_max_length = 50,// console width = 50 chars
     .rows_total = 5,     // only 5 rows available (for scrolling)
     .float_places = 3,   // float rendering like:  1234.567
@@ -24,15 +24,15 @@ static MyUI::Traits::RenderImpl::Config my_render_config{
     .title_centered = false,
 };
 
-static kf::memory::Array<char, 256> my_render_buffer{};
+static kf::memory::Array<char, 256> my_renderer_buffer{};
 
-static MyUI::Traits::RenderImpl my_render{
-    my_render_config,// by ref
-    my_render_buffer.slice(),
+static MyUI::Traits::RendererImpl my_renderer{
+    my_renderer_config,// by ref
+    my_renderer_buffer.slice(),
 };
 
 static MyUI my_ui{
-    my_render,// by ref
+    my_renderer,// by ref
 };
 
 // User-defined example pages
@@ -214,7 +214,7 @@ void setup() {
     Serial.begin(115200);
 
     // post-render procedure
-    my_render.callback([](kf::memory::StringView text) {
+    my_renderer.callback([](kf::memory::StringView text) {
         Serial.println("---");
 
         const auto &active_page = my_ui.activePage();

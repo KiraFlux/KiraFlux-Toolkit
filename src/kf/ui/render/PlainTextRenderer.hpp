@@ -15,7 +15,7 @@
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Layout.hpp"
-#include "kf/ui/render/Render.hpp"
+#include "kf/ui/render/Renderer.hpp"
 
 namespace kf::internal {
 
@@ -40,7 +40,7 @@ struct PlainTextRenderConfig final {
 };
 
 /// @brief Cursor state for tracking rendering position
-struct PlainTextRenderCursor {
+struct PlainTextRendererCursor {
     Glyph row{0}, col{0};///< Current position
 
     /// @brief Reset cursor to beginning
@@ -73,10 +73,10 @@ namespace kf::ui::render {
 
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
-/// @note Implements Render CRTP interface for character-based display
-struct PlainTextRender :
+/// @note Implements Renderer CRTP interface for character-based display
+struct PlainTextRenderer :
 
-    Render<PlainTextRender>,
+    Renderer<PlainTextRenderer>,
     mixin::Callbacked<memory::StringView>,
     mixin::Configurable<internal::PlainTextRenderConfig>
 
@@ -84,7 +84,7 @@ struct PlainTextRender :
     /// @brief Text renderer configuration
     using Config = internal::PlainTextRenderConfig;
 
-    explicit constexpr PlainTextRender(const Config &config, Slice<char> source) noexcept :
+    explicit constexpr PlainTextRenderer(const Config &config, Slice<char> source) noexcept :
         mixin::Configurable<Config>::Configurable{config}, _buffer{source} {}
 
     /// @brief Helper to write character with cursor tracking
@@ -122,10 +122,10 @@ struct PlainTextRender :
 private:
     Slice<char> _buffer;
     usize _written{0};
-    internal::PlainTextRenderCursor _cursor{};
+    internal::PlainTextRendererCursor _cursor{};
     Layout _layout{Layout::Vertical};
 
-    KF_IMPL(Render<PlainTextRender>);
+    KF_IMPL(Renderer<PlainTextRenderer>);
 
     void beginFrameImpl() noexcept {
         _written = 0;

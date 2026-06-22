@@ -59,7 +59,7 @@ template<typename U, typename T> struct Slider :
         return true;// redraw required after adjustment
     }
 
-    void doRender(typename U::RenderImpl &render) const noexcept override {
+    void doRender(typename U::RendererImpl &render) const noexcept override {
         if (_show_value) {
             render.value(this->value());
             render.decoration(Decoration::Space);

@@ -104,7 +104,7 @@ template<typename U, typename T> struct ComboBox :
         return true;// redraw required after selection change
     }
 
-    void doRender(typename U::RenderImpl &render) const noexcept override {
+    void doRender(typename U::RendererImpl &render) const noexcept override {
         const auto &item = this->config().items[_cursor];
 
         render.beginBlock(Block::Alternative);

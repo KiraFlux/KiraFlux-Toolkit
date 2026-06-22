@@ -8,13 +8,13 @@
 
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Layout.hpp"
-#include "kf/ui/render/PlainTextRender.hpp"
-#include "kf/ui/render/Render.hpp"
+#include "kf/ui/render/PlainTextRenderer.hpp"
+#include "kf/ui/render/Renderer.hpp"
 
 namespace kf::internal {
 
-struct ColoredTextRenderConfig final {
-    using TextConfig = ui::render::PlainTextRender::Config;
+struct ColoredTextRendererConfig final {
+    using TextConfig = ui::render::PlainTextRenderer::Config;
 
     struct Palette final {
 
@@ -49,7 +49,7 @@ struct ColoredTextRenderConfig final {
     Palette normal_foreground_palette, focused_foreground_palette, normal_background_palette, focused_background_palette;
 
     [[nodiscard]] static constexpr auto defaults() noexcept {
-        return ColoredTextRenderConfig{
+        return ColoredTextRendererConfig{
             .text = TextConfig::defaults(),
             .normal_foreground_palette = {
                 .normal = Palette::White,
@@ -103,16 +103,16 @@ struct ColoredTextRenderConfig final {
 
 namespace kf::ui::render {
 
-struct ColoredTextRender :
+struct ColoredTextRenderer :
 
-    Render<ColoredTextRender>,
-    mixin::Configurable<internal::ColoredTextRenderConfig>
+    Renderer<ColoredTextRenderer>,
+    mixin::Configurable<internal::ColoredTextRendererConfig>
 
 {
-    using Wrapped = PlainTextRender;
-    using Config = internal::ColoredTextRenderConfig;
+    using Wrapped = PlainTextRenderer;
+    using Config = internal::ColoredTextRendererConfig;
 
-    explicit constexpr ColoredTextRender(const Config &config, Slice<char> source) noexcept :
+    explicit constexpr ColoredTextRenderer(const Config &config, Slice<char> source) noexcept :
         mixin::Configurable<Config>{config}, _wrapped{config.text, source} {}
 
     template<typename F> void callback(F &&callback) noexcept {
@@ -135,7 +135,7 @@ private:
         writeColor(color, '\xB0', palette);
     }
 
-    KF_IMPL(Render<ColoredTextRender>);
+    KF_IMPL(Renderer<ColoredTextRenderer>);
 
     // control
 

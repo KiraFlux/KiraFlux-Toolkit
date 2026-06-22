@@ -9,8 +9,8 @@ All notable changes to the KiraFlux Toolkit from version 0.0.0 to 0.3.3 are docu
 - [kf::ui::UiTraits](src/kf/ui/UiTraits.hpp) - now takes a single `Widget` template parameter instead of separate `Render` and `Event` types. The widget base class has been moved to [kf::ui::widgets::Widget<Render, Event>](src/kf/ui/widgets/Widget.hpp). All UI code must be updated accordingly.
 - [UI::bindPage()](src/kf/ui/UI.hpp) renamed to `activePage()` - the method that sets the active page has been renamed.
 - [Page::onUpdate()](src/kf/ui/UI.hpp) renamed to `onPoll()` - the page polling method name changed for consistency with other mixins.
-- [Render::beginWidget()](src/kf/ui/render/Render.hpp) signature changed - now receives a `const Style&` instead of separate `foreground` and `background` colors. Custom renderers must update their `beginWidgetImpl()`.
-- Render decoration/block methods replaced - removed `arrow()`, `colon()`, `beginBlock()`, `endBlock()`, `beginAltBlock()`, `endAltBlock()`. Added `decoration(Decoration)` and `beginBlock(Block)` / `endBlock(Block)` ([kf::ui::render::Render](src/kf/ui/render/Render.hpp)).
+- [Render::beginWidget()](src/kf/ui/render/Renderer.hpp) signature changed - now receives a `const Style&` instead of separate `foreground` and `background` colors. Custom renderers must update their `beginWidgetImpl()`.
+- Render decoration/block methods replaced - removed `arrow()`, `colon()`, `beginBlock()`, `endBlock()`, `beginAltBlock()`, `endAltBlock()`. Added `decoration(Decoration)` and `beginBlock(Block)` / `endBlock(Block)` ([kf::ui::render::Render](src/kf/ui/render/Renderer.hpp)).
 - [kf::gfx::Palette](src/kf/gfx/Palette.hpp) colour names renamed:
   - `red` -> `dark_red`
   - `green` -> `dark_green`
@@ -166,7 +166,7 @@ All notable changes to the KiraFlux Toolkit from version 0.0.0 to 0.3.3 are docu
 - **`kf/gpio/arduino.hpp`** (use `ArduinoGPIO.hpp`).
 - **Default constructors of `Canvas` and `DynamicImage`**.
 - **`kf/ui/StepMode.hpp`, `StepAdjuster.hpp`, `ValueAdjuster.hpp`** (integrated into `Adjuster` hierarchy).
-- **`kf/ui/TextBufferRender.hpp`** (renamed to `PlainTextRender.hpp`).
+- **`kf/ui/TextBufferRenderer.hpp`** (renamed to `PlainTextRenderer.hpp`).
 - **Old timer classes** - `kf/math/time/Chronometer.hpp`, `TimeoutManager.hpp`, `Timer.hpp` (replaced by single `kf::math::Timer`).
 - **`kf/Tuner.hpp`** (replaced by `kf/tuner/Tuner.hpp` and `SampleCollectingTuner.hpp`).
 - **`kf/input/AnalogAxis.hpp`** (superseded by `NormalizedAdcInput`).
@@ -326,7 +326,7 @@ All notable changes to the KiraFlux Toolkit from version 0.0.0 to 0.3.3 are docu
 - **`kf/core/bit_traits.hpp`** - moved to `meta/BitTraits.hpp`.
 - **`kf/core/function_traits.hpp`** - moved to `meta/FunctionTraits.hpp`.
 - **`kf/gfx.hpp`** - file‑includer removed; include specific headers directly.
-- **`kf/ui/TextBufferRender.hpp`** - renamed to `PlainTextRender.hpp`.
+- **`kf/ui/TextBufferRenderer.hpp`** - renamed to `PlainTextRenderer.hpp`.
 - **`kf/ui/detail/`** - internal details moved into widget‑specific files.
 - **`kf/ui/StepMode.hpp`** - replaced by `Adjuster` mechanism.
 - **`kf/ui/StepAdjuster.hpp` / `ValueAdjuster.hpp`** - integrated into `Adjuster` hierarchy.
@@ -342,7 +342,7 @@ All notable changes to the KiraFlux Toolkit from version 0.0.0 to 0.3.3 are docu
 - **`Logger`** - removed unused timestamp; now safe to call without `millis()` ([`kf/Logger.hpp`](src/kf/Logger.hpp)).
 - **`Validator`** - macro `KF_VALIDATOR_CHECK` logs correctly and increments error counter ([`kf/validation.hpp`](src/kf/validation.hpp)).
 - **`kf::ui::Event`** - sign‑extension for negative values now works ([`kf/ui/Event.hpp`](src/kf/ui/Event.hpp)).
-- **`kf::ui::PlainTextRender`** - title centering, newline handling, and slider value placement fixed ([`kf/ui/render/PlainTextRender.hpp`](src/kf/ui/render/PlainTextRender.hpp)).
+- **`kf::ui::PlainTextRender`** - title centering, newline handling, and slider value placement fixed ([`kf/ui/render/PlainTextRenderer.hpp`](src/kf/ui/render/PlainTextRenderer.hpp)).
 - **`kf::gpio::arduino::DigitalInput`** - inversion logic corrected ([`kf/gpio/arduino.hpp`](src/kf/gpio/arduino.hpp)).
 - **`kf::tuner::SampleCollectingTuner`** - state machine transition fixed ([`kf/tuner/SampleCollectingTuner.hpp`](src/kf/tuner/SampleCollectingTuner.hpp)).
 - **`kf::memory::Storage`** - load/save/erase now return correct success status ([`kf/memory/Storage.hpp`](src/kf/memory/Storage.hpp)).
