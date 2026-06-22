@@ -3,27 +3,33 @@
 
 #pragma once
 
+#include <utility>
+
 namespace kf::mixin {
 
 struct InitableTag {};
 
-/// @brief CRTP mixin initialisation.
-/// @tparam Impl The derived class that must implement `initImpl()`.
-/// @tparam T   Return type of the initialization (void or some Result/error type).
-template<typename Impl, typename T> struct Initable : InitableTag {
+/// @brief CRTP mixin that adds an `init(Args...)` method forwarding to `initImpl(Args...)`
+/// @tparam Impl       Implementation class (must implement `initImpl(Args...)`)
+/// @tparam Signature  Function signature `R(Args...)` - return type and arguments
+template<typename Impl, typename Signature> struct Initable;
 
-    /// @tparam T   Return type of the initialization (void or some Result/error type).
-    [[nodiscard]] T init() noexcept {
-        return static_cast<Impl *>(this)->initImpl();
+template<typename Impl, typename... Args> struct Initable<Impl, void(Args...)> {
+
+    /// @brief Initializes the object with given arguments
+    /// @param args Arguments forwarded to `initImpl`
+    void init(Args... args) noexcept {
+        static_cast<Impl *>(this)->initImpl(std::forward<Args>(args)...);
     }
 };
 
-/// @brief Void specialisation.
-template<typename Impl> struct Initable<Impl, void> : InitableTag {
+template<typename Impl, typename R, typename... Args> struct Initable<Impl, R(Args...)> {
 
-    /// @brief Initializes the object.
-    void init() noexcept {
-        static_cast<Impl *>(this)->initImpl();
+    /// @brief Initializes the object with given arguments
+    /// @param args Arguments forwarded to `initImpl`
+    /// @return Value returned by `initImpl`
+    [[nodiscard]] R init(Args... args) noexcept {
+        return static_cast<Impl *>(this)->initImpl(std::forward<Args>(args)...);
     }
 };
 
