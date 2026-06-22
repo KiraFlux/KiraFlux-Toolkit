@@ -38,7 +38,7 @@ template<typename U> struct CheckBox :
         return value_changed;
     }
 
-    void doRender(typename U::RenderImpl &render) const noexcept override {
+    void doRender(typename U::RendererImpl &render) const noexcept override {
         render.checkbox(this->value());
     }
 };

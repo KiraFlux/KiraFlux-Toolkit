@@ -40,7 +40,7 @@ template<typename W> struct UiTraits : UiTraitsTag {
     };
 
     /// @brief Render system implementation
-    using RenderImpl = typename Widget::RenderImpl;
+    using RendererImpl = typename Widget::RendererImpl;
 
     /// @brief Event type
     using EventImpl = typename Widget::EventImpl;

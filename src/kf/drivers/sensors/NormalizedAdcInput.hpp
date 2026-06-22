@@ -41,7 +41,7 @@ namespace kf::drivers::sensors {
 /// @tparam G Implementation of GPIO with ADC input support
 template<typename G> struct NormalizedAdcInput final :
 
-    Sensor<NormalizedAdcInput<G>, f32, void>,
+    Sensor<NormalizedAdcInput<G>, f32, void()>,
     mixin::Configurable<internal::NormalizedAdcInputConfig>
 
 {
@@ -108,10 +108,10 @@ private:
 
     using This = NormalizedAdcInput<G>;
 
-    KF_IMPL_INITABLE(This, void);
+    KF_IMPL_INITABLE(This, void());
     void initImpl() noexcept { _pin.init(); }
 
-    KF_IMPL(Sensor<This, f32, void>);
+    KF_IMPL(Sensor<This, f32, void()>);
     [[nodiscard]] f32 readImpl() noexcept {
         // Applies dead zone, filtering, and optional inversion
         const auto deviation = static_cast<Config::AdcSignedValue>(readRaw()) - this->config().range_negative;

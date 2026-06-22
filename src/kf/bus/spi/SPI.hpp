@@ -15,7 +15,9 @@ template<typename Impl, typename ErrorImpl> struct SpiNode :
 
     SpiNodeTag,
     BusNode<Impl, ErrorImpl>,
-    mixin::Initable<Impl, void> {};
+    mixin::Initable<Impl, void()>
+
+{};
 
 struct SpiBusTag {};
 

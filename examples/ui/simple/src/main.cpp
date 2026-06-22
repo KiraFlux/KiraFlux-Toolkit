@@ -1,21 +1,22 @@
 #include <Arduino.h>
 
+#include <kf/memory/Array.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
-#include <kf/ui/render/PlainTextRender.hpp>
+#include <kf/ui/render/PlainTextRenderer.hpp>
 #include <kf/ui/widgets/Widget.hpp>
 
 using MyEvent = kf::ui::Event<4>;// Event type: 4-bit value
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                            // Traits Implementation
-        kf::ui::widgets::Widget<                 // Base widget class
-            kf::ui::render::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes),
+    kf::ui::UiTraits<                         // Traits Implementation
+        kf::ui::widgets::Widget<              // Base widget class
+            kf::ui::render::PlainTextRenderer,// Renderer implementation: plain text
             MyEvent>>>;
 
-static MyUI::Traits::RenderImpl::Config my_render_config{
+static MyUI::Traits::RendererImpl::Config my_renderer_config{
     .row_max_length = 50,// console width = 50 chars
     .rows_total = 5,     // only 5 rows available (for scrolling)
     .float_places = 3,   // float rendering like:  1234.567
@@ -23,12 +24,15 @@ static MyUI::Traits::RenderImpl::Config my_render_config{
     .title_centered = false,
 };
 
-static MyUI::Traits::RenderImpl my_render{
-    my_render_config,// by ref
+static kf::memory::Array<char, 256> my_renderer_buffer{};
+
+static MyUI::Traits::RendererImpl my_renderer{
+    my_renderer_config,// by ref
+    my_renderer_buffer.slice(),
 };
 
 static MyUI my_ui{
-    my_render,// by ref
+    my_renderer,// by ref
 };
 
 // User-defined example pages
@@ -63,7 +67,6 @@ struct MainPage : MyUI::Page {
         },
         .default_value = 0,
         .step = 25,
-        .placement = kf::ui::Placement::Outside,
         .init_show_value = true,
     };
 
@@ -71,24 +74,23 @@ struct MainPage : MyUI::Page {
         slider_config,// by ref
     };
 
-    kf::memory::Array<MyUI::Widget *, 5> widgets_storage{
-        {
-            nullptr,// link widget will be init in setup()
-            &click_button,
-            &check_box,
-            &value_display,
-            &slider,
-        },
-    };
+    kf::memory::Array<MyUI::Widget *, 5> widgets_storage{{
+        nullptr,// link widget will be init in setup()
+        &click_button,
+        &check_box,
+        &value_display,
+        &slider,
+    }};
 
-    explicit MainPage() : Page{my_ui, "Main"} {
-        widgets({widgets_storage.data(), widgets_storage.size()});
+    explicit MainPage() : Page{my_ui} {
+        this->label("Main");
+        widgets(widgets_storage.slice());
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
             my_value += 1;
             value_display.value(my_value);
-            update();// add Update Event
+            _ui.requestRender();
         });
 
         check_box.callback([this](bool state) {
@@ -120,16 +122,14 @@ struct SettingsPage : MyUI::Page {
 
     using PresetInput = MyUI::ComboBox<int>;
 
-    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{
-        {
-            {/* label: */ "Normal", /* value: int */ 100},
-            {"Sport", 200},
-            {"Quiet", 20},
-        },// initializer list
-    };
+    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{{{
+        {"Normal", 100},
+        {"Sport", 200},
+        {"Quiet", 20},
+    }}};
 
     PresetInput::Config ints_combo_box_config{
-        .items = {ints_combo_box_items.data(), ints_combo_box_items.size()},// Slice
+        .items = ints_combo_box_items.slice(),
     };
 
     PresetInput ints_combo_box{
@@ -148,7 +148,7 @@ struct SettingsPage : MyUI::Page {
     };
 
     MyCombo::Config strings_combo_box_config{
-        .items = {strings_combo_box_items.data(), strings_combo_box_items.size()},// Slice
+        .items = strings_combo_box_items.slice(),
     };
 
     MyCombo strings_combo_box{
@@ -167,27 +167,26 @@ struct SettingsPage : MyUI::Page {
         10,             // = default value
     };
 
-    kf::memory::Array<MyUI::Widget *, 4> widgets_storage{
-        {
-            nullptr,// link widget will be init in setup()
-            &labeled_ints_combo_box,
-            &strings_combo_box,
-            &spin_box,
-        },
-    };
+    kf::memory::Array<MyUI::Widget *, 4> widgets_storage{{
+        nullptr,// link widget will be init in setup()
+        &labeled_ints_combo_box,
+        &strings_combo_box,
+        &spin_box,
+    }};
 
-    explicit SettingsPage() : Page{my_ui, "Settings"} {
-        widgets({widgets_storage.data(), widgets_storage.size()});
+    explicit SettingsPage() : Page{my_ui} {
+        this->label("Settings");
+        widgets(widgets_storage.slice());
 
-        ints_combo_box.callback([](int value) {
+        ints_combo_box.callback([](auto item) {
             Serial.print("Int Combo selected: ");
-            Serial.println(value);
+            Serial.println(item.value());
         });
         labeled_ints_combo_box.hint("Hint: this is int combo box for some this example");
 
-        strings_combo_box.callback([](kf::memory::StringView value) {
+        strings_combo_box.callback([](auto item) {
             Serial.print("String Combo selected: ");
-            Serial.println(value.data());
+            Serial.println(item.value().data());
         });
 
         spin_box.callback([](int value) {
@@ -205,8 +204,9 @@ MyEvent eventFromChar(char c) {
         case 's': return MyEvent::pageCursorMove(+1);// Down
         case 'a': return MyEvent::widgetValue(-1);   // Left
         case 'd': return MyEvent::widgetValue(+1);   // Right
-        case ' ': return MyEvent::widgetClick();     // Click
-        default: return MyEvent::update();           // Other: Force update
+        case ' ':
+        default:
+            return MyEvent::widgetClick();// Click
     }
 }
 
@@ -214,7 +214,7 @@ void setup() {
     Serial.begin(115200);
 
     // post-render procedure
-    my_render.callback([](kf::memory::StringView text) {
+    my_renderer.callback([](kf::memory::StringView text) {
         Serial.println("---");
 
         const auto &active_page = my_ui.activePage();
@@ -234,8 +234,7 @@ void setup() {
     settings_page.widgets()[0] = &main_page.link();
 
     my_ui.activePage(main_page);// start ui with main page
-
-    my_ui.addEvent(MyEvent::update());// Force update for first ui rendering
+    my_ui.requestRender();      // Force update for first ui rendering
 }
 
 void loop() {

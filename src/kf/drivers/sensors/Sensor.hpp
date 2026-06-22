@@ -14,9 +14,15 @@ struct SensorTag {};
 /// @brief Sensor CRTP interface
 /// @tparam Impl Sensor implementation
 /// @tparam Measurement Result of `read()`
-/// @tparam InitResult Reslt of `init()`
-template<typename Impl, typename Measurement, typename InitResult>
-struct Sensor : SensorTag, meta::CRTP<Impl>, mixin::Initable<Impl, InitResult>, mixin::NonCopyable {
+/// @tparam InitSignature signature of `init`
+template<typename Impl, typename Measurement, typename InitSignature> struct Sensor :
+
+    SensorTag,
+    meta::CRTP<Impl>,
+    mixin::NonCopyable,
+    mixin::Initable<Impl, InitSignature>
+
+{
 
     [[nodiscard]] Measurement read() noexcept {
         return this->impl().readImpl();

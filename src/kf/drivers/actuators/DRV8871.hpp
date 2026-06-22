@@ -30,7 +30,7 @@ namespace kf::drivers::actuators {
 /// @tparam G Implementation of GPIO with PWM output support
 template<typename G> struct DRV8871 final :
 
-    drivers::actuators::Actuator<DRV8871<G>, bool>,
+    drivers::actuators::Actuator<DRV8871<G>, bool()>,
     mixin::Configurable<internal::DRV8871Config>
 
 {
@@ -78,11 +78,10 @@ private:
     // impl
     using This = DRV8871<G>;
 
-    KF_IMPL_INITABLE(This, bool);
+    KF_IMPL_INITABLE(This, bool());
     bool initImpl() noexcept {
         if (not _pin_forward.init()) { return false; }
         if (not _pin_backward.init()) { return false; }
-
         return true;
     }
 };

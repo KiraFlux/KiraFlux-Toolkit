@@ -21,6 +21,9 @@ template<typename U, typename T> struct Display :
 {
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
+    constexpr Display() noexcept :
+        U::Widget{Style::defaults()}, _value{} {}
+
     explicit constexpr Display(const T &value, Style style = Style::defaults()) noexcept :
         U::Widget{style}, _value{value} {}
 
@@ -34,7 +37,7 @@ template<typename U, typename T> struct Display :
         _value = new_value;
     }
 
-    void doRender(typename U::RenderImpl &render) const noexcept override {
+    void doRender(typename U::RendererImpl &render) const noexcept override {
         render.value(_value);
     }
 

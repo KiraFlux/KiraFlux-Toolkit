@@ -3,17 +3,18 @@
 
 #pragma once
 
+#include "kf/Slice.hpp"
 #include "kf/mixin/Configurable.hpp"
+
 #include "kf/ui/Color.hpp"
-#include "kf/ui/Placement.hpp"
-#include "kf/ui/Style.hpp"
-#include "kf/ui/render/PlainTextRender.hpp"
-#include "kf/ui/render/Render.hpp"
+#include "kf/ui/Layout.hpp"
+#include "kf/ui/render/PlainTextRenderer.hpp"
+#include "kf/ui/render/Renderer.hpp"
 
 namespace kf::internal {
 
-template<usize N> struct ColoredTextRenderConfig final {
-    using TextConfig = typename ui::render::PlainTextRender<N>::Config;
+struct ColoredTextRendererConfig final {
+    using TextConfig = ui::render::PlainTextRenderer::Config;
 
     struct Palette final {
 
@@ -48,7 +49,7 @@ template<usize N> struct ColoredTextRenderConfig final {
     Palette normal_foreground_palette, focused_foreground_palette, normal_background_palette, focused_background_palette;
 
     [[nodiscard]] static constexpr auto defaults() noexcept {
-        return ColoredTextRenderConfig{
+        return ColoredTextRendererConfig{
             .text = TextConfig::defaults(),
             .normal_foreground_palette = {
                 .normal = Palette::White,
@@ -102,17 +103,17 @@ template<usize N> struct ColoredTextRenderConfig final {
 
 namespace kf::ui::render {
 
-template<usize N> struct ColoredTextRender :
+struct ColoredTextRenderer :
 
-    Render<ColoredTextRender<N>>,
-    mixin::Configurable<internal::ColoredTextRenderConfig<N>>
+    Renderer<ColoredTextRenderer>,
+    mixin::Configurable<internal::ColoredTextRendererConfig>
 
 {
-    using Wrapped = PlainTextRender<N>;
-    using Config = internal::ColoredTextRenderConfig<N>;
+    using Wrapped = PlainTextRenderer;
+    using Config = internal::ColoredTextRendererConfig;
 
-    explicit constexpr ColoredTextRender(const Config &config) noexcept :
-        mixin::Configurable<Config>{config}, _wrapped{config.text} {}
+    explicit constexpr ColoredTextRenderer(const Config &config, Slice<char> source) noexcept :
+        mixin::Configurable<Config>{config}, _wrapped{config.text, source} {}
 
     template<typename F> void callback(F &&callback) noexcept {
         _wrapped.callback(std::forward<F>(callback));
@@ -122,25 +123,21 @@ private:
     Wrapped _wrapped;
     bool _focus_active{false};
 
-    void writeColor(Color color, char base_code, const typename Config::Palette &palette) noexcept {
+    void writeColor(Color color, char base_code, const Config::Palette &palette) noexcept {
         _wrapped.writeChar(base_code + static_cast<char>(palette.get(color)));
     }
 
-    void writeForegroundColor(Color color, const typename Config::Palette &palette) noexcept {
+    void writeForegroundColor(Color color, const Config::Palette &palette) noexcept {
         writeColor(color, '\xF0', palette);
     }
 
-    void writeBackgroundColor(Color color, const typename Config::Palette &palette) noexcept {
+    void writeBackgroundColor(Color color, const Config::Palette &palette) noexcept {
         writeColor(color, '\xB0', palette);
     }
 
-    KF_IMPL(Render<ColoredTextRender<N>>);
+    KF_IMPL(Renderer<ColoredTextRenderer>);
 
     // control
-
-    [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
-        return _wrapped.widgetsAvailable();
-    }
 
     void beginFrameImpl() noexcept {
         _wrapped.beginFrame();
@@ -150,16 +147,18 @@ private:
         _wrapped.endFrame();
     }
 
-    void titleImpl(memory::StringView title) noexcept {
+    usize beginPageImpl(memory::StringView title, Layout layout) noexcept {
         writeForegroundColor(Color::Normal, this->config().focused_foreground_palette);
         writeBackgroundColor(Color::Primary, this->config().focused_background_palette);
-        _wrapped.title(title);
+        return _wrapped.beginPage(title, layout);
     }
 
-    void beginWidgetImpl(usize index, bool is_focused, const Style &style) noexcept {
+    void endPageImpl() noexcept {
+        _wrapped.endPage();
+    }
+
+    void beginWidgetImpl(usize index, bool is_focused) noexcept {
         _focus_active = is_focused;
-        this->foreground(style.foreground_color);
-        this->background(style.background_color);
     }
 
     void endWidgetImpl() noexcept {
@@ -168,13 +167,25 @@ private:
         _focus_active = false;
     }
 
+    void beginBlockImpl(Block block_type) noexcept {
+        _wrapped.beginBlock(block_type);
+    }
+
+    void endBlockImpl(Block block_type) noexcept {
+        _wrapped.endBlock(block_type);
+    }
+
+    void decorationImpl(Decoration decoration) noexcept {
+        _wrapped.decoration(decoration);
+    }
+
     void checkboxImpl(bool enabled) noexcept {
         this->background(enabled ? Color::Primary : Color::Secondary);
         _wrapped.checkbox(enabled);
     }
 
-    template<typename T> void sliderImpl(const T &value, const Range<T> &range, Placement placement) noexcept {
-        _wrapped.slider(value, range, placement);
+    void sliderImpl(f32 fill) noexcept {
+        _wrapped.slider(fill);
     }
 
     // value
@@ -191,20 +202,6 @@ private:
 
     void setBackgroundImpl(Color color) noexcept {
         writeBackgroundColor(color, _focus_active ? this->config().focused_background_palette : this->config().normal_background_palette);
-    }
-
-    // decoration
-
-    void decorationImpl(Decoration decoration) noexcept {
-        _wrapped.decoration(decoration);
-    }
-
-    void beginBlockImpl(Block block_type) noexcept {
-        _wrapped.beginBlock(block_type);
-    }
-
-    void endBlockImpl(Block block_type) noexcept {
-        _wrapped.endBlock(block_type);
     }
 };
 

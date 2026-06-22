@@ -5,8 +5,8 @@
 
 #include "kf/mixin/Labeled.hpp"
 
-#include "kf/ui/Style.hpp"
 #include "kf/ui/Decoration.hpp"
+#include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {
@@ -39,7 +39,7 @@ template<typename U> struct Labeled :
         return _wrapped.onEventValue(event_value);
     }
 
-    void doRender(typename U::RenderImpl &render) const noexcept override {
+    void doRender(typename U::RendererImpl &render) const noexcept override {
         render.value(this->label());
         render.decoration(Decoration::Colon);
         _wrapped.doRender(render);

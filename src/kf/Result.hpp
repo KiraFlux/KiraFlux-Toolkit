@@ -29,19 +29,21 @@ template<typename Impl, typename E> struct ResultErrorController {
 };
 
 /// @brief Internal wrapper for a success value (used with kf::ok)
-template<typename T> struct OkWrapper {
+template<typename T> struct ResultValueWrapper {
     T value;
 };
 
-/// @brief Specialisation of OkWrapper for void
-template<> struct OkWrapper<void> {};
+/// @brief Specialisation of ResultValueWrapper for void
+template<> struct ResultValueWrapper<void> {};
 
 /// @brief Internal wrapper for an error value (used with kf::error)
-template<typename E> struct ErrorWrapper {
+template<typename E> struct ResultErrorWrapper {
     E value;
 };
 
 }// namespace internal
+
+struct ResultTag {};
 
 /// @brief Result type that can hold either a value or an error
 /// @tparam T Type of successful result value
@@ -49,16 +51,22 @@ template<typename E> struct ErrorWrapper {
 /// @note Embedded‑friendly alternative to exceptions.
 ///       Use kf::ok() and kf::error() to create instances.
 /// @see kf::ok, kf::error
-template<typename T, typename E> struct Result final : internal::ResultErrorController<Result<T, E>, E> {
+template<typename T, typename E> struct Result final :
 
-    /// @brief Construct from OkWrapper
+    ResultTag,
+    internal::ResultErrorController<Result<T, E>, E>
+
+{
+    using ValueType = T;
+
+    /// @brief Construct from ResultValueWrapper
     /// @see kf::ok(T)
-    constexpr Result(internal::OkWrapper<T> ok) noexcept :
+    constexpr Result(internal::ResultValueWrapper<T> ok) noexcept :
         _is_ok{true}, _ok{std::move(ok.value)} {}
 
-    /// @brief Construct from ErrorWrapper
+    /// @brief Construct from ResultErrorWrapper
     /// @see kf::error(E)
-    constexpr Result(internal::ErrorWrapper<E> error) noexcept :
+    constexpr Result(internal::ResultErrorWrapper<E> error) noexcept :
         _is_ok{false}, _error{std::move(error.value)} {}
 
     ~Result() noexcept {
@@ -84,7 +92,9 @@ template<typename T, typename E> struct Result final : internal::ResultErrorCont
     }
 
     /// @brief Get the stored value (const overload)
-    [[nodiscard]] const T &ok() const & noexcept { return const_cast<Result *>(this)->ok(); }
+    [[nodiscard]] const T &ok() const & noexcept {
+        return const_cast<Result *>(this)->ok();
+    }
 
     /// @brief Transform the success value using a function
     /// @tparam F Callable type (auto‑deduced)
@@ -95,12 +105,12 @@ template<typename T, typename E> struct Result final : internal::ResultErrorCont
         if (_is_ok) {
             if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
                 f(_ok);
-                return {internal::OkWrapper<void>{}};
+                return {internal::ResultValueWrapper<void>{}};
             } else {
-                return {internal::OkWrapper<decltype(f(std::declval<T>()))>{f(_ok)}};
+                return {internal::ResultValueWrapper<decltype(f(std::declval<T>()))>{f(_ok)}};
             }
         } else {
-            return {internal::ErrorWrapper<E>{_error}};
+            return {internal::ResultErrorWrapper<E>{_error}};
         }
     }
 
@@ -111,9 +121,9 @@ template<typename T, typename E> struct Result final : internal::ResultErrorCont
     ///         otherwise the original success value.
     template<typename F> [[nodiscard]] auto mapError(F &&f) const noexcept -> Result<T, decltype(f(std::declval<E>()))> {
         if (_is_ok) {
-            return {internal::OkWrapper<T>{_ok}};
+            return {internal::ResultValueWrapper<T>{_ok}};
         } else {
-            return {internal::ErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
+            return {internal::ResultErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
         }
     }
 
@@ -126,23 +136,33 @@ private:
 
     friend struct ::kf::internal::ResultErrorController<Result<T, E>, E>;
 
-    [[nodiscard]] bool isErrorImpl() const noexcept { return not _is_ok; }
+    [[nodiscard]] bool isErrorImpl() const noexcept {
+        return not _is_ok;
+    }
 
-    [[nodiscard]] const E &getErrorImpl() const noexcept { return _error; }
+    [[nodiscard]] const E &getErrorImpl() const noexcept {
+        return _error;
+    }
 };
 
 /// @brief Specialisation of Result for void success value
 /// @tparam E Type of error value
-template<typename E> struct Result<void, E> final : internal::ResultErrorController<Result<void, E>, E> {
+template<typename E> struct Result<void, E> final :
 
-    /// @brief Construct from OkWrapper<void>
+    ResultTag,
+    internal::ResultErrorController<Result<void, E>, E>
+
+{
+    using ValueType = void;
+
+    /// @brief Construct from ResultValueWrapper<void>
     /// @see kf::ok()
-    constexpr Result(internal::OkWrapper<void>) noexcept :
+    constexpr Result(internal::ResultValueWrapper<void>) noexcept :
         _is_error{false} {}
 
-    /// @brief Construct from ErrorWrapper
+    /// @brief Construct from ResultErrorWrapper
     /// @see kf::error(E)
-    constexpr Result(internal::ErrorWrapper<E> error) noexcept :
+    constexpr Result(internal::ResultErrorWrapper<E> error) noexcept :
         _is_error{true}, _error{std::move(error.value)} {}
 
     ~Result() noexcept {
@@ -152,7 +172,9 @@ template<typename E> struct Result<void, E> final : internal::ResultErrorControl
     }
 
     /// @brief Check if result is successful
-    [[nodiscard]] constexpr bool isOk() const noexcept { return not _is_error; }
+    [[nodiscard]] constexpr bool isOk() const noexcept {
+        return not _is_error;
+    }
 
     /// @brief Transform the error value using a function
     /// @tparam F Callable type (auto‑deduced)
@@ -161,9 +183,9 @@ template<typename E> struct Result<void, E> final : internal::ResultErrorControl
     ///         otherwise the original success value.
     template<typename F> [[nodiscard]] auto mapError(F &&f) const noexcept -> Result<void, decltype(f(std::declval<E>()))> {
         if (_is_error) {
-            return {internal::ErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
+            return {internal::ResultErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
         } else {
-            return {internal::OkWrapper<void>{}};
+            return {internal::ResultValueWrapper<void>{}};
         }
     }
 
@@ -173,31 +195,54 @@ private:
 
     friend struct ::kf::internal::ResultErrorController<Result<void, E>, E>;
 
-    [[nodiscard]] bool isErrorImpl() const noexcept { return _is_error; }
+    [[nodiscard]] bool isErrorImpl() const noexcept {
+        return _is_error;
+    }
 
-    [[nodiscard]] const E &getErrorImpl() const noexcept { return _error; }
+    [[nodiscard]] const E &getErrorImpl() const noexcept {
+        return _error;
+    }
 };
 
 /// @brief Create a successful Result (value)
 /// @tparam T Type of the value (auto‑deduced)
 /// @param value The success value
-/// @return internal::OkWrapper<T> for implicit conversion to Result<T, E>
-template<typename T> constexpr auto ok(T &&value) noexcept -> internal::OkWrapper<std::decay_t<T>> {
+/// @return internal::ResultValueWrapper<T> for implicit conversion to Result<T, E>
+template<typename T> constexpr auto ok(T &&value) noexcept -> internal::ResultValueWrapper<std::decay_t<T>> {
     return {std::forward<T>(value)};
 }
 
 /// @brief Create a successful Result<void,  E>
-/// @return internal::OkWrapper<void> for implicit conversion to Result<void, E>
-constexpr auto ok() noexcept -> internal::OkWrapper<void> {
+/// @return internal::ResultValueWrapper<void> for implicit conversion to Result<void, E>
+constexpr auto ok() noexcept -> internal::ResultValueWrapper<void> {
     return {};
 }
 
 /// @brief Create an error Result
 /// @tparam E Type of the error (auto‑deduced)
 /// @param error The error value
-/// @return internal::ErrorWrapper<E> for implicit conversion to Result<T, E>
-template<typename E> constexpr auto error(E &&error) noexcept -> internal::ErrorWrapper<std::decay_t<E>> {
+/// @return internal::ResultErrorWrapper<E> for implicit conversion to Result<T, E>
+template<typename E> constexpr auto error(E &&error) noexcept -> internal::ResultErrorWrapper<std::decay_t<E>> {
     return {std::forward<E>(error)};
 }
 
 }// namespace kf
+
+/// @brief Early-return macro for Result error propagation
+/// @param __expression__ Expression of type `Result<T, E>`
+/// @return The success value `T`, or returns the error from the enclosing function
+/// @note Expression evaluated once. Requires GNU statement expressions.
+#define KF_TRY(__expression__)                                                                              \
+    ({                                                                                                      \
+        auto result = (__expression__);                                                                     \
+        using ExpressionType = std::decay_t<decltype(result)>;                                              \
+        static_assert(std::is_base_of_v<::kf::ResultTag, ExpressionType>, "KF_TRY requires a Result type"); \
+        if (result.isError()) {                                                                             \
+            return ::kf::error(result.error());                                                             \
+        }                                                                                                   \
+        if constexpr (std::is_void_v<typename ExpressionType::ValueType>) {                                 \
+            (void) 0;                                                                                       \
+        } else {                                                                                            \
+            result.ok();                                                                                    \
+        }                                                                                                   \
+    })

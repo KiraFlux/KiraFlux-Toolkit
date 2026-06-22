@@ -23,7 +23,11 @@ namespace kf::drivers::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
 /// @tparam N Implementation of IIC bus Node
-template<typename N> struct SSD1306 final : DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl, Result<void, typename N::Error>> {
+template<typename N> struct SSD1306 final :
+
+    DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl, Result<void, typename N::Error>>
+
+{
     KF_CHECK_IMPL(N, ::kf::bus::iic::IicNodeTag);
 
     using IicNodeImpl = N;
@@ -98,7 +102,7 @@ private:
     // impl
     using This = SSD1306<N>;
 
-    KF_IMPL_INITABLE(This, IicOperationResult);
+    KF_IMPL_INITABLE(This, IicOperationResult());
     /// @brief Initialize display hardware via I2C
     IicOperationResult initImpl() noexcept {
         static constexpr u8 init_commands[] = {
@@ -166,9 +170,7 @@ private:
             PixelImpl::template pages<64> - 1,
         };
 
-        if (const auto result = _node.writePacket(set_area_commands); result.isError()) {
-            return result;
-        }
+        KF_TRY(_node.writePacket(set_area_commands));
 
         auto p = this->image().buffer().data();
         auto remaining = this->image().buffer().size();
@@ -176,9 +178,7 @@ private:
         while (remaining > 0) {
             const auto chunk = min(packet_size, remaining);
 
-            if (const auto result = _node.writeMixed(Command::DataMode, {p, chunk}); result.isError()) {
-                return result;
-            }
+            KF_TRY(_node.writeMixed(Command::DataMode, {p, chunk}));
 
             p += chunk;
             remaining -= chunk;
@@ -196,13 +196,8 @@ private:
         constexpr auto flip_y = 0b10;
         const auto flags = static_cast<u8>(orientation);
 
-        if (const auto result = sendCommand((flags & flip_x) ? FlipH : NormalH); result.isError()) {
-            return result;
-        }
-
-        if (const auto result = sendCommand((flags & flip_y) ? FlipV : NormalV); result.isError()) {
-            return result;
-        }
+        KF_TRY(sendCommand((flags & flip_x) ? FlipH : NormalH));
+        KF_TRY(sendCommand((flags & flip_y) ? FlipV : NormalV));
 
         return ok();
     }

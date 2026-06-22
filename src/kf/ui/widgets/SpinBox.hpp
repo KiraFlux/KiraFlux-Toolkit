@@ -65,7 +65,7 @@ template<typename U, typename T, typename A> struct SpinBox :
     }
 
     /// @brief Render current value or step size based on mode
-    void doRender(typename U::RenderImpl &render) const noexcept override {
+    void doRender(typename U::RendererImpl &render) const noexcept override {
         if (_is_step_setting_mode) {
             render.background(Color::Warning);
         }

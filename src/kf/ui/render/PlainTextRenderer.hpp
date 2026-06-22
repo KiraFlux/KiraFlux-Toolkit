@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/Function.hpp"
+#include "kf/Slice.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/memory/StaticString.hpp"
 #include "kf/memory/StringView.hpp"
@@ -13,9 +14,8 @@
 
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
-#include "kf/ui/Placement.hpp"
-#include "kf/ui/Style.hpp"
-#include "kf/ui/render/Render.hpp"
+#include "kf/ui/Layout.hpp"
+#include "kf/ui/render/Renderer.hpp"
 
 namespace kf::internal {
 
@@ -40,7 +40,7 @@ struct PlainTextRenderConfig final {
 };
 
 /// @brief Cursor state for tracking rendering position
-struct PlainTextRenderCursor {
+struct PlainTextRendererCursor {
     Glyph row{0}, col{0};///< Current position
 
     /// @brief Reset cursor to beginning
@@ -73,10 +73,10 @@ namespace kf::ui::render {
 
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
-/// @note Implements Render CRTP interface for character-based display
-template<usize N> struct PlainTextRender :
+/// @note Implements Renderer CRTP interface for character-based display
+struct PlainTextRenderer :
 
-    Render<PlainTextRender<N>>,
+    Renderer<PlainTextRenderer>,
     mixin::Callbacked<memory::StringView>,
     mixin::Configurable<internal::PlainTextRenderConfig>
 
@@ -84,22 +84,26 @@ template<usize N> struct PlainTextRender :
     /// @brief Text renderer configuration
     using Config = internal::PlainTextRenderConfig;
 
-    using mixin::Configurable<Config>::Configurable;
+    explicit constexpr PlainTextRenderer(const Config &config, Slice<char> source) noexcept :
+        mixin::Configurable<Config>::Configurable{config}, _buffer{source} {}
 
     /// @brief Helper to write character with cursor tracking
     void writeChar(char ch) noexcept {
-        if (_buffer.full() or _cursor.row >= this->config().rows_total) { return; }
+        if ((_buffer.size() == _written) or _cursor.row >= this->config().rows_total) { return; }
 
         if (ch == '\n') {
             _cursor.newline();
-            (void) _buffer.push(ch);
+            _buffer[_written] = ch;
+            _written += 1;
             return;
         }
 
-        if (not _cursor.canWrite(this->config().row_max_length)) { return; }
-
-        _cursor.advance(1, this->config().row_max_length);
-        (void) _buffer.push(ch);
+        if (_cursor.canWrite(this->config().row_max_length)) {
+            _cursor.advance(1, this->config().row_max_length);
+            _buffer[_written] = ch;
+            _written += 1;
+            return;
+        }
     }
 
     /// @brief Write string with cursor tracking
@@ -116,30 +120,25 @@ template<usize N> struct PlainTextRender :
     }
 
 private:
-    memory::StaticString<N> _buffer{};///< Output buffer for rendered text
-    internal::PlainTextRenderCursor _cursor{};
+    Slice<char> _buffer;
+    usize _written{0};
+    internal::PlainTextRendererCursor _cursor{};
+    Layout _layout{Layout::Vertical};
 
-    KF_IMPL(Render<PlainTextRender<N>>);
-
-    [[nodiscard]] usize widgetsAvailableImpl() const noexcept {
-        // Subtract 1 for title row
-        if (this->config().rows_total > _cursor.row + 1) {
-            return this->config().rows_total - _cursor.row - 1;
-        } else {
-            return 0;
-        }
-    }
+    KF_IMPL(Renderer<PlainTextRenderer>);
 
     void beginFrameImpl() noexcept {
-        _buffer.clear();
+        _written = 0;
         _cursor.reset();
     }
 
     void endFrameImpl() noexcept {
-        this->invoke(_buffer.view());
+        this->invoke({_buffer.data(), _written});
     }
 
-    void titleImpl(memory::StringView title) noexcept {
+    usize beginPageImpl(memory::StringView title, Layout layout) noexcept {
+        _layout = layout;
+
         if (this->config().title_centered) {
             const auto spaces = kf::max(0, (int(this->config().row_max_length) - int(title.size())) / 2);
             for (int i = 0; i < spaces; i += 1) {
@@ -148,16 +147,47 @@ private:
         }
         writeString(title);
         writeChar('\n');
+
+        return this->config().rows_total - _cursor.row;
     }
 
-    void beginWidgetImpl(usize, bool is_focused, const Style &) noexcept {
+    void endPageImpl() noexcept {}
+
+    void beginWidgetImpl(usize, bool is_focused) noexcept {
         if (is_focused) {
             writeString("* ");
         }
     }
 
     void endWidgetImpl() noexcept {
-        writeChar('\n');
+        writeChar((_layout == Layout::Horizontal) ? ' ' : '\n');
+    }
+
+    void beginBlockImpl(Block block_type) noexcept {
+        writeChar((block_type == Block::Standard) ? '[' : '<');
+    }
+
+    void endBlockImpl(Block block_type) noexcept {
+        writeChar((block_type == Block::Standard) ? ']' : '>');
+    }
+
+    void decorationImpl(Decoration decoration) noexcept {
+        switch (decoration) {
+            case Decoration::Space:
+                writeChar(' ');
+                return;
+
+            case Decoration::Arrow:
+                writeString("-> ");
+                return;
+
+            case Decoration::Colon:
+                writeString(": ");
+                return;
+
+            default:
+                break;
+        }
     }
 
     void checkboxImpl(bool enabled) noexcept {
@@ -165,25 +195,20 @@ private:
         writeString(enabled ? on : off);
     }
 
-    template<typename T> void sliderImpl(const T &slider_value, const Range<T> &range, Placement placement) noexcept {
-        // Plain text does not support only 'show inside' placement yet
-        if (Placement::Hidden != placement) {
-            this->value(slider_value);
-            writeChar(' ');
-        }
-
-        writeChar('[');
+    void sliderImpl(f32 fill) noexcept {
         const usize start_col = _cursor.col;
         const usize inner_width = this->config().row_max_length - start_col - 1;// -1 for closing char
-        const usize fill = (slider_value - range.start) * inner_width / (range.end - range.start);
+        const usize fill_chars = fill * inner_width;
 
-        for (usize i = 0; i < fill; i += 1) {
+        writeChar('[');
+
+        for (auto i = 0; i < fill_chars; i += 1) {
             writeChar('=');
         }
 
         writeChar('@');
 
-        for (usize i = _cursor.col - start_col; i < inner_width; i += 1) {
+        for (auto i = _cursor.col - start_col; i < inner_width; i += 1) {
             writeChar('-');
         }
 
@@ -236,30 +261,6 @@ private:
     void setForegroundImpl(Color) noexcept {}
 
     void setBackgroundImpl(Color) noexcept {}
-
-    // Decoration rendering
-
-    void decorationImpl(Decoration decoration) noexcept {
-        switch (decoration) {
-            case Decoration::Arrow:
-                writeString("-> ");
-                return;
-
-            case Decoration::Colon:
-                writeString(": ");
-
-            default:
-                break;
-        }
-    }
-
-    void beginBlockImpl(Block block_type) noexcept {
-        writeChar((block_type == Block::Standard) ? '[' : '<');
-    }
-
-    void endBlockImpl(Block block_type) noexcept {
-        writeChar((block_type == Block::Standard) ? ']' : '>');
-    }
 };
 
 }// namespace kf::ui::render

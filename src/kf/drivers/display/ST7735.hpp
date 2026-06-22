@@ -17,9 +17,6 @@
 #include "kf/drivers/display/DisplayDriver.hpp"
 #include "kf/drivers/display/Orientation.hpp"
 
-#define TRY(__x__) \
-    if (const auto result = __x__; result.isError()) { return result; }
-
 namespace kf::internal {
 
 using ST7735Image = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
@@ -112,7 +109,7 @@ private:
     // impl
     using This = ST7735<N, G>;
 
-    KF_IMPL_INITABLE(This, SpiOperationResult);
+    KF_IMPL_INITABLE(This, SpiOperationResult());
     SpiOperationResult initImpl() noexcept {
         _spi_node.init();
         _pin_data_command.init();
@@ -120,19 +117,19 @@ private:
 
         this->reset();
 
-        TRY(sendCommand(Command::SWRESET));
+        KF_TRY(sendCommand(Command::SWRESET));
         delay(150);
 
-        TRY(sendCommand(Command::SLPOUT));
+        KF_TRY(sendCommand(Command::SLPOUT));
         delay(255);
 
-        TRY(sendCommand(Command::COLMOD));
+        KF_TRY(sendCommand(Command::COLMOD));
 
         constexpr u8 color_mode{0x05};// 16-bit color (RGB565)
-        TRY(sendPacket(color_mode));
+        KF_TRY(sendPacket(color_mode));
 
-        TRY(this->orientation(this->config().init_orientation));
-        TRY(sendCommand(Command::DISPON));
+        KF_TRY(this->orientation(this->config().init_orientation));
+        KF_TRY(sendCommand(Command::DISPON));
 
         delay(100);
 
@@ -150,7 +147,7 @@ private:
 
     KF_IMPL(DisplayDriver<This, internal::ST7735Image, SpiOperationResult>);
     SpiOperationResult sendImpl() noexcept {
-        TRY(sendCommand(Command::RAMWR));
+        KF_TRY(sendCommand(Command::RAMWR));
         return sendBuffer({reinterpret_cast<const u8 *>(this->image().buffer().data()), this->image().size()});
     }
 
@@ -172,16 +169,14 @@ private:
         const u8 data_x[4]{0, 0, 0, static_cast<u8>(this->image().maxX())};
         const u8 data_y[4]{0, 0, 0, static_cast<u8>(this->image().maxY())};
 
-        TRY(sendCommand(Command::MADCTL))
-        TRY(sendPacket(madctl))
-        TRY(sendCommand(Command::CASET))
-        TRY(sendPacket(data_x))
-        TRY(sendCommand(Command::RASET))
-        TRY(sendPacket(data_y))
+        KF_TRY(sendCommand(Command::MADCTL));
+        KF_TRY(sendPacket(madctl));
+        KF_TRY(sendCommand(Command::CASET));
+        KF_TRY(sendPacket(data_x));
+        KF_TRY(sendCommand(Command::RASET));
+        KF_TRY(sendPacket(data_y));
         return ok();
     }
 };
 
 }// namespace kf::drivers::display
-
-#undef TRY

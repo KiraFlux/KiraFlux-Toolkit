@@ -244,7 +244,7 @@ struct ArduinoIIC :
 private:
     TwoWire &_wire;
 
-    KF_IMPL_INITABLE(ArduinoIIC, Result<void, Error>);
+    KF_IMPL_INITABLE(ArduinoIIC, Result<void, Error>());
     auto initImpl() noexcept -> Result<void, Error> {
         if (not _wire.begin()) {
             return error(Error::BeginFailed);

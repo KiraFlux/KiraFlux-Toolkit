@@ -19,7 +19,12 @@ struct GPIO final : GpioTag {
     /// @tparam Impl         The derived class (must implement `readImpl()`).
     /// @tparam LevelType    Type of the input value (e.g., bool, u16).
     /// @tparam InitResult   Result type of the initialization (e.g., void, bool).
-    template<typename Impl, typename LevelType, typename InitResultType> struct Input : mixin::Initable<Impl, InitResultType>, mixin::NonCopyable {
+    template<typename Impl, typename LevelType, typename InitSignature> struct Input :
+
+        mixin::NonCopyable,
+        mixin::Initable<Impl, InitSignature>
+
+    {
 
         /// @brief Reads the current input value.
         /// @return The value read from the hardware .
@@ -34,7 +39,12 @@ struct GPIO final : GpioTag {
     /// @tparam Impl         Concrete implementation class.
     /// @tparam InitResult   Return type of the initialization.
     /// @note Derived classes must define `Pull` enum and implement `readImpl()`.
-    template<typename Impl, typename InitResultType> struct DigitalInput : Input<Impl, bool, InitResultType>, DigitalInputTag {
+    template<typename Impl, typename InitSignature> struct DigitalInput :
+
+        Input<Impl, bool, InitSignature>,
+        DigitalInputTag
+
+    {
         static constexpr u8 external_pull_bit{0b01};
         static constexpr u8 pull_up_bit{0b10};
 
@@ -53,7 +63,12 @@ struct GPIO final : GpioTag {
     /// @tparam Impl         Concrete implementation class.
     /// @tparam InitResult   Return type of the initialization.
     /// @note Requires static methods `setResolutionImpl(u8)` and `getResolutionImpl()`.
-    template<typename Impl, typename InitResultType> struct AdcInput : Input<Impl, u16, InitResultType>, AdcInputTag {
+    template<typename Impl, typename InitSignature> struct AdcInput :
+
+        AdcInputTag,
+        Input<Impl, u16, InitSignature>
+
+    {
 
         /// @brief Sets the ADC resolution globally.
         /// @param resolution_bits Number of bits (e.g., 10, 12).
@@ -78,7 +93,12 @@ struct GPIO final : GpioTag {
     /// @tparam Impl         Concrete implementation class (must provide `writeImpl()`).
     /// @tparam LevelType    Type of the output value (e.g., `bool`, `u16`).
     /// @tparam InitResult   Return type of the initialization.
-    template<typename Impl, typename LevelType, typename InitResultType> struct Output : mixin::Initable<Impl, InitResultType>, mixin::NonCopyable {
+    template<typename Impl, typename LevelType, typename InitSignature> struct Output :
+
+        mixin::NonCopyable,
+        mixin::Initable<Impl, InitSignature>
+
+    {
         void write(LevelType level) const noexcept {
             static_cast<const Impl *>(this)->writeImpl(level);
         }
@@ -89,7 +109,12 @@ struct GPIO final : GpioTag {
     /// @brief Specialization for digital outputs.
     /// @tparam Impl         Concrete implementation class.
     /// @tparam InitResult   Return type of the initialization.
-    template<typename Impl, typename InitResultType> struct DigitalOutput : Output<Impl, bool, InitResultType>, DigitalOutputTag {};
+    template<typename Impl, typename InitSignature> struct DigitalOutput :
+
+        DigitalOutputTag,
+        Output<Impl, bool, InitSignature>
+
+    {};
 
     struct PwmOutputTag {};
 
@@ -97,7 +122,12 @@ struct GPIO final : GpioTag {
     /// @tparam Impl         Concrete implementation class.
     /// @tparam InitResult   Return type of the initialization.
     /// @note Requires methods `getFrequencyImpl()`, `getResolutionImpl()`.
-    template<typename Impl, typename InitResultType> struct PwmOutput : Output<Impl, u16, InitResultType>, PwmOutputTag {
+    template<typename Impl, typename InitSignature> struct PwmOutput :
+
+        PwmOutputTag,
+        Output<Impl, u16, InitSignature>
+
+    {
 
         /// @brief Returns the PWM frequency in Hz.
         [[nodiscard]] u32 frequency() const noexcept {

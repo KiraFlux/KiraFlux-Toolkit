@@ -3,7 +3,6 @@
 
 #include <kf/Option.hpp>
 
-
 using kf::TrivialOption;
 
 template<typename T> struct TestTrivialOption {

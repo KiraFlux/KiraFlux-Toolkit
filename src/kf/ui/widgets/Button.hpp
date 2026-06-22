@@ -36,7 +36,7 @@ template<typename U> struct Button :
     }
 
     /// @brief Render button with block styling
-    void doRender(typename U::RenderImpl &render) const noexcept override {
+    void doRender(typename U::RendererImpl &render) const noexcept override {
         render.beginBlock();
         render.value(this->label());
         render.endBlock();

@@ -54,7 +54,7 @@ namespace kf::drivers::sensors {
 /// @tparam T Physical linear unit
 template<typename T> struct QuadratureEncoder final :
 
-    drivers::sensors::Sensor<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void>,
+    drivers::sensors::Sensor<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
     mixin::Resettable<QuadratureEncoder<T>>,
     mixin::Configurable<internal::QuadratureEncoderConfig<T>>
 
@@ -120,7 +120,7 @@ private:
     // Implementation details
     using This = QuadratureEncoder<T>;
 
-    KF_IMPL_INITABLE(This, void);
+    KF_IMPL_INITABLE(This, void());
     void initImpl() noexcept {
         pinMode(this->config().gpio_num_phase_a, INPUT);
         attachInterruptArg(digitalPinToInterrupt(this->config().gpio_num_phase_a), onAnyPhaseChange, static_cast<void *>(this), CHANGE);
@@ -131,7 +131,7 @@ private:
         this->reset();
     }
 
-    KF_IMPL(::kf::drivers::sensors::Sensor<This, typename Config::PhaseStateType, void>);
+    KF_IMPL(::kf::drivers::sensors::Sensor<This, typename Config::PhaseStateType, void()>);
     typename Config::PhaseStateType readImpl() const noexcept {
         const auto state_a = static_cast<typename Config::PhaseStateType>(digitalRead(this->config().gpio_num_phase_a));
         const auto state_b = static_cast<typename Config::PhaseStateType>(digitalRead(this->config().gpio_num_phase_b));

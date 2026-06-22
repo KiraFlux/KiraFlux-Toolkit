@@ -14,9 +14,10 @@
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Decoration.hpp"
+#include "kf/ui/Layout.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
-#include "kf/ui/render/Render.hpp"
+#include "kf/ui/render/Renderer.hpp"
 #include "kf/ui/widgets/Button.hpp"
 #include "kf/ui/widgets/CheckBox.hpp"
 #include "kf/ui/widgets/ComboBox.hpp"
@@ -84,7 +85,7 @@ template<typename U> struct UI :
 
     struct Page;// forward declaration
 
-    explicit constexpr UI(typename Traits::RenderImpl &render_system) noexcept : _render_system{render_system} {}
+    explicit constexpr UI(typename Traits::RendererImpl &renderer) noexcept : _renderer{renderer} {}
 
     /// @brief Set active page
     /// @param page Page to make active (must remain valid)
@@ -96,16 +97,18 @@ template<typename U> struct UI :
         _active_page = someRef(page);
     }
 
+    /// @brief Requests a UI redraw on the next poll cycle
+    void requestRender() noexcept {
+        _renderer.requestRender();
+    }
+
     /// @brief Get readobly access to active page
-    auto activePage() const noexcept -> kf::Option<Page &> {
+    constexpr auto activePage() const noexcept -> kf::Option<Page &> {
         return _active_page;
     }
 
     /// @brief Add event to processing queue
-    /// @note If the queue is non‑empty and the last event is Update, adding another Update event is a no‑op.
-    void addEvent(typename Traits::EventImpl event) {
-        using Kind = typename Traits::EventImpl::Kind;
-        if (not _events.empty() and Kind::Update == event.kind() and Kind::Update == _events.back().kind()) { return; }
+    void addEvent(typename Traits::EventImpl event) noexcept {
         _events.push(event);
     }
 
@@ -123,7 +126,7 @@ private:
             return true;// redraw always required after page change
         }
 
-        void doRender(typename Traits::RenderImpl &render) const noexcept override {
+        void doRender(typename Traits::RendererImpl &render) const noexcept override {
             render.decoration(Decoration::Arrow);
             render.value(_target.label());
         }
@@ -137,7 +140,10 @@ public:
     struct Page : mixin::NonCopyable, mixin::Labeled {
         friend struct PageSetter;
 
-        explicit constexpr Page(UI &ui, memory::StringView label) noexcept : mixin::Labeled::Labeled{label}, _ui{ui} {}
+        using WidgetsView = Slice<Widget *>;
+
+        explicit constexpr Page(UI &ui, Layout layout = Layout::Vertical) noexcept :
+            _ui{ui}, _layout{layout} {}
 
         /// @brief Page behavior on entry
         virtual void onEntry() noexcept {}
@@ -147,6 +153,11 @@ public:
 
         /// @brief Page behavior on UI polling
         virtual void onPoll(math::Milliseconds now) noexcept {}
+
+        /// @brief Get page layout
+        [[nodiscard]] constexpr Layout layout() noexcept {
+            return _layout;
+        }
 
         /// @brief Get Mutable access to 'go to this page' Widget
         [[nodiscard]] constexpr Widget &link() noexcept {
@@ -166,90 +177,101 @@ public:
         /// @brief Render page content to display.
         /// @param render Renderer instance.
         /// @note Handles cursor positioning and widget focus.
-        void render(typename Traits::RenderImpl &render) noexcept {
-            render.title(this->label());
+        void render(typename Traits::RendererImpl &render) noexcept {
+            const usize available = render.beginPage(this->label(), _layout);
 
-            if (nullptr == _widgets.data()) { return; }
+            if (_widgets.empty()) {
+                // TODO: render placeholder page content
+            } else {
+                const usize start = (_widgets.size() > available) ? kf::min(static_cast<usize>(_cursor), _widgets.size() - available) : 0;
+                const usize end = kf::min(start + available, _widgets.size());
 
-            const usize available = render.widgetsAvailable();
-            const usize start = (_widgets.size() > available) ? kf::min(static_cast<usize>(_cursor), _widgets.size() - available) : 0;
-            const usize end = kf::min(start + available, _widgets.size());
+                for (auto i = start; i < end; i += 1) {
+                    auto widget = _widgets[i];
 
-            for (auto i = start; i < end; i += 1) {
-                auto widget = _widgets[i];
-
-                if (nullptr == widget) { continue; }
-
-                widget->render(render, i, (i == _cursor));
+                    if (nullptr == widget) {
+                        // TODO: render placeholder widget
+                    } else {
+                        widget->render(render, i, (i == _cursor));
+                    }
+                }
             }
+
+            render.endPage();
         }
 
-        /// @brief Add event to processing queue.
-        /// @param event The event to be processed.
-        [[nodiscard]] bool onEvent(typename Traits::EventImpl event) noexcept {
+        /// @brief Add event to processing queue
+        /// @param event The event to be processed
+        void onEvent(typename Traits::EventImpl event) noexcept {
             using Kind = typename Traits::EventImpl::Kind;
             switch (event.kind()) {
-                case Kind::Update: {
-                    return true;
-                }
                 case Kind::PageCursorMove: {
-                    return moveCursor(event.value());
+                    moveCursor(event.value());
+                    return;
                 }
                 case Kind::WidgetClick: {
-                    if (_widgets.size() > 0) {
-                        return _widgets[_cursor]->onClick();
+                    if (not _widgets.empty()) {
+                        if (_widgets[_cursor]->onClick()) {
+                            _ui.requestRender();
+                        }
+                        return;
                     }
                 }
                 case Kind::WidgetValue: {
-                    if (_widgets.size() > 0) {
-                        return _widgets[_cursor]->onEventValue(event.value());
+                    if (not _widgets.empty()) {
+                        if (_widgets[_cursor]->onEventValue(event.value())) {
+                            _ui.requestRender();
+                        }
+                        return;
                     }
                 }
             }
-            return false;
         }
 
         /// @brief Get widgets on page
-        [[nodiscard]] auto widgets() noexcept -> Slice<Widget *> {
+        [[nodiscard]] constexpr WidgetsView widgets() noexcept {
             return _widgets;
         }
 
     protected:
-        /// @brief Set widgets on page
-        void widgets(Slice<Widget *> new_widgets) noexcept {
-            _widgets = new_widgets;
-            _cursor = clamp<isize>(_cursor, 0, _widgets.size() - 1);
+        /// @brief Set page layout
+        void layout(Layout new_layout) noexcept {
+            _layout = new_layout;
         }
 
-        /// @brief Add Update event
-        void update() noexcept {
-            _ui.addEvent(Traits::EventImpl::update());
+        /// @brief Set page cursor
+        void cursor(usize new_cursor) noexcept {
+            _cursor = clamp<isize>(new_cursor, 0, _widgets.size() - 1);
+        }
+
+        /// @brief Set widgets on page
+        void widgets(WidgetsView new_widgets) noexcept {
+            _widgets = new_widgets;
+            cursor(_cursor);
         }
 
         UI &_ui;
 
     private:
         PageSetter _to_this{*this};///< Navigation widget to this page
-        Slice<Widget *> _widgets{};///< Widgets on this page
+        WidgetsView _widgets{};    ///< Widgets on this page
         isize _cursor{0};          ///< Current widget cursor position (focused widget index)
+        Layout _layout;            ///< Current layout
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
-        /// @return true if cursor position changed (redraw required)
-        [[nodiscard]] bool moveCursor(isize delta) noexcept {
+        void moveCursor(isize delta) noexcept {
             const auto n = _widgets.size();
             if (n > 1) {
                 _cursor = (_cursor + delta + n) % n;
-                return true;
-            } else {
-                return false;
+                _ui.requestRender();
             }
         }
     };
 
 private:
     memory::Queue<typename Traits::EventImpl> _events{};///< Event queue for pending UI events
-    typename Traits::RenderImpl &_render_system;        ///< Renderer system implementation
+    typename Traits::RendererImpl &_renderer;           ///< Renderer system implementation
     Option<Page &> _active_page{none};                  ///< Currently active page for rendering
 
     using This = UI<U>;
@@ -261,23 +283,22 @@ private:
 
         _active_page.unwrap().onPoll(now);
 
-        if (_events.empty()) { return; }
+        if (not _events.empty()) {
+            constexpr usize max_events_per_poll{20};
+            usize events_processed{0};
 
-        constexpr usize max_events_per_poll{20};
-        usize events_processed{0};
+            while (not _events.empty() and events_processed < max_events_per_poll) {
+                _active_page.unwrap().onEvent(_events.front());
 
-        bool render_required{false};
-
-        while (not _events.empty() and events_processed < max_events_per_poll) {
-            render_required |= _active_page.unwrap().onEvent(_events.front());
-            events_processed += 1;
-            _events.pop();
+                events_processed += 1;
+                _events.pop();
+            }
         }
 
-        if (render_required) {
-            _render_system.beginFrame();
-            _active_page.unwrap().render(_render_system);
-            _render_system.endFrame();
+        if (_renderer.renderRequested()) {
+            _renderer.beginFrame();
+            _active_page.unwrap().render(_renderer);
+            _renderer.endFrame();
         }
     }
 };

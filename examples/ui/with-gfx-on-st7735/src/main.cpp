@@ -10,13 +10,12 @@
 #include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/image/DynamicImage.hpp>
+#include <kf/memory/Array.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
-#include <kf/ui/render/ColoredTextRender.hpp>
+#include <kf/ui/render/ColoredTextRenderer.hpp>
 #include <kf/ui/widgets/Widget.hpp>
-
-#include <kf/Option.hpp>
 
 using kf::bus::spi::ArduinoSPI;
 using kf::drivers::display::Orientation;
@@ -28,26 +27,41 @@ using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                              // Traits Implementation
-        kf::ui::widgets::Widget<                   // Base widget class
-            kf::ui::render::ColoredTextRender<256>,// Render implementation: plain text, buffered (256 Bytes),
-            kf::ui::Event<4>                       // Event type: 4-bit value
-            >>>;
+
+    // Traits Implementation
+    kf::ui::UiTraits<
+
+        // Base widget class
+        kf::ui::widgets::Widget<
+
+            // Renderer implementation: plain text
+            kf::ui::render::ColoredTextRenderer,
+            // Event type: 4-bit value
+            kf::ui::Event<4>
+            //
+            >
+        //
+        >
+    //
+    >;
 
 // shortcusts
 using Event = MyUI::Traits::EventImpl;
-using Render = MyUI::Traits::RenderImpl;
+using Render = MyUI::Traits::RendererImpl;
 using Color = kf::ui::Color;
 using Style = kf::ui::Style;
 
-static Render::Config my_render_config{Render::Config::defaults()};// will set in setup
+static kf::memory::Array<char, 256> my_renderer_buffer{};
 
-static Render my_render{
-    my_render_config,// by ref
+static Render::Config my_renderer_config{Render::Config::defaults()};// will set in setup
+
+static Render my_renderer{
+    my_renderer_config,// by ref
+    my_renderer_buffer.slice(),
 };
 
 static MyUI my_ui{
-    my_render,// by ref
+    my_renderer,// by ref
 };
 
 // User-defined example pages
@@ -86,7 +100,6 @@ struct MainPage : MyUI::Page {
         },
         .default_value = 0,
         .step = 25,
-        .placement = kf::ui::Placement::Outside,
         .init_show_value = true,
     };
 
@@ -96,7 +109,7 @@ struct MainPage : MyUI::Page {
 
     using ColorCombo = MyUI::ComboBox<Color>;
 
-    kf::memory::Array<ColorCombo::Config::Item, 9> color_combo_items{{
+    kf::memory::Array<ColorCombo::Config::Item, 9> color_combo_items{{{
         {"Normal", Color::Normal},
         // combo option implements Styled
         {
@@ -121,10 +134,10 @@ struct MainPage : MyUI::Page {
         {"Info", Color::Info},
         {"Disabled", Color::Disabled},
         {"Highlight", Color::Highlight},
-    }};
+    }}};
 
     ColorCombo::Config color_combo_config{
-        .items = {color_combo_items.data(), color_combo_items.size()},
+        .items = color_combo_items.slice(),
     };
 
     ColorCombo foreground_color_combo{color_combo_config};
@@ -134,20 +147,34 @@ struct MainPage : MyUI::Page {
     MyUI::Labeled labeled_background_color_combo{"BG", background_color_combo};
     MyUI::Labeled labeled_check_box{"Check Box", check_box};
 
-    kf::memory::Array<MyUI::Widget *, 7> widgets_storage{
-        {
-            nullptr,// link widget will be init in setup()
-            &click_button,
-            &labeled_foreground_color_combo,
-            &labeled_background_color_combo,
-            &labeled_check_box,
-            &value_display,
-            &slider,
-        },
-    };
+    using Display = MyUI::Display<kf::u8>;
 
-    explicit MainPage() : Page{my_ui, "Main"} {
-        widgets({widgets_storage.data(), widgets_storage.size()});
+    static constexpr auto regular_widgets{7}, array_widgets{20};
+
+    // Many widgets for scroll check
+    kf::memory::Array<Display, array_widgets> displays{};
+
+    kf::memory::Array<MyUI::Widget *, (regular_widgets + array_widgets)> widgets_storage{{
+        nullptr,// link widget will be init in setup()
+        &click_button,
+        &labeled_foreground_color_combo,
+        &labeled_background_color_combo,
+        &labeled_check_box,
+        &value_display,
+        &slider,
+    }};
+
+    explicit MainPage() : Page{my_ui /* layout = kf::ui::Layout::Vertical */} {
+        this->label("Main");
+        widgets(widgets_storage.slice());
+
+        for (auto i = 0u; i < array_widgets; i += 1) {
+            auto &d = displays[i];
+
+            widgets_storage[i + regular_widgets] = &d;
+            d.value(i);
+            d.background((i % 2 == 0) ? Color::Secondary : Color::Primary);
+        }
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
@@ -155,7 +182,7 @@ struct MainPage : MyUI::Page {
             if (my_value.isSome()) {
                 my_value.unwrap() += 1;
                 value_display.value(my_value);
-                update();// add Update Event
+                _ui.requestRender();// add Update Event
             }
         });
 
@@ -183,12 +210,12 @@ struct MainPage : MyUI::Page {
             value_display.value(my_value);
         });
 
-        background_color_combo.callback([this](auto color) {
-            click_button.background(color);
+        background_color_combo.callback([this](auto item) {
+            click_button.background(item.value());
         });
 
-        foreground_color_combo.callback([this](auto color) {
-            click_button.foreground(color);
+        foreground_color_combo.callback([this](auto item) {
+            click_button.foreground(item.value());
         });
     }
 
@@ -211,49 +238,26 @@ struct MainPage : MyUI::Page {
 
 struct SettingsPage : MyUI::Page {
 
-    using PresetInput = MyUI::ComboBox<int>;
+    using MyCombo = MyUI::ComboBox<kf::ui::Layout>;
 
-    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{
+    kf::memory::Array<MyCombo::Config::Item, 2> layout_combo_box_items{{{
+        {"Vertical",
+         kf::ui::Layout::Vertical},
         {
-            {/* label: */ "Normal", /* value: int */ 100},
-            {"Sport", 200},
-            {"Quiet", 20},
-        },// initializer list
-    };
-
-    PresetInput::Config ints_combo_box_config{
-        .items = {ints_combo_box_items.data(), ints_combo_box_items.size()},// Slice
-    };
-
-    PresetInput ints_combo_box{
-        ints_combo_box_config,// by ref
-    };
-
-    MyUI::Labeled labeled_ints_combo_box{
-        "Preset",      // label
-        ints_combo_box,// by ref
-    };
-
-    using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
-
-    kf::memory::Array<MyCombo::Config::Item, 3> strings_combo_box_items{{
-        // StringView-typed combo item implicit constructs from string literal
-        "Alpha",
-        "Beta",
-        {
-            "Gamma",
+            "Horizontal",
+            kf::ui::Layout::Horizontal,
             Style{
                 .foreground_color = Color::Highlight,
             },
         },
-    }};
+    }}};
 
-    MyCombo::Config strings_combo_box_config{
-        .items = {strings_combo_box_items.data(), strings_combo_box_items.size()},// Slice
+    MyCombo::Config layout_combo_box_config{
+        .items = layout_combo_box_items.slice(),
     };
 
-    MyCombo strings_combo_box{
-        strings_combo_box_config,// by ref
+    MyCombo layout_combo_box{
+        layout_combo_box_config,// by ref
     };
 
     using MySpinBox = MyUI::SpinBox<int, MyUI::Traits::GeometricAdjuster<int>>;
@@ -268,26 +272,20 @@ struct SettingsPage : MyUI::Page {
         10,             // = default value
     };
 
-    kf::memory::Array<MyUI::Widget *, 4> widgets_storage{
-        {
-            nullptr,// link widget will be init in setup()
-            &labeled_ints_combo_box,
-            &strings_combo_box,
-            &spin_box,
-        },
-    };
+    kf::memory::Array<MyUI::Widget *, 3> widgets_storage{{
+        nullptr,// link widget will be init in setup()
+        &layout_combo_box,
+        &spin_box,
+    }};
 
-    explicit SettingsPage() : Page{my_ui, "Settings"} {
+    explicit SettingsPage() : Page{my_ui} {
+        this->label("Settings");
         widgets({widgets_storage.data(), widgets_storage.size()});
 
-        ints_combo_box.callback([](int value) {
-            Serial.print("Int Combo selected: ");
-            Serial.println(value);
-        });
-
-        strings_combo_box.callback([](kf::memory::StringView value) {
-            Serial.print("String Combo selected: ");
-            Serial.println(value.data());
+        layout_combo_box.callback([this](MyCombo::Config::Item item) {
+            this->layout(item.value());
+            Serial.print("Combo selected: ");
+            Serial.println(item.label().data());
         });
 
         spin_box.callback([](int value) {
@@ -305,8 +303,9 @@ Event eventFromChar(char c) {
         case 's': return Event::pageCursorMove(+1);// Down
         case 'a': return Event::widgetValue(-1);   // Left
         case 'd': return Event::widgetValue(1);    // Right
-        case ' ': return Event::widgetClick();     // Click
-        default: return Event::update();           // Other: Force update
+        case ' ':
+        default:
+            return Event::widgetClick();// Click
     }
 }
 
@@ -365,7 +364,7 @@ void setup() {
     };
 
     // post-render procedure
-    my_render.callback([](kf::memory::StringView text) {
+    my_renderer.callback([](kf::memory::StringView text) {
         root_canvas.fill();
         root_canvas.text(0, 0, text);
 
@@ -383,12 +382,12 @@ void setup() {
     });
 
     // render config setup
-    my_render_config.text.float_places = 3;                         // float rendering like:  1234.567
-    my_render_config.text.double_places = 6;                        // double rendering like: 1.234567
-    my_render_config.text.rows_total = root_canvas.heightInGlyphs();// all canvas area
-    my_render_config.text.row_max_length = root_canvas.widthInGlyphs();
+    my_renderer_config.text.float_places = 3;                         // float rendering like:  1234.567
+    my_renderer_config.text.double_places = 6;                        // double rendering like: 1.234567
+    my_renderer_config.text.rows_total = root_canvas.heightInGlyphs();// all canvas area
+    my_renderer_config.text.row_max_length = root_canvas.widthInGlyphs();
 
-    // my_render_config.normal_foreground_palette.normal = Render::Config::Palette::Black; // style configutation
+    // my_render_config.normal_foreground_palette.normal = Renderer::Config::Palette::Black; // style configutation
     // my_render_config.focused_foreground_palette
     // my_render_config.normal_background_palette
     // my_render_config.focused_background_palette
@@ -398,8 +397,8 @@ void setup() {
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
 
-    my_ui.activePage(main_page);    // start ui with main page
-    my_ui.addEvent(Event::update());// Force update for first ui rendering
+    my_ui.activePage(main_page);// start ui with main page
+    my_ui.requestRender();      // Force update for first ui rendering
 }
 
 void loop() {

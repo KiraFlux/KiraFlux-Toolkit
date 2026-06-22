@@ -33,7 +33,7 @@ struct ArduinoGPIO : GpioTag {
 
     /// @brief Arduino digital input with configurable pull-up/down.
     /// @note Pull mode is set during `init()`; after that the pin stays configured.
-    struct DigitalInput : GPIO::DigitalInput<DigitalInput, void> {
+    struct DigitalInput : GPIO::DigitalInput<DigitalInput, void()> {
 
         /// @brief Constructor.
         /// @param pin       GPIO number (e.g., `GPIO_NUM_4`).
@@ -53,14 +53,14 @@ struct ArduinoGPIO : GpioTag {
             }
         }
 
-        KF_IMPL_INITABLE(DigitalInput, void);
+        KF_IMPL_INITABLE(DigitalInput, void());
         void initImpl() noexcept {
             const bool inverted_reading = ((_state & pull_up_bit) == 0);
             pinMode(_pin, matchMode(inverted_reading));
             _state = static_cast<u8>(inverted_reading);
         }
 
-        KF_IMPL(::kf::gpio::GPIO::Input<DigitalInput, bool, void>);
+        KF_IMPL(::kf::gpio::GPIO::Input<DigitalInput, bool, void()>);
         bool readImpl() const noexcept {
             const auto level = static_cast<bool>(digitalRead(_pin));
 
@@ -75,7 +75,7 @@ struct ArduinoGPIO : GpioTag {
 
     /// @brief Arduino ADC input (typically 12‑bit on ESP32).
     /// @note Global resolution is set via `resolution()`.
-    struct AdcInput : GPIO::AdcInput<AdcInput, void> {
+    struct AdcInput : GPIO::AdcInput<AdcInput, void()> {
 
         /// @brief Constructor.
         /// @param pin GPIO number with ADC capability (e.g., `GPIO_NUM_34`)
@@ -86,17 +86,17 @@ struct ArduinoGPIO : GpioTag {
 
         const u8 _pin;
 
-        KF_IMPL_INITABLE(AdcInput, void);
+        KF_IMPL_INITABLE(AdcInput, void());
         void initImpl() noexcept {
             pinMode(_pin, INPUT);
         }
 
-        KF_IMPL(::kf::gpio::GPIO::Input<AdcInput, u16, void>);
+        KF_IMPL(::kf::gpio::GPIO::Input<AdcInput, u16, void()>);
         [[nodiscard]] u16 readImpl() const noexcept {
             return analogRead(_pin);
         }
 
-        KF_IMPL(::kf::gpio::GPIO::AdcInput<AdcInput, void>);
+        KF_IMPL(::kf::gpio::GPIO::AdcInput<AdcInput, void()>);
         static void setResolutionImpl(u8 new_resolution_bits) noexcept {
             if (resolution_bits != new_resolution_bits) {
                 resolution_bits = new_resolution_bits;
@@ -104,11 +104,13 @@ struct ArduinoGPIO : GpioTag {
             }
         }
 
-        static u8 getResolutionImpl() noexcept { return resolution_bits; }
+        static u8 getResolutionImpl() noexcept {
+            return resolution_bits;
+        }
     };
 
     /// @brief Arduino digital output.
-    struct DigitalOutput : gpio::GPIO::DigitalOutput<DigitalOutput, void> {
+    struct DigitalOutput : GPIO::DigitalOutput<DigitalOutput, void()> {
 
         /// @brief Constructor.
         /// @param pin GPIO number (e.g., `GPIO_NUM_2`).
@@ -118,28 +120,32 @@ struct ArduinoGPIO : GpioTag {
     private:
         const u8 _pin;
 
-        KF_IMPL_INITABLE(DigitalOutput, void);
+        KF_IMPL_INITABLE(DigitalOutput, void());
         void initImpl() noexcept {
             pinMode(_pin, OUTPUT);
         }
 
-        KF_IMPL(::kf::gpio::GPIO::Output<DigitalOutput, bool, void>);
+        KF_IMPL(::kf::gpio::GPIO::Output<DigitalOutput, bool, void()>);
         void writeImpl(bool level) const noexcept {
             digitalWrite(_pin, level);
         }
     };
 
-    /// @brief Arduino PWM output using ESP32 LEDC hardware.
-    /// @note One LEDC channel can drive multiple pins (same frequency/resolution).
-    struct PwmOutput : gpio::GPIO::PwmOutput<PwmOutput, bool>, mixin::Configurable<internal::ArduinoPwmOutputConfig> {
+    /// @brief Arduino PWM output using ESP32 LEDC hardware
+    struct PwmOutput :
 
-        /// @brief Configuration for an ESP32 LEDC PWM channel.
+        GPIO::PwmOutput<PwmOutput, bool()>,
+        mixin::Configurable<internal::ArduinoPwmOutputConfig>
+
+    {
+
+        /// @brief Configuration for an ESP32 LEDC PWM channel
         using Config = internal::ArduinoPwmOutputConfig;
 
         using mixin::Configurable<Config>::Configurable;
 
     private:
-        KF_IMPL_INITABLE(PwmOutput, bool);
+        KF_IMPL_INITABLE(PwmOutput, bool());
         bool initImpl() noexcept {
             if (ledcSetup(this->config().channel, this->config().frequency_hz, this->config().resolution_bits) == 0) {
                 return false;
@@ -150,12 +156,12 @@ struct ArduinoGPIO : GpioTag {
             return true;
         }
 
-        KF_IMPL(::kf::gpio::GPIO::Output<PwmOutput, u16, bool>);
+        KF_IMPL(::kf::gpio::GPIO::Output<PwmOutput, u16, bool()>);
         void writeImpl(u16 level) const noexcept {
             ledcWrite(this->config().channel, level);
         }
 
-        KF_IMPL(::kf::gpio::GPIO::PwmOutput<PwmOutput, bool>);
+        KF_IMPL(::kf::gpio::GPIO::PwmOutput<PwmOutput, bool()>);
         u32 getFrequencyImpl() const noexcept { return this->config().frequency_hz; }
         u8 getResolutionImpl() const noexcept { return this->config().resolution_bits; }
     };

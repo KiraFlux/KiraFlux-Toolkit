@@ -8,10 +8,8 @@
 #include "kf/mixin/Styled.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/ui/Color.hpp"
 #include "kf/ui/Event.hpp"
-#include "kf/ui/Style.hpp"
-#include "kf/ui/render/Render.hpp"
+#include "kf/ui/render/Renderer.hpp"
 
 namespace kf::ui::widgets {
 
@@ -31,11 +29,11 @@ template<typename R, typename E> struct Widget :
     KF_CHECK_IMPL(R, ::kf::ui::render::RenderTag);
     KF_CHECK_IMPL(E, ::kf::ui::EventTag);
 
-    using RenderImpl = R;
+    using RendererImpl = R;
     using EventImpl = E;
 
     /// @brief Render widget content (must be implemented by derived classes)
-    virtual void doRender(RenderImpl &render) const noexcept = 0;
+    virtual void doRender(RendererImpl &render) const noexcept = 0;
 
     /// @brief Handle click event
     /// @return true if redraw required, false otherwise
@@ -62,8 +60,10 @@ template<typename R, typename E> struct Widget :
     }
 
     /// @brief External widget rendering with focus handling
-    void render(RenderImpl &render, usize index, bool focused) const noexcept {
-        render.beginWidget(index, focused, this->style());
+    void render(RendererImpl &render, usize index, bool focused) const noexcept {
+        render.beginWidget(index, focused);
+        render.foreground(this->style().foreground_color);
+        render.background(this->style().background_color);
         doRender(render);
         render.endWidget();
     }
