@@ -170,9 +170,7 @@ private:
             PixelImpl::template pages<64> - 1,
         };
 
-        if (const auto result = _node.writePacket(set_area_commands); result.isError()) {
-            return result;
-        }
+        KF_TRY(_node.writePacket(set_area_commands));
 
         auto p = this->image().buffer().data();
         auto remaining = this->image().buffer().size();
@@ -180,9 +178,7 @@ private:
         while (remaining > 0) {
             const auto chunk = min(packet_size, remaining);
 
-            if (const auto result = _node.writeMixed(Command::DataMode, {p, chunk}); result.isError()) {
-                return result;
-            }
+            KF_TRY(_node.writeMixed(Command::DataMode, {p, chunk}));
 
             p += chunk;
             remaining -= chunk;
@@ -200,13 +196,8 @@ private:
         constexpr auto flip_y = 0b10;
         const auto flags = static_cast<u8>(orientation);
 
-        if (const auto result = sendCommand((flags & flip_x) ? FlipH : NormalH); result.isError()) {
-            return result;
-        }
-
-        if (const auto result = sendCommand((flags & flip_y) ? FlipV : NormalV); result.isError()) {
-            return result;
-        }
+        KF_TRY(sendCommand((flags & flip_x) ? FlipH : NormalH));
+        KF_TRY(sendCommand((flags & flip_y) ? FlipV : NormalV));
 
         return ok();
     }

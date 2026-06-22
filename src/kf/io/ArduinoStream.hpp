@@ -102,9 +102,7 @@ private:
     }
 
     template<typename T> WriteResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
-        const auto header_result = this->writePacket(std::forward<T>(header));
-        if (header_result.isError()) { return header_result; }
-
+        KF_TRY(this->writePacket(std::forward<T>(header)));
         return this->writeBuffer(buffer);
     }
 };
