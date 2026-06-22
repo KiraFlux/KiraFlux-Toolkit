@@ -15,7 +15,7 @@ namespace kf::controllers {
 /// @brief Two-degree-of-freedom robotic manipulator
 /// @tparam I Actuator implementation type (must satisfy Actuator interface).
 /// @note Controls arm and claw axes servo drivers
-template<typename I> struct Manipulator2DOF final : mixin::NonCopyable, mixin::Initable<Manipulator2DOF, bool> {
+template<typename I> struct Manipulator2DOF final : mixin::NonCopyable, mixin::Initable<Manipulator2DOF, bool()> {
     KF_CHECK_IMPL(I, ::kf::drivers::actuators::ActuatorTag);
 
     using ActuatorImpl = I;
@@ -44,7 +44,7 @@ private:
     // impl
     using This = Manipulator2DOF;
 
-    KF_IMPL_INITABLE(This, bool);
+    KF_IMPL_INITABLE(This, bool());
     bool initImpl() noexcept {
         if (not _arm.init()) { return false; }
         if (not _claw.init()) { return false; }

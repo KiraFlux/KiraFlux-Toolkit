@@ -13,8 +13,14 @@ struct ActuatorTag {};
 
 /// @brief Actuator CRTP interface
 /// @tparam Impl Actuator implementation
-/// @tparam InitResult Reslt of `init()`
-template<typename Impl, typename InitResult>
-struct Actuator : ActuatorTag, meta::CRTP<Impl>, mixin::Initable<Impl, InitResult>, mixin::NonCopyable {};
+/// @tparam InitSignature `init()`
+template<typename Impl, typename InitSignature> struct Actuator :
+
+    ActuatorTag,
+    meta::CRTP<Impl>,
+    mixin::NonCopyable,
+    mixin::Initable<Impl, InitSignature>
+
+{};
 
 }// namespace kf::drivers::actuators

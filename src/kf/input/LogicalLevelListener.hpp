@@ -27,7 +27,7 @@ namespace kf::input {
 template<typename G> struct LogicalLevelListener :
 
     mixin::NonCopyable,
-    mixin::Initable<LogicalLevelListener<G>, void>,
+    mixin::Initable<LogicalLevelListener<G>, void()>,
     mixin::Configurable<internal::LogicalLevelListenerConfig>,
     mixin::TimedPollable<LogicalLevelListener<G>>
 
@@ -67,7 +67,7 @@ private:
     // impl
     using This = LogicalLevelListener<G>;
 
-    KF_IMPL_INITABLE(This, void);
+    KF_IMPL_INITABLE(This, void());
     void initImpl() noexcept {
         _pin.init();
     }

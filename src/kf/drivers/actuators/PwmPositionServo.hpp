@@ -47,7 +47,7 @@ namespace kf::drivers::actuators {
 /// @tparam G Implementation of GPIO with PWM output support
 template<typename G> struct PwmPositionServo final :
 
-    Actuator<PwmPositionServo<G>, bool>,
+    Actuator<PwmPositionServo<G>, bool()>,
     mixin::Configurable<internal::PwmPositionServoConfig>
 
 {
@@ -88,7 +88,7 @@ private:
     // impl
     using This = PwmPositionServo<G>;
 
-    KF_IMPL_INITABLE(This, bool);
+    KF_IMPL_INITABLE(This, bool());
     bool initImpl() noexcept {
         return _pin.init();
     }

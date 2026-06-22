@@ -182,7 +182,7 @@ private:
 
     using This = ArduinoSpiNode<I>;
 
-    KF_IMPL_INITABLE(This, void);
+    KF_IMPL_INITABLE(This, void());
     void initImpl() noexcept {
         pinMode(this->config().pin_cs, OUTPUT);
         digitalWrite(this->config().pin_cs, HIGH);
@@ -267,7 +267,7 @@ struct ArduinoSPI :
 private:
     SPIClass &_spi;
 
-    KF_IMPL_INITABLE(ArduinoSPI, Result<void, Error>);
+    KF_IMPL_INITABLE(ArduinoSPI, Result<void, Error>());
     Result<void, Error> initImpl() noexcept {
         if (this->config().hasDefaultPins()) {
             _spi.begin();

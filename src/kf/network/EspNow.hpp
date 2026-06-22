@@ -89,7 +89,7 @@ struct EspNow final :
 
     mixin::Singleton<EspNow>,
     mixin::MacAddressed,
-    mixin::Initable<EspNow, Result<void, internal::EspNowError>>,
+    mixin::Initable<EspNow, Result<void, internal::EspNowError>()>,
     mixin::Quitable<EspNow>,
     mixin::Callbacked<const MacAddress &, Slice<const u8>>
 
@@ -229,7 +229,7 @@ private:
         EspNow::instance().invoke(source_mac_address, Slice<const u8>{data, static_cast<usize>(size)});
     }
 
-    KF_IMPL_INITABLE(EspNow, VoidResult);
+    KF_IMPL_INITABLE(EspNow, VoidResult());
     VoidResult initImpl() noexcept {
         esp_err_t e;
 

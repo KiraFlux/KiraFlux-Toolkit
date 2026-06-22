@@ -23,7 +23,7 @@ template<typename DriverImpl, typename ImageImpl, typename ResultType> struct Di
     DisplayDriverTag,
     meta::CRTP<DriverImpl>,
     mixin::NonCopyable,
-    mixin::Initable<DriverImpl, ResultType>,
+    mixin::Initable<DriverImpl, ResultType()>,
     mixin::Resettable<DriverImpl>
 
 {

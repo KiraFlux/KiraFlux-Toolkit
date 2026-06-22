@@ -23,7 +23,11 @@ namespace kf::drivers::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
 /// @tparam N Implementation of IIC bus Node
-template<typename N> struct SSD1306 final : DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl, Result<void, typename N::Error>> {
+template<typename N> struct SSD1306 final :
+
+    DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl, Result<void, typename N::Error>>
+
+{
     KF_CHECK_IMPL(N, ::kf::bus::iic::IicNodeTag);
 
     using IicNodeImpl = N;
@@ -98,7 +102,7 @@ private:
     // impl
     using This = SSD1306<N>;
 
-    KF_IMPL_INITABLE(This, IicOperationResult);
+    KF_IMPL_INITABLE(This, IicOperationResult());
     /// @brief Initialize display hardware via I2C
     IicOperationResult initImpl() noexcept {
         static constexpr u8 init_commands[] = {

@@ -20,7 +20,9 @@ template<typename Impl, typename ErrorImpl> struct BusNode :
     BusNodeTag,
     mixin::NonCopyable,
     io::Readable<Impl, ErrorImpl>,
-    io::Writable<Impl, Result<void, ErrorImpl>> {};
+    io::Writable<Impl, Result<void, ErrorImpl>>
+
+{};
 
 struct BusTag {};
 
@@ -34,7 +36,7 @@ template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus :
 
     BusTag,
     mixin::NonCopyable,
-    mixin::Initable<BusImpl, Result<void, ErrorImpl>>,
+    mixin::Initable<BusImpl, Result<void, ErrorImpl>()>,
     mixin::Quitable<BusImpl>,
     meta::CRTP<BusImpl>
 

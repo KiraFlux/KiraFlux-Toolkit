@@ -112,7 +112,7 @@ private:
     // impl
     using This = ST7735<N, G>;
 
-    KF_IMPL_INITABLE(This, SpiOperationResult);
+    KF_IMPL_INITABLE(This, SpiOperationResult());
     SpiOperationResult initImpl() noexcept {
         _spi_node.init();
         _pin_data_command.init();
