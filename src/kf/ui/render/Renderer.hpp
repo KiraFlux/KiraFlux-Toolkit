@@ -34,7 +34,7 @@ template<typename Impl> struct Renderer :
 {
     /// @brief Check whether a render has been requested
     /// @return `true` if a render is pending, `false` otherwise
-    [[nodiscard]] bool renderRequested() noexcept {
+    [[nodiscard]] constexpr bool renderRequested() noexcept {
         return _render_requested;
     }
 

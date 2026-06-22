@@ -103,12 +103,12 @@ template<typename U> struct UI :
     }
 
     /// @brief Get readobly access to active page
-    auto activePage() const noexcept -> kf::Option<Page &> {
+    constexpr auto activePage() const noexcept -> kf::Option<Page &> {
         return _active_page;
     }
 
     /// @brief Add event to processing queue
-    void addEvent(typename Traits::EventImpl event) {
+    void addEvent(typename Traits::EventImpl event) noexcept {
         _events.push(event);
     }
 
@@ -229,7 +229,7 @@ public:
         }
 
         /// @brief Get widgets on page
-        [[nodiscard]] WidgetsView widgets() noexcept {
+        [[nodiscard]] constexpr WidgetsView widgets() noexcept {
             return _widgets;
         }
 
