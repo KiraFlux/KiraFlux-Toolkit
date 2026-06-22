@@ -28,7 +28,7 @@ static kf::memory::Array<char, 256> my_render_buffer{};
 
 static MyUI::Traits::RenderImpl my_render{
     my_render_config,// by ref
-    {my_render_buffer.data(), my_render_buffer.size()},
+    my_render_buffer.slice(),
 };
 
 static MyUI my_ui{
@@ -74,19 +74,17 @@ struct MainPage : MyUI::Page {
         slider_config,// by ref
     };
 
-    kf::memory::Array<MyUI::Widget *, 5> widgets_storage{
-        {
-            nullptr,// link widget will be init in setup()
-            &click_button,
-            &check_box,
-            &value_display,
-            &slider,
-        },
-    };
+    kf::memory::Array<MyUI::Widget *, 5> widgets_storage{{
+        nullptr,// link widget will be init in setup()
+        &click_button,
+        &check_box,
+        &value_display,
+        &slider,
+    }};
 
     explicit MainPage() : Page{my_ui} {
         this->label("Main");
-        widgets({widgets_storage.data(), widgets_storage.size()});
+        widgets(widgets_storage.slice());
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
@@ -124,16 +122,14 @@ struct SettingsPage : MyUI::Page {
 
     using PresetInput = MyUI::ComboBox<int>;
 
-    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{
-        {
-            {/* label: */ "Normal", /* value: int */ 100},
-            {"Sport", 200},
-            {"Quiet", 20},
-        },// initializer list
-    };
+    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{{{
+        {"Normal", 100},
+        {"Sport", 200},
+        {"Quiet", 20},
+    }}};
 
     PresetInput::Config ints_combo_box_config{
-        .items = {ints_combo_box_items.data(), ints_combo_box_items.size()},// Slice
+        .items = ints_combo_box_items.slice(),
     };
 
     PresetInput ints_combo_box{
@@ -152,7 +148,7 @@ struct SettingsPage : MyUI::Page {
     };
 
     MyCombo::Config strings_combo_box_config{
-        .items = {strings_combo_box_items.data(), strings_combo_box_items.size()},// Slice
+        .items = strings_combo_box_items.slice(),
     };
 
     MyCombo strings_combo_box{
@@ -171,18 +167,16 @@ struct SettingsPage : MyUI::Page {
         10,             // = default value
     };
 
-    kf::memory::Array<MyUI::Widget *, 4> widgets_storage{
-        {
-            nullptr,// link widget will be init in setup()
-            &labeled_ints_combo_box,
-            &strings_combo_box,
-            &spin_box,
-        },
-    };
+    kf::memory::Array<MyUI::Widget *, 4> widgets_storage{{
+        nullptr,// link widget will be init in setup()
+        &labeled_ints_combo_box,
+        &strings_combo_box,
+        &spin_box,
+    }};
 
     explicit SettingsPage() : Page{my_ui} {
         this->label("Settings");
-        widgets({widgets_storage.data(), widgets_storage.size()});
+        widgets(widgets_storage.slice());
 
         ints_combo_box.callback([](auto item) {
             Serial.print("Int Combo selected: ");

@@ -22,7 +22,7 @@ kf::memory::Array<Bridge::ReceiveFunctionType, 1> receiver_table{
 Bridge my_bridge{
     ArduinoStream{Serial},
     ArduinoStream{Serial},
-    {receiver_table.data(), receiver_table.size()},
+    receiver_table.slice(),
 };
 
 auto ins_0 = my_bridge.createInstruction([](ArduinoStream &, void *) -> kf::Result<void, Bridge::Error> {

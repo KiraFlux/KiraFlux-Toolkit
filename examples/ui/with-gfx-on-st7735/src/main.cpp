@@ -57,7 +57,7 @@ static Render::Config my_render_config{Render::Config::defaults()};// will set i
 
 static Render my_render{
     my_render_config,// by ref
-    {my_render_buffer.data(), my_render_buffer.size()},
+    my_render_buffer.slice(),
 };
 
 static MyUI my_ui{
@@ -109,7 +109,7 @@ struct MainPage : MyUI::Page {
 
     using ColorCombo = MyUI::ComboBox<Color>;
 
-    kf::memory::Array<ColorCombo::Config::Item, 9> color_combo_items{{
+    kf::memory::Array<ColorCombo::Config::Item, 9> color_combo_items{{{
         {"Normal", Color::Normal},
         // combo option implements Styled
         {
@@ -134,10 +134,10 @@ struct MainPage : MyUI::Page {
         {"Info", Color::Info},
         {"Disabled", Color::Disabled},
         {"Highlight", Color::Highlight},
-    }};
+    }}};
 
     ColorCombo::Config color_combo_config{
-        .items = {color_combo_items.data(), color_combo_items.size()},
+        .items = color_combo_items.slice(),
     };
 
     ColorCombo foreground_color_combo{color_combo_config};
@@ -154,22 +154,19 @@ struct MainPage : MyUI::Page {
     // Many widgets for scroll check
     kf::memory::Array<Display, array_widgets> displays{};
 
-    kf::memory::Array<MyUI::Widget *, (regular_widgets + array_widgets)> widgets_storage{
-        {
-            nullptr,// link widget will be init in setup()
-            &click_button,
-            &labeled_foreground_color_combo,
-            &labeled_background_color_combo,
-            &labeled_check_box,
-            &value_display,
-            &slider,
-        },
-    };
+    kf::memory::Array<MyUI::Widget *, (regular_widgets + array_widgets)> widgets_storage{{
+        nullptr,// link widget will be init in setup()
+        &click_button,
+        &labeled_foreground_color_combo,
+        &labeled_background_color_combo,
+        &labeled_check_box,
+        &value_display,
+        &slider,
+    }};
 
-    explicit MainPage() : Page{my_ui,
-                               /* layout = kf::ui::Layout::Vertical */} {
+    explicit MainPage() : Page{my_ui /* layout = kf::ui::Layout::Vertical */} {
         this->label("Main");
-        widgets({widgets_storage.data(), widgets_storage.size()});
+        widgets(widgets_storage.slice());
 
         for (auto i = 0u; i < array_widgets; i += 1) {
             auto &d = displays[i];
@@ -243,7 +240,7 @@ struct SettingsPage : MyUI::Page {
 
     using MyCombo = MyUI::ComboBox<kf::ui::Layout>;
 
-    kf::memory::Array<MyCombo::Config::Item, 2> layout_combo_box_items{{
+    kf::memory::Array<MyCombo::Config::Item, 2> layout_combo_box_items{{{
         {"Vertical",
          kf::ui::Layout::Vertical},
         {
@@ -253,10 +250,10 @@ struct SettingsPage : MyUI::Page {
                 .foreground_color = Color::Highlight,
             },
         },
-    }};
+    }}};
 
     MyCombo::Config layout_combo_box_config{
-        .items = {layout_combo_box_items.data(), layout_combo_box_items.size()},// Slice
+        .items = layout_combo_box_items.slice(),
     };
 
     MyCombo layout_combo_box{
@@ -275,13 +272,11 @@ struct SettingsPage : MyUI::Page {
         10,             // = default value
     };
 
-    kf::memory::Array<MyUI::Widget *, 3> widgets_storage{
-        {
-            nullptr,// link widget will be init in setup()
-            &layout_combo_box,
-            &spin_box,
-        },
-    };
+    kf::memory::Array<MyUI::Widget *, 3> widgets_storage{{
+        nullptr,// link widget will be init in setup()
+        &layout_combo_box,
+        &spin_box,
+    }};
 
     explicit SettingsPage() : Page{my_ui} {
         this->label("Settings");
