@@ -154,7 +154,7 @@ private:
     }
 
     void endWidgetImpl() noexcept {
-        writeChar('\n');
+        writeChar((_layout == Layout::Horizontal) ? ' ' : '\n');
     }
 
     void beginBlockImpl(Block block_type) noexcept {
