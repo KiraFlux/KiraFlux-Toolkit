@@ -39,7 +39,7 @@ The library is **header‑only**, **C++17**, targets **ESP32 + Arduino framework
 | Pixel formats    | [`kf/pixel`](src/kf/pixel)             | Monochrome, RGB565 pixel operations.                                                         |
 | UI               | [`kf/ui`](src/kf/ui)                   | Widget‑based UI with configurable render backend.                                            |
 | Math             | [`kf/math`](src/kf/math)               | Vectors, quaternion, timers, filters, PID.                                                   |
-| Memory           | [`kf/memory`](src/kf/memory)           | Lightweight containers (`Slice`, `StaticString`, `Storage`) and STL aliases.                 |
+| Memory           | [`kf/memory`](src/kf/memory)           | Lightweight containers (`StaticString`, `Storage`) and STL aliases.                          |
 | Mixins           | [`kf/mixin`](src/kf/mixin)             | Reusable CRTP mixins (`Resettable`, `Pollable`, `Callbacked`, etc.).                         |
 | Tuners           | [`kf/tuner`](src/kf/tuner)             | Sensor calibration via sample collection.                                                    |
 | Metaprogramming  | [`kf/meta`](src/kf/meta)               | CRTP base, bit/function traits.                                                              |
@@ -49,7 +49,7 @@ The library is **header‑only**, **C++17**, targets **ESP32 + Arduino framework
 ### PlatformIO
 
 ```ini
-lib_deps = https://github.com/KiraFlux/KiraFlux-Toolkit.git#0.3.2
+lib_deps = https://github.com/KiraFlux/KiraFlux-Toolkit.git#0.3.4
 ```
 
 Examples are in the [`examples`](examples) directory.
