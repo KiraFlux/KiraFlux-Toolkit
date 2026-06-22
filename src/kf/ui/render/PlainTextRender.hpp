@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/Function.hpp"
+#include "kf/Slice.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/memory/StaticString.hpp"
 #include "kf/memory/StringView.hpp"
@@ -73,9 +74,9 @@ namespace kf::ui::render {
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
 /// @note Implements Render CRTP interface for character-based display
-template<usize N> struct PlainTextRender :
+struct PlainTextRender :
 
-    Render<PlainTextRender<N>>,
+    Render<PlainTextRender>,
     mixin::Callbacked<memory::StringView>,
     mixin::Configurable<internal::PlainTextRenderConfig>
 
@@ -83,22 +84,26 @@ template<usize N> struct PlainTextRender :
     /// @brief Text renderer configuration
     using Config = internal::PlainTextRenderConfig;
 
-    using mixin::Configurable<Config>::Configurable;
+    explicit constexpr PlainTextRender(const Config &config, Slice<char> source) noexcept :
+        mixin::Configurable<Config>::Configurable{config}, _buffer{source} {}
 
     /// @brief Helper to write character with cursor tracking
     void writeChar(char ch) noexcept {
-        if (_buffer.full() or _cursor.row >= this->config().rows_total) { return; }
+        if ((_buffer.size() == _written) or _cursor.row >= this->config().rows_total) { return; }
 
         if (ch == '\n') {
             _cursor.newline();
-            (void) _buffer.push(ch);
+            _buffer[_written] = ch;
+            _written += 1;
             return;
         }
 
-        if (not _cursor.canWrite(this->config().row_max_length)) { return; }
-
-        _cursor.advance(1, this->config().row_max_length);
-        (void) _buffer.push(ch);
+        if (_cursor.canWrite(this->config().row_max_length)) {
+            _cursor.advance(1, this->config().row_max_length);
+            _buffer[_written] = ch;
+            _written += 1;
+            return;
+        }
     }
 
     /// @brief Write string with cursor tracking
@@ -115,19 +120,20 @@ template<usize N> struct PlainTextRender :
     }
 
 private:
-    memory::StaticString<N> _buffer{};///< Output buffer for rendered text
+    Slice<char> _buffer;
+    usize _written{0};
     internal::PlainTextRenderCursor _cursor{};
     Layout _layout{Layout::Vertical};
 
-    KF_IMPL(Render<PlainTextRender<N>>);
+    KF_IMPL(Render<PlainTextRender>);
 
     void beginFrameImpl() noexcept {
-        _buffer.clear();
+        _written = 0;
         _cursor.reset();
     }
 
     void endFrameImpl() noexcept {
-        this->invoke(_buffer.view());
+        this->invoke({_buffer.data(), _written});
     }
 
     usize beginPageImpl(memory::StringView title, Layout layout) noexcept {

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include <kf/memory/Array.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
@@ -10,9 +11,9 @@ using MyEvent = kf::ui::Event<4>;// Event type: 4-bit value
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                            // Traits Implementation
-        kf::ui::widgets::Widget<                 // Base widget class
-            kf::ui::render::PlainTextRender<256>,// Render implementation: plain text, buffered (256 Bytes),
+    kf::ui::UiTraits<                       // Traits Implementation
+        kf::ui::widgets::Widget<            // Base widget class
+            kf::ui::render::PlainTextRender,// Render implementation: plain text
             MyEvent>>>;
 
 static MyUI::Traits::RenderImpl::Config my_render_config{
@@ -23,8 +24,11 @@ static MyUI::Traits::RenderImpl::Config my_render_config{
     .title_centered = false,
 };
 
+static kf::memory::Array<char, 256> my_render_buffer{};
+
 static MyUI::Traits::RenderImpl my_render{
     my_render_config,// by ref
+    {my_render_buffer.data(), my_render_buffer.size()},
 };
 
 static MyUI my_ui{

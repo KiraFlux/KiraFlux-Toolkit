@@ -10,13 +10,12 @@
 #include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/image/DynamicImage.hpp>
+#include <kf/memory/Array.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/ColoredTextRender.hpp>
 #include <kf/ui/widgets/Widget.hpp>
-
-#include <kf/Option.hpp>
 
 using kf::bus::spi::ArduinoSPI;
 using kf::drivers::display::Orientation;
@@ -28,11 +27,23 @@ using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialisation
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                              // Traits Implementation
-        kf::ui::widgets::Widget<                   // Base widget class
-            kf::ui::render::ColoredTextRender<256>,// Render implementation: plain text, buffered (256 Bytes),
-            kf::ui::Event<4>                       // Event type: 4-bit value
-            >>>;
+
+    // Traits Implementation
+    kf::ui::UiTraits<
+
+        // Base widget class
+        kf::ui::widgets::Widget<
+
+            // Render implementation: plain text
+            kf::ui::render::ColoredTextRender,
+            // Event type: 4-bit value
+            kf::ui::Event<4>
+            //
+            >
+        //
+        >
+    //
+    >;
 
 // shortcusts
 using Event = MyUI::Traits::EventImpl;
@@ -40,10 +51,13 @@ using Render = MyUI::Traits::RenderImpl;
 using Color = kf::ui::Color;
 using Style = kf::ui::Style;
 
+static kf::memory::Array<char, 256> my_render_buffer{};
+
 static Render::Config my_render_config{Render::Config::defaults()};// will set in setup
 
 static Render my_render{
     my_render_config,// by ref
+    {my_render_buffer.data(), my_render_buffer.size()},
 };
 
 static MyUI my_ui{
@@ -152,17 +166,18 @@ struct MainPage : MyUI::Page {
         },
     };
 
-    explicit MainPage() : Page{my_ui, /* layout = kf::ui::Layout::Vertical */} {
+    explicit MainPage() : Page{my_ui,
+                               /* layout = kf::ui::Layout::Vertical */} {
         this->label("Main");
         widgets({widgets_storage.data(), widgets_storage.size()});
 
         for (auto i = 0u; i < array_widgets; i += 1) {
             auto &d = displays[i];
-            
+
             widgets_storage[i + regular_widgets] = &d;
             d.value(i);
             d.background((i % 2 == 0) ? Color::Secondary : Color::Primary);
-        }        
+        }
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
@@ -229,10 +244,8 @@ struct SettingsPage : MyUI::Page {
     using MyCombo = MyUI::ComboBox<kf::ui::Layout>;
 
     kf::memory::Array<MyCombo::Config::Item, 2> layout_combo_box_items{{
-        {
-            "Vertical", 
-            kf::ui::Layout::Vertical
-        },
+        {"Vertical",
+         kf::ui::Layout::Vertical},
         {
             "Horizontal",
             kf::ui::Layout::Horizontal,

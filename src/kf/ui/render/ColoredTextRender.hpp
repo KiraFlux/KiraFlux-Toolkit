@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "kf/Slice.hpp"
 #include "kf/mixin/Configurable.hpp"
+
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Layout.hpp"
 #include "kf/ui/render/PlainTextRender.hpp"
@@ -11,8 +13,8 @@
 
 namespace kf::internal {
 
-template<usize N> struct ColoredTextRenderConfig final {
-    using TextConfig = typename ui::render::PlainTextRender<N>::Config;
+struct ColoredTextRenderConfig final {
+    using TextConfig = ui::render::PlainTextRender::Config;
 
     struct Palette final {
 
@@ -101,17 +103,17 @@ template<usize N> struct ColoredTextRenderConfig final {
 
 namespace kf::ui::render {
 
-template<usize N> struct ColoredTextRender :
+struct ColoredTextRender :
 
-    Render<ColoredTextRender<N>>,
-    mixin::Configurable<internal::ColoredTextRenderConfig<N>>
+    Render<ColoredTextRender>,
+    mixin::Configurable<internal::ColoredTextRenderConfig>
 
 {
-    using Wrapped = PlainTextRender<N>;
-    using Config = internal::ColoredTextRenderConfig<N>;
+    using Wrapped = PlainTextRender;
+    using Config = internal::ColoredTextRenderConfig;
 
-    explicit constexpr ColoredTextRender(const Config &config) noexcept :
-        mixin::Configurable<Config>{config}, _wrapped{config.text} {}
+    explicit constexpr ColoredTextRender(const Config &config, Slice<char> source) noexcept :
+        mixin::Configurable<Config>{config}, _wrapped{config.text, source} {}
 
     template<typename F> void callback(F &&callback) noexcept {
         _wrapped.callback(std::forward<F>(callback));
@@ -121,19 +123,19 @@ private:
     Wrapped _wrapped;
     bool _focus_active{false};
 
-    void writeColor(Color color, char base_code, const typename Config::Palette &palette) noexcept {
+    void writeColor(Color color, char base_code, const Config::Palette &palette) noexcept {
         _wrapped.writeChar(base_code + static_cast<char>(palette.get(color)));
     }
 
-    void writeForegroundColor(Color color, const typename Config::Palette &palette) noexcept {
+    void writeForegroundColor(Color color, const Config::Palette &palette) noexcept {
         writeColor(color, '\xF0', palette);
     }
 
-    void writeBackgroundColor(Color color, const typename Config::Palette &palette) noexcept {
+    void writeBackgroundColor(Color color, const Config::Palette &palette) noexcept {
         writeColor(color, '\xB0', palette);
     }
 
-    KF_IMPL(Render<ColoredTextRender<N>>);
+    KF_IMPL(Render<ColoredTextRender>);
 
     // control
 
