@@ -182,7 +182,7 @@ struct MainPage : MyUI::Page {
             if (my_value.isSome()) {
                 my_value.unwrap() += 1;
                 value_display.value(my_value);
-                update();// add Update Event
+                _ui.requestRender();// add Update Event
             }
         });
 
@@ -303,8 +303,9 @@ Event eventFromChar(char c) {
         case 's': return Event::pageCursorMove(+1);// Down
         case 'a': return Event::widgetValue(-1);   // Left
         case 'd': return Event::widgetValue(1);    // Right
-        case ' ': return Event::widgetClick();     // Click
-        default: return Event::update();           // Other: Force update
+        case ' ':
+        default:
+            return Event::widgetClick();// Click
     }
 }
 
@@ -396,8 +397,8 @@ void setup() {
     main_page.widgets()[0] = &settings_page.link();
     settings_page.widgets()[0] = &main_page.link();
 
-    my_ui.activePage(main_page);    // start ui with main page
-    my_ui.addEvent(Event::update());// Force update for first ui rendering
+    my_ui.activePage(main_page);// start ui with main page
+    my_ui.requestRender();      // Force update for first ui rendering
 }
 
 void loop() {

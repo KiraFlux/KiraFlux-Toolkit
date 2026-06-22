@@ -32,6 +32,18 @@ template<typename Impl> struct Render :
     mixin::NonCopyable
 
 {
+    /// @brief Check whether a render has been requested
+    /// @return `true` if a render is pending, `false` otherwise
+    [[nodiscard]] bool renderRequested() noexcept {
+        return _render_requested;
+    }
+
+    /// @brief Request a full UI redraw on the next poll cycle
+    /// @note The actual rendering will be performed during the next call to `poll()`
+    void requestRender() noexcept {
+        _render_requested = true;
+    }
+
     // Control operations
 
     /// @brief Prepare render buffer for new frame
@@ -42,6 +54,7 @@ template<typename Impl> struct Render :
     /// @brief Finalize frame after rendering
     void endFrame() noexcept {
         this->impl().endFrameImpl();
+        _render_requested = false;
     }
 
     /// @brief Begin rendering page
@@ -127,6 +140,9 @@ template<typename Impl> struct Render :
     void background(Color color) noexcept {
         this->impl().setBackgroundImpl(color);
     }
+
+private:
+    bool _render_requested{false};
 };
 
 }// namespace kf::ui::render

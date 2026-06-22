@@ -90,7 +90,7 @@ struct MainPage : MyUI::Page {
             Serial.println("Test button clicked!");
             my_value += 1;
             value_display.value(my_value);
-            update();// add Update Event
+            _ui.requestRender();
         });
 
         check_box.callback([this](bool state) {
@@ -204,8 +204,9 @@ MyEvent eventFromChar(char c) {
         case 's': return MyEvent::pageCursorMove(+1);// Down
         case 'a': return MyEvent::widgetValue(-1);   // Left
         case 'd': return MyEvent::widgetValue(+1);   // Right
-        case ' ': return MyEvent::widgetClick();     // Click
-        default: return MyEvent::update();           // Other: Force update
+        case ' ':
+        default:
+            return MyEvent::widgetClick();// Click
     }
 }
 
@@ -233,8 +234,7 @@ void setup() {
     settings_page.widgets()[0] = &main_page.link();
 
     my_ui.activePage(main_page);// start ui with main page
-
-    my_ui.addEvent(MyEvent::update());// Force update for first ui rendering
+    my_ui.requestRender();      // Force update for first ui rendering
 }
 
 void loop() {

@@ -31,10 +31,9 @@ template<usize N> struct Event : EventTag {
     static constexpr auto sign_bit_mask{static_cast<Storage>(Storage{1} << (value_bits - 1))};
 
     enum class Kind : Storage {
-        Update = static_cast<Storage>(Storage{0} << value_bits),
-        PageCursorMove = static_cast<Storage>(Storage{1} << value_bits),
-        WidgetClick = static_cast<Storage>(Storage{2} << value_bits),
-        WidgetValue = static_cast<Storage>(Storage{3} << value_bits),
+        PageCursorMove = static_cast<Storage>(Storage{0} << value_bits),
+        WidgetClick = static_cast<Storage>(Storage{1} << value_bits),
+        WidgetValue = static_cast<Storage>(Storage{2} << value_bits),
     };
 
     explicit constexpr Event(Kind kind, Value value = 0) noexcept :
@@ -47,10 +46,6 @@ template<usize N> struct Event : EventTag {
     [[nodiscard]] Value value() const noexcept {
         const auto raw = static_cast<Value>(_storage & value_mask);
         return (raw & sign_bit_mask) ? static_cast<Value>(raw | ~value_mask) : raw;
-    }
-
-    [[nodiscard]] static constexpr Event update() noexcept {
-        return Event{Kind::Update};
     }
 
     [[nodiscard]] static constexpr Event pageCursorMove(Value offset) noexcept {

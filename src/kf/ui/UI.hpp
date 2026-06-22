@@ -97,16 +97,18 @@ template<typename U> struct UI :
         _active_page = someRef(page);
     }
 
+    /// @brief Requests a UI redraw on the next poll cycle
+    void requestRender() noexcept {
+        _render_system.requestRender();
+    }
+
     /// @brief Get readobly access to active page
     auto activePage() const noexcept -> kf::Option<Page &> {
         return _active_page;
     }
 
     /// @brief Add event to processing queue
-    /// @note If the queue is non‑empty and the last event is Update, adding another Update event is a no‑op.
     void addEvent(typename Traits::EventImpl event) {
-        using Kind = typename Traits::EventImpl::Kind;
-        if (not _events.empty() and Kind::Update == event.kind() and Kind::Update == _events.back().kind()) { return; }
         _events.push(event);
     }
 
@@ -200,27 +202,30 @@ public:
 
         /// @brief Add event to processing queue
         /// @param event The event to be processed
-        [[nodiscard]] bool onEvent(typename Traits::EventImpl event) noexcept {
+        void onEvent(typename Traits::EventImpl event) noexcept {
             using Kind = typename Traits::EventImpl::Kind;
             switch (event.kind()) {
-                case Kind::Update: {
-                    return true;
-                }
                 case Kind::PageCursorMove: {
-                    return moveCursor(event.value());
+                    moveCursor(event.value());
+                    return;
                 }
                 case Kind::WidgetClick: {
                     if (not _widgets.empty()) {
-                        return _widgets[_cursor]->onClick();
+                        if (_widgets[_cursor]->onClick()) {
+                            _ui.requestRender();
+                        }
+                        return;
                     }
                 }
                 case Kind::WidgetValue: {
                     if (not _widgets.empty()) {
-                        return _widgets[_cursor]->onEventValue(event.value());
+                        if (_widgets[_cursor]->onEventValue(event.value())) {
+                            _ui.requestRender();
+                        }
+                        return;
                     }
                 }
             }
-            return false;
         }
 
         /// @brief Get widgets on page
@@ -245,11 +250,6 @@ public:
             cursor(_cursor);
         }
 
-        /// @brief Add Update event
-        void update() noexcept {
-            _ui.addEvent(Traits::EventImpl::update());
-        }
-
         UI &_ui;
 
     private:
@@ -260,14 +260,11 @@ public:
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
-        /// @return true if cursor position changed (redraw required)
-        [[nodiscard]] bool moveCursor(isize delta) noexcept {
+        void moveCursor(isize delta) noexcept {
             const auto n = _widgets.size();
             if (n > 1) {
                 _cursor = (_cursor + delta + n) % n;
-                return true;
-            } else {
-                return false;
+                _ui.requestRender();
             }
         }
     };
@@ -286,20 +283,19 @@ private:
 
         _active_page.unwrap().onPoll(now);
 
-        if (_events.empty()) { return; }
+        if (not _events.empty()) {
+            constexpr usize max_events_per_poll{20};
+            usize events_processed{0};
 
-        constexpr usize max_events_per_poll{20};
-        usize events_processed{0};
+            while (not _events.empty() and events_processed < max_events_per_poll) {
+                _active_page.unwrap().onEvent(_events.front());
 
-        bool render_required{false};
-
-        while (not _events.empty() and events_processed < max_events_per_poll) {
-            render_required |= _active_page.unwrap().onEvent(_events.front());
-            events_processed += 1;
-            _events.pop();
+                events_processed += 1;
+                _events.pop();
+            }
         }
 
-        if (render_required) {
+        if (_render_system.renderRequested()) {
             _render_system.beginFrame();
             _active_page.unwrap().render(_render_system);
             _render_system.endFrame();

@@ -27,10 +27,6 @@ template<kf::u8 V> struct EventTester {
     }
 
     static void test_factories() {
-        auto u = Ev::update();
-        TEST_ASSERT_EQUAL(Ev::Kind::Update, u.kind());
-        TEST_ASSERT_EQUAL(0, u.value());
-
         // Для V=1 используем 0, иначе 1
         Value move_val = (V == 1) ? 0 : 1;
         auto move = Ev::pageCursorMove(move_val);
@@ -54,12 +50,9 @@ template<kf::u8 V> struct EventTester {
     }
 
     static void test_zero() {
-        Ev zero1(Ev::Kind::Update, 0);
-        Ev zero2(Ev::Kind::WidgetClick, 0);
-        TEST_ASSERT_EQUAL(0, zero1.value());
-        TEST_ASSERT_EQUAL(0, zero2.value());
-        TEST_ASSERT_EQUAL(Ev::Kind::Update, zero1.kind());
-        TEST_ASSERT_EQUAL(Ev::Kind::WidgetClick, zero2.kind());
+        Ev zero(Ev::Kind::WidgetClick, 0);
+        TEST_ASSERT_EQUAL(0, zero.value());
+        TEST_ASSERT_EQUAL(Ev::Kind::WidgetClick, zero.kind());
     }
 };
 
