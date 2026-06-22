@@ -5,8 +5,32 @@
 
 #include <array>
 
+#include "kf/Slice.hpp"
+#include "kf/primitives.hpp"
+
 namespace kf::memory {
 
-template<typename T, size_t N> using Array = std::array<T, N>;
+/// @brief Array. Owns items
+/// @note Wrapper for Array from STL
+/// @tparam T Item type
+/// @tparam N Items total
+template<typename T, usize N> struct Array : std::array<T, N> {
 
-}
+    /// @brief Get mutable slice
+    [[nodiscard]] constexpr Slice<T> slice() noexcept {
+        return {
+            this->data(),
+            this->size(),
+        };
+    }
+
+    /// @brief Get readonly slice
+    [[nodiscard]] constexpr Slice<const T> slice() const noexcept {
+        return {
+            this->data(),
+            this->size(),
+        };
+    }
+};
+
+}// namespace kf::memory
