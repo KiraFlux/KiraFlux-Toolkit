@@ -43,13 +43,20 @@ template<typename E> struct ErrorWrapper {
 
 }// namespace internal
 
+struct ResultTag {};
+
 /// @brief Result type that can hold either a value or an error
 /// @tparam T Type of successful result value
 /// @tparam E Type of error value
 /// @note Embedded‑friendly alternative to exceptions.
 ///       Use kf::ok() and kf::error() to create instances.
 /// @see kf::ok, kf::error
-template<typename T, typename E> struct Result final : internal::ResultErrorController<Result<T, E>, E> {
+template<typename T, typename E> struct Result final :
+
+    ResultTag,
+    internal::ResultErrorController<Result<T, E>, E>
+
+{
 
     /// @brief Construct from OkWrapper
     /// @see kf::ok(T)
@@ -84,7 +91,9 @@ template<typename T, typename E> struct Result final : internal::ResultErrorCont
     }
 
     /// @brief Get the stored value (const overload)
-    [[nodiscard]] const T &ok() const & noexcept { return const_cast<Result *>(this)->ok(); }
+    [[nodiscard]] const T &ok() const & noexcept {
+        return const_cast<Result *>(this)->ok();
+    }
 
     /// @brief Transform the success value using a function
     /// @tparam F Callable type (auto‑deduced)
@@ -126,14 +135,23 @@ private:
 
     friend struct ::kf::internal::ResultErrorController<Result<T, E>, E>;
 
-    [[nodiscard]] bool isErrorImpl() const noexcept { return not _is_ok; }
+    [[nodiscard]] bool isErrorImpl() const noexcept {
+        return not _is_ok;
+    }
 
-    [[nodiscard]] const E &getErrorImpl() const noexcept { return _error; }
+    [[nodiscard]] const E &getErrorImpl() const noexcept {
+        return _error;
+    }
 };
 
 /// @brief Specialisation of Result for void success value
 /// @tparam E Type of error value
-template<typename E> struct Result<void, E> final : internal::ResultErrorController<Result<void, E>, E> {
+template<typename E> struct Result<void, E> final :
+
+    ResultTag,
+    internal::ResultErrorController<Result<void, E>, E>
+
+{
 
     /// @brief Construct from OkWrapper<void>
     /// @see kf::ok()
@@ -152,7 +170,9 @@ template<typename E> struct Result<void, E> final : internal::ResultErrorControl
     }
 
     /// @brief Check if result is successful
-    [[nodiscard]] constexpr bool isOk() const noexcept { return not _is_error; }
+    [[nodiscard]] constexpr bool isOk() const noexcept {
+        return not _is_error;
+    }
 
     /// @brief Transform the error value using a function
     /// @tparam F Callable type (auto‑deduced)
@@ -173,9 +193,13 @@ private:
 
     friend struct ::kf::internal::ResultErrorController<Result<void, E>, E>;
 
-    [[nodiscard]] bool isErrorImpl() const noexcept { return _is_error; }
+    [[nodiscard]] bool isErrorImpl() const noexcept {
+        return _is_error;
+    }
 
-    [[nodiscard]] const E &getErrorImpl() const noexcept { return _error; }
+    [[nodiscard]] const E &getErrorImpl() const noexcept {
+        return _error;
+    }
 };
 
 /// @brief Create a successful Result (value)
@@ -201,3 +225,18 @@ template<typename E> constexpr auto error(E &&error) noexcept -> internal::Error
 }
 
 }// namespace kf
+
+/// @brief Early-return macro for Result error propagation
+/// @param __expression__ Expression of type `Result<T, E>`
+/// @return The success value `T`, or returns the error from the enclosing function
+/// @note Expression evaluated once. Requires GNU statement expressions.
+#define KF_TRY(__expression__)                                                             \
+    ({                                                                                     \
+        auto _result = (__expression__);                                                   \
+        static_assert(std::is_base_of_v<::kf::ResultTag, std::decay_t<decltype(_result)>>, \
+                      "KF_TRY requires a Result type");                                    \
+        if (_result.isError()) {                                                           \
+            return ::kf::error(_result.error());                                           \
+        }                                                                                  \
+        _result.ok();                                                                      \
+    })
