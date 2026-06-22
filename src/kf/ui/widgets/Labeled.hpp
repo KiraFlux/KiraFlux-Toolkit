@@ -5,8 +5,8 @@
 
 #include "kf/mixin/Labeled.hpp"
 
-#include "kf/ui/Style.hpp"
 #include "kf/ui/Decoration.hpp"
+#include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
 namespace kf::ui::widgets {

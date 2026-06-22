@@ -1,5 +1,5 @@
-#include <runner.hpp>
 #include <kf/algorithm.hpp>
+#include <runner.hpp>
 
 using kf::clamp;
 using kf::linearMap;

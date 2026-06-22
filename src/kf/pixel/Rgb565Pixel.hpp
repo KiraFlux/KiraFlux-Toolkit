@@ -64,4 +64,4 @@ private:
     }
 };
 
-}// namespace kf
+}// namespace kf::pixel

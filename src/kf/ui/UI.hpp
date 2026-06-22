@@ -271,7 +271,7 @@ public:
 
 private:
     memory::Queue<typename Traits::EventImpl> _events{};///< Event queue for pending UI events
-    typename Traits::RendererImpl &_renderer;        ///< Renderer system implementation
+    typename Traits::RendererImpl &_renderer;           ///< Renderer system implementation
     Option<Page &> _active_page{none};                  ///< Currently active page for rendering
 
     using This = UI<U>;
