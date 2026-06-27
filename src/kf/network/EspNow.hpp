@@ -83,7 +83,7 @@ private:
 
 namespace kf::network {
 
-/// @brief ESP-NOW protocol encapsulataion
+/// @brief ESP-NOW protocol encapsulation
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks
 struct EspNow final :
 
@@ -91,7 +91,7 @@ struct EspNow final :
     mixin::MacAddressed,
     mixin::Initable<EspNow, Result<void, internal::EspNowError>()>,
     mixin::Quitable<EspNow>,
-    mixin::Callbacked<const MacAddress &, Slice<const u8>>
+    mixin::Callbacked<void(const MacAddress &, Slice<const u8>)>
 
 {
     /// @brief ESP-NOW operation error type

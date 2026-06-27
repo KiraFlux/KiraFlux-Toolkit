@@ -21,7 +21,7 @@ template<typename U> struct Button :
     ButtonTag,
     U::Widget,
     mixin::Labeled,
-    mixin::Callbacked<>
+    mixin::Callbacked<void()>
 
 {
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);

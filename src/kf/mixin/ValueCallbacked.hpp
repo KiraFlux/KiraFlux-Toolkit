@@ -11,7 +11,7 @@ struct ValueCallbackedTag {};
 
 /// @brief Adds value: T
 /// @tparam T The type of the stored value.
-template<typename T> struct ValueCallbacked : ValueCallbackedTag, Callbacked<T> {
+template<typename T> struct ValueCallbacked : ValueCallbackedTag, Callbacked<void(T)> {
 
     /// @brief Constructs with an initial value.
     /// @param value The initial value.

@@ -77,7 +77,7 @@ namespace kf::ui::render {
 struct PlainTextRenderer :
 
     Renderer<PlainTextRenderer>,
-    mixin::Callbacked<memory::StringView>,
+    mixin::Callbacked<void(memory::StringView)>,
     mixin::Configurable<internal::PlainTextRenderConfig>
 
 {

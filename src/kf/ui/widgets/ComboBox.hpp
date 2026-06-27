@@ -66,7 +66,7 @@ template<typename U, typename T> struct ComboBox :
 
     ComboBoxTag,
     U::Widget,
-    mixin::Callbacked<internal::ComboBoxItem<T>>,
+    mixin::Callbacked<void(internal::ComboBoxItem<T>)>,
     mixin::Configurable<internal::ComboBoxConfig<T>>
 
 {
