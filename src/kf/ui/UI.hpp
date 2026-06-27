@@ -102,7 +102,7 @@ template<typename U> struct UI :
         _renderer.requestRender();
     }
 
-    /// @brief Get readobly access to active page
+    /// @brief Get readonly access to active page
     constexpr auto activePage() const noexcept -> kf::Option<Page &> {
         return _active_page;
     }
@@ -137,7 +137,13 @@ private:
 
 public:
     /// @brief UI page containing widgets and label
-    struct Page : mixin::NonCopyable, mixin::Labeled {
+    struct Page :
+
+        mixin::NonCopyable,
+        mixin::Labeled,
+        mixin::TimedPollable<Page>
+
+    {
         friend struct PageSetter;
 
         using WidgetsView = Slice<Widget *>;
@@ -151,9 +157,11 @@ public:
         /// @brief Page behavior on leave
         virtual void onExit() noexcept {}
 
+    protected:
         /// @brief Page behavior on UI polling
         virtual void onPoll(math::Milliseconds now) noexcept {}
 
+    public:
         /// @brief Get page layout
         [[nodiscard]] constexpr Layout layout() noexcept {
             return _layout;
@@ -164,7 +172,7 @@ public:
             return _to_this;
         }
 
-        /// @brief Get Readobly access to 'go to this page' Widget
+        /// @brief Get Readonly access to 'go to this page' Widget
         [[nodiscard]] constexpr const Widget &link() const noexcept {
             return _to_this;
         }
@@ -267,6 +275,11 @@ public:
                 _ui.requestRender();
             }
         }
+
+        KF_IMPL_TIMED_POLLABLE(Page);
+        void pollImpl(math::Milliseconds now) noexcept {
+            onPoll(now);
+        }
     };
 
 private:
@@ -281,7 +294,7 @@ private:
     void pollImpl(math::Milliseconds now) noexcept {
         if (_active_page.isNone()) { return; }
 
-        _active_page.unwrap().onPoll(now);
+        _active_page.unwrap().poll(now);
 
         if (not _events.empty()) {
             constexpr usize max_events_per_poll{20};

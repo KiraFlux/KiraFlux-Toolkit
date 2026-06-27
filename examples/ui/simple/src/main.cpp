@@ -9,7 +9,7 @@
 
 using MyEvent = kf::ui::Event<4>;// Event type: 4-bit value
 
-// UI specialisation
+// UI specialization
 using MyUI = kf::ui::UI<
     kf::ui::UiTraits<                         // Traits Implementation
         kf::ui::widgets::Widget<              // Base widget class
@@ -113,6 +113,7 @@ struct MainPage : MyUI::Page {
         Serial.println("Exit from Main");
     }
 
+protected:
     // behavior on UI polling
     void onPoll(kf::math::Milliseconds now) noexcept override {}
 
@@ -197,7 +198,7 @@ struct SettingsPage : MyUI::Page {
 
 } settings_page{};
 
-// Simple function for convertion from char to event
+// Simple function for conversion from char to event
 MyEvent eventFromChar(char c) {
     switch (c) {
         case 'w': return MyEvent::pageCursorMove(-1);// Up

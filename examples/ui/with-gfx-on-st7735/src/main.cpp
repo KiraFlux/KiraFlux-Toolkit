@@ -21,11 +21,11 @@ using kf::bus::spi::ArduinoSPI;
 using kf::drivers::display::Orientation;
 using kf::gpio::ArduinoGPIO;
 
-// Display Driver specialisation
+// Display Driver specialization
 using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput>;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
-// UI specialisation
+// UI specialization
 using MyUI = kf::ui::UI<
 
     // Traits Implementation
@@ -45,7 +45,7 @@ using MyUI = kf::ui::UI<
     //
     >;
 
-// shortcusts
+// shortcuts
 using Event = MyUI::Traits::EventImpl;
 using Render = MyUI::Traits::RendererImpl;
 using Color = kf::ui::Color;
@@ -231,6 +231,7 @@ struct MainPage : MyUI::Page {
         Serial.println("Exit from Main");
     }
 
+protected:
     // behavior on UI polling
     void onPoll(kf::math::Milliseconds now) noexcept override {}
 
@@ -296,7 +297,7 @@ struct SettingsPage : MyUI::Page {
 
 } settings_page{};
 
-// Simple function for convertion from char to event
+// Simple function for conversion from char to event
 Event eventFromChar(char c) {
     switch (c) {
         case 'w': return Event::pageCursorMove(-1);// Up
@@ -309,7 +310,7 @@ Event eventFromChar(char c) {
     }
 }
 
-static auto bus_config{ArduinoSPI::Config::create()};// use defauls
+static auto bus_config{ArduinoSPI::Config::create()};// use defaults
 
 static ArduinoSPI bus{
     bus_config,
@@ -387,7 +388,7 @@ void setup() {
     my_renderer_config.text.rows_total = root_canvas.heightInGlyphs();// all canvas area
     my_renderer_config.text.row_max_length = root_canvas.widthInGlyphs();
 
-    // my_render_config.normal_foreground_palette.normal = Renderer::Config::Palette::Black; // style configutation
+    // my_render_config.normal_foreground_palette.normal = Renderer::Config::Palette::Black; // style configuration
     // my_render_config.focused_foreground_palette
     // my_render_config.normal_background_palette
     // my_render_config.focused_background_palette
