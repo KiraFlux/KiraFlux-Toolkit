@@ -15,6 +15,7 @@
 
 #include "kf/ui/Decoration.hpp"
 #include "kf/ui/Layout.hpp"
+#include "kf/ui/Request.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 #include "kf/ui/render/Renderer.hpp"
@@ -121,9 +122,10 @@ private:
         }
 
         /// @brief Set target page as active on click
-        [[nodiscard]] bool onClick() noexcept override {
+        Request onClick() noexcept override {
             _target._ui.activePage(_target);
-            return true;// redraw always required after page change
+
+            return Request::Redraw;
         }
 
         void doRender(typename Traits::RendererImpl &render) const noexcept override {
@@ -220,30 +222,26 @@ public:
 
         /// @brief Add event to processing queue
         /// @param event The event to be processed
-        void onEvent(typename Traits::EventImpl event) noexcept {
+        Request onEvent(typename Traits::EventImpl event) noexcept {
             using Kind = typename Traits::EventImpl::Kind;
+
             switch (event.kind()) {
                 case Kind::PageCursorMove: {
-                    moveCursor(event.value());
-                    return;
+                    return moveCursor(event.value());
                 }
                 case Kind::WidgetClick: {
                     if (not _widgets.empty()) {
-                        if (_widgets[_cursor]->onClick()) {
-                            _ui.requestRender();
-                        }
-                        return;
+                        return _widgets[_cursor]->onClick();
                     }
                 }
                 case Kind::WidgetValue: {
                     if (not _widgets.empty()) {
-                        if (_widgets[_cursor]->onEventValue(event.value())) {
-                            _ui.requestRender();
-                        }
-                        return;
+                        return _widgets[_cursor]->onEventValue(event.value());
                     }
                 }
             }
+
+            return Request::Nothing;
         }
 
     protected:
@@ -268,11 +266,13 @@ public:
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
-        void moveCursor(isize delta) noexcept {
+        [[nodiscard]] Request moveCursor(isize delta) noexcept {
             const auto n = _widgets.size();
             if (n > 1) {
                 _cursor = (_cursor + delta + n) % n;
-                _ui.requestRender();
+                return Request::Redraw;
+            } else {
+                return Request::Nothing;
             }
         }
 
@@ -318,7 +318,20 @@ private:
             usize events_processed{0};
 
             while (not _events.empty() and events_processed < max_events_per_poll) {
-                _active_page.unwrap().onEvent(_events.front());
+                const auto request = _active_page.unwrap().onEvent(_events.front());
+
+                switch (request) {
+                    case Request::Nothing:
+                        break;
+
+                    case Request::Redraw:
+                        _renderer.requestRender();
+                        break;
+
+                    case Request::Rebuild:
+                        _active_page.unwrap().requestBuild();
+                        break;
+                }
 
                 events_processed += 1;
                 _events.pop();
