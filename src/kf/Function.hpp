@@ -17,11 +17,16 @@ template<typename> struct Option;// optional function forward declaration
 
 template<typename> struct Function;
 
-/// @brief Type‑erased callable with small buffer optimisation (2 words). Never empty.
+/// @brief Type‑erased callable with small buffer optimisation (4 words)
+/// @note Never empty.
 /// @tparam R Return type
 /// @tparam Args Argument types
 template<typename R, typename... Args> struct Function<R(Args...)> : mixin::NonCopyable {
     friend struct Option<Function<R(Args...)>>;
+
+    using ReturnType = R;
+
+    using ArgsType = Args;
 
     explicit Function(std::nullptr_t) = delete;
 
@@ -48,9 +53,11 @@ template<typename R, typename... Args> struct Function<R(Args...)> : mixin::NonC
         return *this;
     }
 
-    ~Function() noexcept { destroy(); }
+    ~Function() noexcept {
+        destroy();
+    }
 
-    /// @brief Invoke the stored callable.
+    /// @brief Invoke the stored callable
     template<typename... CallArgs> R operator()(CallArgs &&...args) const noexcept {
         if constexpr (std::is_void_v<R>) {
             func().invoke(std::forward<CallArgs>(args)...);
@@ -86,7 +93,7 @@ private:
 
     alignas(alignment) u8 _storage[buffer_size]{};
 
-    // access to default contructor only for Option
+    // access to default constructor only for Option
     constexpr Function() noexcept {
         isSome(false);
     }
