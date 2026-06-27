@@ -8,19 +8,19 @@
 #include <kf/drivers/sensors/NormalizedAdcInput.hpp>
 #include <kf/gpio/ArduinoGPIO.hpp>
 
-#include <kf/input/JoystickListener.hpp>
+#include <kf/listener/JoystickListener.hpp>
 
 using AdcInput = kf::gpio::ArduinoGPIO::AdcInput;
 using NormalizedAdcInput = kf::drivers::sensors::NormalizedAdcInput<AdcInput>;
 using Joystick = kf::drivers::sensors::Joystick<NormalizedAdcInput>;
-using JoystickListener = kf::input::JoystickListener<Joystick>;
+using JoystickListener = kf::listener::JoystickListener;
 
 // Configuration – must outlive joystick instance (referenced)
 Joystick::Config my_joystick_config{
     .x = {
         .inverted = false,
 
-        // tuned automaticly:
+        // tuned automatically:
         // .dead_zone = ... ,
         // .range_positive = ... ,
         // .range_negative = ... ,
@@ -47,13 +47,12 @@ JoystickListener::Config my_listener_config{
         .period = 100,// ms
     },
     .delay_timer = {
-        .period = 100,// ms
+        .period = 500,// ms
     },
-    .threshold = 0.5f,// neutral zone threshold (normalized value)
+    .threshold = 0.7f,// neutral zone threshold (normalized value)
 };
 
 JoystickListener my_listener{
-    my_joystick,       // referenced, must stay alive
     my_listener_config,// referenced, must stay alive
 };
 
@@ -61,7 +60,7 @@ using Direction = JoystickListener::Direction;
 
 const char *stringFromDirection(Direction dir) {
     switch (dir) {
-        case Direction::Home: return "Center";
+        case Direction::Center: return "Center";
         case Direction::Up: return "Up";
         case Direction::Down: return "Down";
         case Direction::Left: return "Left";
@@ -100,20 +99,24 @@ void setup() {
     my_joystick.init();      // sets pin modes
     tune(my_joystick_config);// calibrate – needs GPIO ready, call after init()
     log_timer.start(millis());
+
+    my_listener.callback([](JoystickListener::Direction direction) {
+        Serial.println(stringFromDirection(direction));
+    });
 }
 
 void loop() {
     const auto now = millis();
 
-    // Periodically log raw and normalised values
+    const float x_norm = my_joystick.axis_x.read();
+    const float y_norm = my_joystick.axis_y.read();
+
+    // Periodically log raw and normalized values
     if (log_timer.expired(now)) {
         log_timer.start(now);
 
         const int x_raw = my_joystick.axis_x.readRaw();
-        const float x_norm = my_joystick.axis_x.read();
-
         const int y_raw = my_joystick.axis_y.readRaw();
-        const float y_norm = my_joystick.axis_y.read();
 
         const auto [x, y, magnitude] = my_joystick.read();// normalized to unit circle
 
@@ -127,15 +130,8 @@ void loop() {
     }
 
     // Direction change events (with autorepeat)
+    my_listener.set(kf::math::Vector2f{x_norm, y_norm});
     my_listener.poll(now);
-
-    if (my_listener.changed()) {
-        Serial.print(stringFromDirection(my_listener.direction()));
-        if (my_listener.repeating()) {
-            Serial.print(" (repeat)");
-        }
-        Serial.println();
-    }
 
     delay(10);
 }

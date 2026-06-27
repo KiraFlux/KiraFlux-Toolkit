@@ -2,39 +2,37 @@
 #include <Arduino.h>
 
 #include <kf/gpio/ArduinoGPIO.hpp>
-#include <kf/input/LogicalLevelListener.hpp>
+#include <kf/listener/LogicalLevelListener.hpp>
 
 using DigitalInput = kf::gpio::ArduinoGPIO::DigitalInput;
-using Button = kf::input::LogicalLevelListener<DigitalInput>;
+using Button = kf::listener::LogicalLevelListener;
 
-Button::Config my_button_config{
+Button::Config my_button_listener_config{
     .debounce = 50,// ms
 };
 
-Button my_button{
-    /* &: */
-    my_button_config,
-    /* move: */
-    DigitalInput{
-        GPIO_NUM_15,
-        DigitalInput::Pull::InternalDown,
-    },
+DigitalInput my_button_gpio{
+    GPIO_NUM_25,
+    DigitalInput::Pull::InternalUp,
+};
+
+Button my_button_listener{
+    my_button_listener_config,// capture by reference
 };
 
 void setup() {
     Serial.begin(115200);
 
-    my_button.init();// setup GPIO
+    my_button_gpio.init();
+
+    my_button_listener.callback([]() {
+        Serial.println("click");
+    });
 }
 
 void loop() {
-    my_button.poll(millis());
-
-    if (my_button.clicked()) {
-        Serial.println("click");
-    }
-
-    // const bool is_pressed = my_button.pressed(); // debounce-proof check
+    my_button_listener.set(my_button_gpio.read());
+    my_button_listener.poll(millis());
 
     delay(1);
 }
