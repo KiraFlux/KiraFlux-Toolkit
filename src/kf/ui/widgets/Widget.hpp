@@ -9,6 +9,7 @@
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Event.hpp"
+#include "kf/ui/Request.hpp"
 #include "kf/ui/render/Renderer.hpp"
 
 namespace kf::ui::widgets {
@@ -36,21 +37,21 @@ template<typename R, typename E> struct Widget :
     virtual void doRender(RendererImpl &render) const noexcept = 0;
 
     /// @brief Handle click event
-    /// @return true if redraw required, false otherwise
-    [[nodiscard]] virtual bool onClick() noexcept {
-        return false;
+    /// @return Action Request after input
+    [[nodiscard]] virtual Request onClick() noexcept {
+        return Request::Nothing;
     }
 
     /// @brief Handle Event value
-    /// @return true if redraw required, false otherwise
-    [[nodiscard]] virtual bool onEventValue(typename EventImpl::Value event_value) noexcept {
-        return false;
+    /// @return Action Request after input
+    [[nodiscard]] virtual Request onEventValue(typename EventImpl::Value event_value) noexcept {
+        return Request::Nothing;
     }
 
     using mixin::Styled::Styled;
 
     /// @brief Get Contextual hint about this widget
-    [[nodiscard]] memory::StringView hint() const noexcept {
+    [[nodiscard]] constexpr memory::StringView hint() const noexcept {
         return _hint;
     }
 

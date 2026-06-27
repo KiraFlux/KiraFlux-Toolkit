@@ -11,6 +11,7 @@
 #include "kf/mixin/Styled.hpp"
 
 #include "kf/ui/Block.hpp"
+#include "kf/ui/Request.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
@@ -92,16 +93,17 @@ template<typename U, typename T> struct ComboBox :
 
     /// @return Reference to selected item's value
     /// @note undefined behavior if `config().items` is empty
-    const T &value() const noexcept {
+    [[nodiscard]] constexpr const T &value() const noexcept {
         return this->config().items[_cursor].value();
     }
 
     /// @brief Change selection based on direction
     /// @param value Navigation direction (positive/negative)
-    [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
+    Request onEventValue(typename U::EventImpl::Value event_value) noexcept override {
         moveCursor(event_value);
         this->invoke(this->config().items[_cursor]);
-        return true;// redraw required after selection change
+
+        Request::Redraw;
     }
 
     void doRender(typename U::RendererImpl &render) const noexcept override {

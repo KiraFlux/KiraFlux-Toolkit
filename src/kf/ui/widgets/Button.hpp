@@ -7,6 +7,7 @@
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Labeled.hpp"
 
+#include "kf/ui/Request.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
@@ -30,9 +31,10 @@ template<typename U> struct Button :
         U::Widget{style}, mixin::Labeled::Labeled{label} {}
 
     /// @brief Handle button click event
-    [[nodiscard]] bool onClick() noexcept override {
+    Request onClick() noexcept override {
         this->invoke();
-        return false;// button click typically doesn't require redraw
+
+        return Request::Nothing;
     }
 
     /// @brief Render button with block styling

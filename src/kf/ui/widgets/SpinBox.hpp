@@ -10,6 +10,7 @@
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Decoration.hpp"
+#include "kf/ui/Request.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
@@ -47,21 +48,22 @@ template<typename U, typename T, typename A> struct SpinBox :
         U::Widget{style}, mixin::ValueCallbacked<T>{default_value}, mixin::Configurable<Config>{config}, _step(config.default_step) {}
 
     /// @brief Toggle between value adjustment and step adjustment modes
-    /// @return true (redraw required after mode change)
-    [[nodiscard]] bool onClick() noexcept override {
+    Request onClick() noexcept override {
         _is_step_setting_mode = not _is_step_setting_mode;
-        return true;
+
+        return Request::Redraw;
     }
 
     /// @brief Adjust value or step based on current mode
     /// @param event_value Adjustment scale
-    [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
+    Request onEventValue(typename U::EventImpl::Value event_value) noexcept override {
         if (_is_step_setting_mode) {
             _step = U::template GeometricAdjuster<T>::adjust(_step, this->config().step_adjust, event_value);
         } else {
             this->value(AdjusterImpl::adjust(this->value(), _step, event_value));
         }
-        return true;// redraw required after adjustment
+
+        return Request::Redraw;
     }
 
     /// @brief Render current value or step size based on mode

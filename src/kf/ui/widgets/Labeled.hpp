@@ -6,6 +6,7 @@
 #include "kf/mixin/Labeled.hpp"
 
 #include "kf/ui/Decoration.hpp"
+#include "kf/ui/Request.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
@@ -29,13 +30,13 @@ template<typename U> struct Labeled :
 
     /// @brief Forward click event to wrapped widget
     /// @return Result from wrapped widget's onClick()
-    [[nodiscard]] bool onClick() noexcept override {
+    Request onClick() noexcept override {
         return _wrapped.onClick();
     }
 
     /// @brief Forward change event to wrapped widget
     /// @return Result from wrapped widget's onEventValue()
-    [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
+    Request onEventValue(typename U::EventImpl::Value event_value) noexcept override {
         return _wrapped.onEventValue(event_value);
     }
 

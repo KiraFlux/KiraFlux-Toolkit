@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/ui/Request.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
@@ -28,7 +29,7 @@ template<typename U, typename T> struct Display :
         U::Widget{style}, _value{value} {}
 
     /// @brief Get the current displayed value
-    [[nodiscard]] const T &value() const noexcept {
+    [[nodiscard]] constexpr const T &value() const noexcept {
         return _value;
     }
 

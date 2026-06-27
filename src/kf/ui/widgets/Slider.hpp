@@ -9,6 +9,7 @@
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Decoration.hpp"
+#include "kf/ui/Request.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
@@ -47,16 +48,18 @@ template<typename U, typename T> struct Slider :
         mixin::Configurable<Config>{config}, _show_value{config.init_show_value} {}
 
     /// @brief Toggle slider numeric value display
-    [[nodiscard]] bool onClick() noexcept override {
+    Request onClick() noexcept override {
         _show_value = not _show_value;
-        return true;// redraw required after mode change
+
+        return Request::Redraw;
     }
 
     /// @brief Adjust value
     /// @param event_value adjust change scale
-    [[nodiscard]] bool onEventValue(typename U::EventImpl::Value event_value) noexcept override {
+    Request onEventValue(typename U::EventImpl::Value event_value) noexcept override {
         this->value(this->config().value_range.clamped(U::template ArithmeticAdjuster<T>::adjust(this->value(), this->config().step, event_value)));
-        return true;// redraw required after adjustment
+
+        return Request::Redraw;
     }
 
     void doRender(typename U::RendererImpl &render) const noexcept override {
