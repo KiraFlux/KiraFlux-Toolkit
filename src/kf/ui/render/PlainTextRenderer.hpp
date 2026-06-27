@@ -133,7 +133,7 @@ private:
     }
 
     void endFrameImpl() noexcept {
-        this->invoke({_buffer.data(), _written});
+        this->invoke(Slice<char>{_buffer.data(), _written});
     }
 
     usize beginPageImpl(memory::StringView title, Layout layout) noexcept {
