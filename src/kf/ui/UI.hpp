@@ -151,6 +151,10 @@ public:
         explicit constexpr Page(UI &ui, Layout layout = Layout::Vertical) noexcept :
             _ui{ui}, _layout{layout} {}
 
+        /// @brief Build page content
+        /// @note Not for direct call. Use `Page::requestBuild()`
+        virtual WidgetsView build() noexcept { return {}; }
+
         /// @brief Page behavior on entry
         virtual void onEntry() noexcept {}
 
@@ -162,6 +166,11 @@ public:
         virtual void onPoll(math::Milliseconds now) noexcept {}
 
     public:
+        /// @brief Request Page content build
+        void requestBuild() noexcept {
+            _build_requested = true;
+        }
+
         /// @brief Get page layout
         [[nodiscard]] constexpr Layout layout() noexcept {
             return _layout;
@@ -265,6 +274,7 @@ public:
         WidgetsView _widgets{};    ///< Widgets on this page
         isize _cursor{0};          ///< Current widget cursor position (focused widget index)
         Layout _layout;            ///< Current layout
+        bool _build_requested{true};
 
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
@@ -279,6 +289,26 @@ public:
         KF_IMPL_TIMED_POLLABLE(Page);
         void pollImpl(math::Milliseconds now) noexcept {
             onPoll(now);
+
+            if (_build_requested) {
+                _build_requested = false;
+
+                auto new_widgets = build();
+
+                if (new_widgets.size() == _widgets.size()) {
+                    for (auto i = 0u; i < _widgets.size(); i += 1) {
+                        if (new_widgets[i] != _widgets[i]) {
+                            _ui.requestRender();
+                            break;
+                        }
+                    }
+                } else {
+                    _ui.requestRender();
+                }
+
+                _widgets = new_widgets;
+                cursor(_cursor);
+            }
         }
     };
 
@@ -290,11 +320,8 @@ private:
     using This = UI<U>;
 
     KF_IMPL_TIMED_POLLABLE(This);
-    // Process active page update, pending events and render if needed
     void pollImpl(math::Milliseconds now) noexcept {
         if (_active_page.isNone()) { return; }
-
-        _active_page.unwrap().poll(now);
 
         if (not _events.empty()) {
             constexpr usize max_events_per_poll{20};
@@ -307,6 +334,8 @@ private:
                 _events.pop();
             }
         }
+
+        _active_page.unwrap().poll(now);
 
         if (_renderer.renderRequested()) {
             _renderer.beginFrame();
