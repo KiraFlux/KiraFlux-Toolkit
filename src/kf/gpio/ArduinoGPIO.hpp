@@ -38,7 +38,7 @@ struct ArduinoGPIO : GpioTag {
         /// @brief Constructor.
         /// @param pin       GPIO number (e.g., `GPIO_NUM_4`).
         /// @param pull_type Pull configuration (internal/external, up/down).
-        explicit DigitalInput(gpio_num_t pin, Pull pull_type) noexcept :
+        explicit constexpr DigitalInput(gpio_num_t pin, Pull pull_type) noexcept :
             _pin{static_cast<u8>(pin)}, _state{static_cast<u8>(pull_type)} {}
 
     private:
@@ -79,7 +79,7 @@ struct ArduinoGPIO : GpioTag {
 
         /// @brief Constructor.
         /// @param pin GPIO number with ADC capability (e.g., `GPIO_NUM_34`)
-        explicit AdcInput(gpio_num_t pin) noexcept : _pin{static_cast<u8>(pin)} {}
+        explicit constexpr AdcInput(gpio_num_t pin) noexcept : _pin{static_cast<u8>(pin)} {}
 
     private:
         inline static u8 resolution_bits{12};// Arduino default resolution on ESP32 is 12-bits
@@ -114,7 +114,7 @@ struct ArduinoGPIO : GpioTag {
 
         /// @brief Constructor.
         /// @param pin GPIO number (e.g., `GPIO_NUM_2`).
-        explicit DigitalOutput(gpio_num_t pin) noexcept :
+        explicit constexpr DigitalOutput(gpio_num_t pin) noexcept :
             _pin{static_cast<u8>(pin)} {}
 
     private:
