@@ -164,8 +164,8 @@ private:
 
     /// @brief Write raw bytes to the I2C device (must be between begin/endTransmission).
     /// @return number of bytes actually placed in the internal transmit buffer (may be less than `length` if buffer full).
-    [[nodiscard]] usize writeBytes(const u8 *buffer, usize lenght) noexcept {
-        return _wire.write(buffer, lenght);
+    [[nodiscard]] usize writeBytes(const u8 *buffer, usize length) noexcept {
+        return _wire.write(buffer, length);
     }
 
     /// @brief End the transmission (send STOP) and check for errors.
