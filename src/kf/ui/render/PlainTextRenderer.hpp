@@ -177,12 +177,32 @@ private:
                 writeChar(' ');
                 return;
 
-            case Decoration::LongArrowRight:
-                writeString("-> ");
-                return;
-
             case Decoration::Colon:
                 writeString(": ");
+                return;
+
+            case Decoration::LongArrowRight:
+                writeString("->");
+                return;
+
+            case Decoration::LongArrowLeft:
+                writeString("<-");
+                return;
+
+            case Decoration::ShortArrowLeft:
+                writeChar('>');
+                return;
+
+            case Decoration::ShortArrowRight:
+                writeChar('<');
+                return;
+
+            case Decoration::ShortArrowUp:
+                writeChar('A');
+                return;
+
+            case Decoration::ShortArrowDown:
+                writeChar('V');
                 return;
 
             default:
