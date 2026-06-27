@@ -127,7 +127,7 @@ private:
         }
 
         void doRender(typename Traits::RendererImpl &render) const noexcept override {
-            render.decoration(Decoration::Arrow);
+            render.decoration(Decoration::LongArrowRight);
             render.value(_target.label());
         }
 

@@ -177,7 +177,7 @@ private:
                 writeChar(' ');
                 return;
 
-            case Decoration::Arrow:
+            case Decoration::LongArrowRight:
                 writeString("-> ");
                 return;
 
