@@ -26,8 +26,6 @@ template<typename R, typename... Args> struct Function<R(Args...)> : mixin::NonC
 
     using ReturnType = R;
 
-    using ArgsType = Args;
-
     explicit Function(std::nullptr_t) = delete;
 
     template<typename _F> Function(_F &&f) noexcept {
