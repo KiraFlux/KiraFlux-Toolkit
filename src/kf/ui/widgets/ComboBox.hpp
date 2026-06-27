@@ -103,7 +103,7 @@ template<typename U, typename T> struct ComboBox :
         moveCursor(event_value);
         this->invoke(this->config().items[_cursor]);
 
-        Request::Redraw;
+        return Request::Redraw;
     }
 
     void doRender(typename U::RendererImpl &render) const noexcept override {
