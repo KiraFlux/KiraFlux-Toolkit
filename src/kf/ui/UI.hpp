@@ -245,11 +245,6 @@ public:
             }
         }
 
-        /// @brief Get widgets on page
-        [[nodiscard]] constexpr WidgetsView widgets() noexcept {
-            return _widgets;
-        }
-
     protected:
         /// @brief Set page layout
         void layout(Layout new_layout) noexcept {
@@ -259,12 +254,6 @@ public:
         /// @brief Set page cursor
         void cursor(usize new_cursor) noexcept {
             _cursor = clamp<isize>(new_cursor, 0, _widgets.size() - 1);
-        }
-
-        /// @brief Set widgets on page
-        void widgets(WidgetsView new_widgets) noexcept {
-            _widgets = new_widgets;
-            cursor(_cursor);
         }
 
         UI &_ui;
