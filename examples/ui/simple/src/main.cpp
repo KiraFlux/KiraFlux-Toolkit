@@ -84,7 +84,6 @@ struct MainPage : MyUI::Page {
 
     explicit MainPage() : Page{my_ui} {
         this->label("Main");
-        widgets(widgets_storage.slice());
 
         click_button.callback([this]() {
             Serial.println("Test button clicked!");
@@ -102,6 +101,10 @@ struct MainPage : MyUI::Page {
     }
 
     // Page virtual methods
+
+    WidgetsView build() noexcept override {
+        return widgets_storage.slice();
+    }
 
     // behavior on entry
     void onEntry() noexcept override {
@@ -177,7 +180,6 @@ struct SettingsPage : MyUI::Page {
 
     explicit SettingsPage() : Page{my_ui} {
         this->label("Settings");
-        widgets(widgets_storage.slice());
 
         ints_combo_box.callback([](auto item) {
             Serial.print("Int Combo selected: ");
@@ -194,6 +196,10 @@ struct SettingsPage : MyUI::Page {
             Serial.print("SpinBox value: ");
             Serial.println(value);
         });
+    }
+
+    WidgetsView build() noexcept override {
+        return widgets_storage.slice();
     }
 
 } settings_page{};
@@ -231,8 +237,8 @@ void setup() {
     });
 
     // insert navigation button on both pages
-    main_page.widgets()[0] = &settings_page.link();
-    settings_page.widgets()[0] = &main_page.link();
+    main_page.widgets_storage[0] = &settings_page.link();
+    settings_page.widgets_storage[0] = &main_page.link();
 
     my_ui.activePage(main_page);// start ui with main page
     my_ui.requestRender();      // Force update for first ui rendering

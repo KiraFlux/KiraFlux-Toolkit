@@ -166,7 +166,6 @@ struct MainPage : MyUI::Page {
 
     explicit MainPage() : Page{my_ui /* layout = kf::ui::Layout::Vertical */} {
         this->label("Main");
-        widgets(widgets_storage.slice());
 
         for (auto i = 0u; i < array_widgets; i += 1) {
             auto &d = displays[i];
@@ -208,6 +207,8 @@ struct MainPage : MyUI::Page {
             }
 
             value_display.value(my_value);
+
+            requestBuild();
         });
 
         background_color_combo.callback([this](auto item) {
@@ -220,6 +221,12 @@ struct MainPage : MyUI::Page {
     }
 
     // Page virtual methods
+
+    WidgetsView build() noexcept override {
+        auto widgets = widgets_storage.slice();
+        // cutoff generated widgets if checkbox set on
+        return check_box.value() ? widgets : widgets.first(regular_widgets);
+    }
 
     // behavior on entry
     void onEntry() noexcept override {
@@ -281,7 +288,6 @@ struct SettingsPage : MyUI::Page {
 
     explicit SettingsPage() : Page{my_ui} {
         this->label("Settings");
-        widgets({widgets_storage.data(), widgets_storage.size()});
 
         layout_combo_box.callback([this](MyCombo::Config::Item item) {
             this->layout(item.value());
@@ -293,6 +299,10 @@ struct SettingsPage : MyUI::Page {
             Serial.print("SpinBox value: ");
             Serial.println(value);
         });
+    }
+
+    WidgetsView build() noexcept override {
+        return widgets_storage.slice();
     }
 
 } settings_page{};
@@ -333,7 +343,7 @@ static MyDisplayDriver::Config display_config{
 static MyDisplayDriver display{
     display_config,
     bus.createNode(node_config),
-    ArduinoGPIO::DigitalOutput{GPIO_NUM_22},// DC
+    ArduinoGPIO::DigitalOutput{GPIO_NUM_16},// DC
     ArduinoGPIO::DigitalOutput{GPIO_NUM_17},// RESET
 };
 
@@ -395,8 +405,8 @@ void setup() {
     // fields mapping UI Semantic Color: normal, primary, secondary, success, warning, error, info, disabled
 
     // insert navigation button on both pages
-    main_page.widgets()[0] = &settings_page.link();
-    settings_page.widgets()[0] = &main_page.link();
+    main_page.widgets_storage[0] = &settings_page.link();
+    settings_page.widgets_storage[0] = &main_page.link();
 
     my_ui.activePage(main_page);// start ui with main page
     my_ui.requestRender();      // Force update for first ui rendering
