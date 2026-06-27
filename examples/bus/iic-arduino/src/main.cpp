@@ -15,8 +15,8 @@ auto bus_config{
         0,// buffer size
 
         // GPIO_NUM_NC or -1 means Wire's default pins
-        -1,
-        -1),
+        21,
+        22),
 };
 
 // Bus instance (must outlive nodes)

@@ -246,6 +246,12 @@ private:
 
     KF_IMPL_INITABLE(ArduinoIIC, Result<void, Error>());
     auto initImpl() noexcept -> Result<void, Error> {
+        if (not this->config().hasDefaultPins()) {
+            if (not _wire.setPins(static_cast<int>(this->config().pin_sda), static_cast<int>(this->config().pin_scl))) {
+                return error(Error::PinConfigFailed);
+            }
+        }
+
         if (not _wire.begin()) {
             return error(Error::BeginFailed);
         }
@@ -263,12 +269,6 @@ private:
         if (not this->config().hasDefaultBufferSize()) {
             if (_wire.setBufferSize(this->config().buffer_size) != this->config().buffer_size) {
                 return error(Error::BufferSizeConfigFailed);
-            }
-        }
-
-        if (not this->config().hasDefaultPins()) {
-            if (not _wire.setPins(static_cast<int>(this->config().pin_sda), static_cast<int>(this->config().pin_scl))) {
-                return error(Error::PinConfigFailed);
             }
         }
 
