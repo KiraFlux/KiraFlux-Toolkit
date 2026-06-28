@@ -3,12 +3,13 @@
 
 #pragma once
 
-#include "kf/Slice.hpp"
 #include "kf/mixin/Indexable.hpp"
 #include "kf/mixin/Length.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf {
+
+template<typename> struct Slice;// forward declaration
 
 struct SequenceTag {};
 
