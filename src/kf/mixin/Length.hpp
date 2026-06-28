@@ -14,7 +14,7 @@ template<typename Impl, typename T> struct Length : LengthTag {
 
     /// @brief Get Length
     [[nodiscard]] constexpr T length() const noexcept {
-        static_cast<Impl *>(this)->lengthImpl();
+        return static_cast<const Impl *>(this)->lengthImpl();
     }
 };
 

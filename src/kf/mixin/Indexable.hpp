@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "kf/primitives.hpp"
+
 namespace kf::mixin {
 
 struct IndexableTag {};
@@ -19,7 +21,7 @@ template<typename Impl, typename T> struct Indexable : IndexableTag {
 
     /// @brief Get readonly access to item by index
     [[nodiscard]] constexpr const T &operator[](usize index) const noexcept {
-        return const_cast<Impl *>(this)->getItemImpl(index);
+        return (*const_cast<Indexable *>(this))[index];
     }
 };
 
