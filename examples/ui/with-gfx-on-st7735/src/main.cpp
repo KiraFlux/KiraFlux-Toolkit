@@ -10,7 +10,7 @@
 #include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/image/DynamicImage.hpp>
-#include <kf/memory/Array.hpp>
+#include <kf/Array.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
@@ -51,7 +51,7 @@ using Render = MyUI::Traits::RendererImpl;
 using Color = kf::ui::Color;
 using Style = kf::ui::Style;
 
-static kf::memory::Array<char, 256> my_renderer_buffer{};
+static kf::Array<char, 256> my_renderer_buffer{};
 
 static Render::Config my_renderer_config{Render::Config::defaults()};// will set in setup
 
@@ -109,7 +109,7 @@ struct MainPage : MyUI::Page {
 
     using ColorCombo = MyUI::ComboBox<Color>;
 
-    kf::memory::Array<ColorCombo::Config::Item, 9> color_combo_items{{{
+    kf::Array<ColorCombo::Config::Item, 9> color_combo_items{{
         {"Normal", Color::Normal},
         // combo option implements Styled
         {
@@ -134,7 +134,7 @@ struct MainPage : MyUI::Page {
         {"Info", Color::Info},
         {"Disabled", Color::Disabled},
         {"Highlight", Color::Highlight},
-    }}};
+    }};
 
     ColorCombo::Config color_combo_config{
         .items = color_combo_items.slice(),
@@ -152,9 +152,9 @@ struct MainPage : MyUI::Page {
     static constexpr auto regular_widgets{7}, array_widgets{20};
 
     // Many widgets for scroll check
-    kf::memory::Array<Display, array_widgets> displays{};
+    kf::Array<Display, array_widgets> displays{};
 
-    kf::memory::Array<MyUI::Widget *, (regular_widgets + array_widgets)> widgets_storage{{
+    kf::Array<MyUI::Widget *, (regular_widgets + array_widgets)> widgets_storage{{
         nullptr,// link widget will be init in setup()
         &click_button,
         &labeled_foreground_color_combo,
@@ -248,7 +248,7 @@ struct SettingsPage : MyUI::Page {
 
     using MyCombo = MyUI::ComboBox<kf::ui::Layout>;
 
-    kf::memory::Array<MyCombo::Config::Item, 2> layout_combo_box_items{{{
+    kf::Array<MyCombo::Config::Item, 2> layout_combo_box_items{{
         {"Vertical",
          kf::ui::Layout::Vertical},
         {
@@ -258,7 +258,7 @@ struct SettingsPage : MyUI::Page {
                 .foreground_color = Color::Highlight,
             },
         },
-    }}};
+    }};
 
     MyCombo::Config layout_combo_box_config{
         .items = layout_combo_box_items.slice(),
@@ -280,7 +280,7 @@ struct SettingsPage : MyUI::Page {
         10,             // = default value
     };
 
-    kf::memory::Array<MyUI::Widget *, 3> widgets_storage{{
+    kf::Array<MyUI::Widget *, 3> widgets_storage{{
         nullptr,// link widget will be init in setup()
         &layout_combo_box,
         &spin_box,

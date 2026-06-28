@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include <kf/io/ArduinoStream.hpp>
-#include <kf/memory/Array.hpp>
+#include <kf/Array.hpp>
 #include <kf/network/MizLangBridge.hpp>
 
 using kf::io::ArduinoStream;
@@ -9,7 +9,7 @@ using kf::io::ArduinoStream;
 using Bridge = kf::network::MizLangBridge<ArduinoStream, ArduinoStream, kf::u8, kf::u8>;// < Input, Output, local_code, [remote_code = local_code] >
 
 // may be shared with some amount of bridge instances
-kf::memory::Array<Bridge::ReceiveFunctionType, 1> receiver_table{
+kf::Array<Bridge::ReceiveFunctionType, 1> receiver_table{
     // instruction table with (1) handler
     {
         // #0

@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include <kf/memory/Array.hpp>
+#include <kf/Array.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
@@ -24,7 +24,7 @@ static MyUI::Traits::RendererImpl::Config my_renderer_config{
     .title_centered = false,
 };
 
-static kf::memory::Array<char, 256> my_renderer_buffer{};
+static kf::Array<char, 256> my_renderer_buffer{};
 
 static MyUI::Traits::RendererImpl my_renderer{
     my_renderer_config,// by ref
@@ -74,7 +74,7 @@ struct MainPage : MyUI::Page {
         slider_config,// by ref
     };
 
-    kf::memory::Array<MyUI::Widget *, 5> widgets_storage{{
+    kf::Array<MyUI::Widget *, 5> widgets_storage{{
         nullptr,// link widget will be init in setup()
         &click_button,
         &check_box,
@@ -126,11 +126,11 @@ struct SettingsPage : MyUI::Page {
 
     using PresetInput = MyUI::ComboBox<int>;
 
-    kf::memory::Array<PresetInput::Config::Item, 3> ints_combo_box_items{{{
+    kf::Array<PresetInput::Config::Item, 3> ints_combo_box_items{{
         {"Normal", 100},
         {"Sport", 200},
         {"Quiet", 20},
-    }}};
+    }};
 
     PresetInput::Config ints_combo_box_config{
         .items = ints_combo_box_items.slice(),
@@ -147,7 +147,7 @@ struct SettingsPage : MyUI::Page {
 
     using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
 
-    kf::memory::Array<MyCombo::Config::Item, 3> strings_combo_box_items{
+    kf::Array<MyCombo::Config::Item, 3> strings_combo_box_items{
         {"Alpha", "Beta", "Gamma"},// StringView-typed combo item implicit constructs from string literal
     };
 
@@ -171,7 +171,7 @@ struct SettingsPage : MyUI::Page {
         10,             // = default value
     };
 
-    kf::memory::Array<MyUI::Widget *, 4> widgets_storage{{
+    kf::Array<MyUI::Widget *, 4> widgets_storage{{
         nullptr,// link widget will be init in setup()
         &labeled_ints_combo_box,
         &strings_combo_box,

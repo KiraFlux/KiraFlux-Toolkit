@@ -11,7 +11,7 @@
 #include "kf/gfx/Palette.hpp"
 #include "kf/image/DynamicImage.hpp"
 #include "kf/image/StaticImage.hpp"
-#include "kf/memory/Array.hpp"
+#include "kf/Array.hpp"
 #include "kf/memory/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
@@ -65,7 +65,7 @@ template<typename P> struct Canvas {
         };
     }
 
-    // Properties: Dimentions
+    // Properties: Dimensions
 
     /// @brief Get canvas width in pixels
     [[nodiscard]] math::Pixels width() const noexcept { return _frame.width(); }
@@ -125,7 +125,7 @@ template<typename P> struct Canvas {
     void swapColors() noexcept { std::swap(_state.foreground_color, _state.background_color); }
 
     /// @brief Split canvas into weighted sub-canvases
-    template<usize N> auto split(memory::Array<usize, N> weights, bool horizontal = true) noexcept -> memory::Array<Canvas, N> {
+    template<usize N> auto split(Array<usize, N> weights, bool horizontal = true) noexcept -> Array<Canvas, N> {
         static_assert(N > 0, "Cannot split with zero items");
         for (auto &w: weights) {
             if (w == 0) { w = 1; }
@@ -141,7 +141,7 @@ template<typename P> struct Canvas {
 
         alignas(Canvas) u8 buffer[sizeof(Canvas) * N];
 
-        auto &result = *reinterpret_cast<memory::Array<Canvas, N> *>(&buffer);
+        auto &result = *reinterpret_cast<Array<Canvas, N> *>(&buffer);
 
         for (auto i = 0u; i < N; i += 1) {
             auto size = (remaining * weights[i]) / total_weight;
