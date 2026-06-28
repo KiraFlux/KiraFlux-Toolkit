@@ -14,7 +14,7 @@ template<typename Impl, typename StringType> struct StringRepresentable : String
 
     /// @brief Get string representation of the object
     /// @return String of type `StringType`
-    [[nodiscard]] StringType toString() const noexcept {
+    [[nodiscard]] constexpr StringType toString() const noexcept {
         return static_cast<const Impl *>(this)->toStringImpl();
     }
 };

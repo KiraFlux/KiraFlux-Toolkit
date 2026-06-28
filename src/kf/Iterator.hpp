@@ -15,7 +15,7 @@ struct IteratorTag {};
 template<typename Impl, typename T> struct Iterator : IteratorTag, mixin::Equatable<Impl> {
 
     /// @brief Get current element
-    [[nodiscard]] T value() const noexcept {
+    [[nodiscard]] constexpr T value() const noexcept {
         return static_cast<const Impl *>(this)->getValueImpl();
     }
 
@@ -28,7 +28,7 @@ template<typename Impl, typename T> struct Iterator : IteratorTag, mixin::Equata
     // C++ Iterator methods
 
     /// @brief Dereference: value()
-    [[nodiscard]] T operator*() const noexcept {
+    [[nodiscard]] constexpr T operator*() const noexcept {
         return value();
     }
 
@@ -40,4 +40,6 @@ template<typename Impl, typename T> struct Iterator : IteratorTag, mixin::Equata
 
 }// namespace kf
 
-#define KF_IMPL_ITERATOR(__impl__, __type__) friend struct ::kf::Iterator<__impl__, __type__>
+#define KF_IMPL_ITERATOR(__impl__, __type__)          \
+    friend struct ::kf::Iterator<__impl__, __type__>; \
+    KF_IMPL_EQUATABLE(__impl__)

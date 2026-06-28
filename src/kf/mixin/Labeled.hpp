@@ -19,7 +19,7 @@ struct Labeled : LabeledTag {
         return _label;
     }
 
-    void label(memory::StringView new_label) noexcept {
+    constexpr void label(memory::StringView new_label) noexcept {
         _label = new_label;
     }
 

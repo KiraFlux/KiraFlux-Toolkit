@@ -7,11 +7,11 @@ namespace kf::mixin {
 
 struct QuitableTag {};
 
-/// @brief CRTP mixin quit.
-/// @tparam Impl The derived class that must implement `quitImpl()`.
+/// @brief CRTP mixin quit
+/// @tparam Impl The derived class that must implement `quitImpl()`
 template<typename Impl> struct Quitable : QuitableTag {
 
-    /// @brief Releases resources and shuts down the object.
+    /// @brief Releases resources and shuts down the object
     void quit() noexcept {
         static_cast<Impl *>(this)->quitImpl();
     }
