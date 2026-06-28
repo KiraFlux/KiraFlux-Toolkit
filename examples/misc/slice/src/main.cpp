@@ -64,8 +64,8 @@ void setup() {
 
     // empty slice
     Slice<int> empty{raw, 0};
-    Serial.print(F("empty.size()="));
-    Serial.println(empty.size());
+    Serial.print(F("empty.length()="));
+    Serial.println(empty.length());
 
     Serial.println(F("=== End ==="));
 }
