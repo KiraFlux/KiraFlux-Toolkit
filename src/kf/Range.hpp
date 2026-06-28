@@ -4,14 +4,13 @@
 #pragma once
 
 #include "kf/algorithm.hpp"
-#include "kf/validation.hpp"
 
 namespace kf {
 
-/// @brief Closed interval [start, end] with validation and clamping.
-/// @tparam T Numeric type (must support comparison and arithmetic).
-/// @note The range is valid when `start <= end`. Invalid ranges fail validation.
-template<typename T> struct Range final : Validatable<Range<T>> {
+/// @brief Closed interval [start, end]
+/// @tparam T Numeric type (must support comparison and arithmetic)
+/// @note The range is valid when `start <= end`
+template<typename T> struct Range final {
 
     T start;///< Lower bound (inclusive)
     T end;  ///< Upper bound (inclusive)
@@ -25,14 +24,6 @@ template<typename T> struct Range final : Validatable<Range<T>> {
     /// @param value The value to clamp
     [[nodiscard]] constexpr T clamped(T value) const noexcept {
         return clamp(value, start, end);
-    }
-
-private:
-    static constexpr auto logger{Logger::create("Range")};
-
-    KF_IMPL_VALIDATABLE(Validatable<Range<T>>);
-    void checkImpl(Validator &validator) const noexcept {
-        KF_VALIDATOR_CHECK(validator, logger, start <= end);
     }
 };
 

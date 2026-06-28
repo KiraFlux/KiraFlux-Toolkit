@@ -33,8 +33,6 @@ struct PwmPositionServoConfig final : Validatable<PwmPositionServoConfig> {
 private:
     KF_IMPL_VALIDATABLE(Validatable<PwmPositionServoConfig>);
     void checkImpl(Validator &validator) const noexcept {
-        angle_range.check(validator);
-        pulse_range.check(validator);
     }
 };
 
