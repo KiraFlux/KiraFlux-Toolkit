@@ -7,15 +7,17 @@
 
 #include "kf/Option.hpp"
 #include "kf/math/Vector3.hpp"
+#include "kf/mixin/Length.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::math {
 
 /// @brief Quaternion for 3D rotations (trivially copyable aggregate)
 /// @tparam T Floating-point component type
-template<typename T> struct Quaternion final {
+template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
 
-    using Scalar = T;///< Component type
+    /// @brief Component type
+    using Scalar = T;
 
     Scalar x, y, z, w;
 
@@ -122,14 +124,9 @@ template<typename T> struct Quaternion final {
         return static_cast<Scalar>(x * x + y * y + z * z + w * w);
     }
 
-    /// @brief Length (magnitude)
-    [[nodiscard]] Scalar length() const noexcept {
-        return static_cast<Scalar>(std::sqrt(lengthSquared()));
-    }
-
     /// @brief Normalize the quaternion in‑place (does nothing if zero)
     void normalize() noexcept {
-        auto n = length();
+        auto n = this->length();
 
         if (n > 0) {
             x = static_cast<Scalar>(x / n);
@@ -142,7 +139,7 @@ template<typename T> struct Quaternion final {
     /// @brief Get normalized (unit) quaternion
     /// @return Option containing unit quaternion, or empty if zero length
     [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Quaternion> {
-        auto n = length();
+        auto n = this->length();
 
         if (n == 0) { return none; }
 
@@ -213,6 +210,14 @@ template<typename T> struct Quaternion final {
     Quaternion &operator*=(const Quaternion &other) noexcept {
         *this = *this * other;
         return *this;
+    }
+
+private:
+    using This = Quaternion<Scalar>;
+
+    KF_IMPL_LENGTH(This, Scalar);
+    constexpr Scalar lengthImpl() const noexcept {
+        return static_cast<Scalar>(std::sqrt(lengthSquared()));
     }
 };
 

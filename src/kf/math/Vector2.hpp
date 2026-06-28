@@ -6,15 +6,17 @@
 #include <cmath>
 
 #include "kf/Option.hpp"
+#include "kf/mixin/Length.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::math {
 
 /// @brief 2D vector template for graphics and calculations
 /// @tparam T Component type (float, integer, etc.)
-template<typename T> struct Vector2 final {
+template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
 
-    using Scalar = T;///< Vector component type
+    /// @brief Vector component type
+    using Scalar = T;
 
     Scalar x, y;
 
@@ -91,16 +93,10 @@ template<typename T> struct Vector2 final {
         return *this;
     }
 
-    /// @brief Calculate vector length (magnitude)
-    /// @return Euclidean length
-    [[nodiscard]] constexpr Scalar length() const noexcept {
-        return static_cast<Scalar>(std::hypot(x, y));
-    }
-
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
     [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector2> {
-        const auto len = length();
+        const auto len = this->length();
         return (len == 0) ? none : someTrivial(Vector2{static_cast<Scalar>(x / len), static_cast<Scalar>(y / len)});
     }
 
@@ -115,6 +111,14 @@ template<typename T> struct Vector2 final {
     /// @return true if both components are zero
     [[nodiscard]] constexpr bool isZero() const noexcept {
         return x == 0 and y == 0;
+    }
+
+private:
+    using This = Vector2<Scalar>;
+
+    KF_IMPL_LENGTH(This, Scalar);
+    constexpr Scalar lengthImpl() const noexcept {
+        return static_cast<Scalar>(std::hypot(x, y));
     }
 };
 

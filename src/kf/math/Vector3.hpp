@@ -6,14 +6,16 @@
 #include <cmath>
 
 #include "kf/Option.hpp"
+#include "kf/mixin/Length.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::math {
 
 /// @brief 3D vector template for graphics and calculations
-template<typename T> struct Vector3 final {
+template<typename T> struct Vector3 final : mixin::Length<Vector3<T>, T> {
 
-    using Scalar = T;///< Vector component type
+    /// @brief Vector component type
+    using Scalar = T;
 
     Scalar x, y, z;
 
@@ -97,16 +99,10 @@ template<typename T> struct Vector3 final {
         return *this;
     }
 
-    /// @brief Calculate vector length (magnitude)
-    /// @return Euclidean length
-    [[nodiscard]] constexpr Scalar length() const noexcept {
-        return static_cast<Scalar>(std::sqrt(x * x + y * y + z * z));
-    }
-
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
     [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector3> {
-        const auto len = length();
+        const auto len = this->length();
         return (len == 0) ? none : someTrivial(Vector3{static_cast<Scalar>(x / len), static_cast<Scalar>(y / len), static_cast<Scalar>(z / len)});
     }
 
@@ -132,6 +128,14 @@ template<typename T> struct Vector3 final {
     /// @return true if all components are zero
     [[nodiscard]] constexpr bool isZero() const noexcept {
         return x == 0 and y == 0 and z == 0;
+    }
+
+private:
+    using This = Vector3<Scalar>;
+
+    KF_IMPL_LENGTH(This, Scalar);
+    constexpr Scalar lengthImpl() const noexcept {
+        return static_cast<Scalar>(std::sqrt(x * x + y * y + z * z));
     }
 };
 
