@@ -22,17 +22,16 @@ monitor_speed = 115200
 """
 
 TEST_CPP = """
-#include <unity.h>
+#include <runner.hpp>
 
 void test() {
     // TODO: implement
 }
 
-int main() {
-    UNITY_BEGIN();
+void run_tests() {
     RUN_TEST(test);
-    return UNITY_END();
 }
+
 """
 
 MAIN_CPP = """
