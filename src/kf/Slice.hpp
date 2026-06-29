@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/Sequence.hpp"
+#include "kf/TrivialOption.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf {
@@ -28,12 +29,19 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
         _ptr{arr}, _length{N} {}
 
     /// @brief Create sub-slice starting at offset
-    /// @param offset Starting position (must be <= length())
-    /// @param count Number of elements (offset + count must be <= length())
+    /// @param offset Starting position
+    /// @param count Number of elements
     /// @return Slice covering specified range
     /// @note No bounds checking - caller must ensure valid range
-    [[nodiscard]] constexpr Slice sub(usize offset, usize count) const noexcept {
-        return Slice{_ptr + offset, count};
+    [[nodiscard]] constexpr Slice sub(usize offset, TrivialOption<usize> count = none) const noexcept {
+        if (offset >= _length) {
+            return {};
+        }
+
+        return {
+            data() + offset,
+            (count.isNone() or offset + count.unwrap() > _length) ? _length - offset : count.unwrap(),
+        };
     }
 
     /// @brief Get first N elements of slice
