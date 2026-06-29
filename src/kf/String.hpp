@@ -282,8 +282,8 @@ struct String : Stack<char> {
     /// @param fmt format string literal
     /// @param ...args format arguments
     /// @note For argument placement use `{}` as anchor
-    template<usize format_literal_length, typename... Args> constexpr void format(const char (&fmt)[format_literal_length], const Args &...args) {
-        constexpr auto parser_result = internal::FormatParser::parse(fmt);
+    template<usize format_literal_length, typename... Args> void format(const char (&fmt)[format_literal_length], const Args &...args) {
+        const auto parser_result = internal::FormatParser::parse(fmt);
 
         static_assert(
             parser_result.count == sizeof...(Args),
@@ -316,11 +316,11 @@ private:
             this->append(first);
         }
 
-        if constexpr (token_index + 1 < parser_result.count) {
-            constexpr auto next_token_index = token_index + 1;
-            constexpr auto next_arg_index = arg_index + ((token.kind == internal::FormatToken::Anchor) ? 1 : 0);
+        if (token_index + 1 < parser_result.count) {
+            const auto next_token_index = token_index + 1;
+            const auto next_arg_index = arg_index + ((token.kind == internal::FormatToken::Anchor) ? 1 : 0);
 
-            if constexpr (token.kind == internal::FormatToken::Anchor) {
+            if (token.kind == internal::FormatToken::Anchor) {
                 formatImpl<next_token_index, next_arg_index>(fmt, parser_result, rest...);
             } else {
                 formatImpl<next_token_index, next_arg_index>(fmt, parser_result, first, rest...);
