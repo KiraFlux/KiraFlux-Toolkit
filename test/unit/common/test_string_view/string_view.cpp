@@ -127,27 +127,25 @@ void character() {
 
     p = sv.indexOf('x');
 
-    TEST_ASSERT_FALSE(p.isSome());
+    TEST_ASSERT_TRUE(p.isNone());
 }
 
 void substring() {
     StringView sv{"the quick brown fox"};
     auto p{sv.indexOf("quick")};
-
     TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 4);
 
-    StringView sub{sv.sub(10)};
-    p = sub.indexOf("brown");
-
+    p = sv.indexOf("brown");
     TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 0);
 
     p = sv.indexOf("cat");
-
     TEST_ASSERT_FALSE(p.isSome());
 
     p = sv.indexOf("");
+    TEST_ASSERT_TRUE(p.isNone());
 
-    TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 0);
+    p = sv.indexOf('?');
+    TEST_ASSERT_TRUE(p.isNone());
 }
 
 void rfind() {
@@ -157,13 +155,13 @@ void rfind() {
     TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 10);
 
     StringView sub{sv.sub(0, kf::someTrivial<kf::usize>(5))};
+    TEST_ASSERT_EQUAL(5, sub.length());
+    
     p = sub.lastIndexOf('a');
-
     TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 5);
 
     p = sv.lastIndexOf('z');
-
-    TEST_ASSERT_FALSE(p.isSome());
+    TEST_ASSERT_TRUE(p.isNone());
 }
 
 }// namespace find

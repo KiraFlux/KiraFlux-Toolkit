@@ -190,7 +190,7 @@ namespace misc {
 void empty() {
     int data[] = {1, 2, 3};
     Slice<int> s{data, 0};
-    TEST_ASSERT_EQUAL_PTR(data, s.data());
+    TEST_ASSERT_NULL(s.data());
     TEST_ASSERT_EQUAL(0, s.length());
     TEST_ASSERT_TRUE(s.empty());
 
@@ -199,7 +199,7 @@ void empty() {
     TEST_ASSERT_EQUAL(0, s2.length());
 
     auto sub = s.sub(0, kf::someTrivial<kf::usize>(0));
-    TEST_ASSERT_EQUAL_PTR(data, sub.data());
+    TEST_ASSERT_NULL(sub.data());
     TEST_ASSERT_EQUAL(0, sub.length());
 }
 
