@@ -19,15 +19,15 @@ struct ArrayTag {};
 template<typename T, usize N> struct Array :
 
     ArrayTag,
-    Sequence<Array<T>, T>,
-    mixin::Equatable<Array<T>>
+    Sequence<Array<T, N>, T>,
+    mixin::Equatable<Array<T, N>>
 
 {
-    constexpr Array() noexcept : items{} {}
+    constexpr Array() noexcept : _items{} {}
 
-    constexpr Array(std::initializer_list<T> list) noexcept : items{} {
+    constexpr Array(std::initializer_list<T> list) noexcept : _items{} {
         for (auto i = 0u; i < N; i += 1) {
-            items[i] = list.begin()[i];
+            _items[i] = list.begin()[i];
         }
     }
 
