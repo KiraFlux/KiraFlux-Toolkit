@@ -3,32 +3,25 @@
 
 #pragma once
 
-#include "kf/memory/StaticString.hpp"
-#include "kf/memory/StringView.hpp"
+#include "kf/StringView.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
 namespace kf {
 
 /// @brief Logging system for embedded applications
-struct Logger final : mixin::NonCopyable {
-    using WriteHandler = void (*)(memory::StringView);
+struct Logger : mixin::NonCopyable {
 
-    static WriteHandler writer;///< Current output handler (nullptr disables logging)
+    using WriteHandler = void (*)(StringView);
 
-private:
-    const memory::StringView _key;
+    /// @brief Current output handler (nullptr disables logging)
+    inline static WriteHandler writer{nullptr};
 
-    explicit constexpr Logger(memory::StringView key) noexcept :
+    explicit constexpr Logger(StringView key) noexcept :
         _key{key} {}
 
-public:
-    template<usize N> [[nodiscard]] static constexpr Logger create(const char (&key)[N]) noexcept {
-        return Logger{memory::StringView{key, N - 1}};
-    }
-
-#define MAKE(__entry_name__)                                               \
-    void __entry_name__(const memory::StringView message) const noexcept { \
-        write(memory::StringView{#__entry_name__}, message);               \
+#define MAKE(__level__)                                  \
+    void __level__(StringView message) const noexcept {  \
+        write(StringView{":" #__level__ "] "}, message); \
     }
 
     MAKE(info)
@@ -42,22 +35,17 @@ public:
 #undef MAKE
 
 private:
-    void write(const memory::StringView level, const memory::StringView message) const noexcept {
-        if (writer == nullptr) { return; }
+    StringView _key;
 
-        memory::StaticString<32> buffer{};
-
-        (void) buffer.append(" [");
-        (void) buffer.append(_key);
-        (void) buffer.push(':');
-        (void) buffer.append(level);
-        (void) buffer.append("] ");
-        writer(buffer.view());
-        writer(message);
-        writer("\n");
+    void write(StringView level, StringView message) const noexcept {
+        if (nullptr != writer) {
+            writer("[");
+            writer(_key);
+            writer(level);
+            writer(message);
+            writer("\n");
+        }
     }
 };
-
-Logger::WriteHandler Logger::writer{nullptr};
 
 }// namespace kf
