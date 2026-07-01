@@ -89,19 +89,17 @@ struct PlainTextRenderer :
 
     /// @brief Helper to write character with cursor tracking
     void writeChar(char ch) noexcept {
-        if ((_buffer.size() == _written) or _cursor.row >= this->config().rows_total) { return; }
+        if (_buffer.full() or _cursor.row >= this->config().rows_total) { return; }
 
         if (ch == '\n') {
             _cursor.newline();
-            _buffer[_written] = ch;
-            _written += 1;
+            _buffer.append(ch);
             return;
         }
 
         if (_cursor.canWrite(this->config().row_max_length)) {
             _cursor.advance(1, this->config().row_max_length);
-            _buffer[_written] = ch;
-            _written += 1;
+            _buffer.append(ch);
             return;
         }
     }
@@ -114,34 +112,37 @@ struct PlainTextRenderer :
     }
 
     void writeReal(f64 real, u8 rounding) noexcept {
-        memory::StaticString<24> temp;// Enough for double with precision
-        (void) temp.append(real, rounding);
+        char buffer[24];
+
+        String temp{{buffer}};
+        temp.append(real, rounding);
+
         writeString(temp.view());
     }
 
 private:
-    Slice<char> _buffer;
-    usize _written{0};
+    String _buffer;// TODO: implement TUI string with cursor logic
     internal::PlainTextRendererCursor _cursor{};
+
     Layout _layout{Layout::Vertical};
 
     KF_IMPL(Renderer<PlainTextRenderer>);
 
     void beginFrameImpl() noexcept {
-        _written = 0;
+        _buffer.reset();
         _cursor.reset();
     }
 
     void endFrameImpl() noexcept {
-        this->invoke(StringView{_buffer.data(), _written});
+        this->invoke(_buffer.view());
     }
 
     usize beginPageImpl(StringView title, Layout layout) noexcept {
         _layout = layout;
 
         if (this->config().title_centered) {
-            const auto spaces = kf::max(0, (int(this->config().row_max_length) - int(title.size())) / 2);
-            for (int i = 0; i < spaces; i += 1) {
+            const auto spaces = kf::max(0, (int(this->config().row_max_length) - int(title.length())) / 2);
+            for (auto i = 0; i < spaces; i += 1) {
                 writeChar(' ');
             }
         }
@@ -249,7 +250,7 @@ private:
         writeString(str);
     }
 
-    template<usize M> void valueImpl(const memory::StaticString<M> &str) noexcept {
+    void valueImpl(const String &str) noexcept {
         writeString(str.view());
     }
 
@@ -262,9 +263,12 @@ private:
         writeString(b ? label_true : label_false);
     }
 
-    void valueImpl(i32 integer) noexcept {
-        memory::StaticString<12> temp;// Enough for 32-bit int
-        (void) temp.append(integer);
+    void valueImpl(i64 integer) noexcept {
+        char buffer[21];
+
+        String temp{{buffer}};
+        temp.append(integer);
+
         writeString(temp.view());
     }
 
