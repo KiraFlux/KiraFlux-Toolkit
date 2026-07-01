@@ -30,14 +30,7 @@ PwmPositionServo servo{
 
 void setup() {
     Serial.begin(115200);
-    kf::Logger::writer = [](kf::memory::StringView s) { Serial.write(s.data(), s.size()); };
-
-    kf::Validator validator{};
-    servo_config.check(validator);
-    if (not validator.passed()) {
-        Serial.println("Servo config check failed");
-        return;
-    }
+    kf::Logger::writer = [](kf::StringView s) { Serial.write(s.data(), s.length()); };
 
     if (not servo.init()) {
         Serial.println("Servo init failed");

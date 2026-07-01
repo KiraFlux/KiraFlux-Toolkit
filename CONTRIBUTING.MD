@@ -190,10 +190,6 @@ private:
 - Never throw exceptions.
 - `kf::Function<R(Args...)>` is **never empty**. For optional callbacks, use `Option<Function<...>>`.
 
-### Validation
-- Use `Validator` and `Validatable` CRTP for self‑validating configurations.
-- Use macro `KF_VALIDATOR_CHECK(validator, logger, condition)` inside `checkImpl()`.
-
 ### Hardware Abstraction
 - Isolate hardware‑dependent code in separate headers (e.g., `kf/gpio/ArduinoGPIO.hpp`).
 - Algorithmic code must not directly include `<Arduino.h>`.
