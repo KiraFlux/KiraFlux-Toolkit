@@ -112,9 +112,9 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
     }
 
     [[nodiscard]] constexpr auto lastIndexOf(char c) const noexcept -> TrivialOption<usize> {
-        for (isize i = this->length() - 1; i >= 0; i -= 1) {
-            if ((*this)[i] == c) {
-                return someTrivial<usize>(i);
+        for (usize i = this->length(); i > 0; i -= 1) {
+            if ((*this)[i - 1] == c) {
+                return someTrivial(i - 1);
             }
         }
 
