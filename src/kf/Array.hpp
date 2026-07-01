@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <initializer_list>
-
 #include "kf/Sequence.hpp"
 #include "kf/mixin/Equatable.hpp"
 #include "kf/primitives.hpp"
@@ -25,13 +23,7 @@ template<typename T, usize N> struct Array :
 {
     constexpr static auto length{N};
 
-    constexpr Array() noexcept : _items{} {}
-
-    constexpr Array(std::initializer_list<T> list) noexcept : _items{} {
-        for (auto i = 0u; i < N; i += 1) {
-            _items[i] = list.begin()[i];
-        }
-    }
+    T items[N];
 
     constexpr void fill(const T &value) noexcept {
         for (auto &item: *this) {
@@ -40,13 +32,12 @@ template<typename T, usize N> struct Array :
     }
 
 private:
-    T _items[N];
     using This = Array<T, N>;
 
     KF_IMPL_SEQUENCE(This, T);
 
     constexpr T *getDataImpl() noexcept {
-        return _items;
+        return items;
     }
 
     constexpr usize lengthImpl() const noexcept {
