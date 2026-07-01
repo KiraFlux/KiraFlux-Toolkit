@@ -75,10 +75,10 @@ struct NVS final :
     /// @param key blob entry key
     /// @param buffer blob destination buffer
     [[nodiscard]] ResultType getBlob(const char *key, Slice<u8> buffer) noexcept {
-        auto len = buffer.size();
+        auto len = buffer.length();
         const auto result = wrap(nvs_get_blob(_handle.unwrap(), key, static_cast<void *>(buffer.data()), &len));
 
-        if (len != buffer.size()) {
+        if (len != buffer.length()) {
             return error(Error{Error::BlobSizeMismatch});
         }
 
@@ -89,7 +89,7 @@ struct NVS final :
     /// @param key blob entry key
     /// @param buffer blob source buffer
     [[nodiscard]] ResultType setBlob(const char *key, Slice<const u8> buffer) noexcept {
-        return wrap(nvs_set_blob(_handle.unwrap(), key, buffer.data(), buffer.size()));
+        return wrap(nvs_set_blob(_handle.unwrap(), key, buffer.data(), buffer.length()));
     }
 
     /// @brief Commit any pending writes
