@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/memory/StringView.hpp"
+#include "kf/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Labeled.hpp"
 
@@ -27,7 +27,7 @@ template<typename U> struct Button :
 {
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
-    explicit constexpr Button(memory::StringView label, Style style = Style::defaults()) noexcept :
+    explicit constexpr Button(StringView label, Style style = Style::defaults()) noexcept :
         U::Widget{style}, mixin::Labeled::Labeled{label} {}
 
     /// @brief Handle button click event

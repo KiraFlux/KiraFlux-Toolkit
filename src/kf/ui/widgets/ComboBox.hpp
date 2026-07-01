@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Slice.hpp"
-#include "kf/memory/StringView.hpp"
+#include "kf/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Labeled.hpp"
@@ -19,14 +19,14 @@ namespace kf::internal {
 
 template<typename T> struct ComboBoxItem final : mixin::Labeled, mixin::Styled {
 
-    constexpr ComboBoxItem(memory::StringView label, T value, ui::Style style = ui::Style::defaults()) noexcept :
+    constexpr ComboBoxItem(StringView label, T value, ui::Style style = ui::Style::defaults()) noexcept :
         mixin::Labeled{label}, mixin::Styled{style}, _value{value} {}
 
-    [[nodiscard]] T value() const noexcept {
+    [[nodiscard]] constexpr T value() const noexcept {
         return _value;
     }
 
-    void value(T new_value) noexcept {
+    constexpr void value(T new_value) noexcept {
         _value = new_value;
     }
 
@@ -34,16 +34,16 @@ private:
     T _value;
 };
 
-template<> struct ComboBoxItem<memory::StringView> final : mixin::Labeled, mixin::Styled {
+template<> struct ComboBoxItem<StringView> final : mixin::Labeled, mixin::Styled {
 
     template<usize N> constexpr ComboBoxItem(const char (&str)[N], ui::Style style = ui::Style::defaults()) noexcept :
         mixin::Labeled{str}, mixin::Styled{style} {}
 
-    [[nodiscard]] memory::StringView value() const noexcept {
+    [[nodiscard]] constexpr StringView value() const noexcept {
         return this->label();
     }
 
-    void value(memory::StringView new_value) noexcept {
+    constexpr void value(StringView new_value) noexcept {
         this->label(new_value);
     }
 };
@@ -133,7 +133,7 @@ private:
         }
     }
 
-    usize totalItems() const noexcept {
+    constexpr usize totalItems() const noexcept {
         return this->config().items.size();
     }
 };
