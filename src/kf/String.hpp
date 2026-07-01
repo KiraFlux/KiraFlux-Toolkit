@@ -137,6 +137,8 @@ template<typename... Args> struct BasicFormatString {
 
 template<typename... Args> using FormatString = BasicFormatString<std::type_identity_t<Args>...>;
 
+template<typename> static constexpr bool always_false_v{false};
+
 }// namespace kf::internal
 
 namespace kf {
@@ -145,151 +147,49 @@ struct String : Stack<char> {
 
     using Stack<char>::Stack;
 
-    /// @brief Append single character
-    /// @param c Char to add
-    constexpr void append(char c) noexcept {
-        if (this->full()) {
-            return;
-        }
+    /// @brief Append string representation of value
+    /// @tparam T value type (auto-deduced)
+    /// @param value Value to represent
+    /// @param precision Precision for float-point number
+    template<typename T> constexpr void append(const T &value, usize precision = 3) noexcept {
 
-        (void) this->push(c);
-    }
+        if constexpr (std::is_same_v<T, char>) {
 
-    /// @brief Append C-String
-    /// @param str Should be null-terminated
-    constexpr void append(const char *str) noexcept {
-        if (nullptr == str) {
-            return;
-        }
+            (void) this->push(value);
 
-        while (*str != '\0') {
-            if (this->full()) {
-                break;
+        } else if constexpr (std::is_same_v<T, bool>) {
+
+            appendNullTerminatedString(value ? "true" : "false");
+
+        } else if constexpr (std::is_same_v<T, char *> or std::is_same_v<T, const char *>) {
+
+            appendNullTerminatedString(static_cast<const char *>(value));
+
+        } else if constexpr (std::is_base_of_v<SequenceTag, T>) {
+
+            for (auto c: value) {
+                if (this->full()) {
+                    break;
+                }
+
+                (void) this->push(c);
             }
 
-            (void) this->push(*str);
-            str += 1;
+        } else if constexpr (std::is_base_of_v<mixin::StringRepresentableTag, T>) {
+
+            append(value.toString());
+
+        } else if constexpr (std::is_integral_v<T>) {
+
+            appendInteger(value);
+
+        } else if constexpr (std::is_floating_point_v<T>) {
+
+            appendReal(value, precision);
+
+        } else {
+            static_assert(internal::always_false_v<T>, "Unsupported type for append");
         }
-    }
-
-    /// @brief Append integer to string
-    constexpr void append(i64 value) noexcept {
-        if (value == 0) {
-            (void) push('0');
-            return;
-        }
-
-        const bool is_negative = (value < 0);
-        const auto abs_value = is_negative ? static_cast<u64>(-value) : static_cast<u64>(value);
-
-        auto digits = 0u;
-        char buffer[21]{};
-
-        for (auto v = abs_value; v > 0; v /= 10) {
-            buffer[digits] = static_cast<char>('0' + (v % 10));
-            digits += 1;
-        }
-
-        if (this->length() + (is_negative ? 1 : 0) + digits > this->capacity()) {
-            return;
-        }
-
-        if (is_negative) {
-            (void) push('-');
-        }
-
-        while (digits > 0) {
-            digits -= 1;
-            (void) push(buffer[digits]);
-        }
-    }
-
-    /// @brief Append floating-point number to string
-    /// @param value Floating-point value
-    /// @param precision Number of decimal places to show
-    constexpr void append(f64 value, usize precision = 3) noexcept {
-        if (std::isnan(value)) {
-            append("nan");
-            return;
-        }
-
-        const bool is_negative = value < 0;
-
-        if (std::isinf(value)) {
-            append(is_negative ? "-inf" : "+inf");
-            return;
-        }
-
-        if (is_negative) {
-            value = -value;
-        }
-
-        const auto integer_part = static_cast<i64>(value);
-        const auto fraction_part = value - integer_part;
-
-        auto integer_digits = 0u;
-        for (auto v = integer_part; v > 0; v /= 10) {
-            integer_digits += 1;
-        }
-        if (integer_digits == 0) {
-            integer_digits = 1;
-        }
-
-        const auto chars_needed = (is_negative ? 1 : 0) + integer_digits + (precision == 0 ? 0 : 1 + precision);
-        if (this->length() + chars_needed > this->capacity()) {
-            return;
-        }
-
-        if (is_negative) {
-            (void) push('-');
-        }
-
-        append(integer_part);
-
-        if (precision == 0) {
-            return;
-        }
-
-        (void) push('.');
-
-        auto fraction = fraction_part;
-        for (auto i = 0u; i < precision; i += 1) {
-            fraction *= 10.0;
-
-            const auto fraction_digit = static_cast<u8>(fraction);
-            (void) push('0' + fraction_digit);
-
-            fraction -= fraction_digit;
-
-            if (fraction < 1e-12) {
-                break;
-            }
-        }
-    }
-
-    /// @brief Append boolean value
-    constexpr void append(bool value) noexcept {
-        append(value ? "true" : "false");
-    }
-
-    /// @brief Append Char sequence
-    template<typename T>
-        requires std::is_base_of_v<SequenceTag, T>
-    constexpr void append(const T &char_sequence) noexcept {
-        for (auto i = 0u; i < char_sequence.length(); i += 1) {
-            if (this->full()) {
-                return;
-            }
-
-            (void) this->push(char_sequence[i]);
-        }
-    }
-
-    /// @brief Append String Representable value
-    template<typename T>
-        requires std::is_base_of_v<mixin::StringRepresentableTag, T>
-    constexpr void append(const T &value) noexcept {
-        append(value.toString());
     }
 
     /// @brief Make string null-terminated and get data pointer
@@ -341,19 +241,109 @@ struct String : Stack<char> {
     }
 
 private:
-    template<typename T> constexpr void appendValue(const T &value) noexcept {
-        if constexpr (std::is_same_v<T, bool> or std::is_same_v<T, char>) {
+    constexpr void appendNullTerminatedString(const char *str) noexcept {
+        if (nullptr == str) {
+            return;
+        }
 
-            append(value);
+        while (*str != '\0') {
+            if (this->full()) {
+                break;
+            }
 
-        } else {
+            (void) this->push(*str);
+            str += 1;
+        }
+    }
 
-            if constexpr (std::is_integral_v<T>) {
-                append(static_cast<i64>(value));
-            } else if constexpr (std::is_floating_point_v<T>) {
-                append(static_cast<f64>(value));
-            } else {
-                append(value);
+    constexpr void appendInteger(i64 value) noexcept {
+        if (0 == value) {
+            (void) push('0');
+            return;
+        }
+
+        const bool is_negative = (value < 0);
+        const auto abs_value = is_negative ? static_cast<u64>(-value) : static_cast<u64>(value);
+
+        auto digits = 0u;
+        char buffer[21]{};
+
+        for (auto v = abs_value; v > 0; v /= 10) {
+            buffer[digits] = static_cast<char>('0' + (v % 10));
+            digits += 1;
+        }
+
+        if (this->length() + static_cast<usize>(is_negative) + digits > this->capacity()) {
+            return;
+        }
+
+        if (is_negative) {
+            (void) push('-');
+        }
+
+        while (digits > 0) {
+            digits -= 1;
+            (void) push(buffer[digits]);
+        }
+    }
+
+    constexpr void appendReal(f64 value, usize precision) noexcept {
+        if (std::isnan(value)) {
+            appendNullTerminatedString("nan");
+            return;
+        }
+
+        const bool is_negative = (value < 0);
+        const bool just_integer_part = (0 == precision);
+
+        if (std::isinf(value)) {
+            appendNullTerminatedString(is_negative ? "-inf" : "+inf");
+            return;
+        }
+
+        if (is_negative) {
+            value = -value;
+        }
+
+        const auto integer_part = static_cast<i64>(value);
+        const auto fraction_part = value - integer_part;
+
+        auto integer_digits = 0u;
+        for (auto v = integer_part; v > 0; v /= 10) {
+            integer_digits += 1;
+        }
+        if (integer_digits == 0) {
+            integer_digits = 1;
+        }
+
+        const auto chars_needed = static_cast<usize>(is_negative) + integer_digits + static_cast<usize>(just_integer_part) + precision;
+        if (this->length() + chars_needed > this->capacity()) {
+            return;
+        }
+
+        if (is_negative) {
+            (void) push('-');
+        }
+
+        appendInteger(integer_part);
+
+        if (just_integer_part) {
+            return;
+        }
+
+        (void) push('.');
+
+        auto fraction = fraction_part;
+        for (auto i = 0u; i < precision; i += 1) {
+            fraction *= 10.0;
+
+            const auto fraction_digit = static_cast<u8>(fraction);
+            (void) push('0' + fraction_digit);
+
+            fraction -= fraction_digit;
+
+            if (fraction < 1e-12) {
+                break;
             }
         }
     }
@@ -361,7 +351,7 @@ private:
     template<usize I, typename... Args> constexpr void applyArg(usize index, const std::tuple<const Args &...> &tuple) {
         if (I == index) {
 
-            appendValue(std::get<I>(tuple));
+            append(std::get<I>(tuple));
 
         } else {
 
