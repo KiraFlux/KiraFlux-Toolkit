@@ -43,6 +43,10 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
             len = _length - offset;
         }
 
+        if (0 == len) {
+            return {};
+        }
+
         return {_ptr + offset, len};
     }
 
