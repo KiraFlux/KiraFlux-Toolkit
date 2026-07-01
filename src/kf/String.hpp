@@ -6,8 +6,10 @@
 #include <cmath>
 #include <type_traits>
 
+#include "kf/Array.hpp"
 #include "kf/Stack.hpp"
 #include "kf/StringView.hpp"
+#include "kf/mixin/StringRepresentable.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {
@@ -22,7 +24,7 @@ struct FormatToken {
     usize length;
 };
 
-struct FormatParserResult {
+struct FormatResult {
     static constexpr auto max_tokens{32u};
 
     FormatToken tokens[max_tokens];
@@ -50,20 +52,30 @@ struct FormatParserResult {
     }
 };
 
-struct FormatParser {
+template<typename... Args> struct BasicFormatString {
+
     static constexpr auto
         anchor_begin_char{'{'},
         anchor_end_char{'}'};
 
-    template<usize M> static constexpr FormatParserResult parse(const char (&fmt)[M]) {
+    const char *str;
+    usize length;
+    internal::FormatResult result;
+
+    template<usize N> consteval BasicFormatString(const char (&s)[N]) noexcept :
+        str{s}, length{N - 1}, result{parse(s)} {
+        static_assert(result.count == sizeof...(Args), "Number of {} placeholders does not match number of arguments");
+    }
+
+    template<usize M> static constexpr FormatResult parse(const char (&fmt)[M]) {
         constexpr auto format_literal_length{M - 1};
 
-        FormatParserResult result{
+        FormatResult result{
             .count = 0,
         };
 
         auto i = 0u;
-        while (i < format_literal_length and result.count < FormatParserResult::max_tokens) {
+        while (i < format_literal_length and result.count < FormatResult::max_tokens) {
             //  {{
             if (fmt[i] == anchor_begin_char and (i + 1) < format_literal_length and fmt[i + 1] == anchor_begin_char) {
                 result.putLiteral(i, 2);
@@ -114,6 +126,8 @@ struct FormatParser {
     }
 };
 
+template<typename... Args> using FormatString = BasicFormatString<std::type_identity_t<Args>...>;
+
 }// namespace kf::internal
 
 namespace kf {
@@ -149,8 +163,6 @@ struct String : Stack<char> {
     }
 
     /// @brief Append Char sequence
-    /// @tparam I Implementation class of char sequence
-    /// @param char_sequence
     template<typename I> constexpr void append(const I &char_sequence) noexcept {
         for (auto i = 0u; i < char_sequence.length(); i += 1) {
             if (this->full()) {
@@ -161,8 +173,14 @@ struct String : Stack<char> {
         }
     }
 
+    /// @brief Append String Representable value
+    template<typename T>
+        requires std::is_base_of_v<mixin::StringRepresentableTag, T>
+    constexpr void append(const T &value) noexcept {
+        append(value.toString());
+    }
+
     /// @brief Append integer to string
-    /// @param value Integer value to append
     constexpr void append(i64 value) noexcept {
         if (value == 0) {
             push('0');
@@ -234,7 +252,7 @@ struct String : Stack<char> {
             (void) push('-');
         }
 
-        (void) append(integer_part);
+        append(integer_part);
 
         if (precision == 0) {
             return;
@@ -273,36 +291,40 @@ struct String : Stack<char> {
 
     /// @brief Get StringView
     [[nodiscard]] constexpr StringView view() const noexcept {
-        return StringView(this->data(), this->length());
+        return StringView{this->data(), this->length()};
     }
 
     /// @brief Format into string
     /// @tparam ...Args argument types (auto-deduced), used for `append` method static dispatching
-    /// @tparam format_literal_length format string literal length (auto-deduced)
-    /// @param fmt format string literal
+    /// @param fmt format string implicit consteval-constructed from literal
     /// @param ...args format arguments
     /// @note For argument placement use `{}` as anchor
-    template<usize format_literal_length, typename... Args> void format(const char (&fmt)[format_literal_length], const Args &...args) {
-        const auto parser_result = internal::FormatParser::parse(fmt);
-
-        static_assert(
-            parser_result.count == sizeof...(Args),
-            "Number of {} placeholders does not match number of arguments");
-
+    template<typename... Args> constexpr void format(const internal::FormatString<Args...> &fmt, const Args &...args) {
         this->reset();
 
-        if constexpr (parser_result.count == 0) {
-            this->append(StringView(fmt, format_literal_length - 1));
+        if (fmt.result.count == 0) {
+            this->append(StringView(fmt.str, fmt.length));
         } else {
-            formatImpl<0, 0>(fmt, parser_result, args...);
+            formatImpl<0, 0>(fmt.str, fmt.result, args...);
         }
+    }
+
+    /// @brief Get formatted char Array
+    /// @tparam N Array length
+    /// @note Behavior like `format(fmt, args...)`
+    template<usize N, typename... Args> constexpr auto formatted(const internal::FormatString<Args...> &fmt, const Args &...args) -> Array<char, N> {
+        Array<char, N> ret{};
+
+        String{ret.slice()}.format(fmt, args);
+
+        return ret;
     }
 
 private:
     template<usize token_index, usize arg_index, typename First, typename... Rest> constexpr void formatImpl(
 
         const char *fmt,
-        const internal::FormatParserResult &parser_result,
+        const internal::FormatResult &parser_result,
         const First &first,
         const Rest &...rest
 
