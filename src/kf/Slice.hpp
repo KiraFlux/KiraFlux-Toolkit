@@ -49,7 +49,7 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
     /// @return Slice containing first n elements
     /// @note No bounds checking - caller must ensure n <= length()
     [[nodiscard]] constexpr Slice first(usize n) const noexcept {
-        return sub(0, n);
+        return sub(0, someTrivial(n));
     }
 
     /// @brief Get last N elements of slice
@@ -57,7 +57,7 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
     /// @return Slice containing last n elements
     /// @note No bounds checking - caller must ensure n <= length()
     [[nodiscard]] constexpr Slice last(usize n) const noexcept {
-        return sub(_length - n, n);
+        return sub(_length - n, someTrivial(n));
     }
 
     /// @brief Get slice starting from offset to end
@@ -65,7 +65,7 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
     /// @return Slice from offset to end of original slice
     /// @note No bounds checking - caller must ensure offset <= length()
     [[nodiscard]] constexpr Slice fromOffset(usize offset) const noexcept {
-        return sub(offset, _length - offset);
+        return sub(offset, someTrivial(_length - offset));
     }
 
     constexpr operator Slice<const T>() const noexcept {
