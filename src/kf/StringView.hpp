@@ -10,17 +10,25 @@
 
 namespace kf {
 
+namespace internal {
+
+using StringViewBase = Slice<const char>;
+
+}
+
 /// @brief Non‑owning view of a constant string
 /// @note Inherits `Slice<const char>` and adds string‑specific operations
-struct StringView : Slice<const char>, mixin::Equatable<StringView> {
+struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
 
-    using Base = Slice<const char>;
+    using internal::StringViewBase::StringViewBase;
 
-    using Base::Base;
+    /// @brief Construct from char slice
+    constexpr StringView(internal::StringViewBase buffer) noexcept :
+        internal::StringViewBase{buffer} {}
 
     /// @brief Construct from C‑string (nullptr allowed)
     constexpr StringView(const char *str) noexcept :
-        Base{str, (nullptr == str) ? 0 : cStringLength(str)} {}
+        internal::StringViewBase{str, (nullptr == str) ? 0 : cStringLength(str)} {}
 
     // Trimming
 
