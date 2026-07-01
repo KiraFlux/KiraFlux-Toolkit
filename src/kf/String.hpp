@@ -73,7 +73,7 @@ template<typename... Args> struct BasicFormatString {
         }
     }
 
-    template<usize M> static constexpr FormatResult parse(const char (&fmt)[M]) {
+    template<usize M> static constexpr FormatResult parse(const char (&fmt)[M]) noexcept {
         constexpr auto format_literal_length{M - 1};
 
         FormatResult result{
@@ -310,7 +310,7 @@ struct String : Stack<char> {
     /// @param fmt format string implicit consteval-constructed from literal
     /// @param ...args format arguments
     /// @note For argument placement use `{}` as anchor
-    template<typename... Args> constexpr void format(internal::FormatString<Args...> fmt, const Args &...args) {
+    template<typename... Args> constexpr void format(internal::FormatString<Args...> fmt, const Args &...args) noexcept {
         this->reset();
 
         const auto tuple = std::forward_as_tuple(args...);
@@ -327,6 +327,16 @@ struct String : Stack<char> {
                 }
             }
         }
+    }
+
+    /// @brief Get char array with formatted content
+    /// @tparam N Array length
+    template<usize N, typename... Args> [[nodiscard]] static constexpr auto formatted(internal::FormatString<Args...> fmt, const Args &...args) noexcept -> Array<char, N> {
+        Array<char, N> ret{};
+
+        String{ret.slice()}.format(fmt, args...);
+
+        return ret;
     }
 
 private:
