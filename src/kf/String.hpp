@@ -26,7 +26,7 @@ struct FormatToken {
 };
 
 struct FormatResult {
-    static constexpr auto max_tokens{8u};
+    static constexpr auto max_tokens{32u};
 
     usize anchor_indices[max_tokens];
     FormatToken tokens[max_tokens];
