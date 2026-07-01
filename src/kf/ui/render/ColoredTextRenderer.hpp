@@ -40,17 +40,17 @@ struct ColoredTextRendererConfig final {
 
         Item normal, primary, secondary, success, warning, error, info, disabled, highlight;
 
-        [[nodiscard]] constexpr Item get(Color color) const noexcept {
+        [[nodiscard]] constexpr Item get(ui::Color color) const noexcept {
             switch (color) {
-                case Color::Normal: return normal;
-                case Color::Primary: return primary;
-                case Color::Secondary: return secondary;
-                case Color::Success: return success;
-                case Color::Warning: return warning;
-                case Color::Error: return error;// same value as Color::Danger
-                case Color::Info: return info;
-                case Color::Disabled: return disabled;
-                case Color::Highlight: return highlight;
+                case ui::Color::Normal: return normal;
+                case ui::Color::Primary: return primary;
+                case ui::Color::Secondary: return secondary;
+                case ui::Color::Success: return success;
+                case ui::Color::Warning: return warning;
+                case ui::Color::Error: return error;// same value as ui::Color::Danger
+                case ui::Color::Info: return info;
+                case ui::Color::Disabled: return disabled;
+                case ui::Color::Highlight: return highlight;
                 default: return normal;
             }
         }
