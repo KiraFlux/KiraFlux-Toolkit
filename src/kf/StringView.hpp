@@ -82,7 +82,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
 
         auto offset = this->length() - suffix.length();
 
-        for (auto i = 0u; i < suffix.length(); i += 1) {
+        for (usize i = 0; i < suffix.length(); i += 1) {
             if ((*this)[offset + i] != suffix[i]) {
                 return false;
             }
@@ -102,7 +102,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
     // Search
 
     [[nodiscard]] constexpr auto indexOf(char c) const noexcept -> TrivialOption<usize> {
-        for (auto i = 0u; i < this->length(); i += 1) {
+        for (usize i = 0; i < this->length(); i += 1) {
             if ((*this)[i] == c) {
                 return someTrivial(i);
             }
@@ -112,7 +112,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
     }
 
     [[nodiscard]] constexpr auto lastIndexOf(char c) const noexcept -> TrivialOption<usize> {
-        for (auto i = this->length(); i > 0; i -= 1) {
+        for (usize i = this->length(); i > 0; i -= 1) {
             if ((*this)[i] == c) {
                 return someTrivial(i);
             }
@@ -126,7 +126,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
             return none;
         }
 
-        for (auto i = 0u; i <= this->length() - sub.length(); i += 1) {
+        for (usize i = 0; i <= this->length() - sub.length(); i += 1) {
             bool ok = true;
 
             for (auto j = 0u; j < sub.length(); j += 1)
@@ -148,10 +148,10 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
             return none;
         }
 
-        for (auto i = this->length() - sub.length(); i > 0; i -= 1) {
+        for (usize i = this->length() - sub.length(); i > 0; i -= 1) {
             bool ok = true;
 
-            for (auto j = 0u; j < sub.length(); j += 1)
+            for (usize j = 0u; j < sub.length(); j += 1)
                 if ((*this)[i + j] != sub[j]) {
                     ok = false;
                     break;
@@ -189,7 +189,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
 
         auto token_count = 0u, start = 0u;
 
-        for (auto i = 0u; i <= this->length(); i += 1) {
+        for (usize i = 0; i <= this->length(); i += 1) {
             bool is_delim = (i < this->length() and delimiters.contains((*this)[i]));
 
             if (i == this->length() or is_delim) {
@@ -216,7 +216,7 @@ private:
     }
 
     [[nodiscard]] static constexpr usize cStringLength(const char *str) noexcept {
-        auto len = 0u;
+        usize len = 0;
 
         while (str[len] != '\0') {
             len += 1;
@@ -229,7 +229,7 @@ private:
     constexpr bool IsEqualsImpl(const StringView &other) const noexcept {
         if (this->length() == other.length()) {
 
-            for (auto i = 0u; i < this->length(); i += 1) {
+            for (usize i = 0; i < this->length(); i += 1) {
                 if ((*this)[i] != other[i]) {
                     return false;
                 }
