@@ -32,16 +32,18 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
     /// @param offset Starting position
     /// @param count Number of elements
     /// @return Slice covering specified range
-    /// @note No bounds checking - caller must ensure valid range
     [[nodiscard]] constexpr Slice sub(usize offset, TrivialOption<usize> count = none) const noexcept {
-        if (offset >= _length) {
+        if (offset > _length) {
             return {};
         }
 
-        return {
-            _ptr + offset,
-            (count.isNone() or offset + count.unwrap() > _length) ? _length - offset : count.unwrap(),
-        };
+        usize len = count.isNone() ? (_length - offset) : count.unwrap();
+
+        if (len > _length - offset) {
+            len = _length - offset;
+        }
+
+        return {_ptr + offset, len};
     }
 
     /// @brief Get first N elements of slice
