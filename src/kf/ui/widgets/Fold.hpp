@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/Slice.hpp"
+#include "kf/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Labeled.hpp"
 
@@ -30,7 +31,7 @@ template<typename U> struct Fold :
         expanded_background_color{Color::Primary},
         folded_background_color{Color::Secondary};
 
-    explicit constexpr Fold(WidgetsView widgets, memory::StringView label = {}) noexcept :
+    explicit constexpr Fold(WidgetsView widgets, StringView label = {}) noexcept :
         U::Widget{Style{.background_color = folded_background_color}}, mixin::Labeled{label}, _widgets{widgets} {}
 
     /// @brief Get Fold widgets
@@ -40,7 +41,7 @@ template<typename U> struct Fold :
     }
 
     /// @brief Set Fold widgets
-    void widgets(WidgetsView new_widgets) noexcept {
+    constexpr void widgets(WidgetsView new_widgets) noexcept {
         _widgets = new_widgets;
     }
 
@@ -50,7 +51,7 @@ template<typename U> struct Fold :
     }
 
     /// @brief Set Fold expanded
-    void expanded(bool is_expanded) const noexcept {
+    constexpr void expanded(bool is_expanded) const noexcept {
         _expanded = is_expanded;
     }
 
