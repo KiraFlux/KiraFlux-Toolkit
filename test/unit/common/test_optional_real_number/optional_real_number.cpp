@@ -58,4 +58,6 @@ void run_tests() {
     RUN_OPTIONAL_REAL_NUMBER_TESTS(float);
     RUN_OPTIONAL_REAL_NUMBER_TESTS(double);
     RUN_OPTIONAL_REAL_NUMBER_TESTS(long_double);
+    RUN_OPTIONAL_REAL_NUMBER_TESTS(kf::usize);
+
 }
