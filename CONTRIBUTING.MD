@@ -18,7 +18,7 @@ Thank you for your interest in contributing! This document provides comprehensiv
 ## Core Principles
 
 - **Header‑only** – all code lives in headers; no `.cpp` files except for tests and examples.
-- **C++17** – the library targets C++17 (GCC native / xtensa for ESP32). No C++20 features are used.
+- **C++20** – the library targets C++20 (GCC native / xtensa for ESP32)
 - **ESP32 (Arduino framework)** – primary target, many modules are platform‑agnostic.
 - **Polymorphism** – prefer CRTP for static polymorphism; use virtual functions only where runtime flexibility is genuinely required (UI widgets, type‑erased callables).
 - **Error handling** – never throw exceptions. Use `Result<T, E>` and `Option<T>` exclusively. Create via `kf::ok()`, `kf::error()`, `kf::some()`, `kf::none`. Use `isSome()`/`isNone()`, `unwrap()`/`unwrapOr()`, `map()`. `kf::Function` is never empty – use `Option<Function<...>>` for optional callbacks.

@@ -1,6 +1,6 @@
 # KiraFlux Toolkit
 
-**Experimental header‑only C++17 library for ESP32 (Arduino framework)**  
+**Experimental header‑only C++20 library for ESP32 (Arduino framework)**  
 A pragmatic blend of static polymorphism (CRTP) and dynamic polymorphism for embedded development.
 
 ## Overview
@@ -10,7 +10,7 @@ KiraFlux Toolkit provides a collection of modular components for ESP32, built ar
 - **CRTP** - for zero‑cost abstractions (GPIO, buses, drivers, filters, mixins).
 - **Dynamic polymorphism** - where runtime flexibility is required (UI widgets, type‑erased callables via `kf::Function`).
 
-The library is **header‑only**, **C++17**, targets **ESP32 + Arduino framework**. Many core modules are platform‑agnostic.
+The library is **header‑only**, **C++20**, targets **ESP32 + Arduino framework**. Many core modules are platform‑agnostic.
 
 **Key principles:**
 - No exceptions - error handling via return values (always)
