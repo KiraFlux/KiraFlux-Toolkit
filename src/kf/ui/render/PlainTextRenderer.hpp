@@ -239,45 +239,33 @@ private:
     // Value rendering implementations
 
     void valueImpl(NoneType) noexcept {
-        writeString(StringView{"none"});
+        writeString("none");
     }
 
-    void valueImpl(char c) noexcept {
-        writeChar(c);
+    template<typename T> void valueImpl(T value) noexcept {
+
+        if constexpr (std::is_same_v<T, char>) {
+            writeChar(value);
+        } else if constexpr (std::is_same_v<bool, T>) {
+            constexpr StringView label_true{"true"}, label_false{"false"};
+            writeString(value ? label_true : label_false);
+        } else if constexpr (std::is_same_v<f64, T>) {
+            writeReal(value, this->config().double_places);
+        } else if constexpr (std::is_same_v<f32, T>) {
+            writeReal(value, this->config().float_places);
+        } else if constexpr (std::is_integral_v<T>) {
+
+            char buffer[21];
+
+            String temp{{buffer}};
+            temp.append(static_cast<i64>(value));
+
+            writeString(temp.view());
+        }
     }
 
     void valueImpl(StringView str) noexcept {
         writeString(str);
-    }
-
-    void valueImpl(const String &str) noexcept {
-        writeString(str.view());
-    }
-
-    void valueImpl(const char *str) noexcept {
-        writeString(StringView{str});
-    }
-
-    void valueImpl(bool b) noexcept {
-        constexpr StringView label_true{"true"}, label_false{"false"};
-        writeString(b ? label_true : label_false);
-    }
-
-    void valueImpl(i64 integer) noexcept {
-        char buffer[21];
-
-        String temp{{buffer}};
-        temp.append(integer);
-
-        writeString(temp.view());
-    }
-
-    void valueImpl(f32 real) noexcept {
-        writeReal(static_cast<f64>(real), this->config().float_places);
-    }
-
-    void valueImpl(f64 real) noexcept {
-        writeReal(real, this->config().double_places);
     }
 
     // Semantic color (No-Op in plain text)
