@@ -214,7 +214,7 @@ private:
 
     KF_IMPL_INVARIANT(This);
     constexpr bool isSomeImpl() const noexcept {
-        return _value == is_none_mark;
+        return _value != is_none_mark;
     }
 
     KF_IMPL_RESETTABLE(This);
