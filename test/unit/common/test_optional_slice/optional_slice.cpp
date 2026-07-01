@@ -21,7 +21,7 @@ template<typename T> struct TestOptionalSlice {
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_FALSE(option.isNone());
         TEST_ASSERT_EQUAL_PTR(data_a, option.unwrap().data());
-        TEST_ASSERT_EQUAL(data_a_size, option.unwrap().size());
+        TEST_ASSERT_EQUAL(data_a_size, option.unwrap().length());
     }
 
     static void none() {
@@ -30,7 +30,7 @@ template<typename T> struct TestOptionalSlice {
         TEST_ASSERT_FALSE(option.isSome());
         const auto value = option.unwrapOr(slice_b);
         TEST_ASSERT_EQUAL_PTR(data_b, value.data());
-        TEST_ASSERT_EQUAL(data_b_size, value.size());
+        TEST_ASSERT_EQUAL(data_b_size, value.length());
     }
 
     static void empty_slice() {
@@ -39,7 +39,7 @@ template<typename T> struct TestOptionalSlice {
         auto option = kf::some(empty_slice);
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_EQUAL_PTR(&dummy, option.unwrap().data());
-        TEST_ASSERT_EQUAL(0u, option.unwrap().size());
+        TEST_ASSERT_EQUAL(0u, option.unwrap().length());
     }
 
     static void copy() {
@@ -82,7 +82,7 @@ template<typename T> struct TestOptionalSlice {
     static void value_get() {
         auto option = kf::some(slice_a);
         TEST_ASSERT_EQUAL_PTR(data_a, option.unwrap().data());
-        TEST_ASSERT_EQUAL(data_a_size, option.unwrap().size());
+        TEST_ASSERT_EQUAL(data_a_size, option.unwrap().length());
     }
 
     static void reassign() {

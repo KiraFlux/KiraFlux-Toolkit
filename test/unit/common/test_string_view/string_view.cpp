@@ -5,7 +5,7 @@ using kf::Slice;
 using kf::StringView;
 using kf::TrivialOption;
 
-static void assertStringViewEqual(StringView actual, const char* expected, size_t len) {
+static void assertStringViewEqual(StringView actual, const char *expected, size_t len) {
     TEST_ASSERT_EQUAL_UINT32(len, actual.length());
 
     if (len) {
@@ -24,7 +24,7 @@ void default_() {
 }
 
 void cstring() {
-    const char* s{"hello"};
+    const char *s{"hello"};
     StringView sv{s};
 
     TEST_ASSERT_EQUAL_PTR(s, sv.data());
@@ -32,7 +32,7 @@ void cstring() {
 }
 
 void ptr_size() {
-    const char* d{"world"};
+    const char *d{"world"};
     StringView sv{d, 3};
 
     TEST_ASSERT_EQUAL_PTR(d, sv.data());
@@ -50,7 +50,7 @@ void literal() {
 }
 
 void slice() {
-    const char* d{"slice"};
+    const char *d{"slice"};
     Slice<const char> sl{d, 5};
     StringView sv{d, sl.length()};
 
@@ -66,13 +66,13 @@ void null_cstring() {
     TEST_ASSERT_TRUE(sv.empty());
 }
 
-} // namespace constructors
+}// namespace constructors
 
 namespace test_access {
 
 void iterators() {
     StringView sv{"12345"};
-    const char* it{sv.begin()};
+    const char *it{sv.begin()};
 
     TEST_ASSERT_EQUAL('1', *it);
     it += 1;
@@ -92,7 +92,7 @@ void iterators() {
     TEST_ASSERT_EQUAL(sv.end(), it);
 }
 
-} // namespace test_access
+}// namespace test_access
 
 namespace compare {
 
@@ -106,7 +106,7 @@ void equality() {
     TEST_ASSERT_TRUE(a != c);
 }
 
-} // namespace compare
+}// namespace compare
 
 namespace find {
 
@@ -156,7 +156,7 @@ void rfind() {
 
     TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 10);
 
-    StringView sub{sv.sub(0, kf::someTrivial(5u))};
+    StringView sub{sv.sub(0, kf::someTrivial<kf::usize>(5))};
     p = sub.lastIndexOf('a');
 
     TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 5);
@@ -166,7 +166,7 @@ void rfind() {
     TEST_ASSERT_FALSE(p.isSome());
 }
 
-} // namespace find
+}// namespace find
 
 namespace starts_ends {
 
@@ -179,25 +179,25 @@ void test() {
     TEST_ASSERT_FALSE(sv.endsWith(".cpp"));
 }
 
-} // namespace starts_ends
+}// namespace starts_ends
 
 namespace sub {
 
 void sub() {
     StringView sv{"hello world"};
-    auto s{sv.sub(6, kf::someTrivial(5u))};
+    auto s{sv.sub(6, kf::someTrivial<kf::usize>(5))};
 
     assertStringViewEqual(s, "world", 5);
 
-    s = sv.sub(6, kf::someTrivial(100u));
+    s = sv.sub(6, kf::someTrivial<kf::usize>(100));
 
     assertStringViewEqual(s, "world", 5);
 
-    s = sv.sub(20, kf::someTrivial(5u));
+    s = sv.sub(20, kf::someTrivial<kf::usize>(5));
 
     TEST_ASSERT_TRUE(s.empty());
 
-    s = sv.sub(3, kf::someTrivial(0u));
+    s = sv.sub(3, kf::someTrivial<kf::usize>(0));
 
     TEST_ASSERT_TRUE(s.empty());
 }
@@ -217,7 +217,7 @@ void from_offset() {
     TEST_ASSERT_EQUAL_UINT32(11, s.length());
 }
 
-} // namespace sub
+}// namespace sub
 
 namespace crop {
 
@@ -243,7 +243,7 @@ void remove_suffix() {
     assertStringViewEqual(sv, "hello", 5);
 }
 
-} // namespace crop
+}// namespace crop
 
 namespace trim {
 
@@ -262,7 +262,7 @@ void both() {
     assertStringViewEqual(StringView{"  a  "}.trim(), "a", 1);
 }
 
-} // namespace trim
+}// namespace trim
 
 namespace to_slice {
 
@@ -274,7 +274,7 @@ void test() {
     TEST_ASSERT_EQUAL_UINT32(sv.length(), sl.length());
 }
 
-} // namespace to_slice
+}// namespace to_slice
 
 void run_tests() {
     RUN_TEST(constructors::default_);
