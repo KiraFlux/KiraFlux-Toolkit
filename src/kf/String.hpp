@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cmath>
+#include <tuple>
 #include <type_traits>
 
 #include "kf/Array.hpp"
@@ -25,29 +26,30 @@ struct FormatToken {
 };
 
 struct FormatResult {
-    static constexpr auto max_tokens{32u};
+    static constexpr auto max_tokens{8u};
 
+    usize anchor_indices[max_tokens];
     FormatToken tokens[max_tokens];
     usize count;
 
-    constexpr void putAnchor(usize position) noexcept {
-        put({
+    constexpr void putAnchor(usize position, usize arg_index) noexcept {
+        anchor_indices[count] = arg_index;
+        tokens[count] = {
             .kind = FormatToken::Anchor,
             .start = position,
             .length = 2,// "{}"
-        });
+        };
+
+        count += 1;
     }
 
     constexpr void putLiteral(usize start, usize length) noexcept {
-        put({
+        tokens[count] = {
             .kind = FormatToken::Literal,
             .start = start,
             .length = length,
-        });
-    }
+        };
 
-    constexpr void put(const FormatToken &token) noexcept {
-        tokens[count] = token;
         count += 1;
     }
 };
@@ -64,7 +66,11 @@ template<typename... Args> struct BasicFormatString {
 
     template<usize N> consteval BasicFormatString(const char (&s)[N]) noexcept :
         str{s}, length{N - 1}, result{parse(s)} {
-        static_assert(result.count == sizeof...(Args), "Number of {} placeholders does not match number of arguments");
+
+        if (result.count != sizeof...(Args)) {
+
+            //TODO: compile-time termination
+        }
     }
 
     template<usize M> static constexpr FormatResult parse(const char (&fmt)[M]) {
@@ -75,6 +81,8 @@ template<typename... Args> struct BasicFormatString {
         };
 
         auto i = 0u;
+        auto arg_index = 0u;
+
         while (i < format_literal_length and result.count < FormatResult::max_tokens) {
             //  {{
             if (fmt[i] == anchor_begin_char and (i + 1) < format_literal_length and fmt[i + 1] == anchor_begin_char) {
@@ -96,7 +104,8 @@ template<typename... Args> struct BasicFormatString {
 
                 if (i < format_literal_length and fmt[i] == anchor_end_char) {
                     // {} — Anchor
-                    result.putAnchor(start);
+                    result.putAnchor(start, arg_index);
+                    arg_index += 1;
                     i += 1;
                     continue;
                 }
@@ -143,7 +152,7 @@ struct String : Stack<char> {
             return;
         }
 
-        this->push(c);
+        (void) this->push(c);
     }
 
     /// @brief Append C-String
@@ -158,32 +167,14 @@ struct String : Stack<char> {
                 return;
             }
 
-            this->push(*str);
+            (void) this->push(*str);
         }
-    }
-
-    /// @brief Append Char sequence
-    template<typename I> constexpr void append(const I &char_sequence) noexcept {
-        for (auto i = 0u; i < char_sequence.length(); i += 1) {
-            if (this->full()) {
-                return;
-            }
-
-            this->push(char_sequence[i]);
-        }
-    }
-
-    /// @brief Append String Representable value
-    template<typename T>
-        requires std::is_base_of_v<mixin::StringRepresentableTag, T>
-    constexpr void append(const T &value) noexcept {
-        append(value.toString());
     }
 
     /// @brief Append integer to string
     constexpr void append(i64 value) noexcept {
         if (value == 0) {
-            push('0');
+            (void) push('0');
             return;
         }
 
@@ -280,6 +271,26 @@ struct String : Stack<char> {
         append(value ? "true" : "false");
     }
 
+    /// @brief Append Char sequence
+    template<typename T>
+        requires std::is_base_of_v<SequenceTag, T>
+    constexpr void append(const T &char_sequence) noexcept {
+        for (auto i = 0u; i < char_sequence.length(); i += 1) {
+            if (this->full()) {
+                return;
+            }
+
+            (void) this->push(char_sequence[i]);
+        }
+    }
+
+    /// @brief Append String Representable value
+    template<typename T>
+        requires std::is_base_of_v<mixin::StringRepresentableTag, T>
+    constexpr void append(const T &value) noexcept {
+        append(value.toString());
+    }
+
     /// @brief Make string null-terminated and get data pointer
     [[nodiscard]] constexpr const char *cString() noexcept {
         const auto terminator_index = this->full() ? this->capacity() - 1 : this->length();
@@ -299,53 +310,52 @@ struct String : Stack<char> {
     /// @param fmt format string implicit consteval-constructed from literal
     /// @param ...args format arguments
     /// @note For argument placement use `{}` as anchor
-    template<typename... Args> constexpr void format(const internal::FormatString<Args...> &fmt, const Args &...args) {
+    template<typename... Args> constexpr void format(internal::FormatString<Args...> fmt, const Args &...args) {
         this->reset();
 
-        if (fmt.result.count == 0) {
-            this->append(StringView(fmt.str, fmt.length));
-        } else {
-            formatImpl<0, 0>(fmt.str, fmt.result, args...);
+        const auto tuple = std::forward_as_tuple(args...);
+
+        for (auto i = 0u; i < fmt.result.count; i += 1) {
+            const auto &token = fmt.result.tokens[i];
+
+            if (token.kind == internal::FormatToken::Literal) {
+                this->append(StringView(fmt.str + token.start, token.length));
+            } else {
+
+                if constexpr (sizeof...(Args) > 0) {
+                    applyArg<0>(fmt.result.anchor_indices[i], tuple);
+                }
+            }
         }
-    }
-
-    /// @brief Get formatted char Array
-    /// @tparam N Array length
-    /// @note Behavior like `format(fmt, args...)`
-    template<usize N, typename... Args> constexpr auto formatted(const internal::FormatString<Args...> &fmt, const Args &...args) -> Array<char, N> {
-        Array<char, N> ret{};
-
-        String{ret.slice()}.format(fmt, args);
-
-        return ret;
     }
 
 private:
-    template<usize token_index, usize arg_index, typename First, typename... Rest> constexpr void formatImpl(
+    template<typename T> constexpr void appendValue(const T &value) noexcept {
+        if constexpr (std::is_same_v<T, bool>) {
 
-        const char *fmt,
-        const internal::FormatResult &parser_result,
-        const First &first,
-        const Rest &...rest
+            append(value);
 
-    ) {
-        const auto &token = parser_result.tokens[token_index];
-
-        if (token.kind == internal::FormatToken::Literal) {
-            this->append(StringView(fmt + token.start, token.length));
         } else {
-            // Anchor
-            this->append(first);
-        }
 
-        if (token_index + 1 < parser_result.count) {
-            const auto next_token_index = token_index + 1;
-            const auto next_arg_index = arg_index + ((token.kind == internal::FormatToken::Anchor) ? 1 : 0);
-
-            if (token.kind == internal::FormatToken::Anchor) {
-                formatImpl<next_token_index, next_arg_index>(fmt, parser_result, rest...);
+            if constexpr (std::is_integral_v<T>) {
+                append(static_cast<i64>(value));
+            } else if constexpr (std::is_floating_point_v<T>) {
+                append(static_cast<f64>(value));
             } else {
-                formatImpl<next_token_index, next_arg_index>(fmt, parser_result, first, rest...);
+                append(value);
+            }
+        }
+    }
+
+    template<usize I, typename... Args> constexpr void applyArg(usize index, const std::tuple<const Args &...> &tuple) {
+        if (I == index) {
+
+            appendValue(std::get<I>(tuple));
+
+        } else {
+
+            if constexpr (I + 1 < sizeof...(Args)) {
+                applyArg<I + 1>(index, tuple);
             }
         }
     }
