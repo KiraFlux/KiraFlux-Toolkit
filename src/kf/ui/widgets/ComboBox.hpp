@@ -134,7 +134,7 @@ private:
     }
 
     constexpr usize totalItems() const noexcept {
-        return this->config().items.size();
+        return this->config().items.length();
     }
 };
 
