@@ -26,12 +26,16 @@ static MyUI::Traits::RendererImpl::Config my_renderer_config{
 
 static kf::Array<char, 256> my_renderer_buffer{};
 
+// allocate memory for event queue
+static char my_event_buffer[64 * sizeof(MyUI::Traits::EventImpl)];
+
 static MyUI::Traits::RendererImpl my_renderer{
     my_renderer_config,// by ref
     my_renderer_buffer.slice(),
 };
 
 static MyUI my_ui{
+    {reinterpret_cast<MyUI::Traits::EventImpl *>(my_event_buffer), sizeof(my_event_buffer)},
     my_renderer,// by ref
 };
 
@@ -74,7 +78,7 @@ struct MainPage : MyUI::Page {
         slider_config,// by ref
     };
 
-    kf::Array<MyUI::Widget *, 5> widgets_storage{{
+    kf::Array<MyUI::Widget *, 5> widgets_storage{.items{
         nullptr,// link widget will be init in setup()
         &click_button,
         &check_box,
@@ -126,7 +130,7 @@ struct SettingsPage : MyUI::Page {
 
     using PresetInput = MyUI::ComboBox<int>;
 
-    kf::Array<PresetInput::Config::Item, 3> ints_combo_box_items{{
+    kf::Array<PresetInput::Config::Item, 3> ints_combo_box_items{.items{
         {"Normal", 100},
         {"Sport", 200},
         {"Quiet", 20},
@@ -147,9 +151,12 @@ struct SettingsPage : MyUI::Page {
 
     using MyCombo = MyUI::ComboBox<kf::StringView>;
 
-    kf::Array<MyCombo::Config::Item, 3> strings_combo_box_items{
-        {"Alpha", "Beta", "Gamma"},// StringView-typed combo item implicit constructs from string literal
-    };
+    kf::Array<MyCombo::Config::Item, 3> strings_combo_box_items{.items{
+        // StringView-typed combo item implicit constructs from string literal
+        "Alpha",
+        "Beta",
+        "Gamma",
+    }};
 
     MyCombo::Config strings_combo_box_config{
         .items = strings_combo_box_items.slice(),
@@ -171,7 +178,7 @@ struct SettingsPage : MyUI::Page {
         10,             // = default value
     };
 
-    kf::Array<MyUI::Widget *, 4> widgets_storage{{
+    kf::Array<MyUI::Widget *, 4> widgets_storage{.items{
         nullptr,// link widget will be init in setup()
         &labeled_ints_combo_box,
         &strings_combo_box,
