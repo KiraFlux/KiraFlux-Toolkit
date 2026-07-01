@@ -162,12 +162,13 @@ struct String : Stack<char> {
             return;
         }
 
-        for (; *str != '\0'; str += 1) {
+        while (*str != '\0') {
             if (this->full()) {
-                return;
+                break;
             }
 
             (void) this->push(*str);
+            str += 1;
         }
     }
 
