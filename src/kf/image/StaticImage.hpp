@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "kf/Array.hpp"
 #include "kf/Slice.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/math/units.hpp"
-#include "kf/memory/Array.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
@@ -25,15 +25,16 @@ template<typename P, math::Pixels W, math::Pixels H> struct StaticImage final : 
     using BufferType = typename PixelImpl::BufferType;
     using ColorType = typename PixelImpl::ColorType;
 
-    using BufferStorage = memory::Array<BufferType, PixelImpl::bufferSize(W, H)>;
+    using BufferStorage = Array<BufferType, PixelImpl::bufferSize(W, H)>;
 
-    explicit StaticImage(const BufferStorage &buffer) noexcept : _buffer{buffer} {}
+    constexpr StaticImage() noexcept :
+        _buffer{} {}
 
-    StaticImage() noexcept : _buffer{} {}
+    explicit constexpr StaticImage(const BufferStorage &buffer) noexcept :
+        _buffer{buffer} {}
 
 private:
     /// @brief Raw image buffer data
-    /// @note Contains the pixel data for the entire image.
     BufferStorage _buffer;
 
     KF_IMPL(Image<StaticImage<P, W, H>, P>);
@@ -51,7 +52,7 @@ private:
     }
 
     constexpr Slice<BufferType> getBufferImpl() noexcept {
-        return {_buffer.data(), _buffer.size()};
+        return _buffer.slice();
     }
 };
 
