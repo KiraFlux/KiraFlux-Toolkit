@@ -40,8 +40,19 @@ struct ColoredTextRendererConfig final {
 
         Item normal, primary, secondary, success, warning, error, info, disabled, highlight;
 
-        constexpr Item get(ui::Color color) const noexcept {
-            return reinterpret_cast<const Item *>(this)[static_cast<char>(color)];
+        [[nodiscard]] constexpr Item get(Color color) const noexcept {
+            switch (color) {
+                case Color::Normal: return normal;
+                case Color::Primary: return primary;
+                case Color::Secondary: return secondary;
+                case Color::Success: return success;
+                case Color::Warning: return warning;
+                case Color::Error: return error;// same value as Color::Danger
+                case Color::Info: return info;
+                case Color::Disabled: return disabled;
+                case Color::Highlight: return highlight;
+                default: return normal;
+            }
         }
     };
 
