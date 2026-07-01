@@ -137,6 +137,14 @@ template<typename... Args> struct BasicFormatString {
 
 template<typename... Args> using FormatString = BasicFormatString<std::type_identity_t<Args>...>;
 
+template<typename T> static constexpr bool is_c_string_v{
+
+    std::is_same_v<T, char *> or
+    std::is_same_v<T, const char *> or
+    (std::is_array_v<T> and std::is_same_v<std::remove_extent_t<T>, char>)
+
+};
+
 template<typename> static constexpr bool always_false_v{false};
 
 }// namespace kf::internal
@@ -161,7 +169,7 @@ struct String : Stack<char> {
 
             appendNullTerminatedString(value ? "true" : "false");
 
-        } else if constexpr (std::is_same_v<T, char *> or std::is_same_v<T, const char *>) {
+        } else if constexpr (internal::is_c_string_v<T>) {
 
             appendNullTerminatedString(static_cast<const char *>(value));
 
