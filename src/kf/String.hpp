@@ -331,7 +331,7 @@ struct String : Stack<char> {
 
 private:
     template<typename T> constexpr void appendValue(const T &value) noexcept {
-        if constexpr (std::is_same_v<T, bool>) {
+        if constexpr (std::is_same_v<T, bool> or std::is_same_v<T, char>) {
 
             append(value);
 
