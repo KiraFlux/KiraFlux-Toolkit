@@ -39,7 +39,7 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
         }
 
         return {
-            data() + offset,
+            _ptr + offset,
             (count.isNone() or offset + count.unwrap() > _length) ? _length - offset : count.unwrap(),
         };
     }
