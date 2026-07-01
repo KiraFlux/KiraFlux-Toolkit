@@ -168,7 +168,13 @@ private:
     }
 };
 
-template<> struct TrivialOption<usize> final : internal::RealValueOption<usize> {
+template<> struct TrivialOption<usize> :
+
+    OptionTag,
+    mixin::Invariant<TrivialOption<usize>>,
+    mixin::Resettable<TrivialOption<usize>>
+
+{
     friend struct internal::TrivialSomeCreator;
 
     /// @brief Construct an empty Option (None)
