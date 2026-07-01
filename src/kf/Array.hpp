@@ -23,6 +23,8 @@ template<typename T, usize N> struct Array :
     mixin::Equatable<Array<T, N>>
 
 {
+    constexpr static auto length{N};
+
     constexpr Array() noexcept : _items{} {}
 
     constexpr Array(std::initializer_list<T> list) noexcept : _items{} {
