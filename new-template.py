@@ -10,7 +10,7 @@ PLATFORMIO_INI = """
 build_cache_dir = .pio/build_cache
 
 [env:esp32dev]
-platform = espressif32
+platform = https://github.com/pioarduino/platform-espressif32/releases/download/stable/platform-espressif32.zip
 board = esp32dev
 framework = arduino
 lib_extra_dirs = ../../..
