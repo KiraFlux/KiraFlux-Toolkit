@@ -66,7 +66,7 @@ template<typename Impl, typename P> struct Image :
 
     /// @brief Get image size in bytes
     [[nodiscard]] usize size() const noexcept {
-        return buffer().size() * sizeof(BufferType);
+        return buffer().length() * sizeof(BufferType);
     }
 };
 

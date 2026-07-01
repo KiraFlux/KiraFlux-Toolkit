@@ -17,7 +17,7 @@ PwmPositionServo::Config servo_config{
 PwmOutput::Config pwm_config{
     .frequency_hz = 50,
     .resolution_bits = 12,
-    .pin = static_cast<kf::u8>(GPIO_NUM_13),
+    .gpio_num = static_cast<kf::u8>(GPIO_NUM_13),
     .channel = 0,
 };
 

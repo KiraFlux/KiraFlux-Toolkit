@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 // uses in this demo:
+#include <kf/Array.hpp>
 #include <kf/bus/spi/ArduinoSPI.hpp>
 #include <kf/drivers/display/Orientation.hpp>
 #include <kf/drivers/display/ST7735.hpp>
@@ -10,7 +11,6 @@
 #include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/image/DynamicImage.hpp>
-#include <kf/Array.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
@@ -53,6 +53,9 @@ using Style = kf::ui::Style;
 
 static kf::Array<char, 256> my_renderer_buffer{};
 
+// allocate memory for event queue
+static char my_event_buffer[64 * sizeof(MyUI::Traits::EventImpl)];
+
 static Render::Config my_renderer_config{Render::Config::defaults()};// will set in setup
 
 static Render my_renderer{
@@ -61,6 +64,7 @@ static Render my_renderer{
 };
 
 static MyUI my_ui{
+    {reinterpret_cast<MyUI::Traits::EventImpl *>(my_event_buffer), sizeof(my_event_buffer)},
     my_renderer,// by ref
 };
 
@@ -109,32 +113,34 @@ struct MainPage : MyUI::Page {
 
     using ColorCombo = MyUI::ComboBox<Color>;
 
-    kf::Array<ColorCombo::Config::Item, 9> color_combo_items{{
-        {"Normal", Color::Normal},
-        // combo option implements Styled
-        {
-            "Primary",
-            Color::Primary,
-            Style{
-                .foreground_color = Color::Primary,
-                // .background_color = Color::Secondary,
+    kf::Array<ColorCombo::Config::Item, 9> color_combo_items{
+        .items = {
+            {"Normal", Color::Normal},
+            // combo option implements Styled
+            {
+                "Primary",
+                Color::Primary,
+                Style{
+                    .foreground_color = Color::Primary,
+                    // .background_color = Color::Secondary,
+                },
             },
-        },
-        {
-            "Secondary",
-            Color::Secondary,
-            Style{
-                // .foreground_color = Color::Primary,
-                .background_color = Color::Secondary,
+            {
+                "Secondary",
+                Color::Secondary,
+                Style{
+                    // .foreground_color = Color::Primary,
+                    .background_color = Color::Secondary,
+                },
             },
+            {"Success", Color::Success},
+            {"Warning", Color::Warning},
+            {"Error", Color::Error},
+            {"Info", Color::Info},
+            {"Disabled", Color::Disabled},
+            {"Highlight", Color::Highlight},
         },
-        {"Success", Color::Success},
-        {"Warning", Color::Warning},
-        {"Error", Color::Error},
-        {"Info", Color::Info},
-        {"Disabled", Color::Disabled},
-        {"Highlight", Color::Highlight},
-    }};
+    };
 
     ColorCombo::Config color_combo_config{
         .items = color_combo_items.slice(),
@@ -154,15 +160,17 @@ struct MainPage : MyUI::Page {
     // Many widgets for scroll check
     kf::Array<Display, array_widgets> displays{};
 
-    kf::Array<MyUI::Widget *, (regular_widgets + array_widgets)> widgets_storage{{
-        nullptr,// link widget will be init in setup()
-        &click_button,
-        &labeled_foreground_color_combo,
-        &labeled_background_color_combo,
-        &labeled_check_box,
-        &value_display,
-        &slider,
-    }};
+    kf::Array<MyUI::Widget *, (regular_widgets + array_widgets)> widgets_storage{
+        .items = {
+            nullptr,// link widget will be init in setup()
+            &click_button,
+            &labeled_foreground_color_combo,
+            &labeled_background_color_combo,
+            &labeled_check_box,
+            &value_display,
+            &slider,
+        },
+    };
 
     explicit MainPage() : Page{my_ui /* layout = kf::ui::Layout::Vertical */} {
         this->label("Main");
@@ -248,17 +256,21 @@ struct SettingsPage : MyUI::Page {
 
     using MyCombo = MyUI::ComboBox<kf::ui::Layout>;
 
-    kf::Array<MyCombo::Config::Item, 2> layout_combo_box_items{{
-        {"Vertical",
-         kf::ui::Layout::Vertical},
-        {
-            "Horizontal",
-            kf::ui::Layout::Horizontal,
-            Style{
-                .foreground_color = Color::Highlight,
+    kf::Array<MyCombo::Config::Item, 2> layout_combo_box_items{
+        .items = {
+            {
+                "Vertical",
+                kf::ui::Layout::Vertical,
+            },
+            {
+                "Horizontal",
+                kf::ui::Layout::Horizontal,
+                Style{
+                    .foreground_color = Color::Highlight,
+                },
             },
         },
-    }};
+    };
 
     MyCombo::Config layout_combo_box_config{
         .items = layout_combo_box_items.slice(),
@@ -280,11 +292,13 @@ struct SettingsPage : MyUI::Page {
         10,             // = default value
     };
 
-    kf::Array<MyUI::Widget *, 3> widgets_storage{{
-        nullptr,// link widget will be init in setup()
-        &layout_combo_box,
-        &spin_box,
-    }};
+    kf::Array<MyUI::Widget *, 3> widgets_storage{
+        .items = {
+            nullptr,// link widget will be init in setup()
+            &layout_combo_box,
+            &spin_box,
+        },
+    };
 
     explicit SettingsPage() : Page{my_ui} {
         this->label("Settings");

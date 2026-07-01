@@ -31,8 +31,16 @@ private:
         }
     }
 
-    static void fillImpl(Slice<BufferType> buffer, PositionType stride, PositionType offset_x, PositionType offset_y, PositionType width, PositionType height, ColorType color) noexcept {
-        const auto total_height = int(buffer.size()) / stride;
+    static void fillImpl(
+
+        Slice<BufferType> buffer,
+        PositionType stride,
+        PositionType offset_x, PositionType offset_y,
+        PositionType width, PositionType height,
+        ColorType color
+
+        ) noexcept {
+        const auto total_height = int(buffer.length()) / stride;
         const auto end_y = kf::min(offset_y + height, total_height);
         const auto end_x = kf::min(offset_x + width, int(stride));
 
@@ -44,15 +52,16 @@ private:
     }
 
     static void copyImpl(
+
         Slice<const BufferType> src,
-        PositionType src_w,
-        PositionType src_h,
-        Slice<BufferType> dst,
-        PositionType dst_stride,
-        PositionType dst_x,
-        PositionType dst_y,
-        PositionType copy_w,
-        PositionType copy_h) noexcept {
+        PositionType src_w, PositionType src_h,
+
+        Slice<BufferType> dst, PositionType dst_stride,
+        PositionType dst_x, PositionType dst_y,
+
+        PositionType copy_w, PositionType copy_h
+
+        ) noexcept {
         for (auto y = 0; y < copy_h; y += 1) {
             const auto src_row = y * src_w;
             const auto dst_row = (dst_y + y) * dst_stride + dst_x;

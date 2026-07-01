@@ -12,7 +12,7 @@ ArduinoGPIO::AdcInput adc{GPIO_NUM_34};                                         
 ArduinoGPIO::PwmOutput::Config ledc_config{
     .frequency_hz = 10000,
     .resolution_bits = 10,
-    .pin = static_cast<kf::u8>(GPIO_NUM_13),
+    .gpio_num = static_cast<kf::u8>(GPIO_NUM_13),
     .channel = 0,
 };
 

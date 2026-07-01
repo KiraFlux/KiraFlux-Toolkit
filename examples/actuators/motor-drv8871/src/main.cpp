@@ -11,14 +11,14 @@ using DRV8871 = kf::drivers::actuators::DRV8871<PwmOutput>;
 PwmOutput::Config forward_pwm_config{
     .frequency_hz = 30'000,// typical for DC motors
     .resolution_bits = 10,
-    .pin = static_cast<kf::u8>(GPIO_NUM_26),
+    .gpio_num = static_cast<kf::u8>(GPIO_NUM_26),
     .channel = 0,
 };
 
 PwmOutput::Config backward_pwm_config{
     .frequency_hz = 30'000,// typical for DC motors
     .resolution_bits = 10,
-    .pin = static_cast<kf::u8>(GPIO_NUM_25),
+    .gpio_num = static_cast<kf::u8>(GPIO_NUM_25),
     .channel = 0,
 };
 
