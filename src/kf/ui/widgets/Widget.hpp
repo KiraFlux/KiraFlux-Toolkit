@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Option.hpp"
-#include "kf/memory/StringView.hpp"
+#include "kf/StringView.hpp"
 #include "kf/mixin/Styled.hpp"
 #include "kf/primitives.hpp"
 
@@ -50,15 +50,19 @@ template<typename R, typename E> struct Widget :
 
     using mixin::Styled::Styled;
 
+    // TODO: add enabled/disabled
+
     /// @brief Get Contextual hint about this widget
-    [[nodiscard]] constexpr memory::StringView hint() const noexcept {
+    [[nodiscard]] constexpr StringView hint() const noexcept {
         return _hint;
     }
 
     /// @brief Set Contextual hint about this widget
-    void hint(memory::StringView new_hint) noexcept {
+    constexpr void hint(StringView new_hint) noexcept {
         _hint = new_hint;
     }
+
+    // TODO: add offset(usize)
 
     /// @brief External widget rendering with focus handling
     void render(RendererImpl &render, usize index, bool focused) const noexcept {
@@ -70,7 +74,7 @@ template<typename R, typename E> struct Widget :
     }
 
 private:
-    memory::StringView _hint{};
+    StringView _hint{};
 };
 
 }// namespace kf::ui::widgets
