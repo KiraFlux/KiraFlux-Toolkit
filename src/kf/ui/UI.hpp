@@ -86,7 +86,8 @@ template<typename U> struct UI :
 
     struct Page;// forward declaration
 
-    explicit constexpr UI(typename Traits::RendererImpl &renderer) noexcept : _renderer{renderer} {}
+    explicit constexpr UI(Slice<typename Traits::EventImpl> event_buffer, typename Traits::RendererImpl &renderer) noexcept :
+        _events{event_buffer}, _renderer{renderer} {}
 
     /// @brief Set active page
     /// @param page Page to make active (must remain valid)
@@ -110,7 +111,7 @@ template<typename U> struct UI :
 
     /// @brief Add event to processing queue
     void addEvent(typename Traits::EventImpl event) noexcept {
-        _events.push(event);
+        (void) _events.push(event); // TODO: return
     }
 
 private:
@@ -156,7 +157,7 @@ public:
 
         /// @brief Build page content
         /// @note Not for direct call. Use `Page::requestBuild()`
-        virtual WidgetsView build() noexcept { return {}; }
+        [[nodiscard]] virtual WidgetsView build() noexcept { return {}; }
 
         /// @brief Page behavior on entry
         virtual void onEntry() noexcept {}
@@ -203,8 +204,8 @@ public:
             if (_widgets.empty()) {
                 // TODO: render placeholder page content
             } else {
-                const usize start = (_widgets.size() > available) ? kf::min(static_cast<usize>(_cursor), _widgets.size() - available) : 0;
-                const usize end = kf::min(start + available, _widgets.size());
+                const usize start = (_widgets.length() > available) ? kf::min(static_cast<usize>(_cursor), _widgets.length() - available) : 0;
+                const usize end = kf::min(start + available, _widgets.length());
 
                 for (auto i = start; i < end; i += 1) {
                     auto widget = _widgets[i];
@@ -252,7 +253,7 @@ public:
 
         /// @brief Set page cursor
         void cursor(usize new_cursor) noexcept {
-            _cursor = clamp<isize>(new_cursor, 0, _widgets.size() - 1);
+            _cursor = clamp<isize>(new_cursor, 0, _widgets.length() - 1);
         }
 
         UI &_ui;
@@ -267,7 +268,7 @@ public:
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
         [[nodiscard]] Request moveCursor(isize delta) noexcept {
-            const auto n = _widgets.size();
+            const auto n = _widgets.length();
             if (n > 1) {
                 _cursor = (_cursor + delta + n) % n;
                 return Request::Redraw;
@@ -285,8 +286,8 @@ public:
 
                 auto new_widgets = build();
 
-                if (new_widgets.size() == _widgets.size()) {
-                    for (auto i = 0u; i < _widgets.size(); i += 1) {
+                if (new_widgets.length() == _widgets.length()) {
+                    for (auto i = 0u; i < _widgets.length(); i += 1) {
                         if (new_widgets[i] != _widgets[i]) {
                             _ui.requestRender();
                             break;
@@ -303,9 +304,9 @@ public:
     };
 
 private:
-    memory::Queue<typename Traits::EventImpl> _events{};///< Event queue for pending UI events
-    typename Traits::RendererImpl &_renderer;           ///< Renderer system implementation
-    Option<Page &> _active_page{none};                  ///< Currently active page for rendering
+    Queue<typename Traits::EventImpl> _events;///< Event queue for pending UI events
+    typename Traits::RendererImpl &_renderer; ///< Renderer system implementation
+    Option<Page &> _active_page{none};        ///< Currently active page for rendering
 
     using This = UI<U>;
 
@@ -315,10 +316,16 @@ private:
 
         if (not _events.empty()) {
             constexpr usize max_events_per_poll{20};
-            usize events_processed{0};
+            auto events_processed = 0u;
 
             while (not _events.empty() and events_processed < max_events_per_poll) {
-                const auto request = _active_page.unwrap().onEvent(_events.front());
+                const auto event = _events.pop();
+
+                if (event.isNone()) {
+                    break;
+                }
+                
+                const auto request = _active_page.unwrap().onEvent(event.unwrap());
 
                 switch (request) {
                     case Request::Nothing:
@@ -334,7 +341,6 @@ private:
                 }
 
                 events_processed += 1;
-                _events.pop();
             }
         }
 
