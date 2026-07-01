@@ -2,14 +2,14 @@
 
 #include <kf/Logger.hpp>
 
-constexpr auto my_logger = kf::Logger::create("Example");
+constexpr auto my_logger = kf::Logger{"Example"};
 
 void setup() {
     Serial.begin(115200);
 
     // Setup global write handler
-    kf::Logger::writer = [](kf::memory::StringView str) {
-        Serial.write(str.data(), str.size());
+    kf::Logger::writer = [](kf::StringView str) {
+        Serial.write(str.data(), str.length());
     };
 
     // send with different levels

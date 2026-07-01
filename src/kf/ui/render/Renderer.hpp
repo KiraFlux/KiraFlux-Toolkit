@@ -7,7 +7,7 @@
 
 #include "kf/Option.hpp"
 #include "kf/Range.hpp"
-#include "kf/memory/StringView.hpp"
+#include "kf/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/StringRepresentable.hpp"
@@ -61,7 +61,7 @@ template<typename Impl> struct Renderer :
     /// @param title Page title
     /// @param layout Page layout hint
     /// @return Number of widgets that can still be rendered in current frame
-    [[nodiscard]] usize beginPage(memory::StringView title, Layout layout) noexcept {
+    [[nodiscard]] usize beginPage(StringView title, Layout layout) noexcept {
         return this->impl().beginPageImpl(title, layout);
     }
 

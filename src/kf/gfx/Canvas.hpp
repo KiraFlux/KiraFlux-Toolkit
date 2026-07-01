@@ -5,14 +5,14 @@
 
 #include <cmath>
 
+#include "kf/Array.hpp"
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
+#include "kf/StringView.hpp"
 #include "kf/gfx/Font.hpp"
 #include "kf/gfx/Palette.hpp"
 #include "kf/image/DynamicImage.hpp"
 #include "kf/image/StaticImage.hpp"
-#include "kf/Array.hpp"
-#include "kf/memory/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
 
@@ -305,7 +305,7 @@ template<typename P> struct Canvas {
     ///   \n - New line
     ///
     ///   \t - Tab (4 character widths)
-    void text(math::Pixels start_x, math::Pixels start_y, memory::StringView text) noexcept {
+    void text(math::Pixels start_x, math::Pixels start_y, StringView text) noexcept {
         const auto font_width = font().glyph_width;
         const auto font_height = font().glyph_height;
         const auto font_total_height = font().heightTotal();

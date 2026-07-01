@@ -147,7 +147,7 @@ private:
         _wrapped.endFrame();
     }
 
-    usize beginPageImpl(memory::StringView title, Layout layout) noexcept {
+    usize beginPageImpl(StringView title, Layout layout) noexcept {
         writeForegroundColor(Color::Normal, this->config().focused_foreground_palette);
         writeBackgroundColor(Color::Primary, this->config().focused_background_palette);
         return _wrapped.beginPage(title, layout);

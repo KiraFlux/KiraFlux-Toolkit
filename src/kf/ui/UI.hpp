@@ -4,10 +4,10 @@
 #pragma once
 
 #include "kf/Option.hpp"
+#include "kf/Queue.hpp"
+#include "kf/StringView.hpp"
 #include "kf/algorithm.hpp"
 #include "kf/math/units.hpp"
-#include "kf/memory/Queue.hpp"
-#include "kf/memory/StringView.hpp"
 #include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/TimedPollable.hpp"

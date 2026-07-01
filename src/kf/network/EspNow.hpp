@@ -14,8 +14,8 @@
 // lib
 #include "kf/Result.hpp"
 #include "kf/Slice.hpp"
+#include "kf/StringView.hpp"
 #include "kf/io/Writable.hpp"
-#include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/MacAddressed.hpp"
@@ -33,7 +33,7 @@ namespace kf::internal {
 #define CASE_RETURN(__v) \
     case __v: return #__v
 
-struct EspNowError final : mixin::StringRepresentable<EspNowError, memory::StringView> {
+struct EspNowError final : mixin::StringRepresentable<EspNowError, StringView> {
 
     enum Kind : u8 {
         UnknownError = EVAL_KIND(ESP_ERR_ESPNOW_BASE),      ///< Unknown ESP API error
@@ -57,8 +57,8 @@ struct EspNowError final : mixin::StringRepresentable<EspNowError, memory::Strin
     }
 
 private:
-    KF_IMPL_STRING_REPRESENTABLE(EspNowError, memory::StringView);
-    memory::StringView toStringImpl() const noexcept {
+    KF_IMPL_STRING_REPRESENTABLE(EspNowError, StringView);
+    StringView toStringImpl() const noexcept {
 
         switch (kind) {
             CASE_RETURN(EspNowError::NotInitialized);

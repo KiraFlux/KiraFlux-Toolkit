@@ -145,7 +145,7 @@ struct SettingsPage : MyUI::Page {
         ints_combo_box,// by ref
     };
 
-    using MyCombo = MyUI::ComboBox<kf::memory::StringView>;
+    using MyCombo = MyUI::ComboBox<kf::StringView>;
 
     kf::Array<MyCombo::Config::Item, 3> strings_combo_box_items{
         {"Alpha", "Beta", "Gamma"},// StringView-typed combo item implicit constructs from string literal
@@ -221,7 +221,7 @@ void setup() {
     Serial.begin(115200);
 
     // post-render procedure
-    my_renderer.callback([](kf::memory::StringView text) {
+    my_renderer.callback([](kf::StringView text) {
         Serial.println("---");
 
         const auto &active_page = my_ui.activePage();

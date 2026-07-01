@@ -5,9 +5,9 @@
 
 #include "kf/Function.hpp"
 #include "kf/Slice.hpp"
+#include "kf/String.hpp"
+#include "kf/StringView.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/memory/StaticString.hpp"
-#include "kf/memory/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/primitives.hpp"
@@ -77,7 +77,7 @@ namespace kf::ui::render {
 struct PlainTextRenderer :
 
     Renderer<PlainTextRenderer>,
-    mixin::Callbacked<void(memory::StringView)>,
+    mixin::Callbacked<void(StringView)>,
     mixin::Configurable<internal::PlainTextRenderConfig>
 
 {
@@ -107,7 +107,7 @@ struct PlainTextRenderer :
     }
 
     /// @brief Write string with cursor tracking
-    void writeString(memory::StringView str) noexcept {
+    void writeString(StringView str) noexcept {
         for (char ch: str) {
             writeChar(ch);
         }
@@ -133,10 +133,10 @@ private:
     }
 
     void endFrameImpl() noexcept {
-        this->invoke(memory::StringView{_buffer.data(), _written});
+        this->invoke(StringView{_buffer.data(), _written});
     }
 
-    usize beginPageImpl(memory::StringView title, Layout layout) noexcept {
+    usize beginPageImpl(StringView title, Layout layout) noexcept {
         _layout = layout;
 
         if (this->config().title_centered) {
@@ -211,7 +211,7 @@ private:
     }
 
     void checkboxImpl(bool enabled) noexcept {
-        constexpr memory::StringView on{"==[ 1 ]"}, off{"[ 0 ]--"};
+        constexpr StringView on{"==[ 1 ]"}, off{"[ 0 ]--"};
         writeString(enabled ? on : off);
     }
 
@@ -238,14 +238,14 @@ private:
     // Value rendering implementations
 
     void valueImpl(NoneType) noexcept {
-        writeString(memory::StringView{"none"});
+        writeString(StringView{"none"});
     }
 
     void valueImpl(char c) noexcept {
         writeChar(c);
     }
 
-    void valueImpl(memory::StringView str) noexcept {
+    void valueImpl(StringView str) noexcept {
         writeString(str);
     }
 
@@ -254,11 +254,11 @@ private:
     }
 
     void valueImpl(const char *str) noexcept {
-        writeString(memory::StringView{str});
+        writeString(StringView{str});
     }
 
     void valueImpl(bool b) noexcept {
-        constexpr memory::StringView label_true{"true"}, label_false{"false"};
+        constexpr StringView label_true{"true"}, label_false{"false"};
         writeString(b ? label_true : label_false);
     }
 
