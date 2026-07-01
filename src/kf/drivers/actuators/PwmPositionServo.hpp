@@ -10,13 +10,12 @@
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
-#include "kf/validation.hpp"
 
 #include "kf/drivers/actuators/Actuator.hpp"
 
 namespace kf::internal {
 
-struct PwmPositionServoConfig final : Validatable<PwmPositionServoConfig> {
+struct PwmPositionServoConfig final {
     using AngleRange = Range<math::Degrees>;
     using PulseRange = Range<math::Microseconds>;
 
@@ -28,11 +27,6 @@ struct PwmPositionServoConfig final : Validatable<PwmPositionServoConfig> {
     /// @return Required pulse width in microseconds
     [[nodiscard]] math::Microseconds pulseWidthFromAngle(math::Degrees angle) const noexcept {
         return linearMap<i32>(angle, angle_range.start, angle_range.end, pulse_range.start, pulse_range.end);
-    }
-
-private:
-    KF_IMPL_VALIDATABLE(Validatable<PwmPositionServoConfig>);
-    void checkImpl(Validator &validator) const noexcept {
     }
 };
 
