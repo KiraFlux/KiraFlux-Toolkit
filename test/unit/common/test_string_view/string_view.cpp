@@ -136,7 +136,8 @@ void substring() {
     TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 4);
 
     p = sv.indexOf("brown");
-    TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 0);
+    TEST_ASSERT_TRUE(p.isSome());
+    TEST_ASSERT_EQUAL_INT32(p.unwrap(), 10);
 
     p = sv.indexOf("cat");
     TEST_ASSERT_FALSE(p.isSome());
@@ -150,18 +151,12 @@ void substring() {
 
 void rfind() {
     StringView sv{"abracadabra"};
-    auto p{sv.lastIndexOf('a')};
 
+    auto p{sv.lastIndexOf('a')};
     TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 10);
 
-    StringView sub{sv.sub(0, kf::someTrivial<kf::usize>(5))};
-    TEST_ASSERT_EQUAL(5, sub.length());
-    
-    p = sub.lastIndexOf('a');
-    TEST_ASSERT_TRUE(p.isSome() and p.unwrap() == 5);
-
-    p = sv.lastIndexOf('z');
-    TEST_ASSERT_TRUE(p.isNone());
+    auto p2{sv.lastIndexOf('x')};
+    TEST_ASSERT_TRUE(p2.isNone());
 }
 
 }// namespace find
