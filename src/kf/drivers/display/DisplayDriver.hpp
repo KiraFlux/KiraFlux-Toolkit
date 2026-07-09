@@ -34,7 +34,7 @@ template<typename DriverImpl, typename ImageImpl, typename ResultType> struct Di
         return _screen_image;
     }
 
-    /// @brief Readobly access at image buffer
+    /// @brief Readonly access at image buffer
     [[nodiscard]] const ImageImpl &image() const noexcept {
         return _screen_image;
     }

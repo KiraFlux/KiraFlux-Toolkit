@@ -13,7 +13,6 @@ ArduinoGPIO::PwmOutput::Config ledc_config{
     .frequency_hz = 10000,
     .resolution_bits = 10,
     .gpio_num = static_cast<kf::u8>(GPIO_NUM_13),
-    .channel = 0,
 };
 
 ArduinoGPIO::PwmOutput pwm{ledc_config};

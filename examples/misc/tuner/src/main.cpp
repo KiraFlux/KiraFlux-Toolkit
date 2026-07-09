@@ -3,7 +3,7 @@
 
 #include <kf/tuner/Tuner.hpp>
 
-struct MyTuner;// forward delaration
+struct MyTuner;// forward declaration
 
 // config imitation for this demo
 // tuner`s goal is find config values

@@ -173,7 +173,7 @@ private:
         KF_TRY(_node.writePacket(set_area_commands));
 
         auto p = this->image().buffer().data();
-        auto remaining = this->image().buffer().size();
+        auto remaining = this->image().buffer().length();
 
         while (remaining > 0) {
             const auto chunk = min(packet_size, remaining);

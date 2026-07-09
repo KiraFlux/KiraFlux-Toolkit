@@ -12,14 +12,12 @@ PwmOutput::Config forward_pwm_config{
     .frequency_hz = 30'000,// typical for DC motors
     .resolution_bits = 10,
     .gpio_num = static_cast<kf::u8>(GPIO_NUM_26),
-    .channel = 0,
 };
 
 PwmOutput::Config backward_pwm_config{
     .frequency_hz = 30'000,// typical for DC motors
     .resolution_bits = 10,
     .gpio_num = static_cast<kf::u8>(GPIO_NUM_25),
-    .channel = 0,
 };
 
 // static/global: must outlive motor

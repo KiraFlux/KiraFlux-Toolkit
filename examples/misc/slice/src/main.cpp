@@ -30,7 +30,7 @@ void setup() {
     // sub‑slices
     auto first = s.first(2);
     auto last = s.last(2);
-    auto mid = s.sub(1, 3);
+    auto mid = s.sub(1, kf::someTrivial<kf::usize>(3));
     auto from2 = s.fromOffset(2);
 
     auto print = [](auto slice, const char *tag) {

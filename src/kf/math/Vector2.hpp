@@ -61,7 +61,7 @@ template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
     [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Vector2> {
-        return (scalar == 0) ? none : someTrivial(Vector2{static_cast<Scalar>(x / scalar), static_cast<Scalar>(y / scalar)});
+        return (scalar == 0) ? none : someTrivial(Vector2{.x = static_cast<Scalar>(x / scalar), .y = static_cast<Scalar>(y / scalar)});
     }
 
     /// @brief Scalar division
@@ -97,7 +97,7 @@ template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
     /// @return Option containing unit vector or empty if vector is zero-length
     [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector2> {
         const auto len = this->length();
-        return (len == 0) ? none : someTrivial(Vector2{static_cast<Scalar>(x / len), static_cast<Scalar>(y / len)});
+        return (len == 0) ? none : someTrivial(Vector2{.x = static_cast<Scalar>(x / len), .y = static_cast<Scalar>(y / len)});
     }
 
     /// @brief Calculate dot product with another vector

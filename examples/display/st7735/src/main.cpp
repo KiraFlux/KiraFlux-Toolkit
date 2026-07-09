@@ -89,7 +89,7 @@ void setup() {
     delay(1000);
     Serial.println("ST7735 Driver Demo");
 
-    // use defauls
+    // use defaults
     static auto bus_config{ArduinoSPI::Config::create()};
 
     static ArduinoSPI bus{

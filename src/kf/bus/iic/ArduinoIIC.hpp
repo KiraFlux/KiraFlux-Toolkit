@@ -127,7 +127,7 @@ private:
     // interface impl
 
     auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, Error> {
-        const usize received = request(buffer.size());
+        const usize received = request(buffer.length());
         if (received == 0) { return error(Error::Timeout); }
 
         readBytesUnchecked(buffer.data(), received);
@@ -204,8 +204,8 @@ private:
 
     WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
         beginTransmission();
-        const usize written = writeBytes(buffer.data(), buffer.size());
-        return endTransmission(written, buffer.size());
+        const usize written = writeBytes(buffer.data(), buffer.length());
+        return endTransmission(written, buffer.length());
     }
 
     template<typename T> WriteResult writePacketImpl(T &&packet) noexcept {
@@ -217,8 +217,8 @@ private:
     template<typename T> WriteResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
         beginTransmission();
         const usize header_written = writePacketUnchecked(std::forward<T>(header));
-        const usize buffer_written = writeBytes(buffer.data(), buffer.size());
-        return endTransmission(header_written + buffer_written, sizeof(T) + buffer.size());
+        const usize buffer_written = writeBytes(buffer.data(), buffer.length());
+        return endTransmission(header_written + buffer_written, sizeof(T) + buffer.length());
     }
 };
 

@@ -9,7 +9,7 @@ using namespace kf::math;
 void setup() {
     Serial.begin(115200);
     {
-        Vector2<float> a1{3.0f, 4.0f};
+        Vector2<float> a1{.x = 3.0f, .y = 4.0f};
         Serial.println(a1.length());// 5.0
 
         Vector2<float> a2{.x = 12.0f, .y = 5.0f};
@@ -25,7 +25,7 @@ void setup() {
         auto normalized = a1.normalized();// None if a1.length() is 0
     }
     {
-        Vector3<kf::u8> b1{1, 2, 3};
+        Vector3<kf::u8> b1{.x = 1, .y = 2, .z = 3};
         Vector3<kf::u8> b2{.x = 4, .y = 5, .z = 6};
         auto zero{Vector3<double>::zero()};
 

@@ -51,7 +51,7 @@ template<typename Impl, typename ResultType> struct Writable : WritableTag {
         return impl().writePacketImpl(std::forward<T>(packet));
     }
 
-    /// @brief Write mixed packet: fixed-size header and dymanic-sized buffer
+    /// @brief Write mixed packet: fixed-size header and dynamic-sized buffer
     /// @tparam T Type of packet (trivially copyable)
     /// @param header Header to write
     /// @param buffer Source buffer

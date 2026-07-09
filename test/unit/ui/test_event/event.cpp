@@ -27,7 +27,6 @@ template<kf::u8 V> struct EventTester {
     }
 
     static void test_factories() {
-        // Для V=1 используем 0, иначе 1
         Value move_val = (V == 1) ? 0 : 1;
         auto move = Ev::pageCursorMove(move_val);
         TEST_ASSERT_EQUAL(Ev::Kind::PageCursorMove, move.kind());

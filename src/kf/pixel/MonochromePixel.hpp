@@ -63,7 +63,7 @@ private:
                 if (abs_x < 0 or abs_x >= stride) { continue; }
 
                 const usize index = page * stride + abs_x;
-                if (index < buffer.size()) {
+                if (index < buffer.length()) {
                     buffer[index] = (buffer[index] & ~mask) | (fill_byte & mask);
                 }
             }
@@ -91,7 +91,7 @@ private:
             const PositionType src_row_begin = kf::max(src_y, src_page_y);
             const PositionType src_row_end = kf::min(src_y + copy_h, src_page_y + src_page_h);
             const PositionType rows = src_row_end - src_row_begin;
-            if (rows <= 0) continue;
+            if (rows <= 0) { continue; }
 
             const u8 src_bit_offs = static_cast<u8>(src_row_begin - src_page_y);
             const PositionType dst_global_y = dst_y + (src_row_begin - src_y);
@@ -104,17 +104,17 @@ private:
             for (PositionType x = 0; x < copy_w; ++x) {
                 const PositionType src_col = src_x + x;
                 const PositionType dst_col = dst_x + x;
-                if (dst_col >= dst_stride) continue;
+                if (dst_col >= dst_stride) { continue; }
 
                 const usize src_idx = static_cast<usize>(p) * src_w + src_col;
-                if (src_idx >= src.size()) continue;
+                if (src_idx >= src.length()) { continue; }
 
                 u8 src_byte = src[src_idx];
                 u8 src_bits = static_cast<u8>((src_byte & src_mask) >> src_bit_offs);
                 src_bits = static_cast<u8>(src_bits << dst_bit_offs);
 
                 const usize dst_idx = static_cast<usize>(dst_page) * dst_stride + dst_col;
-                if (dst_idx >= dst.size()) continue;
+                if (dst_idx >= dst.length()) { continue; }
 
                 dst[dst_idx] = static_cast<u8>((dst[dst_idx] & ~dst_mask) | src_bits);
             }

@@ -33,7 +33,7 @@ template<typename T> struct ResultValueWrapper {
     T value;
 };
 
-/// @brief Specialisation of ResultValueWrapper for void
+/// @brief Specialization of ResultValueWrapper for void
 template<> struct ResultValueWrapper<void> {};
 
 /// @brief Internal wrapper for an error value (used with kf::error)
@@ -145,7 +145,7 @@ private:
     }
 };
 
-/// @brief Specialisation of Result for void success value
+/// @brief Specialization of Result for void success value
 /// @tparam E Type of error value
 template<typename E> struct Result<void, E> final :
 

@@ -193,8 +193,8 @@ struct EspNow final :
         KF_IMPL_WRITABLE(Peer, VoidResult);
 
         VoidResult writeBufferImpl(Slice<const u8> buffer) noexcept {
-            if (buffer.size() > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }
-            return send(buffer.data(), buffer.size());
+            if (buffer.length() > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }
+            return send(buffer.data(), buffer.length());
         }
 
         template<typename T> VoidResult writePacketImpl(T &&packet) noexcept {
@@ -203,7 +203,7 @@ struct EspNow final :
         }
 
         template<typename T> VoidResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
-            const auto mixed_size = sizeof(T) + buffer.size();
+            const auto mixed_size = sizeof(T) + buffer.length();
             if (mixed_size > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }
             u8 mixed[mixed_size];
 
@@ -222,9 +222,9 @@ private:
     constexpr EspNow() noexcept : MacAddressed{{}} {}
 
     /// @brief ESP‑NOW receive callback (static wrapper)
-    static void onReceive(const u8 *raw_mac_address, const u8 *data, int size) noexcept {
+    static void onReceive(const esp_now_recv_info_t *info, const u8 *data, int size) noexcept {        
         MacAddress source_mac_address;
-        std::copy(raw_mac_address, raw_mac_address + ESP_NOW_ETH_ALEN, source_mac_address.begin());
+        std::copy(info->src_addr, info->src_addr + ESP_NOW_ETH_ALEN, source_mac_address.begin());
 
         EspNow::instance().invoke(source_mac_address, Slice<const u8>{data, static_cast<usize>(size)});
     }

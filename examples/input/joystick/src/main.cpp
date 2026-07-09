@@ -130,7 +130,7 @@ void loop() {
     }
 
     // Direction change events (with autorepeat)
-    my_listener.set(kf::math::Vector2f{x_norm, y_norm});
+    my_listener.set(kf::math::Vector2f{.x = x_norm, .y = y_norm});
     my_listener.poll(now);
 
     delay(10);

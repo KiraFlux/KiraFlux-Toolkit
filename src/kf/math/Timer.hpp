@@ -29,7 +29,7 @@ struct Timer final : mixin::NonCopyable, mixin::Configurable<internal::TimerConf
     }
 
     /// @brief Expired check
-    /// @note Do not automaticly reset
+    /// @note Do not automatically reset
     [[nodiscard]] bool expired(Milliseconds now) noexcept {
         return elapsed(now) >= this->config().period;
     }

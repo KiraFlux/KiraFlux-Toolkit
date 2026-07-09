@@ -18,7 +18,6 @@ PwmOutput::Config pwm_config{
     .frequency_hz = 50,
     .resolution_bits = 12,
     .gpio_num = static_cast<kf::u8>(GPIO_NUM_13),
-    .channel = 0,
 };
 
 // Servo with additional safe angle limit (0‑90 instead of 0‑180)
@@ -37,9 +36,9 @@ void setup() {
         return;
     }
 
-    // Sweep 0 -> 180 -> 0
-    for (int angle = -180; angle <= 180; angle += 1) {
-        servo.write(abs(180 - angle));
+    // Sweep 0 -> 90 -> 0 (NARROW RANGE OVERRIDE)
+    for (int angle = -90; angle <= 90; angle += 1) {
+        servo.write(abs(90 - angle));
         delay(20);
     }
 }

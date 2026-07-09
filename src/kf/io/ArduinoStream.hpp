@@ -17,7 +17,7 @@ namespace kf::internal {
 
 enum class ArduinoStreamError : u8 {
     ReadNotAvailable,
-    ReadFalied,
+    ReadFailed,
     WriteFailed,
 };
 
@@ -34,7 +34,8 @@ struct ArduinoStream final :
 {
     using Error = internal::ArduinoStreamError;
 
-    explicit constexpr ArduinoStream(Stream &stream) noexcept : _stream{stream} {}
+    explicit constexpr ArduinoStream(Stream &stream) noexcept :
+        _stream{stream} {}
 
 private:
     Stream &_stream;
@@ -46,10 +47,10 @@ private:
 
         if (_stream.available() < min_available) { return error(Error::ReadNotAvailable); }
 
-        const auto readed = _stream.readBytes(dest.data(), dest.size());
-        if (readed < min_available) { return error(Error::ReadFalied); }
+        const auto bytes_read = _stream.readBytes(dest.data(), dest.length());
+        if (bytes_read < min_available) { return error(Error::ReadFailed); }
 
-        return ok(Slice<const u8>{dest.data(), readed});
+        return ok(Slice<const u8>{dest.data(), bytes_read});
     }
 
     template<typename T> auto readPacketImpl() noexcept -> Result<T, Error> {
@@ -59,17 +60,17 @@ private:
         if constexpr (to_read == sizeof(u8)) {
             const auto read_result = _stream.read();
             if (-1 == read_result) {
-                return error(Error::ReadFalied);
+                return error(Error::ReadFailed);
             } else {
                 return ok(static_cast<T>(read_result));
             }
         } else {
             T dest;
-            const auto readed = _stream.readBytes(reinterpret_cast<u8 *>(&dest), to_read);
-            if (to_read == readed) {
+            const auto bytes_read = _stream.readBytes(reinterpret_cast<u8 *>(&dest), to_read);
+            if (to_read == bytes_read) {
                 return ok(dest);
             } else {
-                return error(Error::ReadFalied);
+                return error(Error::ReadFailed);
             }
         }
     }
@@ -79,7 +80,7 @@ private:
     KF_IMPL_WRITABLE(ArduinoStream, WriteResult);
 
     WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
-        const auto to_write = buffer.size();
+        const auto to_write = buffer.length();
         // _stream.availableForWrite() ?
         if (_stream.write(buffer.data(), to_write) != to_write) { return error(Error::WriteFailed); }
 

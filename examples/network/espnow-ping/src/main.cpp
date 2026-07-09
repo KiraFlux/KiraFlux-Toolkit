@@ -33,10 +33,10 @@ kf::Option<EspNow::Peer> createPeer(const MacAddress &mac_address) noexcept {
 // Callback for unknown peers - registered via EspNow::callback.
 void onReceive(const MacAddress &mac, kf::Slice<const kf::u8> data) {
     if (target_peer.isSome() and target_peer.unwrap().mac() == mac) {
-        Serial.printf("target: got %d bytes\n", data.size());
+        Serial.printf("target: got %d bytes\n", data.length());
     }
 
-    Serial.printf("(unknown): from [%s] got %d bytes\n", mac.toString().data(), data.size());
+    Serial.printf("(unknown): from [%s] got %d bytes\n", mac.toString().data(), data.length());
 }
 
 void setup() {

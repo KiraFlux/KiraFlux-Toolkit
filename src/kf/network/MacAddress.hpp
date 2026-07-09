@@ -27,7 +27,11 @@ struct MacAddress :
     mixin::StringRepresentable<MacAddress, internal::MacAddressStringType>
 
 {
-    using internal::MacAddressBase::MacAddressBase;
+    constexpr MacAddress() noexcept :
+        internal::MacAddressBase{} {}
+
+    constexpr MacAddress(u8 a, u8 b, u8 c, u8 d, u8 e, u8 f) noexcept :
+        internal::MacAddressBase{.items = {a, b, c, d, e, f}} {}
 
 private:
     KF_IMPL_STRING_REPRESENTABLE(MacAddress, internal::MacAddressStringType);

@@ -11,7 +11,7 @@ using Bridge = kf::network::MizLangBridge<ArduinoStream, ArduinoStream, kf::u8, 
 // may be shared with some amount of bridge instances
 kf::Array<Bridge::ReceiveFunctionType, 1> receiver_table{
     // instruction table with (1) handler
-    {
+    .items = {
         // #0
         [](ArduinoStream &) -> kf::Result<void, Bridge::Error> {
             return kf::ok();
@@ -63,7 +63,7 @@ void setup() {
     if (send_result.isError()) {
         // send failed.
 
-        const Bridge::Error error_kind = send_result.error();// if result.isError() => error() is some and has value() garanteed.
+        const Bridge::Error error_kind = send_result.error();// if result.isError() => error() is some and has value() guaranteed.
     }
 }
 
