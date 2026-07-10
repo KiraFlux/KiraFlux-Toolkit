@@ -45,31 +45,31 @@ struct NodeConfig final {
 };
 
 struct ArduinoIicBusConfig final {
-    static constexpr u8 pin_default{static_cast<u8>(GPIO_NUM_NC)};
+    static constexpr u8 gpio_num_nc{static_cast<u8>(GPIO_NUM_NC)};
     static constexpr math::Milliseconds max_timeout{60'000};
 
     u32 clock_hz;
     math::Milliseconds timeout;
     usize buffer_size;
-    u8 pin_sda;
-    u8 pin_scl;
+    u8 gpio_num_sda;
+    u8 gpio_num_scl;
 
     [[nodiscard]] static constexpr ArduinoIicBusConfig create(
         u32 clock_hz = 0,              // 0: use Wire defaults
         math::Milliseconds timeout = 0,// 0: use Wire defaults
         usize buffer_size = 0,         // 0: use Wire defaults
-        u8 sda = pin_default,
-        u8 scl = pin_default) noexcept {
+        u8 sda = gpio_num_nc,
+        u8 scl = gpio_num_nc) noexcept {
         return ArduinoIicBusConfig{
             .clock_hz = clock_hz,
             .timeout = kf::min(timeout, max_timeout),
             .buffer_size = buffer_size,
-            .pin_sda = sda,
-            .pin_scl = scl,
+            .gpio_num_sda = sda,
+            .gpio_num_scl = scl,
         };
     }
 
-    constexpr bool hasDefaultPins() const noexcept { return pin_sda == pin_default and pin_scl == pin_default; }
+    constexpr bool hasDefaultPins() const noexcept { return gpio_num_sda == gpio_num_nc and gpio_num_scl == gpio_num_nc; }
     constexpr bool hasDefaultClock() const noexcept { return clock_hz == 0; }
     constexpr bool hasDefaultTimeout() const noexcept { return timeout == 0; }
     constexpr bool hasDefaultBufferSize() const noexcept { return buffer_size == 0; }
@@ -247,7 +247,7 @@ private:
     KF_IMPL_INITABLE(ArduinoIIC, Result<void, Error>());
     auto initImpl() noexcept -> Result<void, Error> {
         if (not this->config().hasDefaultPins()) {
-            if (not _wire.setPins(static_cast<int>(this->config().pin_sda), static_cast<int>(this->config().pin_scl))) {
+            if (not _wire.setPins(static_cast<int>(this->config().gpio_num_sda), static_cast<int>(this->config().gpio_num_scl))) {
                 return error(Error::PinConfigFailed);
             }
         }

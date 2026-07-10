@@ -44,28 +44,28 @@ template<typename G> struct DRV8871 final :
     /// @param backward PWM output for backward rotation
     explicit DRV8871(const Config &config, PwmOutputImpl &&forward, PwmOutputImpl &&backward) noexcept :
         mixin::Configurable<Config>(config),
-        _pin_forward{std::move(forward)}, _pin_backward{std::move(backward)} {}
+        _pwm_gpio_forward{std::move(forward)}, _pwm_gpio_backward{std::move(backward)} {}
 
     /// @brief Set motor speed and direction
     /// @param value Signed input command (-max_input .. +max_input)
     void set(Config::InputType value) noexcept {
         if (value < 0) {
-            _pin_forward.write(0);
-            _pin_backward.write(calcDuty(-value, this->config().backward_dead_zone, _pin_backward));
+            _pwm_gpio_forward.write(0);
+            _pwm_gpio_backward.write(calcDuty(-value, this->config().backward_dead_zone, _pwm_gpio_backward));
         } else {
-            _pin_forward.write(calcDuty(value, this->config().forward_dead_zone, _pin_forward));
-            _pin_backward.write(0);
+            _pwm_gpio_forward.write(calcDuty(value, this->config().forward_dead_zone, _pwm_gpio_forward));
+            _pwm_gpio_backward.write(0);
         }
     }
 
     /// @brief Stop the motor (both outputs driven low)
     void stop() noexcept {
-        _pin_forward.write(0);
-        _pin_backward.write(0);
+        _pwm_gpio_forward.write(0);
+        _pwm_gpio_backward.write(0);
     }
 
 private:
-    PwmOutputImpl _pin_forward, _pin_backward;
+    PwmOutputImpl _pwm_gpio_forward, _pwm_gpio_backward;
 
     /// @brief Map speed command to PWM duty cycle respecting dead zone
     Config::DutyType calcDuty(Config::InputType value, Config::DutyType dead_zone, const PwmOutputImpl &pwm_output) const noexcept {
@@ -80,8 +80,8 @@ private:
 
     KF_IMPL_INITABLE(This, bool());
     bool initImpl() noexcept {
-        if (not _pin_forward.init()) { return false; }
-        if (not _pin_backward.init()) { return false; }
+        if (not _pwm_gpio_forward.init()) { return false; }
+        if (not _pwm_gpio_backward.init()) { return false; }
         return true;
     }
 };

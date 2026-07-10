@@ -97,19 +97,23 @@ template<typename G> struct NormalizedAdcInput final :
         }
     };
 
-    explicit NormalizedAdcInput(const Config &config, const typename FilterImpl::Config &filter_config, AdcInputImpl &&pin) noexcept :
-        mixin::Configurable<Config>{config}, _filter{filter_config}, _pin{std::move(pin)} {}
+    explicit NormalizedAdcInput(const Config &config, const typename FilterImpl::Config &filter_config, AdcInputImpl &&gpio) noexcept :
+        mixin::Configurable<Config>{config}, _filter{filter_config}, _gpio{std::move(gpio)} {}
 
-    [[nodiscard]] u16 readRaw() const noexcept { return _pin.read(); }
+    [[nodiscard]] u16 readRaw() const noexcept {
+        return _gpio.read();
+    }
 
 private:
     FilterImpl _filter;
-    AdcInputImpl _pin;
+    AdcInputImpl _gpio;
 
     using This = NormalizedAdcInput<G>;
 
     KF_IMPL_INITABLE(This, void());
-    void initImpl() noexcept { _pin.init(); }
+    void initImpl() noexcept {
+        _gpio.init();
+    }
 
     KF_IMPL(Sensor<This, f32, void()>);
     [[nodiscard]] f32 readImpl() noexcept {

@@ -17,25 +17,25 @@ namespace kf::drivers::sensors {
 /// @tparam G Implementation of GPIO with ADC input support
 template<typename G> struct Sharp : Sensor<Sharp<G>, math::Millimeters, void()> {
     KF_CHECK_IMPL(G, ::kf::gpio::GPIO::AdcInputTag);
-    using InputImpl = G;
+    using AdcInputImpl = G;
 
-    explicit Sharp(InputImpl &&pin) noexcept : _pin{std::move(pin)} {}
+    explicit Sharp(AdcInputImpl &&gpio) noexcept : _gpio{std::move(gpio)} {}
 
 private:
-    InputImpl _pin;
+    AdcInputImpl _gpio;
 
     using This = Sharp<G>;
 
     KF_IMPL_INITABLE(This, void());
     void initImpl() noexcept {
-        _pin.init();
+        _gpio.init();
     }
 
     KF_IMPL(Sensor<This, math::Millimeters, void()>);
     [[nodiscard]] math::Millimeters readImpl() noexcept {
         // correct calculus only with 10-bit ADC resolution
         // todo generalize formula
-        return 65535.0F / math::Millimeters(_pin.read());
+        return 65535.0F / math::Millimeters(_gpio.read());
     }
 };
 

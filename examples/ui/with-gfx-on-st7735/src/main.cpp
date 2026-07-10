@@ -334,14 +334,19 @@ Event eventFromChar(char c) {
     }
 }
 
-static auto bus_config{ArduinoSPI::Config::create()};// use defaults
+static ArduinoSPI::Config spi_bus_config{
+    // use defaults
+    .gpio_num_mosi = static_cast<kf::u8>(GPIO_NUM_NC),
+    .gpio_num_miso = static_cast<kf::u8>(GPIO_NUM_NC),
+    .gpio_num_sck = static_cast<kf::u8>(GPIO_NUM_NC),
+};
 
-static ArduinoSPI bus{
-    bus_config,
+static ArduinoSPI spi_bus{
+    spi_bus_config,
     SPI,
 };
 
-static auto node_config{
+static auto spi_node_config{
     ArduinoSPI::Node::Config::create(
         GPIO_NUM_5,// CS
         27'000'000 // SPI frequency
@@ -356,7 +361,7 @@ static MyDisplayDriver::Config display_config{
 // Driver instance references config and SPI bus.
 static MyDisplayDriver display{
     display_config,
-    bus.createNode(node_config),
+    spi_bus.createNode(spi_node_config),
     ArduinoGPIO::DigitalOutput{GPIO_NUM_16},// DC
     ArduinoGPIO::DigitalOutput{GPIO_NUM_17},// RESET
 };
@@ -366,7 +371,7 @@ static MyDisplayDriver display{
 void setup() {
     Serial.begin(115200);
 
-    (void) bus.init();
+    (void) spi_bus.init();
 
     // display setup
     if (display.init().isError()) {

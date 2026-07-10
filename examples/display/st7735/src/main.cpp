@@ -90,14 +90,19 @@ void setup() {
     Serial.println("ST7735 Driver Demo");
 
     // use defaults
-    static auto bus_config{ArduinoSPI::Config::create()};
+    static ArduinoSPI::Config spi_bus_config{
+        // use defaults
+        .gpio_num_mosi = static_cast<kf::u8>(GPIO_NUM_NC),
+        .gpio_num_miso = static_cast<kf::u8>(GPIO_NUM_NC),
+        .gpio_num_sck = static_cast<kf::u8>(GPIO_NUM_NC),
+    };
 
-    static ArduinoSPI bus{
-        bus_config,
+    static ArduinoSPI spi_bus{
+        spi_bus_config,
         SPI,
     };
 
-    static auto node_config{
+    static auto spi_node_config{
         ArduinoSPI::Node::Config::create(
             // CS
             GPIO_NUM_5,
@@ -113,12 +118,12 @@ void setup() {
     // Driver instance references config and SPI bus.
     static ST7735 display{
         driver_config,
-        bus.createNode(node_config),
+        spi_bus.createNode(spi_node_config),
         ArduinoGPIO::DigitalOutput{GPIO_NUM_22},// DC
         ArduinoGPIO::DigitalOutput{GPIO_NUM_17},// RESET
     };
 
-    (void) bus.init();
+    (void) spi_bus.init();
 
     if (display.init().isError()) {
         Serial.println("Display init failed!");

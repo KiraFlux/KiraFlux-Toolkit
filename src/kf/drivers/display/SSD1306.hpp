@@ -71,13 +71,13 @@ template<typename N> struct SSD1306 final :
     explicit SSD1306(IicNodeImpl &&node) noexcept : _node{std::move(node)} {}
 
     /// @brief Set display contrast level (0..255)
-    [[nodiscard]] IicOperationResult setContrast(u8 value) noexcept {
+    [[nodiscard]] IicOperationResult contrast(u8 value) noexcept {
         const u8 packet[]{CommandMode, Contrast, value};
         return _node.writePacket(packet);
     }
 
     /// @brief Enable or disable display power
-    [[nodiscard]] IicOperationResult setPower(bool on) noexcept {
+    [[nodiscard]] IicOperationResult power(bool on) noexcept {
         return sendCommand(on ? DisplayOn : DisplayOff);
     }
 

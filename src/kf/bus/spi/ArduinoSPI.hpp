@@ -76,22 +76,12 @@ struct ArduinoSpiNodeConfig final {
 };
 
 struct ArduinoSpiBusConfig final {
-    using PinIndex = i8;
+    u8 gpio_num_mosi, gpio_num_miso, gpio_num_sck;
 
-    static constexpr PinIndex default_pin = static_cast<PinIndex>(GPIO_NUM_NC);
-
-    PinIndex gpio_num_mosi, gpio_num_miso, gpio_num_sck;
-
-    static constexpr ArduinoSpiBusConfig create(gpio_num_t mosi = GPIO_NUM_NC, gpio_num_t miso = GPIO_NUM_NC, gpio_num_t sck = GPIO_NUM_NC) noexcept {
-        return ArduinoSpiBusConfig{
-            .gpio_num_mosi = static_cast<PinIndex>(mosi),
-            .gpio_num_miso = static_cast<PinIndex>(miso),
-            .gpio_num_sck = static_cast<PinIndex>(sck),
-        };
-    }
-
-    constexpr bool hasDefaultPins() const noexcept {
-        return gpio_num_mosi == default_pin and gpio_num_miso == default_pin and gpio_num_sck == default_pin;
+    [[nodiscard]] constexpr bool hasDefaultPins() const noexcept {
+        constexpr auto gpio_num_nc{static_cast<u8>(GPIO_NUM_NC)};
+        
+        return gpio_num_mosi == gpio_num_nc and gpio_num_miso == gpio_num_nc and gpio_num_sck == gpio_num_nc;
     }
 };
 

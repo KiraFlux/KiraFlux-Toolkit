@@ -79,30 +79,30 @@ template<typename N, typename G> struct ST7735 final :
         COLMOD = 0x3A ///< Color mode setting
     };
 
-    explicit ST7735(const Config &config, SpiBusNodeImpl &&node, DigitalOutputImpl &&pin_data_command, DigitalOutputImpl &&pin_reset) noexcept :
-        mixin::Configurable<internal::ST7735Config>{config}, _spi_node{std::move(node)}, _pin_data_command{std::move(pin_data_command)}, _pin_reset{std::move(pin_reset)} {}
+    explicit constexpr ST7735(const Config &config, SpiBusNodeImpl &&node, DigitalOutputImpl &&gpio_data_command, DigitalOutputImpl &&gpio_reset) noexcept :
+        mixin::Configurable<internal::ST7735Config>{config}, _spi_node{std::move(node)}, _gpio_data_command{std::move(gpio_data_command)}, _gpio_hardware_reset{std::move(gpio_reset)} {}
 
 private:
     SpiBusNodeImpl _spi_node;
-    DigitalOutputImpl _pin_data_command;
-    DigitalOutputImpl _pin_reset;
+    DigitalOutputImpl _gpio_data_command;
+    DigitalOutputImpl _gpio_hardware_reset;
 
     u8 _madctl_base_mode{0};///< Base MADCTL value
 
     // Low-level communication
 
     SpiOperationResult sendBuffer(Slice<const u8> buffer) noexcept {
-        _pin_data_command.write(true);
+        _gpio_data_command.write(true);
         return _spi_node.writeBuffer(buffer);
     }
 
     template<typename T> SpiOperationResult sendPacket(T &&packet) noexcept {
-        _pin_data_command.write(true);
+        _gpio_data_command.write(true);
         return _spi_node.writePacket(std::forward<T>(packet));
     }
 
     SpiOperationResult sendCommand(Command c) noexcept {
-        _pin_data_command.write(false);
+        _gpio_data_command.write(false);
         return _spi_node.writeByte(static_cast<u8>(c));
     }
 
@@ -112,8 +112,8 @@ private:
     KF_IMPL_INITABLE(This, SpiOperationResult());
     SpiOperationResult initImpl() noexcept {
         _spi_node.init();
-        _pin_data_command.init();
-        _pin_reset.init();
+        _gpio_data_command.init();
+        _gpio_hardware_reset.init();
 
         this->reset();
 
@@ -139,9 +139,9 @@ private:
     KF_IMPL_RESETTABLE(This);
     void resetImpl() const noexcept {
         // Required after power‑up to initialise the internal state machine.
-        _pin_reset.write(false);
+        _gpio_hardware_reset.write(false);
         delay(10);
-        _pin_reset.write(true);
+        _gpio_hardware_reset.write(true);
         delay(120);
     }
 
