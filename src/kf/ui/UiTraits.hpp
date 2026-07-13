@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/concepts.hpp"
 #include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/ui/widget/Widget.hpp"
@@ -31,8 +32,7 @@ struct UiTraitsTag {};
 
 /// @brief UI Traits
 /// @tparam W Widget Base implementation (Must inherit from `::kf::ui::widget::WidgetTag` and should be like `::kf::ui::widget::Widget<R, E>`)
-template<typename W> struct UiTraits : UiTraitsTag {
-    KF_CHECK_IMPL(W, ::kf::ui::widget::WidgetTag);
+template<implements<widget::WidgetTag> W> struct UiTraits : UiTraitsTag {
 
     /// @brief Widget Base class
     struct Widget : W {

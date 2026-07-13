@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/concepts.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
@@ -31,7 +32,7 @@ struct SpinBoxTag {};
 /// @tparam U UI Traits Type
 /// @tparam T Numeric type for spin box value (must be arithmetic)
 /// @tparam A Adjuster type
-template<typename U, typename T, typename A> struct SpinBox :
+template<implements<UiTraitsTag> U, typename T, implements<typename U::AdjusterTag> A> struct SpinBox :
 
     SpinBoxTag,
     U::Widget,
@@ -39,8 +40,6 @@ template<typename U, typename T, typename A> struct SpinBox :
     mixin::Configured<internal::SpinBoxConfig<T>>
 
 {
-    KF_CHECK_IMPL(A, typename U::AdjusterTag);
-
     using AdjusterImpl = A;
     using Config = internal::SpinBoxConfig<T>;
 

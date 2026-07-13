@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/Slice.hpp"
+#include "kf/concepts.hpp"
 #include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
@@ -15,13 +16,12 @@ struct ImageTag {};
 /// @brief Image
 /// @tparam Impl Image implementation
 /// @tparam P Pixel implementation
-template<typename Impl, typename P> struct Image :
+template<typename Impl, implements<pixel::PixelTag> P> struct Image :
 
     ImageTag,
     meta::CRTP<Impl>
 
 {
-    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
 
     using BufferType = typename P::BufferType;
 

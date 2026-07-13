@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "kf/Result.hpp"
+#include "kf/concepts.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/math.hpp"
 #include "kf/pixel/Pixel.hpp"
@@ -14,8 +15,7 @@ namespace kf::image {
 
 /// @brief Dynamic display region with runtime dimensions
 /// @tparam P Pixel implementation
-template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
-    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
+template<implements<pixel::PixelTag> P> struct DynamicImage final : Image<DynamicImage<P>, P> {
 
     using PixelImpl = P;
     using BufferType = typename P::BufferType;
@@ -50,10 +50,8 @@ template<typename P> struct DynamicImage final : Image<DynamicImage<P>, P> {
         math::Pixels offset_x, math::Pixels offset_y) noexcept :
         _buffer{buffer}, _stride{stride}, _width{width}, _height{height}, _offset_x{offset_x}, _offset_y{offset_y} {}
 
-    template<typename I> explicit DynamicImage(I &image) noexcept :
-        _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, _offset_x{0}, _offset_y{0} {
-        KF_CHECK_IMPL(I, ::kf::image::ImageTag);
-    }
+    template<implements<image::ImageTag> I> explicit DynamicImage(I &image) noexcept :
+        _buffer{image.buffer()}, _stride{image.stride()}, _width{image.width()}, _height{image.height()}, _offset_x{0}, _offset_y{0} {}
 
     /// @brief Creates validated sub-region
     /// @return Sub-view or error if out of bounds

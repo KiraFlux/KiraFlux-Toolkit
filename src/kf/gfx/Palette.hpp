@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/concepts.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
 
@@ -10,8 +11,7 @@ namespace kf::gfx {
 
 /// @brief Predefined colour palette for a given pixel format.
 /// @tparam P Pixel format type (must satisfy pixel::PixelTag).
-template<typename P> struct Palette final {
-    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
+template<implements<pixel::PixelTag> P> struct Palette final {
 
     using PixelImpl = P;
     using ColorType = typename PixelImpl::ColorType;

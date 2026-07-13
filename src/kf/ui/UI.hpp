@@ -6,6 +6,7 @@
 #include "kf/Option.hpp"
 #include "kf/Queue.hpp"
 #include "kf/StringView.hpp"
+#include "kf/concepts.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -30,13 +31,12 @@ namespace kf::ui {
 
 /// @brief User interface framework with widget-based rendering
 /// @tparam U UI Traits implementation
-template<typename U> struct UI :
+template<implements<UiTraitsTag> U> struct UI :
 
     mixin::NonCopyable,
     mixin::TimedPollable<UI<U>>
 
 {
-    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     /// @brief UI Traits implementation
     struct Traits : U {};

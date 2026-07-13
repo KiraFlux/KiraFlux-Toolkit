@@ -5,10 +5,11 @@
 
 #include <utility>
 
-#include <kf/GPIO.hpp>
-#include <kf/driver/actuator/ActuatorDriver.hpp>
-#include <kf/math.hpp>
-#include <kf/mixin/Configured.hpp>
+#include "kf/GPIO.hpp"
+#include "kf/concepts.hpp"
+#include "kf/driver/actuator/ActuatorDriver.hpp"
+#include "kf/math.hpp"
+#include "kf/mixin/Configured.hpp"
 
 namespace kf::internal {
 
@@ -28,14 +29,12 @@ namespace kf::driver::actuator {
 
 /// @brief DRV8871 H-bridge motor driver abstraction
 /// @tparam G Implementation of GPIO with PWM output support
-template<typename G> struct DRV8871 final :
+template<implements<GPIO::PwmOutputTag> G> struct DRV8871 final :
 
     driver::actuator::ActuatorDriver<DRV8871<G>, internal::DRV8871Config::InputType, bool()>,
     mixin::Configured<internal::DRV8871Config>
 
 {
-    KF_CHECK_IMPL(G, ::kf::GPIO::PwmOutputTag);
-
     using PwmOutputImpl = G;
     using Config = internal::DRV8871Config;
 

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "kf/concepts.hpp"
+
 #include "kf/ui/Request.hpp"
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
@@ -14,13 +16,12 @@ struct DisplayTag {};
 /// @brief Display widget for showing read-only values
 /// @tparam U UI Traits Type
 /// @tparam T Type of value to display
-template<typename U, typename T> struct Display :
+template<implements<UiTraitsTag> U, typename T> struct Display :
 
     DisplayTag,
     U::Widget
 
 {
-    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     constexpr Display() noexcept :
         U::Widget{Style::defaults()}, _value{} {}

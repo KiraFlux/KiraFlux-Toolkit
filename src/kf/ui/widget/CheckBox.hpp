@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/concepts.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
 #include "kf/ui/Request.hpp"
@@ -15,14 +16,13 @@ struct CheckBoxTag {};
 
 /// @brief Checkbox widget for boolean input
 /// @tparam U UI Traits Type
-template<typename U> struct CheckBox :
+template<implements<UiTraitsTag> U> struct CheckBox :
 
     CheckBoxTag,
     U::Widget,
     mixin::ValueCallbacked<bool>
 
 {
-    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     explicit constexpr CheckBox(bool value, Style style = Style::defaults()) noexcept :
         U::Widget{style}, mixin::ValueCallbacked<bool>{value} {}

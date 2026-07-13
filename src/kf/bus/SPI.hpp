@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/bus/Bus.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Initable.hpp"
 
 namespace kf::bus {
@@ -22,14 +23,12 @@ struct SpiBusTag {};
 
 /// @brief CRTP base class for SPI bus implementations.
 /// @tparam Impl Concrete bus implementation (must inherit from this class).
-template<typename Impl, typename NodeImpl, typename ErrorImpl> struct SPI :
+template<typename Impl, implements<SpiNodeTag> NodeImpl, typename ErrorImpl> struct SPI :
 
     SpiBusTag,
     Bus<Impl, NodeImpl, ErrorImpl>
 
-{
-    KF_CHECK_IMPL(NodeImpl, ::kf::bus::SpiNodeTag);
-};
+{};
 
 }// namespace kf::bus
 

@@ -7,6 +7,7 @@
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/StringView.hpp"
+#include "kf/concepts.hpp"
 #include "kf/gfx/Font.hpp"
 #include "kf/gfx/Palette.hpp"
 #include "kf/image/DynamicImage.hpp"
@@ -19,8 +20,7 @@ namespace kf::gfx {
 
 /// @brief Drawing context with graphics primitives and text rendering
 /// @tparam P Pixel format for canvas operations
-template<typename P> struct Canvas {
-    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
+template<implements<pixel::PixelTag> P> struct Canvas {
 
     using PixelImpl = P;
     using ColorType = typename PixelImpl::ColorType;

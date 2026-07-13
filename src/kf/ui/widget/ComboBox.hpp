@@ -5,6 +5,7 @@
 
 #include "kf/Slice.hpp"
 #include "kf/StringView.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Labeled.hpp"
@@ -63,7 +64,7 @@ struct ComboBoxTag {};
 /// @brief Combo box for selecting from predefined options
 /// @tparam U UI Traits Type
 /// @tparam T Value type for options
-template<typename U, typename T> struct ComboBox :
+template<implements<UiTraitsTag> U, typename T> struct ComboBox :
 
     ComboBoxTag,
     U::Widget,
@@ -71,8 +72,6 @@ template<typename U, typename T> struct ComboBox :
     mixin::Configured<internal::ComboBoxConfig<T>>
 
 {
-    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
-
     using Config = internal::ComboBoxConfig<T>;
 
     explicit constexpr ComboBox(const Config &config, Style style = Style::defaults()) noexcept :

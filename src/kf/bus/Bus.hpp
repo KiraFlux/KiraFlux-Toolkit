@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/meta/CRTP.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
@@ -27,24 +27,21 @@ template<typename Impl, typename ErrorImpl> struct BusNode :
 struct BusTag {};
 
 /// @brief CRTP base class for bus implementations.
-/// @tparam BusImpl Concrete bus implementation (must inherit from this class).
+/// @tparam Impl Concrete bus implementation (must inherit from this class).
 /// @tparam NodeImpl Type of node that will be created by the bus (must satisfy Readable and Writable).
 /// @tparam ErrorImpl Error type used by bus operations.
 /// @note The bus implementation must provide methods `initImpl()` and `quitImpl()`.
 ///       Nodes are created via `createNode` and are expected to be movable.
-template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus :
+template<typename Impl, implements<BusNodeTag> NodeImpl, typename ErrorImpl> struct Bus :
 
     BusTag,
     mixin::NonCopyable,
-    mixin::Initable<BusImpl, Result<void, ErrorImpl>()>,
-    mixin::Quitable<BusImpl>,
-    meta::CRTP<BusImpl>
+    mixin::Initable<Impl, Result<void, ErrorImpl>()>,
+    mixin::Quitable<Impl>
 
 {
-    KF_CHECK_IMPL(NodeImpl, ::kf::bus::BusNodeTag);
-
     [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept {
-        return NodeImpl{this->impl(), config};
+        return NodeImpl{*static_cast<Impl *>(this), config};
     }
 };
 

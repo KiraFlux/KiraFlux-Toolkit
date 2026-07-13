@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/bus/Bus.hpp"
+#include "kf/concepts.hpp"
 
 namespace kf::bus {
 
@@ -21,7 +22,7 @@ struct IicBusTag {};
 /// @note Inherits from IicBusTag and bus::Bus<Impl>, providing type identification
 ///       and the standard bus interface. Concrete implementations must define
 ///       a nested Node type and implement all required bus methods.
-template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct IIC :
+template<typename BusImpl, implements<IicNodeTag> NodeImpl, typename ErrorImpl> struct IIC :
 
     IicBusTag,
     Bus<BusImpl, NodeImpl, ErrorImpl> {};

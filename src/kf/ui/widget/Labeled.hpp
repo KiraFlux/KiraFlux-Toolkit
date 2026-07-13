@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/StringView.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Labeled.hpp"
 
 #include "kf/ui/Decoration.hpp"
@@ -17,15 +18,13 @@ struct LabeledTag {};
 
 /// @brief Widget wrapper adding label to another widget
 /// @tparam U UI Traits Type
-template<typename U> struct Labeled :
+template<implements<UiTraitsTag> U> struct Labeled :
 
     LabeledTag,
     U::Widget,
     mixin::Labeled
 
 {
-    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
-
     explicit constexpr Labeled(StringView label, typename U::Widget &wrapped, Style style = Style::defaults()) noexcept :
         U::Widget{style}, mixin::Labeled{label}, _wrapped{wrapped} {}
 

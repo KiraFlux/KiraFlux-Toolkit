@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/concepts.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
@@ -18,7 +19,7 @@ struct DisplayDriverTag {};
 /// @brief CRTP base class for display driver implementations
 /// @tparam Impl Concrete driver implementation type
 /// @tparam ImageImpl Image buffer type
-template<typename Impl, typename ImageImpl, typename ResultType> struct DisplayDriver :
+template<typename Impl, implements<image::ImageTag> ImageImpl, typename ResultType> struct DisplayDriver :
 
     DisplayDriverTag,
     meta::CRTP<Impl>,
@@ -27,7 +28,6 @@ template<typename Impl, typename ImageImpl, typename ResultType> struct DisplayD
     mixin::Resettable<Impl>
 
 {
-    KF_CHECK_IMPL(ImageImpl, ::kf::image::ImageTag);
 
     /// @brief Mutable access at image buffer
     [[nodiscard]] ImageImpl &image() noexcept {

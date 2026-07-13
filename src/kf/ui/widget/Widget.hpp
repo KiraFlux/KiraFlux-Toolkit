@@ -5,6 +5,7 @@
 
 #include "kf/Option.hpp"
 #include "kf/StringView.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Styled.hpp"
 #include "kf/primitives.hpp"
 
@@ -20,16 +21,13 @@ struct WidgetTag {};
 /// @note All interactive UI elements inherit from this class
 /// @tparam R Render system implementation (Must inherit from `::kf::ui::render::RenderTag`)
 /// @tparam E Event type (Must inherit from `::kf::ui::EventTag`)
-template<typename R, typename E> struct Widget :
+template<implements<render::RenderTag> R, implements<EventTag> E> struct Widget :
 
     WidgetTag,
     mixin::NonCopyable,
     mixin::Styled
 
 {
-    KF_CHECK_IMPL(R, ::kf::ui::render::RenderTag);
-    KF_CHECK_IMPL(E, ::kf::ui::EventTag);
-
     using RendererImpl = R;
     using EventImpl = E;
 

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/concepts.hpp"
 #include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/tuner/Tuner.hpp"
@@ -23,8 +24,7 @@ namespace kf::driver::sensor {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
-template<typename I> struct Joystick final : SensorDriver<Joystick<I>, internal::JoystickValue, void()> {
-    KF_CHECK_IMPL(I, SensorDriver<I, f32, void()>);
+template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joystick<I>, internal::JoystickValue, void()> {
 
     using InputImpl = I;
 

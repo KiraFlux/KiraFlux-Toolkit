@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/concepts.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/math.hpp"
@@ -10,8 +11,7 @@
 
 namespace kf::image {
 
-template<typename P, usize W, usize H> struct ViewportImage final : Image<ViewportImage<P, W, H>, P> {
-    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
+template<implements<pixel::PixelTag> P, usize W, usize H> struct ViewportImage final : Image<ViewportImage<P, W, H>, P> {
 
     using PixelImpl = P;
     using BufferType = typename PixelImpl::BufferType;

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/StringView.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Labeled.hpp"
 
@@ -17,7 +18,7 @@ struct ButtonTag {};
 
 /// @brief Button widget for triggering actions on click
 /// @tparam U UI Traits Type
-template<typename U> struct Button :
+template<implements<UiTraitsTag> U> struct Button :
 
     ButtonTag,
     U::Widget,
@@ -25,7 +26,6 @@ template<typename U> struct Button :
     mixin::Callbacked<void()>
 
 {
-    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     explicit constexpr Button(StringView label, Style style = Style::defaults()) noexcept :
         U::Widget{style}, mixin::Labeled::Labeled{label} {}

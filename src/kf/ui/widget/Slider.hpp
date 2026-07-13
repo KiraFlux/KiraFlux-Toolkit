@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/Range.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 #include "kf/primitives.hpp"
@@ -30,7 +31,7 @@ struct SliderTag {};
 
 /// @tparam U UI Traits Type
 /// @tparam T Type of slider Value
-template<typename U, typename T> struct Slider :
+template<implements<UiTraitsTag> U, typename T> struct Slider :
 
     SliderTag,
     U::Widget,
@@ -38,7 +39,6 @@ template<typename U, typename T> struct Slider :
     mixin::Configured<internal::SliderConfig<T>>
 
 {
-    KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
 
     using Config = internal::SliderConfig<T>;
 
