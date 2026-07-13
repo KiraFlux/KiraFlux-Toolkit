@@ -34,7 +34,7 @@ struct PidConfig final {
 
 }// namespace kf::internal
 
-namespace kf::controllers {
+namespace kf::controller {
 
 /// @brief PID controller implementation
 /// @note Includes derivative filtering and integral anti-windup
@@ -96,4 +96,4 @@ private:
     }
 };
 
-}// namespace kf::controllers
+}// namespace kf::controller
