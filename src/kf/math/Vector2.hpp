@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include <cmath>
-
 #include "kf/Option.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Length.hpp"
 #include "kf/primitives.hpp"
 
@@ -112,7 +111,7 @@ private:
 
     KF_IMPL_LENGTH(This, Scalar);
     constexpr Scalar lengthImpl() const noexcept {
-        return static_cast<Scalar>(std::hypot(x, y));
+        return static_cast<Scalar>(math::hypot(x, y));
     }
 };
 

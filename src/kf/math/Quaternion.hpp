@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <cmath>
+#include "kf/math.hpp"
 
 #include "kf/Option.hpp"
 #include "kf/math/Vector3.hpp"
@@ -39,8 +39,8 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
         const auto half = angle * 0.5;
 
         const auto
-            s = std::sin(half),
-            c = std::cos(half);
+            s = math::sin(half),
+            c = math::cos(half);
 
         return Quaternion{
             .x = static_cast<Scalar>(axis.x * s),
@@ -58,12 +58,12 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
         constexpr auto half = static_cast<Scalar>(0.5);
 
         const auto
-            cr = std::cos(eulers.x * half),
-            sr = std::sin(eulers.x * half),
-            cp = std::cos(eulers.y * half),
-            sp = std::sin(eulers.y * half),
-            cy = std::cos(eulers.z * half),
-            sy = std::sin(eulers.z * half);
+            cr = math::cos(eulers.x * half),
+            sr = math::sin(eulers.x * half),
+            cp = math::cos(eulers.y * half),
+            sp = math::sin(eulers.y * half),
+            cy = math::cos(eulers.z * half),
+            sy = math::sin(eulers.z * half);
 
         return Quaternion{
             .x = static_cast<Scalar>(sr * cp * cy - cr * sp * sy),
@@ -98,7 +98,7 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
             return Vector3<U>{
                 static_cast<U>(0),                   // roll
                 static_cast<U>(M_PI_2),              // pitch
-                static_cast<U>(2 * std::atan2(y, x)),// yaw
+                static_cast<U>(2 * math::atan2(y, x)),// yaw
             };
         }
 
@@ -107,15 +107,15 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
             return Vector3<U>{
                 static_cast<U>(0),                    // roll
                 static_cast<U>(-M_PI_2),              // pitch
-                static_cast<U>(-2 * std::atan2(y, x)),// yaw
+                static_cast<U>(-2 * math::atan2(y, x)),// yaw
             };
         }
 
         // Regular case
         return Vector3<U>{
-            static_cast<U>(std::atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))),// roll
-            static_cast<U>(std::asin(sarg)),                                         // pitch
-            static_cast<U>(std::atan2(2 * (x * y + w * z), 1 - 2 * (y * y + z * z))),// yaw
+            static_cast<U>(math::atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))),// roll
+            static_cast<U>(math::asin(sarg)),                                         // pitch
+            static_cast<U>(math::atan2(2 * (x * y + w * z), 1 - 2 * (y * y + z * z))),// yaw
         };
     }
 
@@ -217,7 +217,7 @@ private:
 
     KF_IMPL_LENGTH(This, Scalar);
     constexpr Scalar lengthImpl() const noexcept {
-        return static_cast<Scalar>(std::sqrt(lengthSquared()));
+        return static_cast<Scalar>(math::sqrt(lengthSquared()));
     }
 };
 

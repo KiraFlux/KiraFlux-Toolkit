@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <cmath>
-
 #include "kf/Array.hpp"
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
@@ -13,6 +11,7 @@
 #include "kf/gfx/Palette.hpp"
 #include "kf/image/DynamicImage.hpp"
 #include "kf/image/StaticImage.hpp"
+#include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
 
@@ -200,8 +199,8 @@ template<typename P> struct Canvas {
             return;
         }
 
-        const auto dx = std::abs(x1 - x0);
-        const auto dy = -std::abs(y1 - y0);
+        const auto dx = math::abs(x1 - x0);
+        const auto dy = -math::abs(y1 - y0);
         const auto sx = (x0 < x1) ? 1 : -1;
         const auto sy = (y0 < y1) ? 1 : -1;
         auto error = dx + dy;
@@ -250,7 +249,7 @@ template<typename P> struct Canvas {
             const auto r_squared = radius * radius;
             for (auto y = -radius; y <= radius; y += 1) {
                 const int y_squared = y * y;
-                const auto width = static_cast<int>(std::sqrt(r_squared - y_squared));
+                const auto width = static_cast<int>(math::sqrt(r_squared - y_squared));
 
                 // todo lineH
                 for (auto x = -width; x <= width; x += 1) {

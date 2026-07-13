@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <cmath>
 #include <tuple>
 #include <type_traits>
 
 #include "kf/Array.hpp"
 #include "kf/Stack.hpp"
 #include "kf/StringView.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/StringRepresentable.hpp"
 #include "kf/primitives.hpp"
 
@@ -296,7 +296,7 @@ private:
     }
 
     constexpr void appendReal(f64 value, usize precision) noexcept {
-        if (std::isnan(value)) {
+        if (math::isnan(value)) {
             appendNullTerminatedString("nan");
             return;
         }
@@ -304,7 +304,7 @@ private:
         const bool is_negative = (value < 0);
         const bool just_integer_part = (0 == precision);
 
-        if (std::isinf(value)) {
+        if (math::isinf(value)) {
             appendNullTerminatedString(is_negative ? "-inf" : "+inf");
             return;
         }

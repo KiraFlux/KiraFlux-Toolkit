@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/tuner/Tuner.hpp"
 
@@ -89,7 +90,7 @@ private:
 
         const auto x = axis_x.read();
         const auto y = axis_y.read();
-        const auto h = std::hypot(x, y);
+        const auto h = math::hypot(x, y);
 
         if (h < 1e-3) { return {0, 0, 0}; }
         if (h > 1) { return {x / h, y / h, 1}; }

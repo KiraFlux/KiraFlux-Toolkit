@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include <cmath>
 #include <cstdlib>
-#include <limits>
 #include <type_traits>
 
 #include "kf/NoneType.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Invariant.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
@@ -41,10 +40,10 @@ template<typename T> struct RealValueOption :
     friend struct internal::TrivialSomeCreator;
 
     constexpr RealValueOption(NoneType) noexcept :
-        _value{nan} {}
+        _value{math::nan<T>()} {}
 
     constexpr RealValueOption() noexcept :
-        _value{nan} {}
+        _value{math::nan<T>()} {}
 
     [[nodiscard]] T &unwrap() noexcept {
         if (this->isNone()) { abort(); }
@@ -60,8 +59,6 @@ template<typename T> struct RealValueOption :
     }
 
 private:
-    static constexpr auto nan{std::numeric_limits<T>::quiet_NaN()};
-
     T _value;
 
     constexpr RealValueOption(T value) noexcept : _value{value} {}
@@ -70,12 +67,12 @@ private:
 
     KF_IMPL_INVARIANT(This);
     bool isSomeImpl() const noexcept {
-        return not std::isnan(_value);
+        return not math::isnan(_value);
     }
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
-        _value = nan;
+        _value = math::nan<T>();
     }
 };
 

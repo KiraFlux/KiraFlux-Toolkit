@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include <cmath>
-
 #include "kf/Option.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Length.hpp"
 #include "kf/primitives.hpp"
 
@@ -125,7 +124,7 @@ private:
 
     KF_IMPL_LENGTH(This, Scalar);
     constexpr Scalar lengthImpl() const noexcept {
-        return static_cast<Scalar>(std::sqrt(x * x + y * y + z * z));
+        return static_cast<Scalar>(math::sqrt(x * x + y * y + z * z));
     }
 };
 

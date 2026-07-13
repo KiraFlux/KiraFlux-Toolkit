@@ -3,7 +3,35 @@
 
 #pragma once
 
+#include <cmath>
+#include <limits>
+
 namespace kf::math {
+
+// functions from builtins
+
+using std::isinf;
+using std::isnan;
+
+using std::hypot;
+using std::sqrt;
+
+using std::asin;
+using std::sin;
+
+using std::acos;
+using std::cos;
+
+using std::atan;
+using std::atan2;
+using std::tan;
+
+// custom functions
+
+/// @brief Get corresponding NaN value
+template<typename T> [[nodiscard]] constexpr T nan() noexcept {
+    return std::numeric_limits<T>::quiet_NaN();
+}
 
 /// @brief Abs
 template<typename T> [[nodiscard]] constexpr T abs(const T &x) noexcept {
