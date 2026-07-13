@@ -5,6 +5,7 @@
 
 #include <cstdlib>
 #include <limits>
+#include <cmath>
 #include <type_traits>
 
 #include "kf/NoneType.hpp"
@@ -69,7 +70,7 @@ private:
 
     KF_IMPL_INVARIANT(This);
     bool isSomeImpl() const noexcept {
-        return not math::isnan(_value);
+        return not std::isnan(_value);
     }
 
     KF_IMPL_RESETTABLE(This);
