@@ -1,8 +1,7 @@
 // KiraFlux-Toolkit Demo 'vectors'
 #include <Arduino.h>
 
-#include <kf/math/Vector2.hpp>
-#include <kf/math/Vector3.hpp>
+#include <kf/math.hpp>
 
 using namespace kf::math;
 
