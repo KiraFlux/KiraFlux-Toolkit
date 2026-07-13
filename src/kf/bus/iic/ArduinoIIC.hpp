@@ -6,9 +6,9 @@
 #include <Wire.h>
 #include <type_traits>
 
-#include "kf/algorithm.hpp"
 #include "kf/io/Readable.hpp"
 #include "kf/io/Writable.hpp"
+#include "kf/math.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -62,7 +62,7 @@ struct ArduinoIicBusConfig final {
         u8 scl = gpio_num_nc) noexcept {
         return ArduinoIicBusConfig{
             .clock_hz = clock_hz,
-            .timeout = kf::min(timeout, max_timeout),
+            .timeout = math::min(timeout, max_timeout),
             .buffer_size = buffer_size,
             .gpio_num_sda = sda,
             .gpio_num_scl = scl,

@@ -222,7 +222,7 @@ private:
     constexpr EspNow() noexcept : MacAddressed{{}} {}
 
     /// @brief ESP‑NOW receive callback (static wrapper)
-    static void onReceive(const esp_now_recv_info_t *info, const u8 *data, int size) noexcept {        
+    static void onReceive(const esp_now_recv_info_t *info, const u8 *data, int size) noexcept {
         MacAddress source_mac_address;
         std::copy(info->src_addr, info->src_addr + ESP_NOW_ETH_ALEN, source_mac_address.begin());
 

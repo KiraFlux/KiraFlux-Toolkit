@@ -24,7 +24,10 @@ enum class Decoration : char {
     LongArrowRight,
 
     /// @brief Directional arrows
-    ShortArrowLeft, ShortArrowRight, ShortArrowUp, ShortArrowDown
+    ShortArrowLeft,
+    ShortArrowRight,
+    ShortArrowUp,
+    ShortArrowDown
 };
 
 }// namespace kf::ui

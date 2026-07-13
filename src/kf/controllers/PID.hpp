@@ -6,8 +6,8 @@
 #include <cmath>
 
 #include "kf/Option.hpp"
-#include "kf/algorithm.hpp"
 #include "kf/filters/LowFrequencyFilter.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
@@ -28,7 +28,7 @@ struct PidConfig final {
     typename PidFilterImpl::Config derivative_filter;///< Derivative filter config
 
     [[nodiscard]] constexpr f32 calc(f32 x, f32 ix, f32 dx) const noexcept {
-        return kf::clamp(proportional_gain * x + integral_gain * ix + derivative_gain * dx, -output_limit, output_limit);
+        return math::clamp(proportional_gain * x + integral_gain * ix + derivative_gain * dx, -output_limit, output_limit);
     }
 };
 
@@ -69,7 +69,7 @@ struct PID final :
 
         if (this->config().integral_gain != 0.0f) {
             _current_integral += error * dt;
-            _current_integral = kf::clamp(_current_integral, -this->config().integral_limit, this->config().integral_limit);
+            _current_integral = math::clamp(_current_integral, -this->config().integral_limit, this->config().integral_limit);
         }
 
         if (this->config().derivative_gain != 0.0f and _last_error.isSome()) {

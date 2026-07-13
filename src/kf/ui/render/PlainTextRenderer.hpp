@@ -7,7 +7,7 @@
 #include "kf/Slice.hpp"
 #include "kf/String.hpp"
 #include "kf/StringView.hpp"
-#include "kf/algorithm.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/primitives.hpp"
@@ -141,7 +141,7 @@ private:
         _layout = layout;
 
         if (this->config().title_centered) {
-            const auto spaces = kf::max(0, (int(this->config().row_max_length) - int(title.length())) / 2);
+            const auto spaces = math::max(0, (int(this->config().row_max_length) - int(title.length())) / 2);
             for (auto i = 0; i < spaces; i += 1) {
                 writeChar(' ');
             }

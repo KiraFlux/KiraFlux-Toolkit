@@ -6,8 +6,8 @@
 #include <utility>
 
 #include "kf/Range.hpp"
-#include "kf/algorithm.hpp"
 #include "kf/gpio/GPIO.hpp"
+#include "kf/math.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 
@@ -26,7 +26,7 @@ struct PwmPositionServoConfig final {
     /// @param angle Target servo angle
     /// @return Required pulse width in microseconds
     [[nodiscard]] constexpr math::Microseconds pulseWidthFromAngle(math::Degrees angle) const noexcept {
-        return linearMap<i32>(angle, angle_range.start, angle_range.end, pulse_range.start, pulse_range.end);
+        return math::linearMap<i32>(angle, angle_range.start, angle_range.end, pulse_range.start, pulse_range.end);
     }
 };
 

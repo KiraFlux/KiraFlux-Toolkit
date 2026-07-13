@@ -4,9 +4,9 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/algorithm.hpp"
 #include "kf/bus/iic/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
+#include "kf/math.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
 #include "kf/primitives.hpp"
 

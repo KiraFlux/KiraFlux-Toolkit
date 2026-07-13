@@ -5,9 +5,9 @@
 
 #include <utility>
 
-#include <kf/algorithm.hpp>
 #include <kf/drivers/actuators/Actuator.hpp>
 #include <kf/gpio/GPIO.hpp>
+#include <kf/math.hpp>
 #include <kf/mixin/Configurable.hpp>
 
 namespace kf::internal {
@@ -69,8 +69,8 @@ private:
 
     /// @brief Map speed command to PWM duty cycle respecting dead zone
     Config::DutyType calcDuty(Config::InputType value, Config::DutyType dead_zone, const PwmOutputImpl &pwm_output) const noexcept {
-        return kf::linearMap<Config::DutyType>(
-            kf::clamp(value, static_cast<Config::InputType>(0), this->config().max_input),
+        return math::linearMap<Config::DutyType>(
+            math::clamp(value, static_cast<Config::InputType>(0), this->config().max_input),
             0, this->config().max_input,
             dead_zone, pwm_output.config().maxDuty());
     }

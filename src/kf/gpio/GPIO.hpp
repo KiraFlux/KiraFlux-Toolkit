@@ -147,7 +147,7 @@ struct GPIO final : GpioTag {
         /// @brief Converts a pulse width (microseconds) to a duty cycle value.
         /// @param pulse_width Pulse width in microseconds.
         /// @return Duty cycle value suitable for `write()`.
-        [[nodiscard]] u16 dutyFromPulseWidth(kf::math::Microseconds pulse_width) const noexcept {
+        [[nodiscard]] u16 dutyFromPulseWidth(math::Microseconds pulse_width) const noexcept {
             const auto t = u64{pulse_width} * frequency() * maxDuty();
             return static_cast<u16>(t / 1'000'000u);
         }

@@ -5,9 +5,9 @@
 
 #include <utility>
 
-#include "kf/algorithm.hpp"
 #include "kf/filters/ExponentialFilter.hpp"
 #include "kf/gpio/GPIO.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -80,8 +80,8 @@ template<typename G> struct NormalizedAdcInput final :
         KF_IMPL_POLLABLE(Tuner);
         void pollImpl() noexcept {
             const auto sample = Config::AdcSignedValue(_normalized_input.readRaw());
-            _max_sample = kf::max(_max_sample, sample);
-            _min_sample = kf::min(_min_sample, sample);
+            _max_sample = math::max(_max_sample, sample);
+            _min_sample = math::min(_min_sample, sample);
             _sum += sample;
         }
 
@@ -120,7 +120,7 @@ private:
         // Applies dead zone, filtering, and optional inversion
         const auto deviation = static_cast<Config::AdcSignedValue>(readRaw()) - this->config().range_negative;
 
-        if (kf::abs(deviation) < this->config().dead_zone) {
+        if (math::abs(deviation) < this->config().dead_zone) {
             return 0.0f;
         }
 

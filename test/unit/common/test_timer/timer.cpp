@@ -4,8 +4,8 @@
 #include <kf/Timer.hpp>
 #include <unity.h>
 
-using kf::math::Milliseconds;
 using kf::Timer;
+using kf::math::Milliseconds;
 
 constexpr Milliseconds
     t_0 = 0,

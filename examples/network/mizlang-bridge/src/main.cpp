@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
-#include <kf/io/ArduinoStream.hpp>
 #include <kf/Array.hpp>
+#include <kf/io/ArduinoStream.hpp>
 #include <kf/network/MizLangBridge.hpp>
 
 using kf::io::ArduinoStream;

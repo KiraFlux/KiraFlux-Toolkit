@@ -6,7 +6,7 @@
 #include "kf/Option.hpp"
 #include "kf/Queue.hpp"
 #include "kf/StringView.hpp"
-#include "kf/algorithm.hpp"
+#include "kf/math.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -111,7 +111,7 @@ template<typename U> struct UI :
 
     /// @brief Add event to processing queue
     void addEvent(typename Traits::EventImpl event) noexcept {
-        (void) _events.push(event); // TODO: return
+        (void) _events.push(event);// TODO: return
     }
 
 private:
@@ -204,8 +204,8 @@ public:
             if (_widgets.empty()) {
                 // TODO: render placeholder page content
             } else {
-                const usize start = (_widgets.length() > available) ? kf::min(static_cast<usize>(_cursor), _widgets.length() - available) : 0;
-                const usize end = kf::min(start + available, _widgets.length());
+                const usize start = (_widgets.length() > available) ? math::min(static_cast<usize>(_cursor), _widgets.length() - available) : 0;
+                const usize end = math::min(start + available, _widgets.length());
 
                 for (auto i = start; i < end; i += 1) {
                     auto widget = _widgets[i];
@@ -253,7 +253,7 @@ public:
 
         /// @brief Set page cursor
         void cursor(usize new_cursor) noexcept {
-            _cursor = clamp<isize>(new_cursor, 0, _widgets.length() - 1);
+            _cursor = math::clamp<isize>(new_cursor, 0, _widgets.length() - 1);
         }
 
         UI &_ui;
@@ -324,7 +324,7 @@ private:
                 if (event.isNone()) {
                     break;
                 }
-                
+
                 const auto request = _active_page.unwrap().onEvent(event.unwrap());
 
                 switch (request) {

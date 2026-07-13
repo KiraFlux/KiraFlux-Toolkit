@@ -13,4 +13,3 @@ void test() {
 void run_tests() {
     RUN_TEST(test);
 }
-

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Slice.hpp"
-#include "kf/algorithm.hpp"
+#include "kf/math.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::pixel {
@@ -93,7 +93,7 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelT
 
         const usize src_pixels = source_buffer.size();
         if (static_cast<usize>(source_width) * source_height > src_pixels) {
-            copy_height = kf::min(copy_height, static_cast<PositionType>(src_pixels / source_width));
+            copy_height = math::min(copy_height, static_cast<PositionType>(src_pixels / source_width));
             if (copy_height <= 0) { return; }
         }
 

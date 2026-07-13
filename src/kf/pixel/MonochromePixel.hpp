@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Slice.hpp"
-#include "kf/algorithm.hpp"
+#include "kf/math.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::pixel {
@@ -88,8 +88,8 @@ private:
 
         for (PositionType p = src_start_page; p < src_end_page; ++p) {
             const PositionType src_page_y = p * src_page_h;
-            const PositionType src_row_begin = kf::max(src_y, src_page_y);
-            const PositionType src_row_end = kf::min(src_y + copy_h, src_page_y + src_page_h);
+            const PositionType src_row_begin = math::max(src_y, src_page_y);
+            const PositionType src_row_end = math::min(src_y + copy_h, src_page_y + src_page_h);
             const PositionType rows = src_row_end - src_row_begin;
             if (rows <= 0) { continue; }
 
@@ -128,8 +128,8 @@ private:
         const auto page_top = (page * page_height);
         const auto page_bottom = (page_top + page_height - 1);
 
-        const auto visible_top = kf::max(offset_y, page_top);
-        const auto visible_bottom = (kf::min(offset_y + height, page_bottom + 1));
+        const auto visible_top = math::max(offset_y, page_top);
+        const auto visible_bottom = (math::min(offset_y + height, page_bottom + 1));
 
         if (visible_top >= visible_bottom) { return 0; }
 

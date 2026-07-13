@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/algorithm.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Length.hpp"
 
 namespace kf {
@@ -17,9 +17,9 @@ template<typename T> struct Range final : mixin::Length<Range<T>, T> {
     T end;  ///< Upper bound (inclusive)
 
     /// @brief Constrains a value to the interval [start, end]
-    /// @param value The value to clamp
+    /// @param value The value to math::clamp
     [[nodiscard]] constexpr T clamped(T value) const noexcept {
-        return clamp(value, start, end);
+        return math::clamp(value, start, end);
     }
 
 private:

@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "kf/algorithm.hpp"
-#include "kf/listener/Listener.hpp"
 #include "kf/Timer.hpp"
+#include "kf/listener/Listener.hpp"
+#include "kf/math.hpp"
 #include "kf/math/Vector2.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
@@ -26,8 +26,8 @@ struct JoystickListenerConfig final {
     f32 threshold;///< 0..1
 
     [[nodiscard]] JoystickListenerDirection calculateDirection(const math::Vector2f &v) const noexcept {
-        const auto ax = kf::abs(v.x);
-        const auto ay = kf::abs(v.y);
+        const auto ax = math::abs(v.x);
+        const auto ay = math::abs(v.y);
         if (ax < threshold and ay < threshold) {
             return JoystickListenerDirection::Center;
         }

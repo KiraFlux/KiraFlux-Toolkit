@@ -8,7 +8,7 @@ void setup() {
     Serial.begin(115200);
 
     char buffer[256];
-    kf::String my_string{{buffer}}; // construct from slice from array
+    kf::String my_string{{buffer}};// construct from slice from array
 
     // formatting: use {} as anchor, {{ or }} to display '{' or '}'
     my_string.format(
@@ -50,7 +50,7 @@ void setup() {
 
     // numbers
     my_string.append(kf::i64{13456789});
-    my_string.append(0.4 - 0.3, 50); // precision
+    my_string.append(0.4 - 0.3, 50);// precision
 
     // char
     my_string.append('c');

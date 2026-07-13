@@ -80,7 +80,7 @@ struct ArduinoSpiBusConfig final {
 
     [[nodiscard]] constexpr bool hasDefaultPins() const noexcept {
         constexpr auto gpio_num_nc{static_cast<u8>(GPIO_NUM_NC)};
-        
+
         return gpio_num_mosi == gpio_num_nc and gpio_num_miso == gpio_num_nc and gpio_num_sck == gpio_num_nc;
     }
 };

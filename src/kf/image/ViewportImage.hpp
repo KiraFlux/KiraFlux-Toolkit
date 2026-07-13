@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "kf/algorithm.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/image/StaticImage.hpp"
+#include "kf/math.hpp"
 #include "kf/math/units.hpp"
 #include "kf/pixel/Pixel.hpp"
 

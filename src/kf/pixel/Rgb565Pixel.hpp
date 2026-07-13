@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/algorithm.hpp"
+#include "kf/math.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::pixel {
@@ -41,8 +41,8 @@ private:
 
         ) noexcept {
         const auto total_height = int(buffer.length()) / stride;
-        const auto end_y = kf::min(offset_y + height, total_height);
-        const auto end_x = kf::min(offset_x + width, int(stride));
+        const auto end_y = math::min(offset_y + height, total_height);
+        const auto end_x = math::min(offset_x + width, int(stride));
 
         for (auto y = offset_y; y < end_y; y += 1) {
             for (auto x = offset_x; x < end_x; x += 1) {
