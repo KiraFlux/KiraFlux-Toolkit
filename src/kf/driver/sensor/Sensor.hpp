@@ -7,7 +7,7 @@
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-namespace kf::drivers::sensors {
+namespace kf::driver::sensor {
 
 struct SensorTag {};
 
@@ -29,4 +29,4 @@ template<typename Impl, typename Measurement, typename InitSignature> struct Sen
     }
 };
 
-}// namespace kf::drivers::sensors
+}// namespace kf::driver::sensor

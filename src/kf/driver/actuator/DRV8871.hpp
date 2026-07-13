@@ -6,7 +6,7 @@
 #include <utility>
 
 #include <kf/GPIO.hpp>
-#include <kf/drivers/actuators/Actuator.hpp>
+#include <kf/driver/actuator/Actuator.hpp>
 #include <kf/math.hpp>
 #include <kf/mixin/Configurable.hpp>
 
@@ -24,13 +24,13 @@ struct DRV8871Config {
 
 }// namespace kf::internal
 
-namespace kf::drivers::actuators {
+namespace kf::driver::actuator {
 
 /// @brief DRV8871 H-bridge motor driver abstraction
 /// @tparam G Implementation of GPIO with PWM output support
 template<typename G> struct DRV8871 final :
 
-    drivers::actuators::Actuator<DRV8871<G>, bool()>,
+    driver::actuator::Actuator<DRV8871<G>, bool()>,
     mixin::Configurable<internal::DRV8871Config>
 
 {
@@ -86,4 +86,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::actuators
+}// namespace kf::driver::actuator

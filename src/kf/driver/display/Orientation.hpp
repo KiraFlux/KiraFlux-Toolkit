@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace kf::drivers::display {
+namespace kf::driver::display {
 
 /// @brief Display orientation modes
 enum class Orientation : unsigned char {
@@ -15,4 +15,4 @@ enum class Orientation : unsigned char {
     CounterClockWise = 5,///< 90-degree counterclockwise rotation
 };
 
-}// namespace kf::drivers::display
+}// namespace kf::driver::display

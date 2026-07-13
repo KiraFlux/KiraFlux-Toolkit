@@ -10,8 +10,8 @@
 #include "kf/pixel/MonochromePixel.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/drivers/display/DisplayDriver.hpp"
-#include "kf/drivers/display/Orientation.hpp"
+#include "kf/driver/display/DisplayDriver.hpp"
+#include "kf/driver/display/Orientation.hpp"
 
 namespace kf::internal {
 
@@ -19,7 +19,7 @@ using SSD1306ImageImpl = image::StaticImage<pixel::MonochromePixel, 128, 64>;
 
 }
 
-namespace kf::drivers::display {
+namespace kf::driver::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
 /// @tparam N Implementation of IIC bus Node
@@ -203,4 +203,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::display
+}// namespace kf::driver::display

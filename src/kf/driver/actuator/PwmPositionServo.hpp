@@ -10,7 +10,7 @@
 #include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 
-#include "kf/drivers/actuators/Actuator.hpp"
+#include "kf/driver/actuator/Actuator.hpp"
 
 namespace kf::internal {
 
@@ -31,7 +31,7 @@ struct PwmPositionServoConfig final {
 
 }// namespace kf::internal
 
-namespace kf::drivers::actuators {
+namespace kf::driver::actuator {
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
@@ -88,4 +88,4 @@ private:
     KF_IMPL(Actuator<This, bool>);
 };
 
-}// namespace kf::drivers::actuators
+}// namespace kf::driver::actuator

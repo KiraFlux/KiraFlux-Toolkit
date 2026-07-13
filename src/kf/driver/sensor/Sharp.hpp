@@ -8,9 +8,9 @@
 #include "kf/GPIO.hpp"
 #include "kf/math.hpp"
 
-#include "kf/drivers/sensors/Sensor.hpp"
+#include "kf/driver/sensor/Sensor.hpp"
 
-namespace kf::drivers::sensors {
+namespace kf::driver::sensor {
 
 /// @brief Sharp infrared distance sensor driver
 /// @note Provides distance measurements in millimeters using analog voltage output
@@ -39,4 +39,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::sensors
+}// namespace kf::driver::sensor

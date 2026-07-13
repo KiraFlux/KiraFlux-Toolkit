@@ -9,9 +9,9 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
-#include "kf/drivers/display/Orientation.hpp"
+#include "kf/driver/display/Orientation.hpp"
 
-namespace kf::drivers::display {
+namespace kf::driver::display {
 
 struct DisplayDriverTag {};
 
@@ -54,4 +54,4 @@ private:
     ImageImpl _screen_image{};///<  Software frame buffer for display operations
 };
 
-}// namespace kf::drivers::display
+}// namespace kf::driver::display

@@ -14,7 +14,7 @@
 #include "kf/primitives.hpp"
 #include "kf/tuner/SampleCollectingTuner.hpp"
 
-#include "kf/drivers/sensors/Sensor.hpp"
+#include "kf/driver/sensor/Sensor.hpp"
 
 namespace kf::internal {
 
@@ -35,7 +35,7 @@ struct NormalizedAdcInputConfig final {
 
 }// namespace kf::internal
 
-namespace kf::drivers::sensors {
+namespace kf::driver::sensor {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
 /// @tparam G Implementation of GPIO with ADC input support
@@ -136,4 +136,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::sensors
+}// namespace kf::driver::sensor

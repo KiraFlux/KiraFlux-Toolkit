@@ -19,11 +19,11 @@
 
 // Actually uses in this demo
 #include <kf/arduino/ArduinoIIC.hpp>
-#include <kf/drivers/display/SSD1306.hpp>
+#include <kf/driver/display/SSD1306.hpp>
 
 using kf::arduino::ArduinoIIC;
-using kf::drivers::display::Orientation;
-using SSD1306 = kf::drivers::display::SSD1306<ArduinoIIC::Node>;
+using kf::driver::display::Orientation;
+using SSD1306 = kf::driver::display::SSD1306<ArduinoIIC::Node>;
 
 // Pixel format used by the display (monochrome)
 using P = SSD1306::PixelImpl;// = pixel::MonochromePixel

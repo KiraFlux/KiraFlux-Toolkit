@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 
-#include "kf/drivers/sensors/Sensor.hpp"
+#include "kf/driver/sensor/Sensor.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
@@ -47,14 +47,14 @@ template<typename T> struct QuadratureEncoderConfig final {
 
 }// namespace kf::internal
 
-namespace kf::drivers::sensors {
+namespace kf::driver::sensor {
 
 /// @brief Quadrature encoder sensor with 4X decoding
 /// @note Arduino-Only
 /// @tparam T Physical linear unit
 template<typename T> struct QuadratureEncoder final :
 
-    drivers::sensors::Sensor<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
+    driver::sensor::Sensor<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
     mixin::Resettable<QuadratureEncoder<T>>,
     mixin::Configurable<internal::QuadratureEncoderConfig<T>>
 
@@ -131,7 +131,7 @@ private:
         this->reset();
     }
 
-    KF_IMPL(::kf::drivers::sensors::Sensor<This, typename Config::PhaseStateType, void()>);
+    KF_IMPL(::kf::driver::sensor::Sensor<This, typename Config::PhaseStateType, void()>);
     typename Config::PhaseStateType readImpl() const noexcept {
         const auto state_a = static_cast<typename Config::PhaseStateType>(digitalRead(this->config().gpio_num_phase_a));
         const auto state_b = static_cast<typename Config::PhaseStateType>(digitalRead(this->config().gpio_num_phase_b));
@@ -145,4 +145,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::sensors
+}// namespace kf::driver::sensor

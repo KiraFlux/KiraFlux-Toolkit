@@ -7,7 +7,7 @@
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-namespace kf::drivers::actuators {
+namespace kf::driver::actuator {
 
 struct ActuatorTag {};
 
@@ -23,4 +23,4 @@ template<typename Impl, typename InitSignature> struct Actuator :
 
 {};
 
-}// namespace kf::drivers::actuators
+}// namespace kf::driver::actuator

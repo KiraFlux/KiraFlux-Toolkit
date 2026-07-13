@@ -1,11 +1,11 @@
-// KiraFlux-Toolkit Demo 'actuators: motor powered by DRV8871'
+// KiraFlux-Toolkit Demo 'actuator: motor powered by DRV8871'
 #include <Arduino.h>
 
 #include <kf/arduino/ArduinoGPIO.hpp>
-#include <kf/drivers/actuators/DRV8871.hpp>
+#include <kf/driver/actuator/DRV8871.hpp>
 
 using PwmOutput = kf::arduino::ArduinoGPIO::PwmOutput;
-using DRV8871 = kf::drivers::actuators::DRV8871<PwmOutput>;
+using DRV8871 = kf::driver::actuator::DRV8871<PwmOutput>;
 
 // static/global: must outlive motor
 PwmOutput::Config forward_pwm_config{

@@ -14,20 +14,20 @@
 #include "kf/pixel/Rgb565Pixel.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/drivers/display/DisplayDriver.hpp"
-#include "kf/drivers/display/Orientation.hpp"
+#include "kf/driver/display/DisplayDriver.hpp"
+#include "kf/driver/display/Orientation.hpp"
 
 namespace kf::internal {
 
 using ST7735Image = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
 
 struct ST7735Config final {
-    drivers::display::Orientation init_orientation;
+    driver::display::Orientation init_orientation;
 };
 
 }// namespace kf::internal
 
-namespace kf::drivers::display {
+namespace kf::driver::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
 /// @tparam N Implementation of SPI bus Node
@@ -179,4 +179,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::display
+}// namespace kf::driver::display

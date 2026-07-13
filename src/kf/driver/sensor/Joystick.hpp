@@ -7,7 +7,7 @@
 #include "kf/meta/CRTP.hpp"
 #include "kf/tuner/Tuner.hpp"
 
-#include "kf/drivers/sensors/Sensor.hpp"
+#include "kf/driver/sensor/Sensor.hpp"
 
 namespace kf::internal {
 
@@ -19,7 +19,7 @@ struct JoystickValue {
 
 }// namespace kf::internal
 
-namespace kf::drivers::sensors {
+namespace kf::driver::sensor {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
@@ -98,4 +98,4 @@ private:
     }
 };
 
-}// namespace kf::drivers::sensors
+}// namespace kf::driver::sensor
