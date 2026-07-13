@@ -9,7 +9,7 @@
 #include "kf/StringView.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Callbacked.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Block.hpp"
@@ -78,14 +78,14 @@ struct TextualRenderer :
 
     Renderer<TextualRenderer>,
     mixin::Callbacked<void(StringView)>,
-    mixin::Configurable<internal::TextualRendererConfig>
+    mixin::Configured<internal::TextualRendererConfig>
 
 {
     /// @brief Text renderer configuration
     using Config = internal::TextualRendererConfig;
 
     explicit constexpr TextualRenderer(const Config &config, Slice<char> source) noexcept :
-        mixin::Configurable<Config>::Configurable{config}, _buffer{source} {}
+        mixin::Configured<Config>::Configured{config}, _buffer{source} {}
 
     /// @brief Helper to write character with cursor tracking
     void writeChar(char ch) noexcept {

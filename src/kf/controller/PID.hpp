@@ -8,7 +8,7 @@
 #include "kf/Option.hpp"
 #include "kf/filter/LowFrequencyFilter.hpp"
 #include "kf/math.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
@@ -42,7 +42,7 @@ struct PID final :
 
     mixin::NonCopyable,
     mixin::Resettable<PID>,
-    mixin::Configurable<internal::PidConfig>
+    mixin::Configured<internal::PidConfig>
 
 {
 
@@ -55,7 +55,7 @@ struct PID final :
     /// @param PID tuning parameters
     /// @param dx_filter_alpha Derivative filter smoothing factor (default: 1.0 = no filtering)
     explicit PID(const Config &config) noexcept :
-        mixin::Configurable<Config>{config}, _derivative_filter{config.derivative_filter} {}
+        mixin::Configured<Config>{config}, _derivative_filter{config.derivative_filter} {}
 
     /// @brief Calculate PID controller output
     /// @param error Current control error (setpoint - measurement)

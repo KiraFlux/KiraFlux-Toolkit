@@ -6,7 +6,7 @@
 #include "kf/Slice.hpp"
 #include "kf/StringView.hpp"
 #include "kf/mixin/Callbacked.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/Styled.hpp"
 
@@ -68,7 +68,7 @@ template<typename U, typename T> struct ComboBox :
     ComboBoxTag,
     U::Widget,
     mixin::Callbacked<void(internal::ComboBoxItem<T>)>,
-    mixin::Configurable<internal::ComboBoxConfig<T>>
+    mixin::Configured<internal::ComboBoxConfig<T>>
 
 {
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
@@ -76,7 +76,7 @@ template<typename U, typename T> struct ComboBox :
     using Config = internal::ComboBoxConfig<T>;
 
     explicit constexpr ComboBox(const Config &config, Style style = Style::defaults()) noexcept :
-        U::Widget{style}, mixin::Configurable<Config>::Configurable{config} {}
+        U::Widget{style}, mixin::Configured<Config>::Configurable{config} {}
 
     /// @brief Set selection to the first item whose value equals `new_value`
     /// @param new_value Value to match against items

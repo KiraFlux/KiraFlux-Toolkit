@@ -5,7 +5,7 @@
 
 #include "kf/listener/Listener.hpp"
 #include "kf/math.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 
 namespace kf::internal {
 
@@ -21,12 +21,12 @@ namespace kf::listener {
 struct LogicalLevelListener :
 
     Listener<LogicalLevelListener, bool, void()>,
-    mixin::Configurable<internal::LogicalLevelListenerConfig>
+    mixin::Configured<internal::LogicalLevelListenerConfig>
 
 {
     using Config = internal::LogicalLevelListenerConfig;
 
-    using mixin::Configurable<Config>::Configurable;
+    using mixin::Configured<Config>::Configured;
 
 private:
     math::Milliseconds _next{0};

@@ -6,7 +6,7 @@
 #include <Arduino.h>
 
 #include "kf/driver/sensor/SensorDriver.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
 
@@ -60,12 +60,12 @@ template<typename T> struct QuadratureEncoder final :
 
     driver::sensor::SensorDriver<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
     mixin::Resettable<QuadratureEncoder<T>>,
-    mixin::Configurable<internal::QuadratureEncoderConfig<T>>
+    mixin::Configured<internal::QuadratureEncoderConfig<T>>
 
 {
     using Config = internal::QuadratureEncoderConfig<T>;
 
-    using mixin::Configurable<Config>::Configurable;
+    using mixin::Configured<Config>::Configured;
 
     /// @brief Current accumulated position in ticks
     [[nodiscard]] auto positionTicks() const noexcept -> typename Config::TickType {

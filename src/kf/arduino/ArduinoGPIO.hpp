@@ -6,7 +6,7 @@
 #include <Arduino.h>
 
 #include "kf/GPIO.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
 
@@ -131,14 +131,14 @@ struct ArduinoGPIO : GpioTag {
     struct PwmOutput :
 
         GPIO::PwmOutput<PwmOutput, bool()>,
-        mixin::Configurable<internal::ArduinoPwmOutputConfig>
+        mixin::Configured<internal::ArduinoPwmOutputConfig>
 
     {
 
         /// @brief Configuration for an ESP32 LEDC PWM channel
         using Config = internal::ArduinoPwmOutputConfig;
 
-        using mixin::Configurable<Config>::Configurable;
+        using mixin::Configured<Config>::Configured;
 
     private:
         KF_IMPL_GPIO_PWM_OUTPUT(PwmOutput, bool());

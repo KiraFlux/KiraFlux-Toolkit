@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Option.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
 
@@ -28,13 +28,13 @@ namespace kf::filter {
 template<typename T> struct LowFrequencyFilter :
 
     Filter<LowFrequencyFilter<T>, T>,
-    mixin::Configurable<internal::LowFrequencyFilterConfig>
+    mixin::Configured<internal::LowFrequencyFilterConfig>
 
 {
     using ValueType = T;
     using Config = internal::LowFrequencyFilterConfig;
 
-    using mixin::Configurable<Config>::Configurable;
+    using mixin::Configured<Config>::Configured;
 
 private:
     TrivialOption<ValueType> _filtered{none};

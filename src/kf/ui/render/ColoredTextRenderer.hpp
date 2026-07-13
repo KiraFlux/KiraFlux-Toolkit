@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Slice.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Layout.hpp"
@@ -119,14 +119,14 @@ namespace kf::ui::render {
 struct ColoredTextRenderer :
 
     Renderer<ColoredTextRenderer>,
-    mixin::Configurable<internal::ColoredTextRendererConfig>
+    mixin::Configured<internal::ColoredTextRendererConfig>
 
 {
     using Wrapped = TextualRenderer;
     using Config = internal::ColoredTextRendererConfig;
 
     explicit constexpr ColoredTextRenderer(const Config &config, Slice<char> source) noexcept :
-        mixin::Configurable<Config>{config}, _wrapped{config.text, source} {}
+        mixin::Configured<Config>{config}, _wrapped{config.text, source} {}
 
     template<typename F> void callback(F &&callback) noexcept {
         _wrapped.callback(std::forward<F>(callback));

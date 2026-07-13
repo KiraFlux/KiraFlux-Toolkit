@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Range.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 #include "kf/primitives.hpp"
 
@@ -35,7 +35,7 @@ template<typename U, typename T> struct Slider :
     SliderTag,
     U::Widget,
     mixin::ValueCallbacked<T>,
-    mixin::Configurable<internal::SliderConfig<T>>
+    mixin::Configured<internal::SliderConfig<T>>
 
 {
     KF_CHECK_IMPL(U, ::kf::ui::UiTraitsTag);
@@ -45,7 +45,7 @@ template<typename U, typename T> struct Slider :
     explicit constexpr Slider(const Config &config, Style style = Style::defaults()) noexcept :
         U::Widget{style},
         mixin::ValueCallbacked<T>{config.value_range.clamped(config.default_value)},
-        mixin::Configurable<Config>{config}, _show_value{config.init_show_value} {}
+        mixin::Configured<Config>{config}, _show_value{config.init_show_value} {}
 
     /// @brief Toggle slider numeric value display
     Request onClick() noexcept override {

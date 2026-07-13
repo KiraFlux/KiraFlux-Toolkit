@@ -5,7 +5,7 @@
 
 #include "kf/Option.hpp"
 #include "kf/math.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
@@ -25,7 +25,7 @@ namespace kf::filter {
 /// @note Combines low-frequency and high-frequency sensor data using weighted average
 template<typename T> struct ComplementaryFilter final :
 
-    mixin::Configurable<internal::ComplementaryFilterConfig>,
+    mixin::Configured<internal::ComplementaryFilterConfig>,
     mixin::NonCopyable,
     mixin::Resettable<ComplementaryFilter<T>>
 
@@ -33,7 +33,7 @@ template<typename T> struct ComplementaryFilter final :
     using ValueType = T;
     using Config = internal::ComplementaryFilterConfig;
 
-    using mixin::Configurable<Config>::Configurable;
+    using mixin::Configured<Config>::Configured;
 
     /// @brief Calculate filtered value from measurement and rate of change
     /// @param x Current measurement value

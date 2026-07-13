@@ -9,7 +9,7 @@
 #include "kf/Result.hpp"
 #include "kf/bus/SPI.hpp"
 #include "kf/image/ViewportImage.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
 #include "kf/primitives.hpp"
@@ -35,7 +35,7 @@ namespace kf::driver::display {
 template<typename N, typename G> struct ST7735 final :
 
     DisplayDriver<ST7735<N, G>, internal::ST7735Image, Result<void, typename N::Error>>,
-    mixin::Configurable<internal::ST7735Config>
+    mixin::Configured<internal::ST7735Config>
 
 {
     KF_CHECK_IMPL(N, ::kf::bus::SpiNodeTag);
@@ -80,7 +80,7 @@ template<typename N, typename G> struct ST7735 final :
     };
 
     explicit constexpr ST7735(const Config &config, SpiBusNodeImpl &&node, DigitalOutputImpl &&gpio_data_command, DigitalOutputImpl &&gpio_reset) noexcept :
-        mixin::Configurable<internal::ST7735Config>{config}, _spi_node{std::move(node)}, _gpio_data_command{std::move(gpio_data_command)}, _gpio_hardware_reset{std::move(gpio_reset)} {}
+        mixin::Configured<internal::ST7735Config>{config}, _spi_node{std::move(node)}, _gpio_data_command{std::move(gpio_data_command)}, _gpio_hardware_reset{std::move(gpio_reset)} {}
 
 private:
     SpiBusNodeImpl _spi_node;

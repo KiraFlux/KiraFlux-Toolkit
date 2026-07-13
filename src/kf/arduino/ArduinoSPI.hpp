@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "kf/Result.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Readable.hpp"
 #include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
@@ -93,7 +93,7 @@ struct ArduinoSpiBusConfig final {
 template<typename I> struct ArduinoSpiNode :
 
     ::kf::bus::SpiNode<ArduinoSpiNode<I>, ArduinoSpiError>,
-    ::kf::mixin::Configurable<ArduinoSpiNodeConfig>
+    ::kf::mixin::Configured<ArduinoSpiNodeConfig>
 
 {
     using BusImpl = I;
@@ -103,7 +103,7 @@ template<typename I> struct ArduinoSpiNode :
     using Config = ArduinoSpiNodeConfig;
 
     explicit ArduinoSpiNode(BusImpl &bus, const Config &config) noexcept :
-        mixin::Configurable<Config>{config}, _spi{bus._spi} {}
+        mixin::Configured<Config>{config}, _spi{bus._spi} {}
 
 private:
     template<typename> static constexpr bool always_false{false};
@@ -241,7 +241,7 @@ namespace kf::arduino {
 struct ArduinoSPI :
 
     bus::SPI<ArduinoSPI, internal::ArduinoSpiNode<ArduinoSPI>, internal::ArduinoSpiError>,
-    mixin::Configurable<internal::ArduinoSpiBusConfig>
+    mixin::Configured<internal::ArduinoSpiBusConfig>
 
 {
     using Config = internal::ArduinoSpiBusConfig;
@@ -251,7 +251,7 @@ struct ArduinoSPI :
     friend Node;
 
     explicit ArduinoSPI(const Config &config, SPIClass &spi) :
-        mixin::Configurable<Config>{config}, _spi{spi} {}
+        mixin::Configured<Config>{config}, _spi{spi} {}
 
 private:
     SPIClass &_spi;

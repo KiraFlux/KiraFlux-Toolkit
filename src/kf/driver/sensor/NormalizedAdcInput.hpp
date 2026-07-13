@@ -8,7 +8,7 @@
 #include "kf/GPIO.hpp"
 #include "kf/filter/ExponentialFilter.hpp"
 #include "kf/math.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
@@ -42,7 +42,7 @@ namespace kf::driver::sensor {
 template<typename G> struct NormalizedAdcInput final :
 
     SensorDriver<NormalizedAdcInput<G>, f32, void()>,
-    mixin::Configurable<internal::NormalizedAdcInputConfig>
+    mixin::Configured<internal::NormalizedAdcInputConfig>
 
 {
     KF_CHECK_IMPL(G, ::kf::GPIO::AdcInputTag);
@@ -96,7 +96,7 @@ template<typename G> struct NormalizedAdcInput final :
     };
 
     explicit NormalizedAdcInput(const Config &config, const typename FilterImpl::Config &filter_config, AdcInputImpl &&gpio) noexcept :
-        mixin::Configurable<Config>{config}, _filter{filter_config}, _gpio{std::move(gpio)} {}
+        mixin::Configured<Config>{config}, _filter{filter_config}, _gpio{std::move(gpio)} {}
 
     [[nodiscard]] u16 readRaw() const noexcept {
         return _gpio.read();

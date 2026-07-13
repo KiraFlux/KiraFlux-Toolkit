@@ -8,7 +8,7 @@
 #include <kf/GPIO.hpp>
 #include <kf/driver/actuator/ActuatorDriver.hpp>
 #include <kf/math.hpp>
-#include <kf/mixin/Configurable.hpp>
+#include <kf/mixin/Configured.hpp>
 
 namespace kf::internal {
 
@@ -31,7 +31,7 @@ namespace kf::driver::actuator {
 template<typename G> struct DRV8871 final :
 
     driver::actuator::ActuatorDriver<DRV8871<G>, internal::DRV8871Config::InputType, bool()>,
-    mixin::Configurable<internal::DRV8871Config>
+    mixin::Configured<internal::DRV8871Config>
 
 {
     KF_CHECK_IMPL(G, ::kf::GPIO::PwmOutputTag);
@@ -43,7 +43,7 @@ template<typename G> struct DRV8871 final :
     /// @param forward PWM output for forward rotation
     /// @param backward PWM output for backward rotation
     explicit DRV8871(const Config &config, PwmOutputImpl &&forward, PwmOutputImpl &&backward) noexcept :
-        mixin::Configurable<Config>(config),
+        mixin::Configured<Config>(config),
         _pwm_gpio_forward{std::move(forward)}, _pwm_gpio_backward{std::move(backward)} {}
 
 private:

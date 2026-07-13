@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/math.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
 namespace kf::internal {
@@ -22,12 +22,12 @@ namespace kf {
 struct Timer final :
 
     mixin::NonCopyable,
-    mixin::Configurable<internal::TimerConfig>
+    mixin::Configured<internal::TimerConfig>
 
 {
     using Config = internal::TimerConfig;
 
-    using ::kf::mixin::Configurable<Config>::Configurable;
+    using ::kf::mixin::Configured<Config>::Configured;
 
     /// @brief Start (restart) timer
     constexpr void start(math::Milliseconds now) noexcept {

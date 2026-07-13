@@ -6,7 +6,7 @@
 #include "kf/Timer.hpp"
 #include "kf/listener/Listener.hpp"
 #include "kf/math.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {
@@ -44,13 +44,13 @@ namespace kf::listener {
 struct JoystickListener final :
 
     Listener<JoystickListener, math::Vector2f, void(internal::JoystickListenerDirection)>,
-    mixin::Configurable<internal::JoystickListenerConfig>
+    mixin::Configured<internal::JoystickListenerConfig>
 
 {
     using Config = internal::JoystickListenerConfig;
     using Direction = internal::JoystickListenerDirection;
 
-    using mixin::Configurable<Config>::Configurable;
+    using mixin::Configured<Config>::Configured;
 
 private:
     Timer _repeat_timer{this->config().repeat_timer};

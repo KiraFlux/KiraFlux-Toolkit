@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
 
@@ -36,7 +36,7 @@ template<typename U, typename T, typename A> struct SpinBox :
     SpinBoxTag,
     U::Widget,
     mixin::ValueCallbacked<T>,
-    mixin::Configurable<internal::SpinBoxConfig<T>>
+    mixin::Configured<internal::SpinBoxConfig<T>>
 
 {
     KF_CHECK_IMPL(A, typename U::AdjusterTag);
@@ -45,7 +45,7 @@ template<typename U, typename T, typename A> struct SpinBox :
     using Config = internal::SpinBoxConfig<T>;
 
     explicit constexpr SpinBox(const Config &config, T default_value = T{}, Style style = Style::defaults()) noexcept :
-        U::Widget{style}, mixin::ValueCallbacked<T>{default_value}, mixin::Configurable<Config>{config}, _step(config.default_step) {}
+        U::Widget{style}, mixin::ValueCallbacked<T>{default_value}, mixin::Configured<Config>{config}, _step(config.default_step) {}
 
     /// @brief Toggle between value adjustment and step adjustment modes
     Request onClick() noexcept override {

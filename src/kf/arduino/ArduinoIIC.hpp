@@ -7,7 +7,7 @@
 #include <type_traits>
 
 #include "kf/math.hpp"
-#include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Readable.hpp"
 #include "kf/mixin/Writable.hpp"
@@ -82,7 +82,7 @@ struct ArduinoIicBusConfig final {
 template<typename I> struct ArduinoIicNode :
 
     bus::IicNode<ArduinoIicNode<I>, ArduinoIicError>,
-    ::kf::mixin::Configurable<NodeConfig>
+    ::kf::mixin::Configured<NodeConfig>
 
 {
     using BusImpl = I;
@@ -92,7 +92,7 @@ template<typename I> struct ArduinoIicNode :
     using Config = NodeConfig;
 
     explicit ArduinoIicNode(BusImpl &bus, const Config &config) noexcept :
-        mixin::Configurable<Config>{config}, _wire{bus._wire} {}
+        mixin::Configured<Config>{config}, _wire{bus._wire} {}
 
 private:
     TwoWire &_wire;
@@ -226,7 +226,7 @@ namespace kf::arduino {
 struct ArduinoIIC :
 
     bus::IIC<ArduinoIIC, internal::ArduinoIicNode<ArduinoIIC>, internal::ArduinoIicError>,
-    mixin::Configurable<internal::ArduinoIicBusConfig>
+    mixin::Configured<internal::ArduinoIicBusConfig>
 
 {
     using Config = internal::ArduinoIicBusConfig;
@@ -236,7 +236,7 @@ struct ArduinoIIC :
     friend Node;
 
     explicit ArduinoIIC(const Config &config, TwoWire &wire) noexcept :
-        mixin::Configurable<Config>{config}, _wire{wire} {}
+        mixin::Configured<Config>{config}, _wire{wire} {}
 
 private:
     TwoWire &_wire;
