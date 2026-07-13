@@ -20,4 +20,4 @@ template<typename Impl> struct Equatable {
 
 }// namespace kf::mixin
 
-#define KF_IMPL_EQUATABLE(__impl__) friend struct ::kf::mixin::Equatable<__impl__>
+#define KF_IMPL_EQUATABLE(...) friend struct ::kf::mixin::Equatable<__VA_ARGS__>

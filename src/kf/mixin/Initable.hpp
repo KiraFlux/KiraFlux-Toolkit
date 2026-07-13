@@ -35,4 +35,4 @@ template<typename Impl, typename R, typename... Args> struct Initable<Impl, R(Ar
 
 }// namespace kf::mixin
 
-#define KF_IMPL_INITABLE(__impl__, ...) friend struct ::kf::mixin::Initable<__impl__, __VA_ARGS__>
+#define KF_IMPL_INITABLE(...) friend struct ::kf::mixin::Initable<__VA_ARGS__>

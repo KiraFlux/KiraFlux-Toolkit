@@ -62,7 +62,7 @@ template<typename W> struct UiTraits : UiTraitsTag {
         }
     };
 
-#define KF_IMPL_ADJUSTER(__impl__, __type__) friend struct Adjuster<__impl__, __type__>
+#define KF_IMPL_ADJUSTER(...) friend struct Adjuster<__VA_ARGS__>
 
     /// @brief Arithmetic mode: value += direction * step
     template<typename T> struct ArithmeticAdjuster final : Adjuster<ArithmeticAdjuster<T>, T> {

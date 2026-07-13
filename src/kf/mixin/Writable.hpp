@@ -68,4 +68,4 @@ private:
 
 }// namespace kf::mixin
 
-#define KF_IMPL_WRITABLE(__impl__, ...) friend struct kf::mixin::Writable<__impl__, __VA_ARGS__>
+#define KF_IMPL_WRITABLE(...) friend struct kf::mixin::Writable<__VA_ARGS__>

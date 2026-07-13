@@ -40,6 +40,6 @@ template<typename Impl, typename T> struct Iterator : IteratorTag, mixin::Equata
 
 }// namespace kf
 
-#define KF_IMPL_ITERATOR(__impl__, __type__)          \
-    friend struct ::kf::Iterator<__impl__, __type__>; \
+#define KF_IMPL_ITERATOR(__impl__, ...)                  \
+    friend struct ::kf::Iterator<__impl__, __VA_ARGS__>; \
     KF_IMPL_EQUATABLE(__impl__)

@@ -27,4 +27,4 @@ template<typename Impl, typename T> struct Indexable : IndexableTag {
 
 }// namespace kf::mixin
 
-#define KF_IMPL_INDEXABLE(__impl__, __type__) friend struct ::kf::mixin::Indexable<__impl__, __type__>
+#define KF_IMPL_INDEXABLE(...) friend struct ::kf::mixin::Indexable<__VA_ARGS__>

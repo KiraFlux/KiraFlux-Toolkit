@@ -53,4 +53,4 @@ private:
 
 }// namespace kf::mixin
 
-#define KF_IMPL_READABLE(__impl__, __error_type__) friend struct kf::mixin::Readable<__impl__, __error_type__>
+#define KF_IMPL_READABLE(...) friend struct kf::mixin::Readable<__VA_ARGS__>

@@ -44,6 +44,6 @@ private:
 
 }// namespace kf::listener
 
-#define KF_IMPL_LISTENER(__impl__) \
-    KF_IMPL_RESETTABLE(__impl__);  \
-    KF_IMPL_TIMED_POLLABLE(__impl__)
+#define KF_IMPL_LISTENER(...)        \
+    KF_IMPL_RESETTABLE(__VA_ARGS__); \
+    KF_IMPL_TIMED_POLLABLE(__VA_ARGS__)

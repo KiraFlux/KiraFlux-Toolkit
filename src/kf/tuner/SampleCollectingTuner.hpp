@@ -93,7 +93,7 @@ private:
 
 }// namespace kf::tuner
 
-#define KF_IMPL_SAMPLE_COLLECTING_TUNER(__impl__, __type__)               \
-    friend struct ::kf::tuner::SampleCollectingTuner<__impl__, __type__>; \
-    KF_IMPL_RESETTABLE(__impl__);                                         \
+#define KF_IMPL_SAMPLE_COLLECTING_TUNER(__impl__, ...)                       \
+    friend struct ::kf::tuner::SampleCollectingTuner<__impl__, __VA_ARGS__>; \
+    KF_IMPL_RESETTABLE(__impl__);                                            \
     KF_IMPL_POLLABLE(__impl__)

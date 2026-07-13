@@ -22,4 +22,4 @@ template<typename Impl> struct TimedPollable : TimedPollableTag {
 
 }// namespace kf::mixin
 
-#define KF_IMPL_TIMED_POLLABLE(__impl__) friend struct ::kf::mixin::TimedPollable<__impl__>
+#define KF_IMPL_TIMED_POLLABLE(...) friend struct ::kf::mixin::TimedPollable<__VA_ARGS__>

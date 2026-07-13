@@ -21,4 +21,4 @@ template<typename Impl, typename StringType> struct StringRepresentable : String
 
 }// namespace kf::mixin
 
-#define KF_IMPL_STRING_REPRESENTABLE(__impl__, ...) friend struct ::kf::mixin::StringRepresentable<__impl__, __VA_ARGS__>
+#define KF_IMPL_STRING_REPRESENTABLE(...) friend struct ::kf::mixin::StringRepresentable<__VA_ARGS__>

@@ -79,6 +79,6 @@ private:
 
 }// namespace kf
 
-#define KF_IMPL_SEQUENCE(__impl__, __type__)          \
-    friend struct ::kf::Sequence<__impl__, __type__>; \
-    KF_IMPL_LENGTH(__impl__, usize)
+#define KF_IMPL_SEQUENCE(__impl__, ...)                  \
+    friend struct ::kf::Sequence<__impl__, __VA_ARGS__>; \
+    KF_IMPL_LENGTH(__impl__, ::kf::usize)

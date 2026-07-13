@@ -20,4 +20,4 @@ template<typename Impl, typename T> struct Length : LengthTag {
 
 }// namespace kf::mixin
 
-#define KF_IMPL_LENGTH(__impl__, __type__) friend struct ::kf::mixin::Length<__impl__, __type__>
+#define KF_IMPL_LENGTH(...) friend struct ::kf::mixin::Length<__VA_ARGS__>

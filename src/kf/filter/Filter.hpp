@@ -26,6 +26,6 @@ template<typename Impl, typename T> struct Filter : FilterTag, mixin::NonCopyabl
 
 }// namespace kf::filter
 
-#define KF_IMPL_FILTER(__impl__, __type__)                  \
-    friend struct ::kf::filter::Filter<__impl__, __type__>; \
+#define KF_IMPL_FILTER(__impl__, ...)                          \
+    friend struct ::kf::filter::Filter<__impl__, __VA_ARGS__>; \
     KF_IMPL_RESETTABLE(__impl__)
