@@ -8,7 +8,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/filters/Filter.hpp"
+#include "kf/filter/Filter.hpp"
 
 namespace kf::internal {
 
@@ -18,7 +18,7 @@ struct LowFrequencyFilterConfig final {
 
 }// namespace kf::internal
 
-namespace kf::filters {
+namespace kf::filter {
 
 /// @brief First-order low-pass filter (exponential smoothing).
 /// @tparam T Scalar type (e.g., float, double).
@@ -64,4 +64,4 @@ private:
     }
 };
 
-}// namespace kf::filters
+}// namespace kf::filter

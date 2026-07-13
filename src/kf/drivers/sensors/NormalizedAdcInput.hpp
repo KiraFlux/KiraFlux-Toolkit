@@ -6,7 +6,7 @@
 #include <utility>
 
 #include "kf/GPIO.hpp"
-#include "kf/filters/ExponentialFilter.hpp"
+#include "kf/filter/ExponentialFilter.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
@@ -48,7 +48,7 @@ template<typename G> struct NormalizedAdcInput final :
     KF_CHECK_IMPL(G, ::kf::GPIO::AdcInputTag);
 
     using AdcInputImpl = G;
-    using FilterImpl = filters::ExponentialFilter<f32>;
+    using FilterImpl = filter::ExponentialFilter<f32>;
     using Config = internal::NormalizedAdcInputConfig;
 
     /// @brief Tuner for a single analog axis.

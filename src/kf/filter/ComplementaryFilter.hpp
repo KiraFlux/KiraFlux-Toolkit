@@ -18,7 +18,7 @@ struct ComplementaryFilterConfig final {
 
 }// namespace kf::internal
 
-namespace kf::filters {
+namespace kf::filter {
 
 /// @brief Complementary filter for sensor fusion
 /// @tparam T Data type (typically float or vector type)
@@ -62,4 +62,4 @@ private:
     }
 };
 
-}// namespace kf::filters
+}// namespace kf::filter

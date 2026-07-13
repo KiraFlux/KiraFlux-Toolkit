@@ -8,7 +8,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/filters/Filter.hpp"
+#include "kf/filter/Filter.hpp"
 
 namespace kf::internal {
 
@@ -18,7 +18,7 @@ struct ExponentialFilterConfig final {
 
 }// namespace kf::internal
 
-namespace kf::filters {
+namespace kf::filter {
 
 /// @brief Exponential moving average filter (EMA)
 /// @tparam T Data type (typically float or integer)
@@ -55,4 +55,4 @@ private:
     }
 };
 
-}// namespace kf::filters
+}// namespace kf::filter
