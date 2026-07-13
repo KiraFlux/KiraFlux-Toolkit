@@ -6,7 +6,7 @@
 #include <utility>
 
 #include <kf/GPIO.hpp>
-#include <kf/driver/actuator/Actuator.hpp>
+#include <kf/driver/actuator/ActuatorDriver.hpp>
 #include <kf/math.hpp>
 #include <kf/mixin/Configurable.hpp>
 
@@ -30,7 +30,7 @@ namespace kf::driver::actuator {
 /// @tparam G Implementation of GPIO with PWM output support
 template<typename G> struct DRV8871 final :
 
-    driver::actuator::Actuator<DRV8871<G>, internal::DRV8871Config::InputType, bool()>,
+    driver::actuator::ActuatorDriver<DRV8871<G>, internal::DRV8871Config::InputType, bool()>,
     mixin::Configurable<internal::DRV8871Config>
 
 {
@@ -57,7 +57,7 @@ private:
             dead_zone, pwm_output.config().maxDuty());
     }
 
-    KF_IMPL_ACTUATOR(DRV8871<G>, Config::InputType, bool());
+    KF_IMPL_ACTUATOR_DRIVER(DRV8871<G>, Config::InputType, bool());
 
     bool initImpl() noexcept {
         if (not _pwm_gpio_forward.init()) { return false; }

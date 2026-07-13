@@ -10,7 +10,7 @@
 #include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 
-#include "kf/driver/actuator/Actuator.hpp"
+#include "kf/driver/actuator/ActuatorDriver.hpp"
 
 namespace kf::internal {
 
@@ -38,7 +38,7 @@ namespace kf::driver::actuator {
 /// @tparam G Implementation of GPIO with PWM output support
 template<typename G> struct PwmPositionServo final :
 
-    Actuator<PwmPositionServo<G>, math::Degrees, bool()>,
+    ActuatorDriver<PwmPositionServo<G>, math::Degrees, bool()>,
     mixin::Configurable<internal::PwmPositionServoConfig>
 
 {
@@ -66,7 +66,7 @@ private:
     Config::AngleRange _angle_safe_range;///< Safe operating angle range (clamped before mapping)
     PwmOutputImpl _pwm_gpio;             ///< PWM output gpio
 
-    KF_IMPL_ACTUATOR(PwmPositionServo<G>, math::Degrees, bool());
+    KF_IMPL_ACTUATOR_DRIVER(PwmPositionServo<G>, math::Degrees, bool());
 
     bool initImpl() noexcept {
         return _pwm_gpio.init();
