@@ -56,7 +56,7 @@ static kf::Array<char, 256> my_renderer_buffer{};
 // allocate memory for event queue
 static char my_event_buffer[64 * sizeof(MyUI::Traits::EventImpl)];
 
-static Render::Config my_renderer_config{Render::Config::defaults()};// will set in setup
+static Render::Config my_renderer_config{};// will set in setup
 
 static Render my_renderer{
     my_renderer_config,// by ref
@@ -412,10 +412,13 @@ void setup() {
     });
 
     // render config setup
-    my_renderer_config.text.float_places = 3;                         // float rendering like:  1234.567
-    my_renderer_config.text.double_places = 6;                        // double rendering like: 1.234567
-    my_renderer_config.text.rows_total = root_canvas.heightInGlyphs();// all canvas area
-    my_renderer_config.text.row_max_length = root_canvas.widthInGlyphs();
+    my_renderer_config.reset();// to defaults
+
+    // override
+    my_renderer_config.textual.float_places = 3;                         // float rendering like:  1234.567
+    my_renderer_config.textual.double_places = 6;                        // double rendering like: 1.234567
+    my_renderer_config.textual.rows_total = root_canvas.heightInGlyphs();// all canvas area
+    my_renderer_config.textual.row_max_length = root_canvas.widthInGlyphs();
 
     // my_render_config.normal_foreground_palette.normal = Renderer::Config::Palette::Black; // style configuration
     // my_render_config.focused_foreground_palette

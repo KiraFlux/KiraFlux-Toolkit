@@ -5,6 +5,7 @@
 
 #include "kf/Slice.hpp"
 #include "kf/mixin/Configured.hpp"
+#include "kf/mixin/Resettable.hpp"
 
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Layout.hpp"
@@ -13,9 +14,7 @@
 
 namespace kf::internal {
 
-// todo: extend textual config
-struct ColoredTextRendererConfig final {
-    using TextConfig = ui::render::TextualRenderer::Config;
+struct ColoredTextRendererConfig : mixin::Resettable<ColoredTextRendererConfig> {
 
     struct Palette final {
 
@@ -57,57 +56,60 @@ struct ColoredTextRendererConfig final {
         }
     };
 
-    TextConfig text;
+    ui::render::TextualRenderer::Config textual;
     Palette normal_foreground_palette, focused_foreground_palette, normal_background_palette, focused_background_palette;
 
-    // TODO: use reset
-    [[nodiscard]] static constexpr auto defaults() noexcept {
-        return ColoredTextRendererConfig{
-            .text = TextConfig::defaults(),
-            .normal_foreground_palette = {
-                .normal = Palette::White,
-                .primary = Palette::LightBlue,
-                .secondary = Palette::LightGray,
-                .success = Palette::LightGreen,
-                .warning = Palette::LightYellow,
-                .error = Palette::LightRed,
-                .info = Palette::LightCyan,
-                .disabled = Palette::DarkGray,
-                .highlight = Palette::LightPurple,
-            },
-            .focused_foreground_palette = {
-                .normal = Palette::Black,
-                .primary = Palette::Black,
-                .secondary = Palette::Black,
-                .success = Palette::Black,
-                .warning = Palette::Black,
-                .error = Palette::Black,
-                .info = Palette::Black,
-                .disabled = Palette::LightGray,
-                .highlight = Palette::DarkPurple,
-            },
-            .normal_background_palette = {
-                .normal = Palette::Black,
-                .primary = Palette::DarkBlue,
-                .secondary = Palette::DarkGray,
-                .success = Palette::DarkGreen,
-                .warning = Palette::DarkYellow,
-                .error = Palette::DarkRed,
-                .info = Palette::DarkCyan,
-                .disabled = Palette::DarkGray,
-                .highlight = Palette::DarkPurple,
-            },
-            .focused_background_palette = {
-                .normal = Palette::White,
-                .primary = Palette::LightBlue,
-                .secondary = Palette::LightGray,
-                .success = Palette::LightGreen,
-                .warning = Palette::LightYellow,
-                .error = Palette::LightRed,
-                .info = Palette::LightCyan,
-                .disabled = Palette::LightGray,
-                .highlight = Palette::LightPurple,
-            },
+    KF_IMPL_RESETTABLE(TextualRendererConfig);
+    constexpr void resetImpl() noexcept {
+
+        textual.reset();
+
+        normal_foreground_palette = {
+            .normal = Palette::White,
+            .primary = Palette::LightBlue,
+            .secondary = Palette::LightGray,
+            .success = Palette::LightGreen,
+            .warning = Palette::LightYellow,
+            .error = Palette::LightRed,
+            .info = Palette::LightCyan,
+            .disabled = Palette::DarkGray,
+            .highlight = Palette::LightPurple,
+        };
+
+        focused_foreground_palette = {
+            .normal = Palette::Black,
+            .primary = Palette::Black,
+            .secondary = Palette::Black,
+            .success = Palette::Black,
+            .warning = Palette::Black,
+            .error = Palette::Black,
+            .info = Palette::Black,
+            .disabled = Palette::LightGray,
+            .highlight = Palette::DarkPurple,
+        };
+
+        normal_background_palette = {
+            .normal = Palette::Black,
+            .primary = Palette::DarkBlue,
+            .secondary = Palette::DarkGray,
+            .success = Palette::DarkGreen,
+            .warning = Palette::DarkYellow,
+            .error = Palette::DarkRed,
+            .info = Palette::DarkCyan,
+            .disabled = Palette::DarkGray,
+            .highlight = Palette::DarkPurple,
+        };
+
+        focused_background_palette = {
+            .normal = Palette::White,
+            .primary = Palette::LightBlue,
+            .secondary = Palette::LightGray,
+            .success = Palette::LightGreen,
+            .warning = Palette::LightYellow,
+            .error = Palette::LightRed,
+            .info = Palette::LightCyan,
+            .disabled = Palette::LightGray,
+            .highlight = Palette::LightPurple,
         };
     }
 };
@@ -126,7 +128,7 @@ struct ColoredTextRenderer :
     using Config = internal::ColoredTextRendererConfig;
 
     explicit constexpr ColoredTextRenderer(const Config &config, Slice<char> source) noexcept :
-        mixin::Configured<Config>{config}, _wrapped{config.text, source} {}
+        mixin::Configured<Config>{config}, _wrapped{config.textual, source} {}
 
     template<typename F> void callback(F &&callback) noexcept {
         _wrapped.callback(std::forward<F>(callback));
