@@ -8,7 +8,6 @@
 #include "kf/Range.hpp"
 #include "kf/gpio/GPIO.hpp"
 #include "kf/math.hpp"
-#include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 
 #include "kf/drivers/actuators/Actuator.hpp"

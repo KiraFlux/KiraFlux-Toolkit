@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/math/units.hpp"
+#include "kf/math.hpp"
 
 namespace kf::mixin {
 

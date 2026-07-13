@@ -7,7 +7,7 @@
 
 #include "kf/Result.hpp"
 #include "kf/image/Image.hpp"
-#include "kf/math/units.hpp"
+#include "kf/math.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {

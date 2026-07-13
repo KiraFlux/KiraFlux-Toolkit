@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/listener/Listener.hpp"
-#include "kf/math/units.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 
 namespace kf::internal {

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Slice.hpp"
-#include "kf/math/units.hpp"
+#include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
 

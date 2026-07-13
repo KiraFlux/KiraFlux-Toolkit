@@ -7,7 +7,6 @@
 #include "kf/listener/Listener.hpp"
 #include "kf/math.hpp"
 #include "kf/math/Vector2.hpp"
-#include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/primitives.hpp"
 

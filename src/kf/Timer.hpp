@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/math/units.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 

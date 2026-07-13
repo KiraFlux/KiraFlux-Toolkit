@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Option.hpp"
-#include "kf/math/units.hpp"
+#include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
