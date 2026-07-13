@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <kf/Logger.hpp>
 
+#include <kf/arduino/ArduinoGPIO.hpp>
 #include <kf/drivers/actuators/PwmPositionServo.hpp>
-#include <kf/gpio/ArduinoGPIO.hpp>
 
-using PwmOutput = kf::gpio::ArduinoGPIO::PwmOutput;
+using PwmOutput = kf::arduino::ArduinoGPIO::PwmOutput;
 using PwmPositionServo = kf::drivers::actuators::PwmPositionServo<PwmOutput>;
 
 // Angle -> pulse width mapping (0° = 500 µs, 180° = 2500 µs)

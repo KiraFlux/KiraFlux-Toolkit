@@ -23,7 +23,7 @@ enum class ArduinoStreamError : u8 {
 
 }
 
-namespace kf::io {
+namespace kf::arduino {
 
 struct ArduinoStream final :
 
@@ -108,4 +108,4 @@ private:
     }
 };
 
-}// namespace kf::io
+}// namespace kf::arduino

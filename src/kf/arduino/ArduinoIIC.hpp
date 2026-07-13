@@ -13,7 +13,7 @@
 #include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/bus/iic/IIC.hpp"
+#include "kf/bus/IIC.hpp"
 
 namespace kf::internal {
 
@@ -81,7 +81,7 @@ struct ArduinoIicBusConfig final {
 ///       The node is created via `ArduinoIIC::createNode()` and must remain valid while the bus exists.
 template<typename I> struct ArduinoIicNode :
 
-    ::kf::bus::iic::IicNode<ArduinoIicNode<I>, ArduinoIicError>,
+    bus::IicNode<ArduinoIicNode<I>, ArduinoIicError>,
     ::kf::mixin::Configurable<NodeConfig>
 
 {
@@ -223,12 +223,12 @@ private:
 
 };// namespace kf::internal
 
-namespace kf::bus::iic {
+namespace kf::arduino {
 
 struct ArduinoIIC :
 
-    ::kf::bus::iic::IIC<ArduinoIIC, internal::ArduinoIicNode<ArduinoIIC>, internal::ArduinoIicError>,
-    ::kf::mixin::Configurable<internal::ArduinoIicBusConfig>
+    bus::IIC<ArduinoIIC, internal::ArduinoIicNode<ArduinoIIC>, internal::ArduinoIicError>,
+    mixin::Configurable<internal::ArduinoIicBusConfig>
 
 {
     using Config = internal::ArduinoIicBusConfig;
@@ -280,4 +280,4 @@ private:
     }
 };
 
-}// namespace kf::bus::iic
+}// namespace kf::arduino

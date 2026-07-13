@@ -4,13 +4,13 @@
 #include <kf/Timer.hpp>
 
 // target files for this demo
+#include <kf/arduino/ArduinoGPIO.hpp>
 #include <kf/drivers/sensors/Joystick.hpp>
 #include <kf/drivers/sensors/NormalizedAdcInput.hpp>
-#include <kf/gpio/ArduinoGPIO.hpp>
 
 #include <kf/listener/JoystickListener.hpp>
 
-using AdcInput = kf::gpio::ArduinoGPIO::AdcInput;
+using AdcInput = kf::arduino::ArduinoGPIO::AdcInput;
 using NormalizedAdcInput = kf::drivers::sensors::NormalizedAdcInput<AdcInput>;
 using Joystick = kf::drivers::sensors::Joystick<NormalizedAdcInput>;
 using JoystickListener = kf::listener::JoystickListener;

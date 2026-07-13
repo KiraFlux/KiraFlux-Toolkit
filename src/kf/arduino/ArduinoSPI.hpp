@@ -14,7 +14,7 @@
 #include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/bus/spi/SPI.hpp"
+#include "kf/bus/SPI.hpp"
 
 namespace kf::internal {
 
@@ -92,7 +92,7 @@ struct ArduinoSpiBusConfig final {
 ///       The node is created via ArduinoSPI::createNode() and must outlive the bus.
 template<typename I> struct ArduinoSpiNode :
 
-    ::kf::bus::spi::SpiNode<ArduinoSpiNode<I>, ArduinoSpiError>,
+    ::kf::bus::SpiNode<ArduinoSpiNode<I>, ArduinoSpiError>,
     ::kf::mixin::Configurable<ArduinoSpiNodeConfig>
 
 {
@@ -238,11 +238,11 @@ private:
 
 }// namespace kf::internal
 
-namespace kf::bus::spi {
+namespace kf::arduino {
 
 struct ArduinoSPI :
 
-    SPI<ArduinoSPI, internal::ArduinoSpiNode<ArduinoSPI>, internal::ArduinoSpiError>,
+    bus::SPI<ArduinoSPI, internal::ArduinoSpiNode<ArduinoSPI>, internal::ArduinoSpiError>,
     mixin::Configurable<internal::ArduinoSpiBusConfig>
 
 {
@@ -272,4 +272,4 @@ private:
     void quitImpl() noexcept { _spi.end(); }
 };
 
-}// namespace kf::bus::spi
+}// namespace kf::arduino

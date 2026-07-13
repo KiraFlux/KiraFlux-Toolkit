@@ -1,10 +1,10 @@
 // KiraFlux-Toolkit Demo 'sensor-sharp'
 #include <Arduino.h>
 
+#include <kf/arduino/ArduinoGPIO.hpp>
 #include <kf/drivers/sensors/Sharp.hpp>
-#include <kf/gpio/ArduinoGPIO.hpp>
 
-using AdcInput = kf::gpio::ArduinoGPIO::AdcInput;
+using AdcInput = kf::arduino::ArduinoGPIO::AdcInput;
 using Sharp = kf::drivers::sensors::Sharp<AdcInput>;
 
 Sharp my_sensor{AdcInput{GPIO_NUM_30}};

@@ -5,9 +5,9 @@
 
 #include <Arduino.h>// for delay
 
+#include "kf/GPIO.hpp"
 #include "kf/Result.hpp"
-#include "kf/bus/spi/SPI.hpp"
-#include "kf/gpio/GPIO.hpp"
+#include "kf/bus/SPI.hpp"
 #include "kf/image/ViewportImage.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
@@ -38,8 +38,8 @@ template<typename N, typename G> struct ST7735 final :
     mixin::Configurable<internal::ST7735Config>
 
 {
-    KF_CHECK_IMPL(N, ::kf::bus::spi::SpiNodeTag);
-    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::DigitalOutputTag);
+    KF_CHECK_IMPL(N, ::kf::bus::SpiNodeTag);
+    KF_CHECK_IMPL(G, ::kf::GPIO::DigitalOutputTag);
 
     using SpiBusNodeImpl = N;
     using DigitalOutputImpl = G;

@@ -18,15 +18,15 @@
 #include <kf/image/DynamicImage.hpp>
 
 #include <Arduino.h>
-#include <kf/bus/spi/ArduinoSPI.hpp>
+#include <kf/arduino/ArduinoGPIO.hpp>
+#include <kf/arduino/ArduinoSPI.hpp>
 #include <kf/drivers/display/Orientation.hpp>
 #include <kf/drivers/display/ST7735.hpp>
-#include <kf/gpio/ArduinoGPIO.hpp>
 
 using kf::drivers::display::Orientation;
 
-using kf::bus::spi::ArduinoSPI;
-using kf::gpio::ArduinoGPIO;
+using kf::arduino::ArduinoGPIO;
+using kf::arduino::ArduinoSPI;
 using ST7735 = kf::drivers::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput>;
 
 using P = ST7735::PixelImpl;        // Pixel format used by the display

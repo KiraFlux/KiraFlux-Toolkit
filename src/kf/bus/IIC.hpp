@@ -5,7 +5,7 @@
 
 #include "kf/bus/Bus.hpp"
 
-namespace kf::bus::iic {
+namespace kf::bus {
 
 struct IicNodeTag {};
 
@@ -26,4 +26,4 @@ template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct IIC :
     IicBusTag,
     Bus<BusImpl, NodeImpl, ErrorImpl> {};
 
-}// namespace kf::bus::iic
+}// namespace kf::bus

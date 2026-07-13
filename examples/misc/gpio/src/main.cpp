@@ -1,9 +1,9 @@
 // Demo: kf::gpio basic usage
 
 #include <Arduino.h>
-#include <kf/gpio/ArduinoGPIO.hpp>
+#include <kf/arduino/ArduinoGPIO.hpp>
 
-using kf::gpio::ArduinoGPIO;
+using kf::arduino::ArduinoGPIO;
 
 ArduinoGPIO::DigitalInput button{GPIO_NUM_10, ArduinoGPIO::DigitalInput::Pull::ExternalDown};// button to GND
 ArduinoGPIO::DigitalOutput led{GPIO_NUM_12};                                                 // LED with resistor

@@ -7,7 +7,7 @@
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
-namespace kf::bus::spi {
+namespace kf::bus {
 
 struct SpiNodeTag {};
 
@@ -29,7 +29,7 @@ template<typename Impl, typename NodeImpl, typename ErrorImpl> struct SPI :
     Bus<Impl, NodeImpl, ErrorImpl>
 
 {
-    KF_CHECK_IMPL(NodeImpl, ::kf::bus::spi::SpiNodeTag);
+    KF_CHECK_IMPL(NodeImpl, ::kf::bus::SpiNodeTag);
 };
 
-}// namespace kf::bus::spi
+}// namespace kf::bus

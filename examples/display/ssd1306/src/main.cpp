@@ -18,10 +18,10 @@
 #include <kf/image/DynamicImage.hpp>
 
 // Actually uses in this demo
-#include <kf/bus/iic/ArduinoIIC.hpp>
+#include <kf/arduino/ArduinoIIC.hpp>
 #include <kf/drivers/display/SSD1306.hpp>
 
-using kf::bus::iic::ArduinoIIC;
+using kf::arduino::ArduinoIIC;
 using kf::drivers::display::Orientation;
 using SSD1306 = kf::drivers::display::SSD1306<ArduinoIIC::Node>;
 

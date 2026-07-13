@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/bus/iic/IIC.hpp"
+#include "kf/bus/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/math.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
@@ -28,7 +28,7 @@ template<typename N> struct SSD1306 final :
     DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl, Result<void, typename N::Error>>
 
 {
-    KF_CHECK_IMPL(N, ::kf::bus::iic::IicNodeTag);
+    KF_CHECK_IMPL(N, ::kf::bus::IicNodeTag);
 
     using IicNodeImpl = N;
     using PixelImpl = typename internal::SSD1306ImageImpl::PixelImpl;

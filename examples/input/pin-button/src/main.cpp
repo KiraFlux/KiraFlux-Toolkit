@@ -1,10 +1,10 @@
 // KiraFlux-Toolkit Demo 'input-button'
 #include <Arduino.h>
 
-#include <kf/gpio/ArduinoGPIO.hpp>
+#include <kf/arduino/ArduinoGPIO.hpp>
 #include <kf/listener/LogicalLevelListener.hpp>
 
-using DigitalInput = kf::gpio::ArduinoGPIO::DigitalInput;
+using DigitalInput = kf::arduino::ArduinoGPIO::DigitalInput;
 using Button = kf::listener::LogicalLevelListener;
 
 Button::Config my_button_listener_config{

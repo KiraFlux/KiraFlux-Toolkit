@@ -9,7 +9,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
 
-namespace kf::gpio {
+namespace kf {
 
 struct GpioTag {};
 
@@ -154,4 +154,4 @@ struct GPIO final : GpioTag {
     };
 };
 
-}// namespace kf::gpio
+}// namespace kf

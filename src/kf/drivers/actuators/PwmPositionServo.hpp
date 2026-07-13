@@ -5,8 +5,8 @@
 
 #include <utility>
 
+#include "kf/GPIO.hpp"
 #include "kf/Range.hpp"
-#include "kf/gpio/GPIO.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 
@@ -42,7 +42,7 @@ template<typename G> struct PwmPositionServo final :
     mixin::Configurable<internal::PwmPositionServoConfig>
 
 {
-    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::PwmOutputTag);
+    KF_CHECK_IMPL(G, ::kf::GPIO::PwmOutputTag);
     using PwmOutputImpl = G;
 
     /// @brief Configuration for PWM position servo (angle <-> pulse width mapping)

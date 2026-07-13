@@ -4,12 +4,12 @@
 
 // uses in this demo:
 #include <kf/Array.hpp>
-#include <kf/bus/spi/ArduinoSPI.hpp>
+#include <kf/arduino/ArduinoGPIO.hpp>
+#include <kf/arduino/ArduinoSPI.hpp>
 #include <kf/drivers/display/Orientation.hpp>
 #include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
 #include <kf/gfx/fonts/gyver_5x7.hpp>
-#include <kf/gpio/ArduinoGPIO.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
@@ -17,9 +17,9 @@
 #include <kf/ui/render/ColoredTextRenderer.hpp>
 #include <kf/ui/widgets/Widget.hpp>
 
-using kf::bus::spi::ArduinoSPI;
+using kf::arduino::ArduinoGPIO;
+using kf::arduino::ArduinoSPI;
 using kf::drivers::display::Orientation;
-using kf::gpio::ArduinoGPIO;
 
 // Display Driver specialization
 using MyDisplayDriver = kf::drivers::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput>;

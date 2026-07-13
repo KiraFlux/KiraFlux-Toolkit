@@ -5,8 +5,8 @@
 
 #include <utility>
 
+#include "kf/GPIO.hpp"
 #include "kf/filters/ExponentialFilter.hpp"
-#include "kf/gpio/GPIO.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Initable.hpp"
@@ -45,7 +45,7 @@ template<typename G> struct NormalizedAdcInput final :
     mixin::Configurable<internal::NormalizedAdcInputConfig>
 
 {
-    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::AdcInputTag);
+    KF_CHECK_IMPL(G, ::kf::GPIO::AdcInputTag);
 
     using AdcInputImpl = G;
     using FilterImpl = filters::ExponentialFilter<f32>;

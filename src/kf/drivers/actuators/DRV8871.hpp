@@ -5,8 +5,8 @@
 
 #include <utility>
 
+#include <kf/GPIO.hpp>
 #include <kf/drivers/actuators/Actuator.hpp>
-#include <kf/gpio/GPIO.hpp>
 #include <kf/math.hpp>
 #include <kf/mixin/Configurable.hpp>
 
@@ -34,7 +34,7 @@ template<typename G> struct DRV8871 final :
     mixin::Configurable<internal::DRV8871Config>
 
 {
-    KF_CHECK_IMPL(G, ::kf::gpio::GPIO::PwmOutputTag);
+    KF_CHECK_IMPL(G, ::kf::GPIO::PwmOutputTag);
 
     using PwmOutputImpl = G;
     using Config = internal::DRV8871Config;
