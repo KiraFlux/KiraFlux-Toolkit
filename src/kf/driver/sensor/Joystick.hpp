@@ -7,7 +7,7 @@
 #include "kf/meta/CRTP.hpp"
 #include "kf/tuner/Tuner.hpp"
 
-#include "kf/driver/sensor/Sensor.hpp"
+#include "kf/driver/sensor/SensorDriver.hpp"
 
 namespace kf::internal {
 
@@ -23,8 +23,8 @@ namespace kf::driver::sensor {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
-template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::JoystickValue, void()> {
-    KF_CHECK_IMPL(I, Sensor<I, f32, void()>);
+template<typename I> struct Joystick final : SensorDriver<Joystick<I>, internal::JoystickValue, void()> {
+    KF_CHECK_IMPL(I, SensorDriver<I, f32, void()>);
 
     using InputImpl = I;
 
@@ -75,7 +75,7 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
         axis_y{config.y, filter_config, std::move(pin_y)} {}
 
 private:
-    KF_IMPL_SENSOR(Joystick<I>, Value, void());
+    KF_IMPL_SENSOR_DRIVER(Joystick<I>, Value, void());
 
     void initImpl() noexcept {
         axis_x.init();

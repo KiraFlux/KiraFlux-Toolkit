@@ -33,6 +33,6 @@ template<typename Impl, typename Unit, typename InitSignature> struct ActuatorDr
 
 }// namespace kf::driver::actuator
 
-#define KF_IMPL_ACTUATOR_DRIVER(__impl__, __unit_type__, ...)                                          \
+#define KF_IMPL_ACTUATOR_DRIVER(__impl__, __unit_type__, ...)                                   \
     friend struct ::kf::driver::actuator::ActuatorDriver<__impl__, __unit_type__, __VA_ARGS__>; \
     KF_IMPL_INITABLE(__impl__, __VA_ARGS__)

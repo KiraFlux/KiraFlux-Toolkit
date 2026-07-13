@@ -9,16 +9,15 @@
 
 namespace kf::driver::sensor {
 
-struct SensorTag {};
-// TODO: rename to SensorDriver
+struct SensorDriverTag {};
 
-/// @brief Sensor CRTP interface
-/// @tparam Impl Sensor implementation
+/// @brief SensorDriver CRTP interface
+/// @tparam Impl SensorDriver implementation
 /// @tparam Measurement Result of `read()`
 /// @tparam InitSignature signature of `init`
-template<typename Impl, typename Measurement, typename InitSignature> struct Sensor :
+template<typename Impl, typename Measurement, typename InitSignature> struct SensorDriver :
 
-    SensorTag,
+    SensorDriverTag,
     meta::CRTP<Impl>,
     mixin::NonCopyable,
     mixin::Initable<Impl, InitSignature>
@@ -32,6 +31,6 @@ template<typename Impl, typename Measurement, typename InitSignature> struct Sen
 
 }// namespace kf::driver::sensor
 
-#define KF_IMPL_SENSOR(__impl__, __measurement_type__, ...)                                  \
-    friend struct ::kf::driver::sensor::Sensor<__impl__, __measurement_type__, __VA_ARGS__>; \
+#define KF_IMPL_SENSOR_DRIVER(__impl__, __measurement_type__, ...)                                 \
+    friend struct ::kf::driver::sensor::SensorDriver<__impl__, __measurement_type__, __VA_ARGS__>; \
     KF_IMPL_INITABLE(__impl__, __VA_ARGS__)

@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 
-#include "kf/driver/sensor/Sensor.hpp"
+#include "kf/driver/sensor/SensorDriver.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
@@ -58,7 +58,7 @@ namespace kf::driver::sensor {
 /// @tparam T Physical linear unit
 template<typename T> struct QuadratureEncoder final :
 
-    driver::sensor::Sensor<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
+    driver::sensor::SensorDriver<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
     mixin::Resettable<QuadratureEncoder<T>>,
     mixin::Configurable<internal::QuadratureEncoderConfig<T>>
 
@@ -122,7 +122,7 @@ private:
     }
 
     // Implementation details
-    KF_IMPL_SENSOR(QuadratureEncoder<T>, typename Config::PhaseStateType, void());
+    KF_IMPL_SENSOR_DRIVER(QuadratureEncoder<T>, typename Config::PhaseStateType, void());
 
     void initImpl() noexcept {
         pinMode(this->config().gpio_num_phase_a, INPUT);

@@ -14,7 +14,7 @@
 #include "kf/primitives.hpp"
 #include "kf/tuner/SampleCollectingTuner.hpp"
 
-#include "kf/driver/sensor/Sensor.hpp"
+#include "kf/driver/sensor/SensorDriver.hpp"
 
 namespace kf::internal {
 
@@ -41,7 +41,7 @@ namespace kf::driver::sensor {
 /// @tparam G Implementation of GPIO with ADC input support
 template<typename G> struct NormalizedAdcInput final :
 
-    Sensor<NormalizedAdcInput<G>, f32, void()>,
+    SensorDriver<NormalizedAdcInput<G>, f32, void()>,
     mixin::Configurable<internal::NormalizedAdcInputConfig>
 
 {
@@ -106,7 +106,7 @@ private:
     FilterImpl _filter;
     AdcInputImpl _gpio;
 
-    KF_IMPL_SENSOR(NormalizedAdcInput<G>, f32, void());
+    KF_IMPL_SENSOR_DRIVER(NormalizedAdcInput<G>, f32, void());
 
     void initImpl() noexcept {
         _gpio.init();
