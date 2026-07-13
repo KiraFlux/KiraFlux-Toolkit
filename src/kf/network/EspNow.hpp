@@ -12,6 +12,7 @@
 #include <esp_now.h>
 
 // lib
+#include "kf/MacAddress.hpp"
 #include "kf/Result.hpp"
 #include "kf/Slice.hpp"
 #include "kf/StringView.hpp"
@@ -23,7 +24,6 @@
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/StringRepresentable.hpp"
-#include "kf/network/MacAddress.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {

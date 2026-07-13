@@ -6,11 +6,11 @@
 #include <kf/Slice.hpp>
 #include <kf/primitives.hpp>
 
+#include <kf/MacAddress.hpp>
 #include <kf/network/EspNow.hpp>
-#include <kf/network/MacAddress.hpp>
 
+using kf::MacAddress;
 using kf::network::EspNow;
-using kf::network::MacAddress;
 
 // Option because Peer may be absent (not created or creation failed). Peer is move‑only.
 kf::Option<EspNow::Peer> broadcast_peer{kf::none}, target_peer{kf::none};

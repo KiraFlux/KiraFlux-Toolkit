@@ -16,7 +16,7 @@ using MacAddressStringType = Array<char, 14u>;
 
 }// namespace kf::internal
 
-namespace kf::network {
+namespace kf {
 
 /// @brief MAC address (6 bytes)
 /// @note Trivially copyable, safe for serialization
@@ -46,4 +46,4 @@ private:
     }
 };
 
-}// namespace kf::network
+}// namespace kf

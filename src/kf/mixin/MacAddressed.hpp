@@ -3,23 +3,23 @@
 
 #pragma once
 
-#include "kf/network/MacAddress.hpp"
+#include "kf/MacAddress.hpp"
 
 namespace kf::mixin {
 
 /// @brief Base class for objects that own a MAC address
 /// @note Provides read‑only access to the address
 struct MacAddressed {
-    explicit constexpr MacAddressed(const network::MacAddress &mac_address) noexcept :
+    explicit constexpr MacAddressed(const MacAddress &mac_address) noexcept :
         _mac_address{mac_address} {}
 
     /// @brief Get MAC address
-    [[nodiscard]] constexpr const network::MacAddress &mac() const noexcept {
+    [[nodiscard]] constexpr const MacAddress &mac() const noexcept {
         return _mac_address;
     }
 
 protected:
-    network::MacAddress _mac_address;
+    MacAddress _mac_address;
 };
 
 }// namespace kf::mixin

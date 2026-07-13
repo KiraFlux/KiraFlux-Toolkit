@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <cmath>
 #include <cstdlib>
 #include <limits>
-#include <cmath>
 #include <type_traits>
 
 #include "kf/NoneType.hpp"
