@@ -4,10 +4,10 @@
 #pragma once
 
 #include <cstdlib>
+#include <limits>
 #include <type_traits>
 
 #include "kf/NoneType.hpp"
-#include "kf/math.hpp"
 #include "kf/mixin/Invariant.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
@@ -40,10 +40,10 @@ template<typename T> struct RealValueOption :
     friend struct internal::TrivialSomeCreator;
 
     constexpr RealValueOption(NoneType) noexcept :
-        _value{math::nan<T>()} {}
+        _value{nan} {}
 
     constexpr RealValueOption() noexcept :
-        _value{math::nan<T>()} {}
+        _value{nan} {}
 
     [[nodiscard]] T &unwrap() noexcept {
         if (this->isNone()) { abort(); }
@@ -59,6 +59,8 @@ template<typename T> struct RealValueOption :
     }
 
 private:
+    static constexpr auto nan{std::numeric_limits<T>::quiet_NaN()};
+
     T _value;
 
     constexpr RealValueOption(T value) noexcept : _value{value} {}
@@ -72,7 +74,7 @@ private:
 
     KF_IMPL_RESETTABLE(This);
     void resetImpl() noexcept {
-        _value = math::nan<T>();
+        _value = nan;
     }
 };
 

@@ -4,7 +4,6 @@
 #pragma once
 
 #include <cmath>
-#include <limits>
 
 #include "kf/primitives.hpp"
 
