@@ -7,7 +7,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
-namespace kf::math::filters {
+namespace kf::filters {
 
 struct FilterTag {};
 
@@ -24,4 +24,4 @@ template<typename Impl, typename T> struct Filter : FilterTag, mixin::NonCopyabl
     }
 };
 
-}// namespace kf::math::filters
+}// namespace kf::filters

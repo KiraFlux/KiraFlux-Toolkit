@@ -7,7 +7,7 @@
 
 #include "kf/Option.hpp"
 #include "kf/algorithm.hpp"
-#include "kf/math/filters/LowFrequencyFilter.hpp"
+#include "kf/filters/LowFrequencyFilter.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
@@ -15,7 +15,7 @@
 
 namespace kf::internal {
 
-using PidFilterImpl = math::filters::LowFrequencyFilter<f32>;
+using PidFilterImpl = filters::LowFrequencyFilter<f32>;
 
 struct PidConfig final {
     f32 proportional_gain;///< Proportional gain coefficient
@@ -96,4 +96,4 @@ private:
     }
 };
 
-}// namespace kf::math
+}// namespace kf::controllers
