@@ -33,7 +33,7 @@ namespace kf::internal {
 #define CASE_RETURN(__v) \
     case __v: return #__v
 
-struct EspNowError final : mixin::StringRepresentable<EspNowError, StringView> {
+struct EspnowError final : mixin::StringRepresentable<EspnowError, StringView> {
 
     enum Kind : u8 {
         UnknownError = EVAL_KIND(ESP_ERR_ESPNOW_BASE),      ///< Unknown ESP API error
@@ -48,30 +48,30 @@ struct EspNowError final : mixin::StringRepresentable<EspNowError, StringView> {
         TooBigMessage,                                      ///< Message size exceeds ESP_NOW_MAX_DATA_LEN
     } kind;
 
-    [[nodiscard]] static constexpr auto create(Kind kind) noexcept -> ResultErrorWrapper<EspNowError> {
-        return error(EspNowError{.kind = kind});
+    [[nodiscard]] static constexpr auto create(Kind kind) noexcept -> ResultErrorWrapper<EspnowError> {
+        return error(EspnowError{.kind = kind});
     }
 
-    [[nodiscard]] static constexpr auto fromEspErr(esp_err_t e) noexcept -> ResultErrorWrapper<EspNowError> {
+    [[nodiscard]] static constexpr auto fromEspErr(esp_err_t e) noexcept -> ResultErrorWrapper<EspnowError> {
         return create((ESP_ERR_ESPNOW_BASE <= e and e <= ESP_ERR_ESPNOW_IF) ? UnknownError : static_cast<Kind>(e - ESP_ERR_ESPNOW_BASE));
     }
 
 private:
-    KF_IMPL_STRING_REPRESENTABLE(EspNowError, StringView);
+    KF_IMPL_STRING_REPRESENTABLE(EspnowError, StringView);
     StringView toStringImpl() const noexcept {
 
         switch (kind) {
-            CASE_RETURN(EspNowError::NotInitialized);
-            CASE_RETURN(EspNowError::InvalidArg);
-            CASE_RETURN(EspNowError::NoMemory);
-            CASE_RETURN(EspNowError::PeerListIsFull);
-            CASE_RETURN(EspNowError::PeerNotFound);
-            CASE_RETURN(EspNowError::InternalError);
-            CASE_RETURN(EspNowError::PeerAlreadyExists);
-            CASE_RETURN(EspNowError::IncorrectWiFiMode);
-            CASE_RETURN(EspNowError::TooBigMessage);
+            CASE_RETURN(EspnowError::NotInitialized);
+            CASE_RETURN(EspnowError::InvalidArg);
+            CASE_RETURN(EspnowError::NoMemory);
+            CASE_RETURN(EspnowError::PeerListIsFull);
+            CASE_RETURN(EspnowError::PeerNotFound);
+            CASE_RETURN(EspnowError::InternalError);
+            CASE_RETURN(EspnowError::PeerAlreadyExists);
+            CASE_RETURN(EspnowError::IncorrectWiFiMode);
+            CASE_RETURN(EspnowError::TooBigMessage);
             default:
-                CASE_RETURN(EspNowError::UnknownError);
+                CASE_RETURN(EspnowError::UnknownError);
         }
     }
 };
@@ -81,21 +81,21 @@ private:
 
 }// namespace kf::internal
 
-namespace kf::network {
+namespace kf::esp {
 
 /// @brief ESP-NOW protocol encapsulation
 /// @note Singleton wrapper for ESP-NOW API with peer management and callbacks
-struct EspNow final :
+struct Espnow final :
 
-    mixin::Singleton<EspNow>,
+    mixin::Singleton<Espnow>,
     mixin::MacAddressed,
-    mixin::Initable<EspNow, Result<void, internal::EspNowError>()>,
-    mixin::Quitable<EspNow>,
+    mixin::Initable<Espnow, Result<void, internal::EspnowError>()>,
+    mixin::Quitable<Espnow>,
     mixin::Callbacked<void(const MacAddress &, Slice<const u8>)>
 
 {
     /// @brief ESP-NOW operation error type
-    using Error = internal::EspNowError;
+    using Error = internal::EspnowError;
 
     using VoidResult = Result<void, Error>;
 
@@ -216,20 +216,20 @@ struct EspNow final :
     };
 
 private:
-    friend struct ::kf::mixin::Singleton<EspNow>;
+    friend struct ::kf::mixin::Singleton<Espnow>;
 
     /// @brief Private constructor (singleton)
-    constexpr EspNow() noexcept : MacAddressed{{}} {}
+    constexpr Espnow() noexcept : MacAddressed{{}} {}
 
     /// @brief ESP‑NOW receive callback (static wrapper)
     static void onReceive(const esp_now_recv_info_t *info, const u8 *data, int size) noexcept {
         MacAddress source_mac_address;
         std::copy(info->src_addr, info->src_addr + ESP_NOW_ETH_ALEN, source_mac_address.begin());
 
-        EspNow::instance().invoke(source_mac_address, Slice<const u8>{data, static_cast<usize>(size)});
+        Espnow::instance().invoke(source_mac_address, Slice<const u8>{data, static_cast<usize>(size)});
     }
 
-    KF_IMPL_INITABLE(EspNow, VoidResult());
+    KF_IMPL_INITABLE(Espnow, VoidResult());
     VoidResult initImpl() noexcept {
         esp_err_t e;
 
@@ -243,11 +243,11 @@ private:
         return Error::fromEspErr(e);
     }
 
-    KF_IMPL_QUITABLE(EspNow);
+    KF_IMPL_QUITABLE(Espnow);
     void quitImpl() noexcept {
         (void) esp_now_unregister_recv_cb();
         (void) esp_now_deinit();
     }
 };
 
-}// namespace kf::network
+}// namespace kf::esp

@@ -7,17 +7,17 @@
 #include <kf/primitives.hpp>
 
 #include <kf/MacAddress.hpp>
-#include <kf/network/EspNow.hpp>
+#include <kf/esp/Espnow.hpp>
 
 using kf::MacAddress;
-using kf::network::EspNow;
+using kf::esp::Espnow;
 
 // Option because Peer may be absent (not created or creation failed). Peer is move‑only.
-kf::Option<EspNow::Peer> broadcast_peer{kf::none}, target_peer{kf::none};
+kf::Option<Espnow::Peer> broadcast_peer{kf::none}, target_peer{kf::none};
 
 // Factory returning Option<Peer>. Not Result - absence is a valid state (not an error).
-kf::Option<EspNow::Peer> createPeer(const MacAddress &mac_address) noexcept {
-    auto peer_add_result = EspNow::Peer::create(EspNow::Peer::Config{
+kf::Option<Espnow::Peer> createPeer(const MacAddress &mac_address) noexcept {
+    auto peer_add_result = Espnow::Peer::create(Espnow::Peer::Config{
         .mac_address = mac_address,
         .wifi_interface_sta = true,
     });
@@ -30,7 +30,7 @@ kf::Option<EspNow::Peer> createPeer(const MacAddress &mac_address) noexcept {
     }
 }
 
-// Callback for unknown peers - registered via EspNow::callback.
+// Callback for unknown peers - registered via Espnow::callback.
 void onReceive(const MacAddress &mac, kf::Slice<const kf::u8> data) {
     if (target_peer.isSome() and target_peer.unwrap().mac() == mac) {
         Serial.printf("target: got %d bytes\n", data.length());
@@ -42,23 +42,23 @@ void onReceive(const MacAddress &mac, kf::Slice<const kf::u8> data) {
 void setup() {
     Serial.begin(115200);
 
-    // WiFi is configured explicitly before EspNow::init() because the application may have its own WiFi setup.
+    // WiFi is configured explicitly before Espnow::init() because the application may have its own WiFi setup.
     if (not WiFiClass::mode(WIFI_MODE_STA)) {
         Serial.println("Wifi mode set failed");
         return;
     }
 
-    const auto init_error_option = EspNow::instance().init();
+    const auto init_error_option = Espnow::instance().init();
     if (init_error_option.isError()) {
         Serial.println(init_error_option.error().toString().data());
         return;
     }
 
-    const MacAddress &self_mac_address = EspNow::instance().mac();
+    const MacAddress &self_mac_address = Espnow::instance().mac();
     Serial.printf("Self: %s\n", self_mac_address.toString().data());
 
     // Callback accepts Function, Option or none; passing none would clear it.
-    EspNow::instance().callback(onReceive);
+    Espnow::instance().callback(onReceive);
     broadcast_peer = createPeer({0xff, 0xff, 0xff, 0xff, 0xff, 0xff});
     target_peer = createPeer({0x01, 0x02, 0x03, 0x04, 0x05, 0x06});// replace with real MAC
 }
