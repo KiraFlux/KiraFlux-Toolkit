@@ -5,7 +5,6 @@
 
 #include "kf/bus/Bus.hpp"
 #include "kf/mixin/Initable.hpp"
-#include "kf/mixin/NonCopyable.hpp"
 
 namespace kf::bus {
 
