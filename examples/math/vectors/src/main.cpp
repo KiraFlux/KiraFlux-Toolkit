@@ -9,11 +9,11 @@ using namespace kf::math;
 void setup() {
     Serial.begin(115200);
     {
-        Vector2<float> a1{.x = 3.0f, .y = 4.0f};
-        Serial.println(a1.length());// 5.0
+        Vector2<float> a1{.x = 3.0f, .y = 4.0f};// aggregate initialization
+        Serial.println(a1.length());            // len: 5.0
 
-        Vector2<float> a2{.x = 12.0f, .y = 5.0f};
-        Serial.println(a2.length());// 13.0
+        const auto a2 = Vector2<float>::create(12, 5.0);// create with shortcut for static casts
+        Serial.println(a2.length());                    // len: 13.0
 
         auto sum = a1 + a2;
         auto sub = a1 - a2;
@@ -26,7 +26,7 @@ void setup() {
     }
     {
         Vector3<kf::u8> b1{.x = 1, .y = 2, .z = 3};
-        Vector3<kf::u8> b2{.x = 4, .y = 5, .z = 6};
+        const auto b2 = Vector3<kf::u8>::create(4, 5.0f, 6.0);
         auto zero{Vector3<double>::zero()};
 
         auto sum = b1 + b2;
@@ -37,7 +37,7 @@ void setup() {
         auto div_by_scalar_checked_none = b1.divChecked(0);// Option(None)
         auto scalar_mul = b1.dot(b2);
         auto cross_mul = b1.cross(b2);
-        auto normalized = b1.normalized();// None if a1.length() is 0
+        auto normalized = b1.normalized();// None if b1.length() is 0
     }
 
     // Vector2i = Vector2<i32>

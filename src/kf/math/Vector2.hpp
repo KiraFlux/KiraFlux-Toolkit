@@ -20,48 +20,46 @@ template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
 
     Scalar x, y;
 
-    [[nodiscard]] static constexpr Vector2 zero() noexcept {
+    /// @brief Create 2D vector with auto-deduced types
+    /// @tparam X x component type (likely auto deduced)
+    /// @tparam Y y component type (likely auto deduced)
+    template<typename X, typename Y> [[nodiscard]] static constexpr Vector2 create(X x, Y y) noexcept {
         return {
-            .x = 0,
-            .y = 0,
+            .x = static_cast<Scalar>(x),
+            .y = static_cast<Scalar>(y),
         };
+    }
+
+    [[nodiscard]] static constexpr Vector2 zero() noexcept {
+        return create(0, 0);
     }
 
     /// @brief Vector addition
     /// @param other Vector to add
     /// @return Sum vector
     [[nodiscard]] constexpr Vector2 operator+(const Vector2 &other) const noexcept {
-        return {
-            .x = static_cast<Scalar>(x + other.x),
-            .y = static_cast<Scalar>(y + other.y),
-        };
+        return create(x + other.x, y + other.y);
     }
 
     /// @brief Vector subtraction
     /// @param other Vector to subtract
     /// @return Difference vector
     [[nodiscard]] constexpr Vector2 operator-(const Vector2 &other) const noexcept {
-        return {
-            .x = static_cast<Scalar>(x - other.x),
-            .y = static_cast<Scalar>(y - other.y),
-        };
+        return create(x - other.x, y - other.y);
     }
 
     /// @brief Scalar multiplication
     /// @param scalar Multiplication factor
     /// @return Scaled vector
     [[nodiscard]] constexpr Vector2 operator*(Scalar scalar) const noexcept {
-        return {
-            .x = static_cast<Scalar>(x * scalar),
-            .y = static_cast<Scalar>(y * scalar),
-        };
+        return create(x * scalar, y * scalar);
     }
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
     [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Vector2> {
-        return (scalar == 0) ? none : someTrivial(Vector2{.x = static_cast<Scalar>(x / scalar), .y = static_cast<Scalar>(y / scalar)});
+        return (scalar == 0) ? none : someTrivial((*this) / scalar);
     }
 
     /// @brief Scalar division
@@ -69,10 +67,7 @@ template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
     /// @return Divided vector
     /// @warning No zero-check (use divChecked for safe division)
     [[nodiscard]] constexpr Vector2 operator/(Scalar scalar) const noexcept {
-        return {
-            .x = static_cast<Scalar>(x / scalar),
-            .y = static_cast<Scalar>(y / scalar),
-        };
+        return create(x / scalar, y / scalar);
     }
 
     /// @brief Vector addition assignment
@@ -96,8 +91,7 @@ template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
     [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector2> {
-        const auto len = this->length();
-        return (len == 0) ? none : someTrivial(Vector2{.x = static_cast<Scalar>(x / len), .y = static_cast<Scalar>(y / len)});
+        return divChecked(this->length());
     }
 
     /// @brief Calculate dot product with another vector
