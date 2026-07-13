@@ -1,11 +1,11 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
-#include <kf/math/Timer.hpp>
+#include <kf/Timer.hpp>
 #include <unity.h>
 
 using kf::math::Milliseconds;
-using kf::math::Timer;
+using kf::Timer;
 
 constexpr Milliseconds
     t_0 = 0,
@@ -23,22 +23,22 @@ constexpr Milliseconds
     large_inc = 150;
 
 void test_config_ctor() {
-    Timer::Config config{.period = period_100};
+    Timer::Config config{.value = period_100};
     Timer timer{config};
-    TEST_ASSERT_EQUAL(period_100, timer.config().period);
+    TEST_ASSERT_EQUAL(period_100, timer.config().value);
 }
 
 void test_config_reference() {
-    Timer::Config config{.period = period_50};
+    Timer::Config config{.value = period_50};
     Timer timer{config};
-    TEST_ASSERT_EQUAL(period_50, timer.config().period);
+    TEST_ASSERT_EQUAL(period_50, timer.config().value);
 
-    config.period = period_200;
-    TEST_ASSERT_EQUAL(period_200, timer.config().period);
+    config.value = period_200;
+    TEST_ASSERT_EQUAL(period_200, timer.config().value);
 }
 
 void test_restart() {
-    Timer::Config config{.period = period_100};
+    Timer::Config config{.value = period_100};
     Timer timer{config};
 
     timer.start(t_0);
@@ -53,7 +53,7 @@ void test_restart() {
 }
 
 void test_expired() {
-    Timer::Config config{.period = period_100};
+    Timer::Config config{.value = period_100};
     Timer timer{config};
     timer.start(t_0);
     TEST_ASSERT_FALSE(timer.expired(t_50));
@@ -62,7 +62,7 @@ void test_expired() {
 }
 
 void test_elapsed() {
-    Timer::Config config{.period = period_100};
+    Timer::Config config{.value = period_100};
     Timer timer{config};
     timer.start(t_50);
     TEST_ASSERT_EQUAL(t_0, timer.elapsed(t_50));
@@ -71,7 +71,7 @@ void test_elapsed() {
 }
 
 void test_remaining() {
-    Timer::Config config{.period = period_100};
+    Timer::Config config{.value = period_100};
     Timer timer{config};
     timer.start(t_0);
     TEST_ASSERT_EQUAL(period_100, timer.remaining(t_0));
@@ -81,7 +81,7 @@ void test_remaining() {
 }
 
 void test_zero_period() {
-    Timer::Config config{.period = period_0};
+    Timer::Config config{.value = period_0};
     Timer timer{config};
 
     timer.start(t_50);
@@ -94,7 +94,7 @@ void test_zero_period() {
 }
 
 void test_unsigned_wrap() {
-    Timer::Config config{.period = period_100};
+    Timer::Config config{.value = period_100};
     Timer timer{config};
     timer.start(near_max);
 

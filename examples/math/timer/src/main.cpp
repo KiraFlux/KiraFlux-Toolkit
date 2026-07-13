@@ -1,13 +1,13 @@
 #include <Arduino.h>
-#include <kf/math/Timer.hpp>
+#include <kf/Timer.hpp>
 
-kf::math::Timer::Config one_shot_config{.period = 2000};
-kf::math::Timer::Config periodic_config{.period = 100};// 100 ms = 10 Hz
-kf::math::Timer::Config stopwatch_config{.period = 0};
+kf::Timer::Config one_shot_config{.value = 2000};
+kf::Timer::Config periodic_config{.value = 100};// 100 ms = 10 Hz
+kf::Timer::Config stopwatch_config{.value = 0};
 
-kf::math::Timer one_shot{one_shot_config};
-kf::math::Timer periodic{periodic_config};
-kf::math::Timer stopwatch{stopwatch_config};
+kf::Timer one_shot{one_shot_config};
+kf::Timer periodic{periodic_config};
+kf::Timer stopwatch{stopwatch_config};
 
 bool one_shot_armed{true};
 

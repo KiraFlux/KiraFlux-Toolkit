@@ -5,7 +5,7 @@
 
 #include "kf/algorithm.hpp"
 #include "kf/listener/Listener.hpp"
-#include "kf/math/Timer.hpp"
+#include "kf/Timer.hpp"
 #include "kf/math/Vector2.hpp"
 #include "kf/math/units.hpp"
 #include "kf/mixin/Configurable.hpp"
@@ -22,7 +22,7 @@ enum class JoystickListenerDirection : u8 {
 };
 
 struct JoystickListenerConfig final {
-    math::Timer::Config repeat_timer, delay_timer;
+    Timer::Config repeat_timer, delay_timer;
     f32 threshold;///< 0..1
 
     [[nodiscard]] JoystickListenerDirection calculateDirection(const math::Vector2f &v) const noexcept {
@@ -55,8 +55,8 @@ struct JoystickListener final :
     using mixin::Configurable<Config>::Configurable;
 
 private:
-    math::Timer _repeat_timer{this->config().repeat_timer};
-    math::Timer _initial_delay{this->config().delay_timer};
+    Timer _repeat_timer{this->config().repeat_timer};
+    Timer _initial_delay{this->config().delay_timer};
 
     Direction _current_direction{Direction::Center};
     bool _in_repeat_mode{false}, _has_changed{false};

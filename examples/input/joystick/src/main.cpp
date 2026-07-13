@@ -1,7 +1,7 @@
 // Demo for KiraFlux input abstractions: NormalizedAdcInput, Joystick, JoystickListener
 
 #include <Arduino.h>
-#include <kf/math/Timer.hpp>
+#include <kf/Timer.hpp>
 
 // target files for this demo
 #include <kf/drivers/sensors/Joystick.hpp>
@@ -44,10 +44,10 @@ Joystick my_joystick{
 
 JoystickListener::Config my_listener_config{
     .repeat_timer = {
-        .period = 100,// ms
+        .value = 100,// ms
     },
     .delay_timer = {
-        .period = 500,// ms
+        .value = 500,// ms
     },
     .threshold = 0.7f,// neutral zone threshold (normalized value)
 };
@@ -85,11 +85,11 @@ void tune(Joystick::Config &config) {
     }
 }
 
-static kf::math::Timer::Config log_timer_config{
-    .period = 500,// print every 500 ms
+static kf::Timer::Config log_timer_config{
+    .value = 500,// print every 500 ms
 };
 
-static kf::math::Timer log_timer{log_timer_config};
+static kf::Timer log_timer{log_timer_config};
 
 void setup() {
     Serial.begin(115200);
