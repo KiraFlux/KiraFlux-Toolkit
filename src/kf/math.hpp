@@ -11,7 +11,7 @@
 
 namespace kf::math {
 
-// functions from builtins
+inline namespace builtin_functions {
 
 using std::isinf;
 using std::isnan;
@@ -29,7 +29,9 @@ using std::atan;
 using std::atan2;
 using std::tan;
 
-// custom functions
+}// namespace builtin_functions
+
+inline namespace custom_functions {
 
 /// @brief Abs
 template<typename T> [[nodiscard]] constexpr T abs(const T &x) noexcept {
@@ -59,7 +61,9 @@ template<typename T> [[nodiscard]] constexpr T linearMap(
     return (value - in_low) * (out_high - out_low) / (in_high - in_low) + out_low;
 }
 
-// math objects
+}// namespace custom_functions
+
+inline namespace objects {
 
 /// @brief 2D vector template for graphics and calculations
 /// @tparam T Component type (float, integer, etc.)
@@ -475,7 +479,9 @@ private:
     }
 };
 
-// units
+}// namespace objects
+
+inline namespace unit_type_aliases {
 
 /// @brief Angle in degrees
 using Degrees = u16;
@@ -497,5 +503,7 @@ using Milliseconds = u32;
 
 /// @brief Time duration in microseconds
 using Microseconds = u32;
+
+}// namespace unit_type_aliases
 
 }// namespace kf::math
