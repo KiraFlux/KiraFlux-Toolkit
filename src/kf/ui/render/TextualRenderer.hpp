@@ -21,7 +21,7 @@ namespace kf::internal {
 
 using Glyph = u8;///< Text interface measurement unit in glyphs
 
-struct PlainTextRenderConfig final {
+struct TextualRendererConfig final {
     Glyph row_max_length;///< Maximum characters per row
     Glyph rows_total;    ///< Total available rows in display
     Glyph float_places;  ///< Decimal places for float
@@ -29,7 +29,7 @@ struct PlainTextRenderConfig final {
     bool title_centered; ///< Render Title centered
 
     static constexpr auto defaults() noexcept {
-        return PlainTextRenderConfig{
+        return TextualRendererConfig{
             .row_max_length = 16,
             .rows_total = 4,
             .float_places = 2,
@@ -74,17 +74,17 @@ namespace kf::ui::render {
 /// @brief Text-based UI rendering system for terminal/console output
 /// @tparam N Text buffer capacity in characters
 /// @note Implements Renderer CRTP interface for character-based display
-struct PlainTextRenderer :
+struct TextualRenderer :
 
-    Renderer<PlainTextRenderer>,
+    Renderer<TextualRenderer>,
     mixin::Callbacked<void(StringView)>,
-    mixin::Configurable<internal::PlainTextRenderConfig>
+    mixin::Configurable<internal::TextualRendererConfig>
 
 {
     /// @brief Text renderer configuration
-    using Config = internal::PlainTextRenderConfig;
+    using Config = internal::TextualRendererConfig;
 
-    explicit constexpr PlainTextRenderer(const Config &config, Slice<char> source) noexcept :
+    explicit constexpr TextualRenderer(const Config &config, Slice<char> source) noexcept :
         mixin::Configurable<Config>::Configurable{config}, _buffer{source} {}
 
     /// @brief Helper to write character with cursor tracking
@@ -126,7 +126,7 @@ private:
 
     Layout _layout{Layout::Vertical};
 
-    KF_IMPL(Renderer<PlainTextRenderer>);
+    KF_IMPL(Renderer<TextualRenderer>);
 
     void beginFrameImpl() noexcept {
         _buffer.reset();

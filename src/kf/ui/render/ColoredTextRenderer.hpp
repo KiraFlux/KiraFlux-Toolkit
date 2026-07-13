@@ -8,13 +8,13 @@
 
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Layout.hpp"
-#include "kf/ui/render/PlainTextRenderer.hpp"
 #include "kf/ui/render/Renderer.hpp"
+#include "kf/ui/render/TextualRenderer.hpp"
 
 namespace kf::internal {
 
 struct ColoredTextRendererConfig final {
-    using TextConfig = ui::render::PlainTextRenderer::Config;
+    using TextConfig = ui::render::TextualRenderer::Config;
 
     struct Palette final {
 
@@ -120,7 +120,7 @@ struct ColoredTextRenderer :
     mixin::Configurable<internal::ColoredTextRendererConfig>
 
 {
-    using Wrapped = PlainTextRenderer;
+    using Wrapped = TextualRenderer;
     using Config = internal::ColoredTextRendererConfig;
 
     explicit constexpr ColoredTextRenderer(const Config &config, Slice<char> source) noexcept :

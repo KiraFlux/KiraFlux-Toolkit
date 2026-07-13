@@ -4,16 +4,16 @@
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
-#include <kf/ui/render/PlainTextRenderer.hpp>
+#include <kf/ui/render/TextualRenderer.hpp>
 #include <kf/ui/widget/Widget.hpp>
 
 using MyEvent = kf::ui::Event<4>;// Event type: 4-bit value
 
 // UI specialization
 using MyUI = kf::ui::UI<
-    kf::ui::UiTraits<                         // Traits Implementation
-        kf::ui::widget::Widget<               // Base widget class
-            kf::ui::render::PlainTextRenderer,// Renderer implementation: plain text
+    kf::ui::UiTraits<                       // Traits Implementation
+        kf::ui::widget::Widget<             // Base widget class
+            kf::ui::render::TextualRenderer,// Renderer implementation: plain text
             MyEvent>>>;
 
 static MyUI::Traits::RendererImpl::Config my_renderer_config{
