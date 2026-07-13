@@ -18,13 +18,13 @@
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 #include "kf/ui/render/Renderer.hpp"
-#include "kf/ui/widgets/Button.hpp"
-#include "kf/ui/widgets/CheckBox.hpp"
-#include "kf/ui/widgets/ComboBox.hpp"
-#include "kf/ui/widgets/Display.hpp"
-#include "kf/ui/widgets/Labeled.hpp"
-#include "kf/ui/widgets/Slider.hpp"
-#include "kf/ui/widgets/SpinBox.hpp"
+#include "kf/ui/widget/Button.hpp"
+#include "kf/ui/widget/CheckBox.hpp"
+#include "kf/ui/widget/ComboBox.hpp"
+#include "kf/ui/widget/Display.hpp"
+#include "kf/ui/widget/Labeled.hpp"
+#include "kf/ui/widget/Slider.hpp"
+#include "kf/ui/widget/SpinBox.hpp"
 
 namespace kf::ui {
 
@@ -44,43 +44,43 @@ template<typename U> struct UI :
     using Widget = typename U::Widget;
 
     /// @brief Button widget with click handler
-    struct Button : widgets::Button<Traits> {
-        using widgets::Button<Traits>::Button;
+    struct Button : widget::Button<Traits> {
+        using widget::Button<Traits>::Button;
     };
 
     /// @brief Checkbox with boolean state and change handler
-    struct CheckBox : widgets::CheckBox<Traits> {
-        using widgets::CheckBox<Traits>::CheckBox;
+    struct CheckBox : widget::CheckBox<Traits> {
+        using widget::CheckBox<Traits>::CheckBox;
     };
 
     /// @brief Combo box for selecting from a fixed set of options
     /// @tparam T Value type of options
-    template<typename T> struct ComboBox : widgets::ComboBox<Traits, T> {
-        using widgets::ComboBox<Traits, T>::ComboBox;
+    template<typename T> struct ComboBox : widget::ComboBox<Traits, T> {
+        using widget::ComboBox<Traits, T>::ComboBox;
     };
 
     /// @brief Read-only display of a value (by reference)
     /// @tparam T Type of displayed value (must outlive the widget)
-    template<typename T> struct Display : widgets::Display<Traits, T> {
-        using widgets::Display<Traits, T>::Display;
+    template<typename T> struct Display : widget::Display<Traits, T> {
+        using widget::Display<Traits, T>::Display;
     };
 
     /// @brief Wrapper that adds a label to another widget
-    struct Labeled : widgets::Labeled<Traits> {
-        using widgets::Labeled<Traits>::Labeled;
+    struct Labeled : widget::Labeled<Traits> {
+        using widget::Labeled<Traits>::Labeled;
     };
 
     /// @brief Spin box for numeric adjustment with configurable step mode
     /// @tparam T Arithmetic type (int, float, etc.)
     /// @tparam A Adjuster (Arithmetic, ArithmeticPositiveOnly, Geometric)
-    template<typename T, typename A> struct SpinBox : widgets::SpinBox<Traits, T, A> {
-        using widgets::SpinBox<Traits, T, A>::SpinBox;
+    template<typename T, typename A> struct SpinBox : widget::SpinBox<Traits, T, A> {
+        using widget::SpinBox<Traits, T, A>::SpinBox;
     };
 
     /// @brief Slider for numeric adjustment with constraints
     /// @tparam T Arithmetic type (int, float, etc.)
-    template<typename T> struct Slider : widgets::Slider<Traits, T> {
-        using widgets::Slider<Traits, T>::Slider;
+    template<typename T> struct Slider : widget::Slider<Traits, T> {
+        using widget::Slider<Traits, T>::Slider;
     };
 
     struct Page;// forward declaration

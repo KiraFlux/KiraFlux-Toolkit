@@ -15,7 +15,7 @@
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/ColoredTextRenderer.hpp>
-#include <kf/ui/widgets/Widget.hpp>
+#include <kf/ui/widget/Widget.hpp>
 
 using kf::arduino::ArduinoGPIO;
 using kf::arduino::ArduinoSPI;

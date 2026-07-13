@@ -5,7 +5,7 @@
 
 #include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
-#include "kf/ui/widgets/Widget.hpp"
+#include "kf/ui/widget/Widget.hpp"
 
 namespace kf::internal {
 

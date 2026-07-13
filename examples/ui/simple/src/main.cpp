@@ -5,7 +5,7 @@
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/PlainTextRenderer.hpp>
-#include <kf/ui/widgets/Widget.hpp>
+#include <kf/ui/widget/Widget.hpp>
 
 using MyEvent = kf::ui::Event<4>;// Event type: 4-bit value
 
