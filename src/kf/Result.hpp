@@ -171,6 +171,8 @@ template<typename E> struct Result<void, E> final :
         }
     }
 
+    constexpr void ok() const noexcept {}
+
     /// @brief Check if result is successful
     [[nodiscard]] constexpr bool isOk() const noexcept {
         return not _is_error;
@@ -232,17 +234,12 @@ template<typename E> constexpr auto error(E &&error) noexcept -> internal::Resul
 /// @param __expression__ Expression of type `Result<T, E>`
 /// @return The success value `T`, or returns the error from the enclosing function
 /// @note Expression evaluated once. Requires GNU statement expressions.
-#define KF_TRY(__expression__)                                                                              \
-    ({                                                                                                      \
-        auto result = (__expression__);                                                                     \
-        using ExpressionType = std::decay_t<decltype(result)>;                                              \
-        static_assert(std::is_base_of_v<::kf::ResultTag, ExpressionType>, "KF_TRY requires a Result type"); \
-        if (result.isError()) {                                                                             \
-            return ::kf::error(result.error());                                                             \
-        }                                                                                                   \
-        if constexpr (std::is_void_v<typename ExpressionType::ValueType>) {                                 \
-            (void) 0;                                                                                       \
-        } else {                                                                                            \
-            result.ok();                                                                                    \
-        }                                                                                                   \
+#define KF_TRY(__expression__)                                                                                        \
+    ({                                                                                                                      \
+        auto result = (__expression__);                                                                                     \
+        static_assert(std::is_base_of_v<::kf::ResultTag, std::decay_t<decltype(result)>>, "KF_TRY requires a Result type"); \
+        if (result.isError()) {                                                                                             \
+            return ::kf::error(result.error());                                                                             \
+        }                                                                                                                   \
+        result.ok();                                                                                                        \
     })

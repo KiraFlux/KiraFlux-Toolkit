@@ -175,6 +175,25 @@ void test_void_mapError_error() {
     TEST_ASSERT_TRUE(123 == mapped.error());
 }
 
+Result<void, Error> kf_try() {
+
+    Result<void, Error> r{kf::ok()};
+
+    KF_TRY(r);
+
+    return kf::ok();
+}
+
+
+Result<int, Error> kf_try_value() {
+
+    Result<int, Error> r{kf::ok(12345)};
+
+    int a = KF_TRY(r);
+
+    return kf::ok(a);
+}
+
 #define RUN_RESULT_TESTS(T)                     \
     RUN_TEST(ResultTester<T>::is_ok);           \
     RUN_TEST(ResultTester<T>::is_error);        \
