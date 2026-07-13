@@ -6,7 +6,7 @@
 namespace kf::mixin {
 
 struct ConfigurableTag {};
-
+// TODO: rename to Configured
 /// @tparam ConfigType The configuration type (stored as a const reference).
 template<typename ConfigType> struct Configurable : ConfigurableTag {
 

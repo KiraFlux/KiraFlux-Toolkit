@@ -37,7 +37,7 @@ private:
     /// @brief Raw image buffer data
     BufferStorage _buffer;
 
-    KF_IMPL(Image<StaticImage<P, W, H>, P>);
+    KF_IMPL_IMAGE(StaticImage<P, W, H>, P);
 
     constexpr math::Pixels getWidthImpl() const noexcept {
         return W;

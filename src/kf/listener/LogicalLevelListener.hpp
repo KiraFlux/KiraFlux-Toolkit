@@ -35,13 +35,13 @@ private:
     bool _click_ready{false};
     bool _first{true};
 
-    KF_IMPL_RESETTABLE(LogicalLevelListener);
+    KF_IMPL_LISTENER(LogicalLevelListener);
+
     constexpr void resetImpl() noexcept {
         _first = true;
         _last_stable = _last_raw = _click_ready = false;
     }
 
-    KF_IMPL_TIMED_POLLABLE(LogicalLevelListener);
     void pollImpl(math::Milliseconds now) noexcept {
         if (this->value().isNone()) { return; }
 

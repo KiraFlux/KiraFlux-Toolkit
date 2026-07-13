@@ -43,3 +43,7 @@ private:
 };
 
 }// namespace kf::listener
+
+#define KF_IMPL_LISTENER(__impl__) \
+    KF_IMPL_RESETTABLE(__impl__);  \
+    KF_IMPL_TIMED_POLLABLE(__impl__)

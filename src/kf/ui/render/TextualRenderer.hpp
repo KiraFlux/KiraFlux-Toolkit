@@ -126,7 +126,7 @@ private:
 
     Layout _layout{Layout::Vertical};
 
-    KF_IMPL(Renderer<TextualRenderer>);
+    KF_IMPL_RENDERER(TextualRenderer);
 
     void beginFrameImpl() noexcept {
         _buffer.reset();

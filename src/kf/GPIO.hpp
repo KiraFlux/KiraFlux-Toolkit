@@ -15,10 +15,10 @@ struct GpioTag {};
 
 struct GPIO final : GpioTag {
 
-    /// @brief CRTP base for input peripherals.
-    /// @tparam Impl         The derived class (must implement `readImpl()`).
-    /// @tparam LevelType    Type of the input value (e.g., bool, u16).
-    /// @tparam InitResult   Result type of the initialization (e.g., void, bool).
+    /// @brief CRTP base for input peripherals
+    /// @tparam Impl         The derived class (must implement `readImpl()`)
+    /// @tparam LevelType    Type of the input value (e.g., bool, u16)
+    /// @tparam InitResult   Result type of the initialization (e.g., void, bool)
     template<typename Impl, typename LevelType, typename InitSignature> struct Input :
 
         mixin::NonCopyable,
@@ -26,8 +26,8 @@ struct GPIO final : GpioTag {
 
     {
 
-        /// @brief Reads the current input value.
-        /// @return The value read from the hardware .
+        /// @brief Reads the current input value
+        /// @return The value read from the hardware
         LevelType read() const noexcept {
             return static_cast<const Impl *>(this)->readImpl();
         }
@@ -35,10 +35,10 @@ struct GPIO final : GpioTag {
 
     struct DigitalInputTag {};
 
-    /// @brief Specialization for digital inputs.
-    /// @tparam Impl         Concrete implementation class.
-    /// @tparam InitResult   Return type of the initialization.
-    /// @note Derived classes must define `Pull` enum and implement `readImpl()`.
+    /// @brief Specialization for digital inputs
+    /// @tparam Impl         Concrete implementation class
+    /// @tparam InitResult   Return type of the initialization
+    /// @note Derived classes must define `Pull` enum and implement `readImpl()`
     template<typename Impl, typename InitSignature> struct DigitalInput :
 
         Input<Impl, bool, InitSignature>,
@@ -48,21 +48,21 @@ struct GPIO final : GpioTag {
         static constexpr u8 external_pull_bit{0b01};
         static constexpr u8 pull_up_bit{0b10};
 
-        /// @brief Pull configuration options.
+        /// @brief Pull configuration options
         enum class Pull : u8 {
-            InternalDown = 0,                            ///< No pull (internal high‑impedance).
-            ExternalDown = external_pull_bit,            ///< External pull-down resistor.
-            InternalUp = pull_up_bit,                    ///< Internal pull-up resistor.
-            ExternalUp = external_pull_bit | pull_up_bit,///< External pull-up resistor.
+            InternalDown = 0,                            ///< No pull (internal high‑impedance)
+            ExternalDown = external_pull_bit,            ///< External pull-down resistor
+            InternalUp = pull_up_bit,                    ///< Internal pull-up resistor
+            ExternalUp = external_pull_bit | pull_up_bit,///< External pull-up resistor
         };
     };
 
     struct AdcInputTag {};
 
-    /// @brief Specialization for analog inputs (ADC).
-    /// @tparam Impl         Concrete implementation class.
-    /// @tparam InitResult   Return type of the initialization.
-    /// @note Requires static methods `setResolutionImpl(u8)` and `getResolutionImpl()`.
+    /// @brief Specialization for analog inputs (ADC)
+    /// @tparam Impl         Concrete implementation class
+    /// @tparam InitResult   Return type of the initialization
+    /// @note Requires static methods `setResolutionImpl(u8)` and `getResolutionImpl()`
     template<typename Impl, typename InitSignature> struct AdcInput :
 
         AdcInputTag,
@@ -70,29 +70,29 @@ struct GPIO final : GpioTag {
 
     {
 
-        /// @brief Sets the ADC resolution globally.
-        /// @param resolution_bits Number of bits (e.g., 10, 12).
-        static void resolution(u8 resolution_bits) noexcept {
+        /// @brief Sets the ADC resolution globally
+        /// @param resolution_bits Number of bits (e.g., 10, 12)
+        static void resolution(usize resolution_bits) noexcept {
             Impl::setResolutionImpl(resolution_bits);
         }
 
-        /// @brief Returns the current ADC resolution in bits.
-        /// @return Number of bits used for analog readings.
-        [[nodiscard]] static u8 resolution() noexcept {
+        /// @brief Returns the current ADC resolution in bits
+        /// @return Number of bits used for analog readings
+        [[nodiscard]] static usize resolution() noexcept {
             return Impl::getResolutionImpl();
         }
 
-        /// @brief Returns the maximum possible ADC value (2^resolution - 1).
-        /// @return Maximum value for the current resolution.
+        /// @brief Returns the maximum possible ADC value (2^resolution - 1)
+        /// @return Maximum value for the current resolution
         [[nodiscard]] static u16 maxValue() noexcept {
             return static_cast<u16>((1u << resolution()) - 1u);
         }
     };
 
-    /// @brief CRTP base for output peripherals.
-    /// @tparam Impl         Concrete implementation class (must provide `writeImpl()`).
-    /// @tparam LevelType    Type of the output value (e.g., `bool`, `u16`).
-    /// @tparam InitResult   Return type of the initialization.
+    /// @brief CRTP base for output peripherals
+    /// @tparam Impl         Concrete implementation class (must provide `writeImpl()`)
+    /// @tparam LevelType    Type of the output value (e.g., `bool`, `u16`)
+    /// @tparam InitResult   Return type of the initialization
     template<typename Impl, typename LevelType, typename InitSignature> struct Output :
 
         mixin::NonCopyable,
@@ -106,9 +106,9 @@ struct GPIO final : GpioTag {
 
     struct DigitalOutputTag {};
 
-    /// @brief Specialization for digital outputs.
-    /// @tparam Impl         Concrete implementation class.
-    /// @tparam InitResult   Return type of the initialization.
+    /// @brief Specialization for digital outputs
+    /// @tparam Impl         Concrete implementation class
+    /// @tparam InitResult   Return type of the initialization
     template<typename Impl, typename InitSignature> struct DigitalOutput :
 
         DigitalOutputTag,
@@ -118,10 +118,10 @@ struct GPIO final : GpioTag {
 
     struct PwmOutputTag {};
 
-    /// @brief Specialization for PWM outputs.
-    /// @tparam Impl         Concrete implementation class.
-    /// @tparam InitResult   Return type of the initialization.
-    /// @note Requires methods `getFrequencyImpl()`, `getResolutionImpl()`.
+    /// @brief Specialization for PWM outputs
+    /// @tparam Impl         Concrete implementation class
+    /// @tparam InitResult   Return type of the initialization
+    /// @note Requires methods `getFrequencyImpl()`, `getResolutionImpl()`
     template<typename Impl, typename InitSignature> struct PwmOutput :
 
         PwmOutputTag,
@@ -129,29 +129,52 @@ struct GPIO final : GpioTag {
 
     {
 
-        /// @brief Returns the PWM frequency in Hz.
+        /// @brief Returns the PWM frequency in Hz
         [[nodiscard]] u32 frequency() const noexcept {
             return static_cast<const Impl *>(this)->getFrequencyImpl();
         }
 
-        /// @brief Returns the PWM resolution in bits.
-        [[nodiscard]] u8 resolution() const noexcept {
+        /// @brief Returns the PWM resolution in bits
+        [[nodiscard]] usize resolution() const noexcept {
             return static_cast<const Impl *>(this)->getResolutionImpl();
         }
 
-        /// @brief Returns the maximum duty cycle value (2^resolution - 1).
+        /// @brief Returns the maximum duty cycle value (2^resolution - 1)
         [[nodiscard]] u16 maxDuty() const noexcept {
             return static_cast<u16>((1u << resolution()) - 1u);
         }
 
-        /// @brief Converts a pulse width (microseconds) to a duty cycle value.
-        /// @param pulse_width Pulse width in microseconds.
-        /// @return Duty cycle value suitable for `write()`.
-        [[nodiscard]] u16 dutyFromPulseWidth(math::Microseconds pulse_width) const noexcept {
-            const auto t = u64{pulse_width} * frequency() * maxDuty();
-            return static_cast<u16>(t / 1'000'000u);
+        /// @brief Write pulse (width in microseconds), map in to a duty cycle value and write
+        /// @param pulse_width Pulse width in microseconds
+        void writePulse(math::Microseconds pulse_width) const noexcept {
+            const auto t = static_cast<u64>(pulse_width) * frequency() * maxDuty();
+            this->write(static_cast<u16>(t / 1'000'000u));
         }
     };
 };
 
 }// namespace kf
+
+#define KF_IMPL_GPIO_INPUT(__impl__, __level_type__, ...)                   \
+    friend struct ::kf::GPIO::Input<__impl__, __level_type__, __VA_ARGS__>; \
+    KF_IMPL_INITABLE(__impl__, __VA_ARGS__)
+
+#define KF_IMPL_GPIO_DIGITAL_INPUT(__impl__, ...)                  \
+    friend struct ::kf::GPIO::DigitalInput<__impl__, __VA_ARGS__>; \
+    KF_IMPL_GPIO_INPUT(__impl__, bool, __VA_ARGS__)
+
+#define KF_IMPL_GPIO_ADC_INPUT(__impl__, ...)                  \
+    friend struct ::kf::GPIO::AdcInput<__impl__, __VA_ARGS__>; \
+    KF_IMPL_GPIO_INPUT(__impl__, ::kf::u16, __VA_ARGS__)
+
+#define KF_IMPL_GPIO_OUTPUT(__impl__, __level_type__, ...)                   \
+    friend struct ::kf::GPIO::Output<__impl__, __level_type__, __VA_ARGS__>; \
+    KF_IMPL_INITABLE(__impl__, __VA_ARGS__)
+
+#define KF_IMPL_GPIO_DIGITAL_OUTPUT(__impl__, ...)                  \
+    friend struct ::kf::GPIO::DigitalOutput<__impl__, __VA_ARGS__>; \
+    KF_IMPL_GPIO_OUTPUT(__impl__, bool, __VA_ARGS__)
+
+#define KF_IMPL_GPIO_PWM_OUTPUT(__impl__, ...)                  \
+    friend struct ::kf::GPIO::PwmOutput<__impl__, __VA_ARGS__>; \
+    KF_IMPL_GPIO_OUTPUT(__impl__, ::kf::u16, __VA_ARGS__)

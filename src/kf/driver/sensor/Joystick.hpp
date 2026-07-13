@@ -47,19 +47,18 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
     private:
         typename InputImpl::Tuner _tuner_x, _tuner_y;
 
-        KF_IMPL_RESETTABLE(Tuner);
+        KF_IMPL_TUNER(Tuner);
+
         constexpr void resetImpl() noexcept {
             _tuner_x.reset();
             _tuner_y.reset();
         }
 
-        KF_IMPL_POLLABLE(Tuner);
         void pollImpl() noexcept {
             _tuner_x.poll();
             _tuner_y.poll();
         }
 
-        KF_IMPL_TUNER(Tuner);
         bool runningImpl() const noexcept {
             return _tuner_x.running() or _tuner_y.running();
         }
@@ -76,15 +75,13 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
         axis_y{config.y, filter_config, std::move(pin_y)} {}
 
 private:
-    using This = Joystick<I>;
+    KF_IMPL_SENSOR(Joystick<I>, Value, void());
 
-    KF_IMPL_INITABLE(This, void());
     void initImpl() noexcept {
         axis_x.init();
         axis_y.init();
     }
 
-    KF_IMPL(Sensor<This, Value, void()>);
     [[nodiscard]] Value readImpl() noexcept {
         // Output is normalized to unit circle (clamped at magnitude 1.0)
 

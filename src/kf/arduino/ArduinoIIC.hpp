@@ -97,10 +97,9 @@ template<typename I> struct ArduinoIicNode :
 private:
     TwoWire &_wire;
 
-    // impl
     using This = ArduinoIicNode<BusImpl>;
 
-    KF_IMPL_READABLE(This, Error);
+    KF_IMPL_IIC_NODE(This, Error);
 
     /// @brief Request `requested` bytes from the I2C device.
     /// @return Number of bytes actually available.
@@ -199,7 +198,6 @@ private:
     }
 
     // interface impl
-    KF_IMPL_WRITABLE(This, WriteResult);
 
     WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
         beginTransmission();
@@ -243,7 +241,8 @@ struct ArduinoIIC :
 private:
     TwoWire &_wire;
 
-    KF_IMPL_INITABLE(ArduinoIIC, Result<void, Error>());
+    KF_IMPL_IIC(ArduinoIIC, Error);
+
     auto initImpl() noexcept -> Result<void, Error> {
         if (not this->config().hasDefaultPins()) {
             if (not _wire.setPins(static_cast<int>(this->config().gpio_num_sda), static_cast<int>(this->config().gpio_num_scl))) {
@@ -274,7 +273,6 @@ private:
         return ok();
     }
 
-    KF_IMPL_QUITABLE(ArduinoIIC);
     void quitImpl() noexcept {
         (void) _wire.end();// just ignore
     }

@@ -100,10 +100,6 @@ template<typename Impl, typename Tb, typename Tc, u8 bits> struct Pixel : PixelT
         Impl::copyImpl(source_buffer, source_width, source_height, dest_buffer, dest_stride, dest_x, dest_y, copy_width, copy_height);
     }
 
-    // CRTP
-
-    friend Impl;
-
 protected:
     using Base = Pixel;
 };

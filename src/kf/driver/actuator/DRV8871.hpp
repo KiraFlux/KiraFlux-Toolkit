@@ -30,7 +30,7 @@ namespace kf::driver::actuator {
 /// @tparam G Implementation of GPIO with PWM output support
 template<typename G> struct DRV8871 final :
 
-    driver::actuator::Actuator<DRV8871<G>, bool()>,
+    driver::actuator::Actuator<DRV8871<G>, internal::DRV8871Config::InputType, bool()>,
     mixin::Configurable<internal::DRV8871Config>
 
 {
@@ -46,26 +46,8 @@ template<typename G> struct DRV8871 final :
         mixin::Configurable<Config>(config),
         _pwm_gpio_forward{std::move(forward)}, _pwm_gpio_backward{std::move(backward)} {}
 
-    /// @brief Set motor speed and direction
-    /// @param value Signed input command (-max_input .. +max_input)
-    void set(Config::InputType value) noexcept {
-        if (value < 0) {
-            _pwm_gpio_forward.write(0);
-            _pwm_gpio_backward.write(calcDuty(-value, this->config().backward_dead_zone, _pwm_gpio_backward));
-        } else {
-            _pwm_gpio_forward.write(calcDuty(value, this->config().forward_dead_zone, _pwm_gpio_forward));
-            _pwm_gpio_backward.write(0);
-        }
-    }
-
-    /// @brief Stop the motor (both outputs driven low)
-    void stop() noexcept {
-        _pwm_gpio_forward.write(0);
-        _pwm_gpio_backward.write(0);
-    }
-
 private:
-    PwmOutputImpl _pwm_gpio_forward, _pwm_gpio_backward;
+    PwmOutputImpl _pwm_gpio_forward, _pwm_gpio_backward;// TODO: use one GPIO object
 
     /// @brief Map speed command to PWM duty cycle respecting dead zone
     Config::DutyType calcDuty(Config::InputType value, Config::DutyType dead_zone, const PwmOutputImpl &pwm_output) const noexcept {
@@ -75,14 +57,27 @@ private:
             dead_zone, pwm_output.config().maxDuty());
     }
 
-    // impl
-    using This = DRV8871<G>;
+    KF_IMPL_ACTUATOR(DRV8871<G>, Config::InputType, bool());
 
-    KF_IMPL_INITABLE(This, bool());
     bool initImpl() noexcept {
         if (not _pwm_gpio_forward.init()) { return false; }
         if (not _pwm_gpio_backward.init()) { return false; }
         return true;
+    }
+
+    void setImpl(Config::InputType value) noexcept {
+        if (value < 0) {
+            _pwm_gpio_forward.write(0);
+            _pwm_gpio_backward.write(calcDuty(-value, this->config().backward_dead_zone, _pwm_gpio_backward));
+        } else {
+            _pwm_gpio_forward.write(calcDuty(value, this->config().forward_dead_zone, _pwm_gpio_forward));
+            _pwm_gpio_backward.write(0);
+        }
+    }
+
+    void stopImpl() noexcept {
+        _pwm_gpio_forward.write(0);
+        _pwm_gpio_backward.write(0);
     }
 };
 

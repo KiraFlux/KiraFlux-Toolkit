@@ -37,9 +37,8 @@ template<typename T> struct ExponentialFilter :
 private:
     TrivialOption<ValueType> _filtered{none};
 
-    using This = ExponentialFilter<ValueType>;
+    KF_IMPL_FILTER(ExponentialFilter<ValueType>, ValueType);
 
-    KF_IMPL(Filter<This, ValueType>);
     ValueType calcImpl(const ValueType &value) noexcept {
         if (_filtered.isNone()) {
             _filtered = someTrivial(value);
@@ -49,7 +48,6 @@ private:
         return _filtered.unwrap();
     }
 
-    KF_IMPL_RESETTABLE(This);
     constexpr void resetImpl() noexcept {
         _filtered = none;
     }

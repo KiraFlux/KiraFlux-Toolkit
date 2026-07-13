@@ -49,3 +49,11 @@ template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus :
 };
 
 }// namespace kf::bus
+
+#define KF_IMPL_BUS_NODE(__impl__, __error_impl__) \
+    KF_IMPL_READABLE(__impl__, __error_impl__);    \
+    KF_IMPL_WRITABLE(__impl__, ::kf::Result<void, __error_impl__>)
+
+#define KF_IMPL_BUS(__impl__, __error_impl__)                         \
+    KF_IMPL_INITABLE(__impl__, ::kf::Result<void, __error_impl__>()); \
+    KF_IMPL_QUITABLE(__impl__)

@@ -59,14 +59,14 @@ private:
     Direction _current_direction{Direction::Center};
     bool _in_repeat_mode{false}, _has_changed{false};
 
-    KF_IMPL_RESETTABLE(JoystickListener);
+    KF_IMPL_LISTENER(JoystickListener);
+
     constexpr void resetImpl() noexcept {
         _current_direction = Direction::Center;
         _has_changed = false;
         _in_repeat_mode = false;
     }
 
-    KF_IMPL_TIMED_POLLABLE(JoystickListener);
     void pollImpl(math::Milliseconds now) noexcept {
         if (this->value().isNone()) { return; }
 

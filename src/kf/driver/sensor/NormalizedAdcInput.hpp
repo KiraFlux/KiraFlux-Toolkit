@@ -59,25 +59,24 @@ template<typename G> struct NormalizedAdcInput final :
     ///       - on sample: update min, max, sum.
     ///
     ///       - on calculate: compute dead zone and ranges based on collected data.
-    struct Tuner final : kf::tuner::SampleCollectingTuner<Tuner, Config> {
-        using TunerBase = ::kf::tuner::SampleCollectingTuner<Tuner, Config>;
+    struct Tuner final : tuner::SampleCollectingTuner<Tuner, Config> {
 
         explicit Tuner(Config &config, NormalizedAdcInput &normalized_input, u16 samples) :
-            _normalized_input{normalized_input}, TunerBase{config, samples} {}
+            tuner::SampleCollectingTuner<Tuner, Config>{config, samples}, _normalized_input{normalized_input} {}
 
     private:
         NormalizedAdcInput &_normalized_input;
         i64 _sum{};
         Config::AdcSignedValue _max_sample{}, _min_sample{};
 
-        KF_IMPL_RESETTABLE(Tuner);
+        KF_IMPL_SAMPLE_COLLECTING_TUNER(Tuner, Config);
+
         constexpr void resetImpl() noexcept {
             _max_sample = 0;
             _min_sample = AdcInputImpl::maxValue();
             _sum = 0;
         }
 
-        KF_IMPL_POLLABLE(Tuner);
         void pollImpl() noexcept {
             const auto sample = Config::AdcSignedValue(_normalized_input.readRaw());
             _max_sample = math::max(_max_sample, sample);
@@ -85,7 +84,6 @@ template<typename G> struct NormalizedAdcInput final :
             _sum += sample;
         }
 
-        friend TunerBase;
         void calculateImpl(Config &config) const noexcept {
             constexpr auto margin{10};
             constexpr auto zone_percents{10};
@@ -108,14 +106,12 @@ private:
     FilterImpl _filter;
     AdcInputImpl _gpio;
 
-    using This = NormalizedAdcInput<G>;
+    KF_IMPL_SENSOR(NormalizedAdcInput<G>, f32, void());
 
-    KF_IMPL_INITABLE(This, void());
     void initImpl() noexcept {
         _gpio.init();
     }
 
-    KF_IMPL(Sensor<This, f32, void()>);
     [[nodiscard]] f32 readImpl() noexcept {
         // Applies dead zone, filtering, and optional inversion
         const auto deviation = static_cast<Config::AdcSignedValue>(readRaw()) - this->config().range_negative;

@@ -144,7 +144,7 @@ private:
     math::Pixels _stride;             ///< Row stride (full display width)
     math::Pixels _offset_x, _offset_y;///< Absolute offset from buffer origin
 
-    KF_IMPL(Image<DynamicImage<P>, P>);
+    KF_IMPL_IMAGE(DynamicImage<P>, P);
 
     constexpr math::Pixels getWidthImpl() const noexcept { return _width; }
 

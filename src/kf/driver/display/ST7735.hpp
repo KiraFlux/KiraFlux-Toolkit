@@ -106,10 +106,9 @@ private:
         return _spi_node.writeByte(static_cast<u8>(c));
     }
 
-    // impl
     using This = ST7735<N, G>;
+    KF_IMPL_DISPLAY_DRIVER(This, internal::ST7735Image, SpiOperationResult);
 
-    KF_IMPL_INITABLE(This, SpiOperationResult());
     SpiOperationResult initImpl() noexcept {
         _spi_node.init();
         _gpio_data_command.init();
@@ -136,7 +135,6 @@ private:
         return ok();
     }
 
-    KF_IMPL_RESETTABLE(This);
     void resetImpl() const noexcept {
         // Required after power‑up to initialise the internal state machine.
         _gpio_hardware_reset.write(false);
@@ -145,7 +143,6 @@ private:
         delay(120);
     }
 
-    KF_IMPL(DisplayDriver<This, internal::ST7735Image, SpiOperationResult>);
     SpiOperationResult sendImpl() noexcept {
         KF_TRY(sendCommand(Command::RAMWR));
         return sendBuffer({reinterpret_cast<const u8 *>(this->image().buffer().data()), this->image().size()});

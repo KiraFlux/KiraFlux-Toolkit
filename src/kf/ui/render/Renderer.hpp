@@ -146,3 +146,5 @@ private:
 };
 
 }// namespace kf::ui::render
+
+#define KF_IMPL_RENDERER(...) friend struct ::kf::ui::render::Renderer<__VA_ARGS__>

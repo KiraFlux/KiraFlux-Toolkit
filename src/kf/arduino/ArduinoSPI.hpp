@@ -172,13 +172,12 @@ private:
 
     using This = ArduinoSpiNode<I>;
 
-    KF_IMPL_INITABLE(This, void());
+    KF_IMPL_SPI_NODE(This, Error);
+
     void initImpl() noexcept {
         pinMode(this->config().gpio_num_cs, OUTPUT);
         digitalWrite(this->config().gpio_num_cs, HIGH);
     }
-
-    KF_IMPL_READABLE(This, Error);
 
     void readBytes(u8 *buffer, usize length) noexcept {
         // Read length bytes from the device while sending zeros (full‑duplex)
@@ -211,7 +210,6 @@ private:
     }
 
     using WriteResult = Result<void, Error>;
-    KF_IMPL_WRITABLE(This, WriteResult);
 
     WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
         beginTransaction();
@@ -258,7 +256,8 @@ struct ArduinoSPI :
 private:
     SPIClass &_spi;
 
-    KF_IMPL_INITABLE(ArduinoSPI, Result<void, Error>());
+    KF_IMPL_SPI(ArduinoSPI, Error);
+
     Result<void, Error> initImpl() noexcept {
         if (this->config().hasDefaultPins()) {
             _spi.begin();
@@ -268,8 +267,9 @@ private:
         return ok();
     }
 
-    KF_IMPL_QUITABLE(ArduinoSPI);
-    void quitImpl() noexcept { _spi.end(); }
+    void quitImpl() noexcept {
+        _spi.end();
+    }
 };
 
 }// namespace kf::arduino

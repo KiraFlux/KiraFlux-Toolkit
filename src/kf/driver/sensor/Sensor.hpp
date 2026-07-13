@@ -10,6 +10,7 @@
 namespace kf::driver::sensor {
 
 struct SensorTag {};
+// TODO: rename to SensorDriver
 
 /// @brief Sensor CRTP interface
 /// @tparam Impl Sensor implementation
@@ -30,3 +31,7 @@ template<typename Impl, typename Measurement, typename InitSignature> struct Sen
 };
 
 }// namespace kf::driver::sensor
+
+#define KF_IMPL_SENSOR(__impl__, __measurement_type__, ...)                                  \
+    friend struct ::kf::driver::sensor::Sensor<__impl__, __measurement_type__, __VA_ARGS__>; \
+    KF_IMPL_INITABLE(__impl__, __VA_ARGS__)

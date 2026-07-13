@@ -39,9 +39,8 @@ template<typename T> struct LowFrequencyFilter :
 private:
     TrivialOption<ValueType> _filtered{none};
 
-    using This = LowFrequencyFilter<ValueType>;
+    KF_IMPL_FILTER(LowFrequencyFilter<ValueType>, ValueType);
 
-    KF_IMPL(Filter<This, ValueType>);
     ValueType calcImpl(const ValueType &x) noexcept {
         if (_filtered.isNone()) {
             goto set;
@@ -58,7 +57,6 @@ private:
         return _filtered.unwrap();
     }
 
-    KF_IMPL_RESETTABLE(This);
     constexpr void resetImpl() noexcept {
         _first_step = true;
     }

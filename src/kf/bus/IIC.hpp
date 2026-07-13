@@ -27,3 +27,7 @@ template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct IIC :
     Bus<BusImpl, NodeImpl, ErrorImpl> {};
 
 }// namespace kf::bus
+
+#define KF_IMPL_IIC_NODE(...) KF_IMPL_BUS_NODE(__VA_ARGS__)
+
+#define KF_IMPL_IIC(...) KF_IMPL_BUS(__VA_ARGS__)

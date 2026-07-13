@@ -32,3 +32,9 @@ template<typename Impl, typename NodeImpl, typename ErrorImpl> struct SPI :
 };
 
 }// namespace kf::bus
+
+#define KF_IMPL_SPI_NODE(__impl__, ...)      \
+    KF_IMPL_BUS_NODE(__impl__, __VA_ARGS__); \
+    KF_IMPL_INITABLE(__impl__, void())
+
+#define KF_IMPL_SPI(...) KF_IMPL_BUS(__VA_ARGS__)

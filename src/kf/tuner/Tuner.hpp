@@ -20,7 +20,14 @@ struct TunerTag {};
 ///       - `void resetImpl() noexcept` (from mixin::Resettable)
 ///
 ///       - `void pollImpl() noexcept` (from mixin::Pollable)
-template<typename Impl> struct Tuner : TunerTag, mixin::NonCopyable, mixin::Resettable<Impl>, mixin::Pollable<Impl> {
+template<typename Impl> struct Tuner :
+
+    TunerTag,
+    mixin::NonCopyable,
+    mixin::Resettable<Impl>,
+    mixin::Pollable<Impl>
+
+{
 
     /// @brief Check if the tuner is still running (collecting or calculating).
     [[nodiscard]] bool running() const noexcept {
@@ -30,4 +37,7 @@ template<typename Impl> struct Tuner : TunerTag, mixin::NonCopyable, mixin::Rese
 
 }// namespace kf::tuner
 
-#define KF_IMPL_TUNER(__impl__) friend struct kf::tuner::Tuner<__impl__>
+#define KF_IMPL_TUNER(...)                       \
+    friend struct kf::tuner::Tuner<__VA_ARGS__>; \
+    KF_IMPL_RESETTABLE(__VA_ARGS__);             \
+    KF_IMPL_POLLABLE(__VA_ARGS__)

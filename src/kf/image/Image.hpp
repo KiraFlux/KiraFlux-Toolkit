@@ -71,3 +71,5 @@ template<typename Impl, typename P> struct Image :
 };
 
 }// namespace kf::image
+
+#define KF_IMPL_IMAGE(...) friend struct ::kf::image::Image<__VA_ARGS__>

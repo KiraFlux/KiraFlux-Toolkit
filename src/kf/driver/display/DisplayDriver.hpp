@@ -16,15 +16,15 @@ namespace kf::driver::display {
 struct DisplayDriverTag {};
 
 /// @brief CRTP base class for display driver implementations
-/// @tparam DriverImpl Concrete driver implementation type
+/// @tparam Impl Concrete driver implementation type
 /// @tparam ImageImpl Image buffer type
-template<typename DriverImpl, typename ImageImpl, typename ResultType> struct DisplayDriver :
+template<typename Impl, typename ImageImpl, typename ResultType> struct DisplayDriver :
 
     DisplayDriverTag,
-    meta::CRTP<DriverImpl>,
+    meta::CRTP<Impl>,
     mixin::NonCopyable,
-    mixin::Initable<DriverImpl, ResultType()>,
-    mixin::Resettable<DriverImpl>
+    mixin::Initable<Impl, ResultType()>,
+    mixin::Resettable<Impl>
 
 {
     KF_CHECK_IMPL(ImageImpl, ::kf::image::ImageTag);
@@ -55,3 +55,8 @@ private:
 };
 
 }// namespace kf::driver::display
+
+#define KF_IMPL_DISPLAY_DRIVER(__impl__, __image_impl__, ...)                                  \
+    friend struct ::kf::driver::display::DisplayDriver<__impl__, __image_impl__, __VA_ARGS__>; \
+    KF_IMPL_INITABLE(__impl__, __VA_ARGS__());                                                 \
+    KF_IMPL_RESETTABLE(__impl__)

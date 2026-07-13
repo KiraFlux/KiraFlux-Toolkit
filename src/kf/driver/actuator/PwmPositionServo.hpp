@@ -38,7 +38,7 @@ namespace kf::driver::actuator {
 /// @tparam G Implementation of GPIO with PWM output support
 template<typename G> struct PwmPositionServo final :
 
-    Actuator<PwmPositionServo<G>, bool()>,
+    Actuator<PwmPositionServo<G>, math::Degrees, bool()>,
     mixin::Configurable<internal::PwmPositionServoConfig>
 
 {
@@ -62,30 +62,23 @@ template<typename G> struct PwmPositionServo final :
     explicit constexpr PwmPositionServo(const Config &config, PwmOutputImpl &&gpio, Config::AngleRange angle_safe_range) noexcept :
         mixin::Configurable<Config>{config}, _angle_safe_range{angle_safe_range}, _pwm_gpio{std::move(gpio)} {}
 
-    /// @brief Set servo to target angle
-    /// @param angle Target angle in degrees (will be clamped to safe range)
-    /// @note Converts angle to pulse width using the configuration and writes the corresponding PWM duty cycle
-    void write(math::Degrees angle) noexcept {
-        _pwm_gpio.write(_pwm_gpio.dutyFromPulseWidth(this->config().pulseWidthFromAngle(_angle_safe_range.clamped(angle))));
-    }
-
-    /// @brief Disable servo (stop PWM signal)
-    void disable() noexcept {
-        _pwm_gpio.write(0);
-    }
-
 private:
     Config::AngleRange _angle_safe_range;///< Safe operating angle range (clamped before mapping)
     PwmOutputImpl _pwm_gpio;             ///< PWM output gpio
 
-    using This = PwmPositionServo<G>;
+    KF_IMPL_ACTUATOR(PwmPositionServo<G>, math::Degrees, bool());
 
-    KF_IMPL_INITABLE(This, bool());
     bool initImpl() noexcept {
         return _pwm_gpio.init();
     }
 
-    KF_IMPL(Actuator<This, bool>);
+    void setImpl(math::Degrees angle) noexcept {
+        _pwm_gpio.writePulse(this->config().pulseWidthFromAngle(_angle_safe_range.clamped(angle)));
+    }
+
+    void stopImpl() noexcept {
+        _pwm_gpio.write(0);
+    }
 };
 
 }// namespace kf::driver::actuator

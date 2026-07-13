@@ -33,7 +33,7 @@ private:
     StaticImage<PixelImpl, W, H> _image{};///< Raw image buffer data
     math::Pixels _logical_width{W}, _logical_height{H};
 
-    KF_IMPL(Image<ViewportImage<P, W, H>, P>);
+    KF_IMPL_IMAGE(ViewportImage<P, W, H>, P);
 
     [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept {
         return _logical_width;

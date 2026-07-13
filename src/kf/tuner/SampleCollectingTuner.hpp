@@ -46,18 +46,14 @@ private:
     SampleCounterType _samples_processed{0};
     State _state{State::Idle};
 
-    // impl
+    KF_IMPL_TUNER(SampleCollectingTuner<Impl, T>);
 
-    using This = SampleCollectingTuner<Impl, T>;
-
-    KF_IMPL_RESETTABLE(This);
     constexpr void resetImpl() noexcept {
         _state = State::Running;
         _samples_processed = 0;
         impl().resetImpl();
     }
 
-    KF_IMPL_POLLABLE(This);
     void pollImpl() noexcept {
         switch (_state) {
             case State::Idle://
@@ -81,7 +77,6 @@ private:
         }
     }
 
-    KF_IMPL_TUNER(This);
     [[nodiscard]] bool runningImpl() const noexcept {
         return _state != State::Idle;
     }
@@ -97,3 +92,8 @@ private:
 };
 
 }// namespace kf::tuner
+
+#define KF_IMPL_SAMPLE_COLLECTING_TUNER(__impl__, __type__)               \
+    friend struct ::kf::tuner::SampleCollectingTuner<__impl__, __type__>; \
+    KF_IMPL_RESETTABLE(__impl__);                                         \
+    KF_IMPL_POLLABLE(__impl__)

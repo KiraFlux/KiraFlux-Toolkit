@@ -13,6 +13,7 @@
 
 namespace kf::internal {
 
+// todo: extend textual config
 struct ColoredTextRendererConfig final {
     using TextConfig = ui::render::TextualRenderer::Config;
 
@@ -59,6 +60,7 @@ struct ColoredTextRendererConfig final {
     TextConfig text;
     Palette normal_foreground_palette, focused_foreground_palette, normal_background_palette, focused_background_palette;
 
+    // TODO: use reset
     [[nodiscard]] static constexpr auto defaults() noexcept {
         return ColoredTextRendererConfig{
             .text = TextConfig::defaults(),
@@ -146,7 +148,7 @@ private:
         writeColor(color, '\xB0', palette);
     }
 
-    KF_IMPL(Renderer<ColoredTextRenderer>);
+    KF_IMPL_RENDERER(ColoredTextRenderer);
 
     // control
 

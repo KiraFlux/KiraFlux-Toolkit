@@ -15,7 +15,7 @@
 
 namespace kf::internal {
 
-using SSD1306ImageImpl = image::StaticImage<pixel::MonochromePixel, 128, 64>;
+using SSD1306Image = image::StaticImage<pixel::MonochromePixel, 128, 64>;
 
 }
 
@@ -25,13 +25,13 @@ namespace kf::driver::display {
 /// @tparam N Implementation of IIC bus Node
 template<typename N> struct SSD1306 final :
 
-    DisplayDriver<SSD1306<N>, internal::SSD1306ImageImpl, Result<void, typename N::Error>>
+    DisplayDriver<SSD1306<N>, internal::SSD1306Image, Result<void, typename N::Error>>
 
 {
     KF_CHECK_IMPL(N, ::kf::bus::IicNodeTag);
 
     using IicNodeImpl = N;
-    using PixelImpl = typename internal::SSD1306ImageImpl::PixelImpl;
+    using PixelImpl = typename internal::SSD1306Image::PixelImpl;
     using IicOperationResult = Result<void, typename IicNodeImpl::Error>;
 
     /// @brief SSD1306 command set
@@ -99,10 +99,8 @@ private:
         return _node.writePacket(packet);
     }
 
-    // impl
-    using This = SSD1306<N>;
+    KF_IMPL_DISPLAY_DRIVER(SSD1306<N>, internal::SSD1306Image, IicOperationResult);
 
-    KF_IMPL_INITABLE(This, IicOperationResult());
     /// @brief Initialize display hardware via I2C
     IicOperationResult initImpl() noexcept {
         static constexpr u8 init_commands[] = {
@@ -150,14 +148,12 @@ private:
         return _node.writePacket(init_commands);
     }
 
-    KF_IMPL_RESETTABLE(This);
     constexpr void resetImpl() const noexcept {}
 
-    KF_IMPL(DisplayDriver<This, internal::SSD1306ImageImpl, IicOperationResult>);
     IicOperationResult sendImpl() noexcept {
         // Transfer software buffer to display via I2C
 
-        static constexpr auto packet_size = 64u;// Optimal for ESP32 performance
+        static constexpr auto packet_size = 64u;// Optimal for ESP32 performance // TODO: move to config, rename to chunk_size
 
         static constexpr u8 set_area_commands[] = {
             CommandMode,

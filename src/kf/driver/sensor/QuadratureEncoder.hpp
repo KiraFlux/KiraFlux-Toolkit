@@ -10,6 +10,10 @@
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
 
+#ifndef IRAM_ATTR
+#define IRAM_ATTR
+#endif
+
 namespace kf::internal {
 
 /// @brief Configuration for a QuadratureEncoder
@@ -118,9 +122,8 @@ private:
     }
 
     // Implementation details
-    using This = QuadratureEncoder<T>;
+    KF_IMPL_SENSOR(QuadratureEncoder<T>, typename Config::PhaseStateType, void());
 
-    KF_IMPL_INITABLE(This, void());
     void initImpl() noexcept {
         pinMode(this->config().gpio_num_phase_a, INPUT);
         attachInterruptArg(digitalPinToInterrupt(this->config().gpio_num_phase_a), onAnyPhaseChange, static_cast<void *>(this), CHANGE);
@@ -131,7 +134,6 @@ private:
         this->reset();
     }
 
-    KF_IMPL(::kf::driver::sensor::Sensor<This, typename Config::PhaseStateType, void()>);
     typename Config::PhaseStateType readImpl() const noexcept {
         const auto state_a = static_cast<typename Config::PhaseStateType>(digitalRead(this->config().gpio_num_phase_a));
         const auto state_b = static_cast<typename Config::PhaseStateType>(digitalRead(this->config().gpio_num_phase_b));

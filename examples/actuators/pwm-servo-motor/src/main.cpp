@@ -38,9 +38,13 @@ void setup() {
 
     // Sweep 0 -> 90 -> 0 (NARROW RANGE OVERRIDE)
     for (int angle = -90; angle <= 90; angle += 1) {
-        servo.write(abs(90 - angle));
+        servo.set(abs(90 - angle));
         delay(20);
     }
+
+    delay(1000);
+
+    servo.stop();
 }
 
 void loop() {}
