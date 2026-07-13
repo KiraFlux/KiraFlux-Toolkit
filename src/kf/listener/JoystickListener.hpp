@@ -60,7 +60,7 @@ private:
     bool _in_repeat_mode{false}, _has_changed{false};
 
     KF_IMPL_RESETTABLE(JoystickListener);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _current_direction = Direction::Center;
         _has_changed = false;
         _in_repeat_mode = false;

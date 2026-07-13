@@ -71,7 +71,7 @@ template<typename G> struct NormalizedAdcInput final :
         Config::AdcSignedValue _max_sample{}, _min_sample{};
 
         KF_IMPL_RESETTABLE(Tuner);
-        void resetImpl() noexcept {
+        constexpr void resetImpl() noexcept {
             _max_sample = 0;
             _min_sample = AdcInputImpl::maxValue();
             _sum = 0;

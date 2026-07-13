@@ -151,7 +151,7 @@ private:
     }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() const noexcept {}
+    constexpr void resetImpl() const noexcept {}
 
     KF_IMPL(DisplayDriver<This, internal::SSD1306ImageImpl, IicOperationResult>);
     IicOperationResult sendImpl() noexcept {

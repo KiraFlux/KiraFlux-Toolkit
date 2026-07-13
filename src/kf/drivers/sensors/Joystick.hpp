@@ -48,7 +48,7 @@ template<typename I> struct Joystick final : Sensor<Joystick<I>, internal::Joyst
         typename InputImpl::Tuner _tuner_x, _tuner_y;
 
         KF_IMPL_RESETTABLE(Tuner);
-        void resetImpl() noexcept {
+        constexpr void resetImpl() noexcept {
             _tuner_x.reset();
             _tuner_y.reset();
         }

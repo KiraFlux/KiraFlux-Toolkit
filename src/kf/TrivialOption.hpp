@@ -74,7 +74,7 @@ private:
     }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _value = nan;
     }
 };
@@ -163,7 +163,7 @@ private:
     }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _is_some = false;
     }
 };
@@ -224,7 +224,7 @@ private:
     }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _value = is_none_mark;
     }
 };

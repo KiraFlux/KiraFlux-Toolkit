@@ -36,7 +36,7 @@ private:
     bool _first{true};
 
     KF_IMPL_RESETTABLE(LogicalLevelListener);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _first = true;
         _last_stable = _last_raw = _click_ready = false;
     }

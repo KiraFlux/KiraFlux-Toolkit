@@ -72,7 +72,7 @@ private:
     }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         if (this->isSome()) {
             _is_some = false;
         }
@@ -358,7 +358,7 @@ private:
     }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _ptr = nullptr;
     }
 };
@@ -416,7 +416,7 @@ private:
     }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _length = is_none_mark;
         _ptr = nullptr;
     }

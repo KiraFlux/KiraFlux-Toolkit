@@ -59,7 +59,7 @@ private:
     }
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _first_step = true;
     }
 };

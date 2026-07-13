@@ -89,7 +89,7 @@ private:
     TrivialOption<f32> _last_error{none};///< Previous error value
 
     KF_IMPL_RESETTABLE(PID);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _current_derivative = 0.0f;
         _current_integral = 0.0f;
         _last_error.reset();

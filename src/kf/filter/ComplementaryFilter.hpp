@@ -57,7 +57,7 @@ private:
     using This = ComplementaryFilter<ValueType>;
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _filtered = none;
     }
 };

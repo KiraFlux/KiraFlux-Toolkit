@@ -51,7 +51,7 @@ private:
     using This = SampleCollectingTuner<Impl, T>;
 
     KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _state = State::Running;
         _samples_processed = 0;
         impl().resetImpl();
