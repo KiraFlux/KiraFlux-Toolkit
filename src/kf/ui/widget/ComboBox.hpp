@@ -76,7 +76,7 @@ template<typename U, typename T> struct ComboBox :
     using Config = internal::ComboBoxConfig<T>;
 
     explicit constexpr ComboBox(const Config &config, Style style = Style::defaults()) noexcept :
-        U::Widget{style}, mixin::Configured<Config>::Configurable{config} {}
+        U::Widget{style}, mixin::Configured<Config>::Configured{config} {}
 
     /// @brief Set selection to the first item whose value equals `new_value`
     /// @param new_value Value to match against items
