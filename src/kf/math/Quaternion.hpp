@@ -21,14 +21,23 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
 
     Scalar x, y, z, w;
 
+    /// @brief Create Quaternion with auto-deduced types
+    /// @tparam X x component type (likely auto deduced)
+    /// @tparam Y y component type (likely auto deduced)
+    /// @tparam Z z component type (likely auto deduced)
+    /// @tparam W w component type (likely auto deduced)
+    template<typename X, typename Y, typename Z, typename W> [[nodiscard]] static constexpr Quaternion create(X x, Y y, Z z, W w) noexcept {
+        return Quaternion{
+            .x = static_cast<Scalar>(x),
+            .y = static_cast<Scalar>(y),
+            .z = static_cast<Scalar>(z),
+            .w = static_cast<Scalar>(w),
+        };
+    }
+
     /// @brief Identity quaternion (no rotation)
     [[nodiscard]] static constexpr Quaternion identity() noexcept {
-        return Quaternion{
-            .x = 0,
-            .y = 0,
-            .z = 0,
-            .w = 1,
-        };
+        return create(0, 0, 0, 1);
     }
 
     /// @brief Create quaternion from axis‑angle representation
@@ -36,18 +45,11 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
     /// @param angle Rotation angle in radians
     /// @return Quaternion representing the rotation
     [[nodiscard]] static Quaternion fromAxisAngle(const Vector3<Scalar> &axis, Scalar angle) noexcept {
-        const auto half = angle * 0.5;
-
         const auto
-            s = math::sin(half),
-            c = math::cos(half);
+            s = math::sin(angle * 0.5),
+            c = math::cos(angle * 0.5);
 
-        return Quaternion{
-            .x = static_cast<Scalar>(axis.x * s),
-            .y = static_cast<Scalar>(axis.y * s),
-            .z = static_cast<Scalar>(axis.z * s),
-            .w = static_cast<Scalar>(c),
-        };
+        return create(axis.x * s, axis.y * s, axis.z * s, c);
     }
 
     /// @brief Create quaternion from Euler angles (ZYX order) using any numeric vector type
@@ -65,22 +67,16 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
             cy = math::cos(eulers.z * half),
             sy = math::sin(eulers.z * half);
 
-        return Quaternion{
-            .x = static_cast<Scalar>(sr * cp * cy - cr * sp * sy),
-            .y = static_cast<Scalar>(cr * sp * cy + sr * cp * sy),
-            .z = static_cast<Scalar>(cr * cp * sy - sr * sp * cy),
-            .w = static_cast<Scalar>(cr * cp * cy + sr * sp * sy),
-        };
+        return create(
+            (sr * cp * cy - cr * sp * sy),
+            (cr * sp * cy + sr * cp * sy),
+            (cr * cp * sy - sr * sp * cy),
+            (cr * cp * cy + sr * sp * sy));
     }
 
     /// @brief Conjugate of the quaternion
     [[nodiscard]] constexpr Quaternion conjugate() const noexcept {
-        return Quaternion{
-            .x = static_cast<Scalar>(-x),
-            .y = static_cast<Scalar>(-y),
-            .z = static_cast<Scalar>(-z),
-            .w = static_cast<Scalar>(w),
-        };
+        return create(-x, -y, -z, w);
     }
 
     /// @brief Convert quaternion to Euler angles (roll, pitch, yaw) in radians
@@ -95,28 +91,20 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
 
         // North pole (pitch = +90 deg)
         if (sarg >= lim) {
-            return Vector3<U>{
-                static_cast<U>(0),                   // roll
-                static_cast<U>(M_PI_2),              // pitch
-                static_cast<U>(2 * math::atan2(y, x)),// yaw
-            };
+            return Vector3<U>::create(0, M_PI_2, 2 * math::atan2(y, x));// roll, pitch, yaw
         }
 
         // South pole (pitch = -90 deg)
         if (sarg <= -lim) {
-            return Vector3<U>{
-                static_cast<U>(0),                    // roll
-                static_cast<U>(-M_PI_2),              // pitch
-                static_cast<U>(-2 * math::atan2(y, x)),// yaw
-            };
+            return Vector3<U>::create(0, -M_PI_2, -2 * math::atan2(y, x));// roll, pitch, yaw
         }
 
         // Regular case
-        return Vector3<U>{
-            static_cast<U>(math::atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))),// roll
-            static_cast<U>(math::asin(sarg)),                                         // pitch
-            static_cast<U>(math::atan2(2 * (x * y + w * z), 1 - 2 * (y * y + z * z))),// yaw
-        };
+        return Vector3<U>::create(
+            (math::atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))),// roll
+            (math::asin(sarg)),                                         // pitch
+            (math::atan2(2 * (x * y + w * z), 1 - 2 * (y * y + z * z))) // yaw
+        );
     }
 
     /// @brief Squared length (magnitude squared)
@@ -143,12 +131,7 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
 
         if (n == 0) { return none; }
 
-        return someTrivial(Quaternion{
-            .x = static_cast<Scalar>(x / n),
-            .y = static_cast<Scalar>(y / n),
-            .z = static_cast<Scalar>(z / n),
-            .w = static_cast<Scalar>(w / n),
-        });
+        return someTrivial(create(x / n, y / n, z / n, w / n));
     }
 
     /// @brief Inverse of the quaternion
@@ -160,12 +143,7 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
 
         const auto c = conjugate();
 
-        return someTrivial(Quaternion{
-            .x = static_cast<Scalar>(c.x / n2),
-            .y = static_cast<Scalar>(c.y / n2),
-            .z = static_cast<Scalar>(c.z / n2),
-            .w = static_cast<Scalar>(c.w / n2),
-        });
+        return someTrivial(create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
     }
 
     /// @brief Rotate a 3D vector by this quaternion (assumes unit quaternion)
@@ -189,21 +167,19 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
             yw = y * w,
             zw = z * w;
 
-        return Vector3<Scalar>{
-            .x = static_cast<Scalar>((1 - 2 * (yy + zz)) * vx + 2 * (xy - zw) * vy + 2 * (xz + yw) * vz),
-            .y = static_cast<Scalar>(2 * (xy + zw) * vx + (1 - 2 * (xx + zz)) * vy + 2 * (yz - xw) * vz),
-            .z = static_cast<Scalar>(2 * (xz - yw) * vx + 2 * (yz + xw) * vy + (1 - 2 * (xx + yy)) * vz),
-        };
+        return Vector3<Scalar>::create(
+            ((1 - 2 * (yy + zz)) * vx + 2 * (xy - zw) * vy + 2 * (xz + yw) * vz),
+            (2 * (xy + zw) * vx + (1 - 2 * (xx + zz)) * vy + 2 * (yz - xw) * vz),
+            (2 * (xz - yw) * vx + 2 * (yz + xw) * vy + (1 - 2 * (xx + yy)) * vz));
     }
 
     /// @brief Quaternion multiplication (composition of rotations)
     [[nodiscard]] constexpr Quaternion operator*(const Quaternion &other) const noexcept {
-        return Quaternion{
-            .x = static_cast<Scalar>(w * other.x + x * other.w + y * other.z - z * other.y),
-            .y = static_cast<Scalar>(w * other.y - x * other.z + y * other.w + z * other.x),
-            .z = static_cast<Scalar>(w * other.z + x * other.y - y * other.x + z * other.w),
-            .w = static_cast<Scalar>(w * other.w - x * other.x - y * other.y - z * other.z),
-        };
+        return Quaternion::create(
+            (w * other.x + x * other.w + y * other.z - z * other.y),
+            (w * other.y - x * other.z + y * other.w + z * other.x),
+            (w * other.z + x * other.y - y * other.x + z * other.w),
+            (w * other.w - x * other.x - y * other.y - z * other.z));
     }
 
     /// @brief Multiply‑assign
