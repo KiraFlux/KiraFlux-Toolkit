@@ -9,9 +9,9 @@
 #include <utility>
 
 #include "kf/Result.hpp"
-#include "kf/io/Readable.hpp"
-#include "kf/io/Writable.hpp"
 #include "kf/mixin/Configurable.hpp"
+#include "kf/mixin/Readable.hpp"
+#include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/bus/spi/SPI.hpp"

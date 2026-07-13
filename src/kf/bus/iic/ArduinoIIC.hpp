@@ -6,11 +6,11 @@
 #include <Wire.h>
 #include <type_traits>
 
-#include "kf/io/Readable.hpp"
-#include "kf/io/Writable.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Configurable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Readable.hpp"
+#include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/bus/iic/IIC.hpp"

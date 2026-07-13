@@ -8,9 +8,9 @@
 #include <Stream.h>
 
 #include "kf/Result.hpp"
-#include "kf/io/Readable.hpp"
-#include "kf/io/Writable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Readable.hpp"
+#include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {
@@ -28,8 +28,8 @@ namespace kf::io {
 struct ArduinoStream final :
 
     mixin::NonCopyable,
-    io::Readable<ArduinoStream, internal::ArduinoStreamError>,
-    io::Writable<ArduinoStream, kf::Result<void, internal::ArduinoStreamError>>
+    mixin::Readable<ArduinoStream, internal::ArduinoStreamError>,
+    mixin::Writable<ArduinoStream, kf::Result<void, internal::ArduinoStreamError>>
 
 {
     using Error = internal::ArduinoStreamError;

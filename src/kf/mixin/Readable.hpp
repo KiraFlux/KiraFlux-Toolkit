@@ -9,7 +9,7 @@
 #include "kf/Slice.hpp"
 #include "kf/primitives.hpp"
 
-namespace kf::io {
+namespace kf::mixin {
 
 struct ReadableTag {};
 
@@ -51,6 +51,6 @@ private:
     const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
 };
 
-}// namespace kf::io
+}// namespace kf::mixin
 
-#define KF_IMPL_READABLE(__impl__, __error_type__) friend struct kf::io::Readable<__impl__, __error_type__>
+#define KF_IMPL_READABLE(__impl__, __error_type__) friend struct kf::mixin::Readable<__impl__, __error_type__>

@@ -4,12 +4,12 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/io/Readable.hpp"
-#include "kf/io/Writable.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
+#include "kf/mixin/Readable.hpp"
+#include "kf/mixin/Writable.hpp"
 
 namespace kf::bus {
 
@@ -19,8 +19,8 @@ template<typename Impl, typename ErrorImpl> struct BusNode :
 
     BusNodeTag,
     mixin::NonCopyable,
-    io::Readable<Impl, ErrorImpl>,
-    io::Writable<Impl, Result<void, ErrorImpl>>
+    mixin::Readable<Impl, ErrorImpl>,
+    mixin::Writable<Impl, Result<void, ErrorImpl>>
 
 {};
 

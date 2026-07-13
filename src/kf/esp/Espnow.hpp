@@ -16,7 +16,6 @@
 #include "kf/Result.hpp"
 #include "kf/Slice.hpp"
 #include "kf/StringView.hpp"
-#include "kf/io/Writable.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/MacAddressed.hpp"
@@ -24,6 +23,7 @@
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Singleton.hpp"
 #include "kf/mixin/StringRepresentable.hpp"
+#include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {
@@ -106,7 +106,7 @@ struct Espnow final :
 
         mixin::NonCopyable,
         mixin::MacAddressed,
-        io::Writable<Peer, VoidResult>
+        mixin::Writable<Peer, VoidResult>
 
     {
         /// @brief Peer configuration
