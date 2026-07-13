@@ -23,7 +23,7 @@ template<typename T> struct SpinBoxConfig final {
 
 }// namespace kf::internal
 
-namespace kf::ui::widgets {
+namespace kf::ui::widget {
 
 struct SpinBoxTag {};
 
@@ -89,4 +89,4 @@ private:
     bool _is_step_setting_mode{false};///< true when adjusting step size, false when adjusting value
 };
 
-}// namespace kf::ui::widgets
+}// namespace kf::ui::widget

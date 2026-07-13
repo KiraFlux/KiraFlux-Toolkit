@@ -11,7 +11,7 @@
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
-namespace kf::ui::widgets {
+namespace kf::ui::widget {
 
 struct LabeledTag {};
 
@@ -54,4 +54,4 @@ private:
     typename U::Widget &_wrapped;
 };
 
-}// namespace kf::ui::widgets
+}// namespace kf::ui::widget

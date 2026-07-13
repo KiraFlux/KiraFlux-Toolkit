@@ -12,7 +12,7 @@ using MyEvent = kf::ui::Event<4>;// Event type: 4-bit value
 // UI specialization
 using MyUI = kf::ui::UI<
     kf::ui::UiTraits<                         // Traits Implementation
-        kf::ui::widgets::Widget<              // Base widget class
+        kf::ui::widget::Widget<               // Base widget class
             kf::ui::render::PlainTextRenderer,// Renderer implementation: plain text
             MyEvent>>>;
 

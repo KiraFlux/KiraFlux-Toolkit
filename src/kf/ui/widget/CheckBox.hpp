@@ -9,7 +9,7 @@
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
-namespace kf::ui::widgets {
+namespace kf::ui::widget {
 
 struct CheckBoxTag {};
 
@@ -47,4 +47,4 @@ template<typename U> struct CheckBox :
     }
 };
 
-}// namespace kf::ui::widgets
+}// namespace kf::ui::widget

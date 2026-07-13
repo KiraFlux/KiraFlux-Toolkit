@@ -13,7 +13,7 @@
 #include "kf/ui/Request.hpp"
 #include "kf/ui/Style.hpp"
 
-namespace ui::widgets {
+namespace ui::widget {
 
 /// @brief Collapsible section: click to show/hide child widgets
 /// @note Stores a view of child widgets; returns them only when expanded.
@@ -78,4 +78,4 @@ private:
     bool _expanded{false};
 };
 
-}// namespace ui::widgets
+}// namespace ui::widget

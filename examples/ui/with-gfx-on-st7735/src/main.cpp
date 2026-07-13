@@ -32,7 +32,7 @@ using MyUI = kf::ui::UI<
     kf::ui::UiTraits<
 
         // Base widget class
-        kf::ui::widgets::Widget<
+        kf::ui::widget::Widget<
 
             // Renderer implementation: plain text
             kf::ui::render::ColoredTextRenderer,

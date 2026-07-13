@@ -12,7 +12,7 @@
 #include "kf/ui/Request.hpp"
 #include "kf/ui/render/Renderer.hpp"
 
-namespace kf::ui::widgets {
+namespace kf::ui::widget {
 
 struct WidgetTag {};
 
@@ -77,4 +77,4 @@ private:
     StringView _hint{};
 };
 
-}// namespace kf::ui::widgets
+}// namespace kf::ui::widget

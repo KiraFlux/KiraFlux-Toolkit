@@ -7,7 +7,7 @@
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
-namespace kf::ui::widgets {
+namespace kf::ui::widget {
 
 struct DisplayTag {};
 
@@ -46,4 +46,4 @@ private:
     T _value;///< Stored copy of the value
 };
 
-}// namespace kf::ui::widgets
+}// namespace kf::ui::widget

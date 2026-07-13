@@ -24,7 +24,7 @@ template<typename T> struct SliderConfig final {
 
 }// namespace kf::internal
 
-namespace kf::ui::widgets {
+namespace kf::ui::widget {
 
 struct SliderTag {};
 
@@ -75,4 +75,4 @@ private:
     bool _show_value;
 };
 
-}// namespace kf::ui::widgets
+}// namespace kf::ui::widget

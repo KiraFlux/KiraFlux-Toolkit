@@ -11,7 +11,7 @@
 #include "kf/ui/Style.hpp"
 #include "kf/ui/UiTraits.hpp"
 
-namespace kf::ui::widgets {
+namespace kf::ui::widget {
 
 struct ButtonTag {};
 
@@ -45,4 +45,4 @@ template<typename U> struct Button :
     }
 };
 
-}// namespace kf::ui::widgets
+}// namespace kf::ui::widget

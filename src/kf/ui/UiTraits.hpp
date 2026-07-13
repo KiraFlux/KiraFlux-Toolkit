@@ -30,9 +30,9 @@ namespace kf::ui {
 struct UiTraitsTag {};
 
 /// @brief UI Traits
-/// @tparam W Widget Base implementation (Must inherit from `::kf::ui::widgets::WidgetTag` and should be like `::kf::ui::widgets::Widget<R, E>`)
+/// @tparam W Widget Base implementation (Must inherit from `::kf::ui::widget::WidgetTag` and should be like `::kf::ui::widget::Widget<R, E>`)
 template<typename W> struct UiTraits : UiTraitsTag {
-    KF_CHECK_IMPL(W, ::kf::ui::widgets::WidgetTag);
+    KF_CHECK_IMPL(W, ::kf::ui::widget::WidgetTag);
 
     /// @brief Widget Base class
     struct Widget : W {

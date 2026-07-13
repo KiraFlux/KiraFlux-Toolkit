@@ -56,7 +56,7 @@ template<typename T> struct ComboBoxConfig final {
 
 }// namespace kf::internal
 
-namespace kf::ui::widgets {
+namespace kf::ui::widget {
 
 struct ComboBoxTag {};
 
@@ -138,4 +138,4 @@ private:
     }
 };
 
-}// namespace kf::ui::widgets
+}// namespace kf::ui::widget
