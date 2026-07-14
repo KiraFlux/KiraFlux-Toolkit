@@ -234,7 +234,7 @@ template<typename E> constexpr auto error(E &&error) noexcept -> internal::Resul
 /// @param __expression__ Expression of type `Result<T, E>`
 /// @return The success value `T`, or returns the error from the enclosing function
 /// @note Expression evaluated once. Requires GNU statement expressions.
-#define KF_TRY(__expression__)                                                                                        \
+#define KF_TRY(__expression__)                                                                                              \
     ({                                                                                                                      \
         auto result = (__expression__);                                                                                     \
         static_assert(std::is_base_of_v<::kf::ResultTag, std::decay_t<decltype(result)>>, "KF_TRY requires a Result type"); \

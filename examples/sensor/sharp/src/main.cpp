@@ -17,7 +17,7 @@ void setup() {
 }
 
 void loop() {
-    const kf::math::Millimeters distance = my_sensor.read();
+    const kf::units::Millimeters distance = my_sensor.read();
 
     Serial.println(distance);
 

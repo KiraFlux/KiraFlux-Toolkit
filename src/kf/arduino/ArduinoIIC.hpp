@@ -12,6 +12,7 @@
 #include "kf/mixin/Readable.hpp"
 #include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
+#include "kf/units.hpp"
 
 #include "kf/bus/IIC.hpp"
 
@@ -45,18 +46,18 @@ struct NodeConfig final {
 
 struct ArduinoIicBusConfig final {
     static constexpr u8 gpio_num_nc{static_cast<u8>(GPIO_NUM_NC)};
-    static constexpr math::Milliseconds max_timeout{60'000};
+    static constexpr units::Milliseconds max_timeout{60'000};
 
     u32 clock_hz;
-    math::Milliseconds timeout;
+    units::Milliseconds timeout;
     usize buffer_size;
     u8 gpio_num_sda;
     u8 gpio_num_scl;
 
     [[nodiscard]] static constexpr ArduinoIicBusConfig create(
-        u32 clock_hz = 0,              // 0: use Wire defaults
-        math::Milliseconds timeout = 0,// 0: use Wire defaults
-        usize buffer_size = 0,         // 0: use Wire defaults
+        u32 clock_hz = 0,               // 0: use Wire defaults
+        units::Milliseconds timeout = 0,// 0: use Wire defaults
+        usize buffer_size = 0,          // 0: use Wire defaults
         u8 sda = gpio_num_nc,
         u8 scl = gpio_num_nc) noexcept {
         return ArduinoIicBusConfig{

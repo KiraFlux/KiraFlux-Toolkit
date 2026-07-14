@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/concepts.hpp"
-#include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/ui/widget/Widget.hpp"
 

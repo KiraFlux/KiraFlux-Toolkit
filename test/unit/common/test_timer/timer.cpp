@@ -5,7 +5,7 @@
 #include <unity.h>
 
 using kf::Timer;
-using kf::math::Milliseconds;
+using kf::units::Milliseconds;
 
 constexpr Milliseconds
     t_0 = 0,

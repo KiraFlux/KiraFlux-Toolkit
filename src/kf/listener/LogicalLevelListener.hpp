@@ -4,13 +4,13 @@
 #pragma once
 
 #include "kf/listener/Listener.hpp"
-#include "kf/math.hpp"
 #include "kf/mixin/Configured.hpp"
+#include "kf/units.hpp"
 
 namespace kf::internal {
 
 struct LogicalLevelListenerConfig final {
-    math::Milliseconds debounce;
+    units::Milliseconds debounce;
 };
 
 }// namespace kf::internal
@@ -29,7 +29,7 @@ struct LogicalLevelListener :
     using mixin::Configured<Config>::Configured;
 
 private:
-    math::Milliseconds _next{0};
+    units::Milliseconds _next{0};
     bool _last_stable{false};
     bool _last_raw{false};
     bool _click_ready{false};
@@ -42,7 +42,7 @@ private:
         _last_stable = _last_raw = _click_ready = false;
     }
 
-    void pollImpl(math::Milliseconds now) noexcept {
+    void pollImpl(units::Milliseconds now) noexcept {
         if (this->value().isNone()) { return; }
 
         const bool state = this->value().unwrap();

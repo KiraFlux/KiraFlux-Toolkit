@@ -10,14 +10,15 @@
 #include "kf/concepts.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Configured.hpp"
+#include "kf/units.hpp"
 
 #include "kf/driver/actuator/ActuatorDriver.hpp"
 
 namespace kf::internal {
 
 struct PwmPositionServoConfig final {
-    using AngleRange = Range<math::Degrees>;
-    using PulseRange = Range<math::Microseconds>;
+    using AngleRange = Range<units::Degrees>;
+    using PulseRange = Range<units::Microseconds>;
 
     AngleRange angle_range;
     PulseRange pulse_range;
@@ -25,7 +26,7 @@ struct PwmPositionServoConfig final {
     /// @brief Convert angle to pulse width using linear interpolation
     /// @param angle Target servo angle
     /// @return Required pulse width in microseconds
-    [[nodiscard]] constexpr math::Microseconds pulseWidthFromAngle(math::Degrees angle) const noexcept {
+    [[nodiscard]] constexpr units::Microseconds pulseWidthFromAngle(units::Degrees angle) const noexcept {
         return math::linearMap<i32>(angle, angle_range.start, angle_range.end, pulse_range.start, pulse_range.end);
     }
 };
@@ -39,7 +40,7 @@ namespace kf::driver::actuator {
 /// @tparam G Implementation of GPIO with PWM output support
 template<implements<GPIO::PwmOutputTag> G> struct PwmPositionServo final :
 
-    ActuatorDriver<PwmPositionServo<G>, math::Degrees, bool()>,
+    ActuatorDriver<PwmPositionServo<G>, units::Degrees, bool()>,
     mixin::Configured<internal::PwmPositionServoConfig>
 
 {
@@ -66,13 +67,13 @@ private:
     Config::AngleRange _angle_safe_range;///< Safe operating angle range (clamped before mapping)
     PwmOutputImpl _pwm_gpio;             ///< PWM output gpio
 
-    KF_IMPL_ACTUATOR_DRIVER(PwmPositionServo<G>, math::Degrees, bool());
+    KF_IMPL_ACTUATOR_DRIVER(PwmPositionServo<G>, units::Degrees, bool());
 
     bool initImpl() noexcept {
         return _pwm_gpio.init();
     }
 
-    void setImpl(math::Degrees angle) noexcept {
+    void setImpl(units::Degrees angle) noexcept {
         _pwm_gpio.writePulse(this->config().pulseWidthFromAngle(_angle_safe_range.clamped(angle)));
     }
 

@@ -8,7 +8,7 @@
 // This examples uses Arduino Environment and Toolkit's Arduino GPIO Implementation for simplicity
 using DigitalInput = kf::arduino::ArduinoGPIO::DigitalInput;
 
-// For example, define Degrees as float alias 
+// For example, define Degrees as float alias
 using MyDegreesUnit = float;
 
 // Specialization
@@ -17,7 +17,7 @@ using QuadratureEncoder = kf::driver::sensor::QuadratureEncoder<
     MyDegreesUnit// Position Unit type
     >;
 
-// Encoder configuration. Must outlive any encoder instance. 
+// Encoder configuration. Must outlive any encoder instance.
 QuadratureEncoder::Config encoder_config{
     .units_per_tick = 100,// 100 units = 1 encoder tick
     .positive_direction = QuadratureEncoder::Config::Direction::CW,
@@ -39,25 +39,25 @@ void setup() {
 void loop() {
 
     // const auto encoder_read = encoder.read(); // read phase state as u32 ((A << 1) | B)
-    
-    // Get 
+
+    // Get
 
     // get all accumulated ticks
     const auto position_ticks = encoder.positionTicks();
-    
-    // calculate units equivalent from actual ticks value 
+
+    // calculate units equivalent from actual ticks value
     const auto position_units = encoder.positionUnits();
 
-    // Set 
+    // Set
 
     // set accumulated ticks as 0
-    // encoder.positionTicks(0); 
+    // encoder.positionTicks(0);
 
-    // set accumulated ticks from calculated units equivalent (123) 
+    // set accumulated ticks from calculated units equivalent (123)
     // encoder.positionUnits(123);
-    
+
     // encoder.reset(); // -- Reset last read, set ticks to 0
-    
+
     Serial.printf("ticks: %d\tunits: %d\n", position_ticks, position_units);
 
     delay(100);

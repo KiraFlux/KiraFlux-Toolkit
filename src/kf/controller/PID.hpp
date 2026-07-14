@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "kf/math.hpp"
-
 #include "kf/Option.hpp"
 #include "kf/filter/LowFrequencyFilter.hpp"
 #include "kf/math.hpp"

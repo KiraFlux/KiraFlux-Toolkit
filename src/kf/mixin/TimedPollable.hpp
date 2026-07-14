@@ -3,19 +3,19 @@
 
 #pragma once
 
-#include "kf/math.hpp"
+#include "kf/units.hpp"
 
 namespace kf::mixin {
 
 struct TimedPollableTag {};
 
 /// @brief CRTP mixin poll (Periodic polling)
-/// @tparam Impl The derived class that must implement `pollImpl(math::Milliseconds)`.
+/// @tparam Impl The derived class that must implement `pollImpl(units::Milliseconds)`.
 template<typename Impl> struct TimedPollable : TimedPollableTag {
 
     /// @brief Performs time‑aware polling.
     /// @param now Current timestamp (milliseconds).
-    void poll(math::Milliseconds now) noexcept {
+    void poll(units::Milliseconds now) noexcept {
         static_cast<Impl *>(this)->pollImpl(now);
     }
 };

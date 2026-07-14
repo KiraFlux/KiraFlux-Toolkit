@@ -4,7 +4,6 @@
 #pragma once
 
 #include "kf/Option.hpp"
-#include "kf/math.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"

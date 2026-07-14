@@ -122,7 +122,7 @@ struct MainPage : MyUI::Page {
 
 protected:
     // behavior on UI polling
-    void onPoll(kf::math::Milliseconds now) noexcept override {}
+    void onPoll(kf::units::Milliseconds now) noexcept override {}
 
 } main_page{};
 

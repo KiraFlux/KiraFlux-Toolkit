@@ -6,7 +6,6 @@
 #include "kf/Result.hpp"
 #include "kf/bus/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
-#include "kf/math.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
 #include "kf/primitives.hpp"
 

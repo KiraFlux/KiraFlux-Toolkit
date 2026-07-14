@@ -7,7 +7,7 @@
 
 #include "kf/GPIO.hpp"
 #include "kf/concepts.hpp"
-#include "kf/math.hpp"
+#include "kf/units.hpp"
 
 #include "kf/driver/sensor/SensorDriver.hpp"
 
@@ -16,7 +16,7 @@ namespace kf::driver::sensor {
 /// @brief Sharp infrared distance sensor driver
 /// @note Provides distance measurements in millimeters using analog voltage output
 /// @tparam G Implementation of GPIO with ADC input support
-template<implements<GPIO::AdcInputTag> G> struct Sharp : SensorDriver<Sharp<G>, math::Millimeters, void()> {
+template<implements<GPIO::AdcInputTag> G> struct Sharp : SensorDriver<Sharp<G>, units::Millimeters, void()> {
 
     using AdcInputImpl = G;
 
@@ -26,16 +26,16 @@ template<implements<GPIO::AdcInputTag> G> struct Sharp : SensorDriver<Sharp<G>, 
 private:
     AdcInputImpl _gpio;
 
-    KF_IMPL_SENSOR_DRIVER(Sharp<G>, math::Millimeters, void());
+    KF_IMPL_SENSOR_DRIVER(Sharp<G>, units::Millimeters, void());
 
     void initImpl() noexcept {
         _gpio.init();
     }
 
-    [[nodiscard]] math::Millimeters readImpl() noexcept {
+    [[nodiscard]] units::Millimeters readImpl() noexcept {
         // correct calculus only with 10-bit ADC resolution
         // TODO: generalize formula
-        return 65535.0F / math::Millimeters(_gpio.read());
+        return 65535.0F / units::Millimeters(_gpio.read());
     }
 };
 

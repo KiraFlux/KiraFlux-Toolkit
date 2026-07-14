@@ -8,6 +8,7 @@
 #include "kf/math.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/primitives.hpp"
+#include "kf/units.hpp"
 
 namespace kf::internal {
 
@@ -67,7 +68,7 @@ private:
         _in_repeat_mode = false;
     }
 
-    void pollImpl(math::Milliseconds now) noexcept {
+    void pollImpl(units::Milliseconds now) noexcept {
         if (this->value().isNone()) { return; }
 
         const auto new_direction = this->config().calculateDirection(this->value().unwrap());

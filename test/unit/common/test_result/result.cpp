@@ -184,7 +184,6 @@ Result<void, Error> kf_try() {
     return kf::ok();
 }
 
-
 Result<int, Error> kf_try_value() {
 
     Result<int, Error> r{kf::ok(12345)};

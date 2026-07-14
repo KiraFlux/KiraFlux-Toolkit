@@ -12,6 +12,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/TimedPollable.hpp"
 #include "kf/primitives.hpp"
+#include "kf/units.hpp"
 
 #include "kf/ui/Decoration.hpp"
 #include "kf/ui/Layout.hpp"
@@ -166,7 +167,7 @@ public:
 
     protected:
         /// @brief Page behavior on UI polling
-        virtual void onPoll(math::Milliseconds now) noexcept {}
+        virtual void onPoll(units::Milliseconds now) noexcept {}
 
     public:
         /// @brief Request Page content build
@@ -277,7 +278,7 @@ public:
         }
 
         KF_IMPL_TIMED_POLLABLE(Page);
-        void pollImpl(math::Milliseconds now) noexcept {
+        void pollImpl(units::Milliseconds now) noexcept {
             onPoll(now);
 
             if (_build_requested) {
@@ -310,7 +311,7 @@ private:
     using This = UI<U>;
 
     KF_IMPL_TIMED_POLLABLE(This);
-    void pollImpl(math::Milliseconds now) noexcept {
+    void pollImpl(units::Milliseconds now) noexcept {
         if (_active_page.isNone()) { return; }
 
         if (not _events.empty()) {

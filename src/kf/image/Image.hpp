@@ -5,9 +5,9 @@
 
 #include "kf/Slice.hpp"
 #include "kf/concepts.hpp"
-#include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
+#include "kf/units.hpp"
 
 namespace kf::image {
 
@@ -28,17 +28,17 @@ template<typename Impl, implements<pixel::PixelTag> P> struct Image :
     // Abstract properties
 
     /// @brief Get current width in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] math::Pixels width() const noexcept {
+    [[nodiscard]] units::Pixels width() const noexcept {
         return this->impl().getWidthImpl();
     }
 
     /// @brief Get current height in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] math::Pixels height() const noexcept {
+    [[nodiscard]] units::Pixels height() const noexcept {
         return this->impl().getHeightImpl();
     }
 
     /// @brief Get current full width in pixels (may differ from physical width due to orientation)
-    [[nodiscard]] math::Pixels stride() const noexcept {
+    [[nodiscard]] units::Pixels stride() const noexcept {
         return this->impl().getStrideImpl();
     }
 
@@ -55,12 +55,12 @@ template<typename Impl, implements<pixel::PixelTag> P> struct Image :
     // properties
 
     /// @brief Get maximum valid X coordinate
-    [[nodiscard]] math::Pixels maxX() const noexcept {
+    [[nodiscard]] units::Pixels maxX() const noexcept {
         return width() - 1;
     }
 
     /// @brief Get maximum valid Y coordinate
-    [[nodiscard]] math::Pixels maxY() const noexcept {
+    [[nodiscard]] units::Pixels maxY() const noexcept {
         return height() - 1;
     }
 

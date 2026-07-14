@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
+#include "kf/units.hpp"
 
 namespace kf {
 
@@ -165,7 +165,7 @@ struct GPIO final : GpioTag {
 
         /// @brief Write pulse (width in microseconds), map in to a duty cycle value and write
         /// @param pulse_width Pulse width in microseconds
-        void writePulse(math::Microseconds pulse_width) const noexcept {
+        void writePulse(units::Microseconds pulse_width) const noexcept {
             const auto t = static_cast<u64>(pulse_width) * frequency() * maxDuty();
             this->write(static_cast<u16>(t / 1'000'000u));
         }

@@ -7,8 +7,8 @@
 #include "kf/Slice.hpp"
 #include "kf/concepts.hpp"
 #include "kf/image/Image.hpp"
-#include "kf/math.hpp"
 #include "kf/pixel/Pixel.hpp"
+#include "kf/units.hpp"
 
 namespace kf::image {
 
@@ -19,7 +19,7 @@ namespace kf::image {
 /// @note Represents a static image with fixed dimensions stored in memory.
 /// The image buffer is embedded directly in the object and cannot be resized.
 /// Useful for storing icons, logos, and other predefined graphics.
-template<implements<pixel::PixelTag> P, math::Pixels W, math::Pixels H> struct StaticImage final : Image<StaticImage<P, W, H>, P> {
+template<implements<pixel::PixelTag> P, units::Pixels W, units::Pixels H> struct StaticImage final : Image<StaticImage<P, W, H>, P> {
 
     using PixelImpl = P;
     using BufferType = typename PixelImpl::BufferType;
@@ -39,15 +39,15 @@ private:
 
     KF_IMPL_IMAGE(StaticImage<P, W, H>, P);
 
-    constexpr math::Pixels getWidthImpl() const noexcept {
+    constexpr units::Pixels getWidthImpl() const noexcept {
         return W;
     }
 
-    constexpr math::Pixels getHeightImpl() const noexcept {
+    constexpr units::Pixels getHeightImpl() const noexcept {
         return H;
     }
 
-    constexpr math::Pixels getStrideImpl() const noexcept {
+    constexpr units::Pixels getStrideImpl() const noexcept {
         return getWidthImpl();
     }
 
