@@ -63,12 +63,12 @@ struct GPIO final : GpioTag {
             OnChange = CHANGE,
             OnLow = ONLOW,
             OnHigh = ONHIGH,
-        }
+        };
 
         using InterruptHandler = void (*)(void *argument);
 
-        void attachInterrupt(InterruptHandler handler, Interrupt mode) noexcept {
-            static_cast<Impl *>(this)->attachInterruptImpl(handler, mode);
+        void attachInterrupt(InterruptHandler handler, void *arg, Interrupt mode) noexcept {
+            static_cast<Impl *>(this)->attachInterruptImpl(handler, arg, mode);
         }
 
         void detachInterrupt() noexcept {
