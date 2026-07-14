@@ -55,6 +55,25 @@ struct GPIO final : GpioTag {
             InternalUp = pull_up_bit,                    ///< Internal pull-up resistor
             ExternalUp = external_pull_bit | pull_up_bit,///< External pull-up resistor
         };
+
+        enum class Interrupt : u8 {
+            Disabled = DISABLED,
+            OnRising = RISING,
+            OnFalling = FALLING,
+            OnChange = CHANGE,
+            OnLow = ONLOW,
+            OnHigh = ONHIGH,
+        }
+
+        using InterruptHandler = void (*)(void *argument);
+
+        void attachInterrupt(InterruptHandler handler, Interrupt mode) noexcept {
+            static_cast<Impl *>(this)->attachInterruptImpl(handler, mode);
+        }
+
+        void detachInterrupt() noexcept {
+            static_cast<Impl *>(this)->detachInterruptImpl();
+        }
     };
 
     struct AdcInputTag {};

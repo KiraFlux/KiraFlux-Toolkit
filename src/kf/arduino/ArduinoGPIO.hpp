@@ -69,6 +69,14 @@ struct ArduinoGPIO : GpioTag {
                 return level;
             }
         }
+
+        void attachInterruptImpl(void (*handler)(void *), void *arg, Interrupt mode) noexcept {
+            ::attachInterruptArg(_gpio_num, handler, arg, static_cast<int>(mode));
+        }
+
+        void detachInterruptImpl() noexcept {
+            ::detachInterrupt(_gpio_num);
+        }
     };
 
     /// @brief Arduino ADC input (typically 12‑bit on ESP32)
