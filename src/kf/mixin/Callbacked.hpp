@@ -28,8 +28,8 @@ template<typename Signature> struct Callbacked : CallbackedTag {
     }
 
     /// @brief Set callback from function object
-    template<typename F> void callback(F &&function) noexcept {
-        _callback_function = some(FunctionType{std::forward<F>(function)});
+    void callback(auto &&function) noexcept {
+        _callback_function = some(FunctionType{std::forward<decltype(function)>(function)});
     }
 
     /// @brief Set callback as None
@@ -40,12 +40,12 @@ template<typename Signature> struct Callbacked : CallbackedTag {
 protected:
     /// @brief Invoke callback function if is some
     /// @param value callback function argument
-    template<typename... CallArgs> auto invoke(CallArgs &&...args) const noexcept -> typename FunctionType::ReturnType {
+    auto invoke(auto &&...args) const noexcept -> typename FunctionType::ReturnType {
         if (this->_callback_function.isSome()) {
             if constexpr (std::is_void_v<typename FunctionType::ReturnType>) {
-                this->_callback_function.unwrap()(std::forward<CallArgs>(args)...);
+                this->_callback_function.unwrap()(std::forward<decltype(args)>(args)...);
             } else {
-                return this->_callback_function.unwrap()(std::forward<CallArgs>(args)...);
+                return this->_callback_function.unwrap()(std::forward<decltype(args)>(args)...);
             }
         }
     }

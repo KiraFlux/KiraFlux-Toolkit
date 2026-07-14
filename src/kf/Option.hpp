@@ -83,13 +83,13 @@ private:
 /// @param value The value to store (copied or moved)
 /// @return `Option<std::decay_t<T>>`
 /// @note This is the only way to create a non‑empty Option for value types
-[[nodiscard]] constexpr auto some(auto &&value) noexcept -> Option<std::decay_t<decltype(value)>> {
+[[nodiscard]] constexpr auto some(auto &&value) noexcept {
     return internal::SomeCreator::create(std::forward<decltype(value)>(value));
 }
 
 /// @brief Create `Option<void>`
 /// @return `Option<void>`
-[[nodiscard]] constexpr auto some() noexcept -> Option<void> {
+[[nodiscard]] constexpr auto some() noexcept {
     return Option<void>{internal::SomeCreator{}};
 }
 
@@ -98,7 +98,7 @@ private:
 /// @param ref Reference to store
 /// @return `Option<T&>`
 /// @note The reference must remain valid throughout Option lifetime
-[[nodiscard]] constexpr auto someRef(auto &ref) noexcept -> Option<decltype(ref) &> {
+[[nodiscard]] constexpr auto someRef(auto &ref) noexcept {
     return internal::SomeCreator::createRef(ref);
 }
 

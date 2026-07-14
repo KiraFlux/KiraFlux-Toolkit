@@ -194,8 +194,8 @@ private:
     }
 
     /// @brief Write a multi‑byte packet without checking (used internally).
-    template<typename T> [[nodiscard]] usize writePacketUnchecked(T &&packet) noexcept {
-        return writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(T));
+    [[nodiscard]] usize writePacketUnchecked(auto &&packet) noexcept {
+        return writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(decltype(packet)));
     }
 
     // interface impl
@@ -206,17 +206,17 @@ private:
         return endTransmission(written, buffer.length());
     }
 
-    template<typename T> WriteResult writePacketImpl(T &&packet) noexcept {
+    WriteResult writePacketImpl(auto &&packet) noexcept {
         beginTransmission();
-        const usize written = writePacketUnchecked(std::forward<T>(packet));
-        return endTransmission(written, sizeof(T));
+        const usize written = writePacketUnchecked(std::forward<decltype(packet)>(packet));
+        return endTransmission(written, sizeof(decltype(packet)));
     }
 
-    template<typename T> WriteResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
+    WriteResult writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept {
         beginTransmission();
-        const usize header_written = writePacketUnchecked(std::forward<T>(header));
+        const usize header_written = writePacketUnchecked(std::forward<decltype(header)>(header));
         const usize buffer_written = writeBytes(buffer.data(), buffer.length());
-        return endTransmission(header_written + buffer_written, sizeof(T) + buffer.length());
+        return endTransmission(header_written + buffer_written, sizeof(decltype(header)) + buffer.length());
     }
 };
 

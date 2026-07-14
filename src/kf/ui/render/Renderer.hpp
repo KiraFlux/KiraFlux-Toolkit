@@ -113,7 +113,9 @@ template<typename Impl> struct Renderer :
     }
 
     /// @brief Render value
-    template<typename T> void value(const T &v) noexcept {
+    void value(auto const &v) noexcept {
+        using T = decltype(v);
+
         if constexpr (std::is_base_of_v<mixin::StringRepresentableTag, T>) {
             this->value(v.toString());
         } else if constexpr (std::is_base_of_v<OptionTag, T>) {

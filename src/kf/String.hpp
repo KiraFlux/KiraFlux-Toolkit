@@ -156,10 +156,10 @@ struct String : Stack<char> {
     using Stack<char>::Stack;
 
     /// @brief Append string representation of value
-    /// @tparam T value type (auto-deduced)
     /// @param value Value to represent
     /// @param precision Precision for float-point number
-    template<typename T> constexpr void append(const T &value, usize precision = 3) noexcept {
+    constexpr void append(auto const &value, usize precision = 3) noexcept {
+        using T = std::decay_t<decltype(value)>;
 
         if constexpr (std::is_same_v<T, char>) {
 

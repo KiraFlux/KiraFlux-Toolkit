@@ -197,19 +197,19 @@ struct Espnow final :
             return send(buffer.data(), buffer.length());
         }
 
-        template<typename T> VoidResult writePacketImpl(T &&packet) noexcept {
-            static_assert(sizeof(T) < ESP_NOW_MAX_DATA_LEN, "Message is too big!");
-            return send(reinterpret_cast<const u8 *>(&packet), sizeof(T));
+        VoidResult writePacketImpl(auto &&packet) noexcept {
+            static_assert(sizeof(decltype(packet)) < ESP_NOW_MAX_DATA_LEN, "Message is too big!");
+            return send(reinterpret_cast<const u8 *>(&packet), sizeof(decltype(packet)));
         }
 
-        template<typename T> VoidResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
-            const auto mixed_size = sizeof(T) + buffer.length();
+        VoidResult writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept {
+            const auto mixed_size = sizeof(decltype(header)) + buffer.length();
             if (mixed_size > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }
             u8 mixed[mixed_size];
 
             const auto header_data = reinterpret_cast<const u8 *>(&header);
-            std::copy(header_data, header_data + sizeof(T), mixed);
-            std::copy(buffer.begin(), buffer.end(), mixed + sizeof(T));
+            std::copy(header_data, header_data + sizeof(decltype(header)), mixed);
+            std::copy(buffer.begin(), buffer.end(), mixed + sizeof(decltype(header)));
 
             return send(mixed, mixed_size);
         }

@@ -26,8 +26,8 @@ namespace internal {
 /// @note Provides a static method `create` that bypasses the private constructor.
 struct TrivialSomeCreator final {
 
-    template<typename T> [[nodiscard]] static constexpr auto create(const T &value) noexcept {
-        return TrivialOption<T>{value};
+    [[nodiscard]] static constexpr auto create(auto const &value) noexcept {
+        return TrivialOption<std::remove_cvref_t<decltype(value)>>{value};
     }
 };
 
@@ -82,11 +82,10 @@ private:
 }// namespace internal
 
 /// @brief Create TrivialOption containing a value
-/// @tparam T Deduced type of value
 /// @param value The value to store (copied)
 /// @return `TrivialOption<T>`
 /// @note This is the only way to create a non‑empty TrivialOption
-template<typename T> [[nodiscard]] constexpr auto someTrivial(const T &value) noexcept -> TrivialOption<T> {
+[[nodiscard]] constexpr auto someTrivial(auto const &value) noexcept {
     return internal::TrivialSomeCreator::create(value);
 }
 

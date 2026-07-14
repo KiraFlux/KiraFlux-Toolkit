@@ -243,7 +243,9 @@ private:
         writeString("none");
     }
 
-    template<typename T> void valueImpl(T value) noexcept {
+    void valueImpl(auto value) noexcept {
+
+        using T = decltype(value);
 
         if constexpr (std::is_same_v<T, char>) {
             writeChar(value);

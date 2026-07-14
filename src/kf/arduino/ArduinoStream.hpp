@@ -87,8 +87,8 @@ private:
         return ok();
     }
 
-    template<typename T> WriteResult writePacketImpl(T &&packet) noexcept {
-        constexpr auto to_write = sizeof(packet);
+    WriteResult writePacketImpl(auto &&packet) noexcept {
+        constexpr auto to_write = sizeof(decltype(packet));
         usize written;
 
         if constexpr (to_write == sizeof(u8)) {
@@ -102,8 +102,8 @@ private:
         return ok();
     }
 
-    template<typename T> WriteResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
-        KF_TRY(this->writePacket(std::forward<T>(header)));
+    WriteResult writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept {
+        KF_TRY(this->writePacket(std::forward<decltype(header)>(header)));
         return this->writeBuffer(buffer);
     }
 };

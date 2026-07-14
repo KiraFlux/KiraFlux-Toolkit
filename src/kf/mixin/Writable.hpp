@@ -22,10 +22,10 @@ struct WritableTag {};
 ///       - `Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept`
 ///         Write a contiguous buffer of bytes.
 ///
-///       - `template<typename T> Result<void, Error> writePacketImpl(T &&packet) noexcept`
+///       - `Result<void, Error> writePacketImpl(auto &&packet) noexcept`
 ///         Write a trivially copyable object.
 ///
-///       - `template<typename T> Result<void, Error> writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept`
+///       - `Result<void, Error> writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept`
 ///         Write a small header followed by a buffer (e.g. command + data) in one transaction.
 template<typename Impl, typename ResultType> struct Writable : WritableTag {
 
@@ -43,22 +43,20 @@ template<typename Impl, typename ResultType> struct Writable : WritableTag {
     }
 
     /// @brief Write fixed‑size packet
-    /// @tparam T Type of packet (trivially copyable)
     /// @param packet Value to write
     /// @return Result indicating success or error
-    template<typename T> [[nodiscard]] ResultType writePacket(T &&packet) noexcept {
-        static_assert(std::is_trivially_copyable_v<std::decay_t<T>>, "T must be trivially copyable");
-        return impl().writePacketImpl(std::forward<T>(packet));
+    [[nodiscard]] ResultType writePacket(auto &&packet) noexcept {
+        static_assert(std::is_trivially_copyable_v<std::decay_t<decltype(packet)>>, "packet must be trivially copyable");
+        return impl().writePacketImpl(std::forward<decltype(packet)>(packet));
     }
 
     /// @brief Write mixed packet: fixed-size header and dynamic-sized buffer
-    /// @tparam T Type of packet (trivially copyable)
     /// @param header Header to write
     /// @param buffer Source buffer
     /// @return Result indicating success or error
-    template<typename T> [[nodiscard]] ResultType writeMixed(T &&header, Slice<const u8> buffer) noexcept {
-        static_assert(std::is_trivially_copyable_v<std::decay_t<T>>, "T must be trivially copyable");
-        return impl().writeMixedImpl(std::forward<T>(header), buffer);
+    [[nodiscard]] ResultType writeMixed(auto &&header, Slice<const u8> buffer) noexcept {
+        static_assert(std::is_trivially_copyable_v<std::decay_t<decltype(header)>>, "header must be trivially copyable");
+        return impl().writeMixedImpl(std::forward<decltype(header)>(header), buffer);
     }
 
 private:

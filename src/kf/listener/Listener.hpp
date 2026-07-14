@@ -29,8 +29,8 @@ template<typename Impl, typename InputType, typename CallbackSignature> struct L
 
     /// @brief Set an actual value for listener
     /// @note this method should called before `poll`
-    template<typename U> void set(U &&value) noexcept {
-        _value = kf::some(std::forward<U>(value));
+    void set(auto &&value) noexcept {
+        _value = kf::some(std::forward<decltype(value)>(value));
     }
 
 protected:

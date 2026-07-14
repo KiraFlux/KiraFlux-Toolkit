@@ -65,12 +65,12 @@ template<typename T> struct Queue : mixin::Length<Queue<T>, usize>, mixin::Reset
 
     /// @brief Add element to the back of the queue
     /// @return true if inserted, false if full
-    template<typename U> [[nodiscard]] constexpr bool push(U &&item) noexcept {
+    [[nodiscard]] constexpr bool push(auto &&item) noexcept {
         if (this->full()) {
             return false;
         }
 
-        new (&_buffer[indexAt(_length)]) T(std::forward<U>(item));
+        new (&_buffer[indexAt(_length)]) T(std::forward<decltype(item)>(item));
 
         _length += 1;
 

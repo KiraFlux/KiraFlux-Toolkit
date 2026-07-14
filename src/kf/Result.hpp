@@ -97,11 +97,10 @@ template<typename T, typename E> struct Result final :
     }
 
     /// @brief Transform the success value using a function
-    /// @tparam F Callable type (auto‑deduced)
     /// @param f Mapping function: T -> U
     /// @return Result<U, E> containing the mapped value on success,
     ///         otherwise the original error.
-    template<typename F> [[nodiscard]] auto map(F &&f) const noexcept -> Result<decltype(f(std::declval<T>())), E> {
+    [[nodiscard]] auto map(auto &&f) const noexcept -> Result<decltype(f(std::declval<T>())), E> {
         if (_is_ok) {
             if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
                 f(_ok);
@@ -115,11 +114,10 @@ template<typename T, typename E> struct Result final :
     }
 
     /// @brief Transform the error value using a function
-    /// @tparam F Callable type (auto‑deduced)
     /// @param f Mapping function: E -> W
     /// @return Result<T, W> containing the mapped error on failure,
     ///         otherwise the original success value.
-    template<typename F> [[nodiscard]] auto mapError(F &&f) const noexcept -> Result<T, decltype(f(std::declval<E>()))> {
+    [[nodiscard]] auto mapError(auto &&f) const noexcept -> Result<T, decltype(f(std::declval<E>()))> {
         if (_is_ok) {
             return {internal::ResultValueWrapper<T>{_ok}};
         } else {
@@ -179,11 +177,10 @@ template<typename E> struct Result<void, E> final :
     }
 
     /// @brief Transform the error value using a function
-    /// @tparam F Callable type (auto‑deduced)
     /// @param f Mapping function: E -> W
     /// @return Result<T, W> containing the mapped error on failure,
     ///         otherwise the original success value.
-    template<typename F> [[nodiscard]] auto mapError(F &&f) const noexcept -> Result<void, decltype(f(std::declval<E>()))> {
+    [[nodiscard]] auto mapError(auto &&f) const noexcept -> Result<void, decltype(f(std::declval<E>()))> {
         if (_is_error) {
             return {internal::ResultErrorWrapper<decltype(f(std::declval<E>()))>{f(_error)}};
         } else {
@@ -207,11 +204,10 @@ private:
 };
 
 /// @brief Create a successful Result (value)
-/// @tparam T Type of the value (auto‑deduced)
 /// @param value The success value
 /// @return internal::ResultValueWrapper<T> for implicit conversion to Result<T, E>
-template<typename T> constexpr auto ok(T &&value) noexcept -> internal::ResultValueWrapper<std::decay_t<T>> {
-    return {std::forward<T>(value)};
+constexpr auto ok(auto &&value) noexcept -> internal::ResultValueWrapper<std::decay_t<decltype(value)>> {
+    return {std::forward<decltype(value)>(value)};
 }
 
 /// @brief Create a successful Result<void,  E>
@@ -221,11 +217,10 @@ constexpr auto ok() noexcept -> internal::ResultValueWrapper<void> {
 }
 
 /// @brief Create an error Result
-/// @tparam E Type of the error (auto‑deduced)
 /// @param error The error value
 /// @return internal::ResultErrorWrapper<E> for implicit conversion to Result<T, E>
-template<typename E> constexpr auto error(E &&error) noexcept -> internal::ResultErrorWrapper<std::decay_t<E>> {
-    return {std::forward<E>(error)};
+constexpr auto error(auto &&error) noexcept -> internal::ResultErrorWrapper<std::decay_t<decltype(error)>> {
+    return {std::forward<decltype(error)>(error)};
 }
 
 }// namespace kf

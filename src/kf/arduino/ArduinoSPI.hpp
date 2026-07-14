@@ -150,8 +150,8 @@ private:
     }
 
     /// @brief Write a packet of arbitrary size (generic fallback).
-    template<typename T> void writePacketUnchecked(T &&packet) noexcept {
-        writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(T));
+    void writePacketUnchecked(auto &&packet) noexcept {
+        writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(decltype(packet)));
     }
 
     /// @brief Read a 1/2/4‑byte packet using dedicated SPI transfer functions (faster than generic loop).
@@ -218,16 +218,16 @@ private:
         return ok();
     }
 
-    template<typename T> WriteResult writePacketImpl(T &&packet) noexcept {
+    WriteResult writePacketImpl(auto &&packet) noexcept {
         beginTransaction();
-        writePacketUnchecked(std::forward<T>(packet));
+        writePacketUnchecked(std::forward<decltype(packet)>(packet));
         endTransaction();
         return ok();
     }
 
-    template<typename T> WriteResult writeMixedImpl(T &&header, Slice<const u8> buffer) noexcept {
+    WriteResult writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept {
         beginTransaction();
-        writePacketUnchecked(std::forward<T>(header));
+        writePacketUnchecked(std::forward<decltype(header)>(header));
         writeBytes(buffer.data(), buffer.length());
         endTransaction();
         return ok();

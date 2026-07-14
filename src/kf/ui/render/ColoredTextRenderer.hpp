@@ -130,8 +130,8 @@ struct ColoredTextRenderer :
     explicit constexpr ColoredTextRenderer(const Config &config, Slice<char> source) noexcept :
         mixin::Configured<Config>{config}, _wrapped{config.textual, source} {}
 
-    template<typename F> void callback(F &&callback) noexcept {
-        _wrapped.callback(std::forward<F>(callback));
+    void callback(auto &&callback) noexcept {
+        _wrapped.callback(std::forward<decltype(callback)>(callback));
     }
 
 private:
@@ -205,7 +205,7 @@ private:
 
     // value
 
-    template<typename T> void valueImpl(const T &value) {
+    void valueImpl(auto const &value) {
         _wrapped.value(value);
     }
 

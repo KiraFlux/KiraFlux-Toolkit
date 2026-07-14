@@ -28,14 +28,14 @@ template<typename R, typename... Args> struct Function<R(Args...)> : mixin::NonC
 
     explicit Function(std::nullptr_t) = delete;
 
-    template<typename _F> Function(_F &&f) noexcept {
-        using Decayed = std::decay_t<_F>;
+    Function(auto &&f) noexcept {
+        using Decayed = std::decay_t<decltype(f)>;
         static_assert(not std::is_same_v<Decayed, Function>, "Cannot construct Function from another Function (use move)");
         static_assert(sizeof(Impl<Decayed>) <= (buffer_size - 1), "Callable object too large for Function buffer");
         static_assert(alignof(Impl<Decayed>) <= alignment, "Callable alignment too strict");
-        static_assert(std::is_invocable_r<R, _F, Args...>::value, "Callable not invocable with given arguments");
+        static_assert(std::is_invocable_r<R, decltype(f), Args...>::value, "Callable not invocable with given arguments");
 
-        new (static_cast<void *>(_storage)) Impl<Decayed>{std::forward<_F>(f)};
+        new (static_cast<void *>(_storage)) Impl<Decayed>{std::forward<decltype(f)>(f)};
         isSome(true);
     }
 
@@ -76,7 +76,8 @@ private:
     template<typename _F> struct Impl final : Base {
         _F f;
 
-        template<typename G> explicit Impl(G &&func) noexcept : f(std::forward<G>(func)) {}
+        explicit Impl(auto &&func) noexcept :
+            f(std::forward<decltype(func)>(func)) {}
 
         R invoke(Args... args) const noexcept override {
             return f(std::forward<Args>(args)...);

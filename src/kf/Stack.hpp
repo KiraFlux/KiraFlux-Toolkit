@@ -53,12 +53,12 @@ template<typename T> struct Stack : Sequence<Stack<T>, T>, mixin::Resettable<Sta
 
     /// @brief Put Item on stack top
     /// @return true if item added, false otherwise
-    template<typename U> [[nodiscard]] constexpr bool push(U &&item) noexcept {
+    [[nodiscard]] constexpr bool push(auto &&item) noexcept {
         if (this->full()) {
             return false;
         }
 
-        new (&_buffer[_length]) T(std::forward<U>(item));
+        new (&_buffer[_length]) T(std::forward<decltype(item)>(item));
 
         _length += 1;
 
