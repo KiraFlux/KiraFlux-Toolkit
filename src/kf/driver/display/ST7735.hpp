@@ -95,9 +95,9 @@ private:
         return _spi_node.writeBuffer(buffer);
     }
 
-    template<typename T> SpiOperationResult sendPacket(T &&packet) noexcept {
+    SpiOperationResult sendPacket(auto &&packet) noexcept {
         _gpio_data_command.write(true);
-        return _spi_node.writePacket(std::forward<T>(packet));
+        return _spi_node.writePacket(std::forward<decltype(packet)>(packet));
     }
 
     SpiOperationResult sendCommand(Command c) noexcept {
