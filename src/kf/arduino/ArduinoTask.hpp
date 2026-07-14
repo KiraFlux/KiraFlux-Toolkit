@@ -8,9 +8,9 @@
 #include "kf/rtos/Task.hpp"
 #include "kf/units.hpp"
 
-namespace kf::rtos {
+namespace kf::arduino {
 
-struct ArduinoTask : Task<ArduinoTask> {
+struct ArduinoTask : rtos::Task<ArduinoTask> {
 private:
     KF_IMPL_TASK(ArduinoTask);
     static void sleepImpl(units::Milliseconds duration) noexcept {
@@ -18,4 +18,4 @@ private:
     }
 };
 
-}// namespace kf::rtos
+}// namespace kf::arduino
