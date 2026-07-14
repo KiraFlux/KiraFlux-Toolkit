@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include "kf/TrivialOption.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Length.hpp"
 #include "kf/primitives.hpp"
 
@@ -34,30 +35,30 @@ using std::tan;
 inline namespace custom_functions {
 
 /// @brief Abs
-template<typename T> [[nodiscard]] constexpr T abs(const T &x) noexcept {
-    return (x > 0) ? x : static_cast<T>(-x);
+[[nodiscard]] constexpr auto abs(const auto &x) noexcept {
+    return (x > 0) ? x : static_cast<decltype(x)>(-x);
 }
 
 /// @brief Min
-template<typename T> [[nodiscard]] constexpr T min(const T &a, const T &b) noexcept {
+[[nodiscard]] constexpr auto min(const auto &a, const auto &b) noexcept {
     return (a < b) ? a : b;
 }
 
 /// @brief Max
-template<typename T> [[nodiscard]] constexpr T max(const T &a, const T &b) noexcept {
+[[nodiscard]] constexpr auto max(const auto &a, const auto &b) noexcept {
     return (a > b) ? a : b;
 }
 
 /// @brief Constrain value between lower and upper bounds
-template<typename T> [[nodiscard]] constexpr T clamp(const T &value, const T &low, const T &high) noexcept {
+[[nodiscard]] constexpr auto clamp(const auto &value, const auto &low, const auto &high) noexcept {
     return min(high, max(value, low));
 }
 
 /// @brief Linear interpolate value from input (low..high) to output (log..high)
-template<typename T> [[nodiscard]] constexpr T linearMap(
-    const T &value,
-    const T &in_low, const T &in_high,
-    const T &out_low, const T &out_high) noexcept {
+[[nodiscard]] constexpr auto linearMap(
+    const auto &value,
+    const auto &in_low, const auto &in_high,
+    const auto &out_low, const auto &out_high) noexcept {
     return (value - in_low) * (out_high - out_low) / (in_high - in_low) + out_low;
 }
 
@@ -65,54 +66,61 @@ template<typename T> [[nodiscard]] constexpr T linearMap(
 
 inline namespace objects {
 
+struct Vector2Tag {};
+
 /// @brief 2D vector template for graphics and calculations
 /// @tparam T Component type (float, integer, etc.)
-template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
+template<typename T> struct Vector2 :
+
+    Vector2Tag,
+    mixin::Length<Vector2<T>, T>
+
+{
 
     /// @brief Vector component type
     using Scalar = T;
 
+    using Self = Vector2<Scalar>;
+
     Scalar x, y;
 
     /// @brief Create 2D vector with auto-deduced types
-    /// @tparam X x component type (likely auto deduced)
-    /// @tparam Y y component type (likely auto deduced)
-    template<typename X, typename Y> [[nodiscard]] static constexpr Vector2 create(X x, Y y) noexcept {
-        return {
+    [[nodiscard]] static constexpr Self create(auto x, auto y) noexcept {
+        return Self{
             .x = static_cast<Scalar>(x),
             .y = static_cast<Scalar>(y),
         };
     }
 
-    [[nodiscard]] static constexpr Vector2 zero() noexcept {
-        return create(0, 0);
+    [[nodiscard]] static constexpr Self zero() noexcept {
+        return Self::create(0, 0);
     }
 
     /// @brief Vector addition
     /// @param other Vector to add
     /// @return Sum vector
-    [[nodiscard]] constexpr Vector2 operator+(const Vector2 &other) const noexcept {
-        return create(x + other.x, y + other.y);
+    [[nodiscard]] constexpr auto operator+(implements<Vector2Tag> auto const &other) const noexcept {
+        return Self::create(x + other.x, y + other.y);
     }
 
     /// @brief Vector subtraction
     /// @param other Vector to subtract
     /// @return Difference vector
-    [[nodiscard]] constexpr Vector2 operator-(const Vector2 &other) const noexcept {
-        return create(x - other.x, y - other.y);
+    [[nodiscard]] constexpr auto operator-(implements<Vector2Tag> auto const &other) const noexcept {
+        return Self::create(x - other.x, y - other.y);
     }
 
     /// @brief Scalar multiplication
     /// @param scalar Multiplication factor
     /// @return Scaled vector
-    [[nodiscard]] constexpr Vector2 operator*(Scalar scalar) const noexcept {
-        return create(x * scalar, y * scalar);
+    [[nodiscard]] constexpr auto operator*(Scalar scalar) const noexcept {
+        return Self::create(x * scalar, y * scalar);
     }
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Vector2> {
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Self> {
         return (scalar == 0) ? none : someTrivial((*this) / scalar);
     }
 
@@ -120,14 +128,14 @@ template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
     /// @param scalar Division factor
     /// @return Divided vector
     /// @warning No zero-check (use divChecked for safe division)
-    [[nodiscard]] constexpr Vector2 operator/(Scalar scalar) const noexcept {
-        return create(x / scalar, y / scalar);
+    [[nodiscard]] constexpr auto operator/(Scalar scalar) const noexcept {
+        return Self::create(x / scalar, y / scalar);
     }
 
     /// @brief Vector addition assignment
     /// @param other Vector to add
     /// @return Reference to modified vector
-    Vector2 &operator+=(const Vector2 &other) noexcept {
+    Self &operator+=(implements<Vector2Tag> auto const &other) noexcept {
         x += other.x;
         y += other.y;
         return *this;
@@ -136,7 +144,7 @@ template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
     /// @brief Vector subtraction assignment
     /// @param other Vector to subtract
     /// @return Reference to modified vector
-    Vector2 &operator-=(const Vector2 &other) noexcept {
+    Self &operator-=(implements<Vector2Tag> auto const &other) noexcept {
         x -= other.x;
         y -= other.y;
         return *this;
@@ -144,14 +152,14 @@ template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector2> {
+    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Self> {
         return divChecked(this->length());
     }
 
     /// @brief Calculate dot product with another vector
     /// @param other Second vector
     /// @return Dot product value
-    [[nodiscard]] constexpr Scalar dot(const Vector2 &other) const noexcept {
+    [[nodiscard]] constexpr Scalar dot(implements<Vector2Tag> auto const &other) const noexcept {
         return static_cast<Scalar>(x * other.x + y * other.y);
     }
 
@@ -162,9 +170,7 @@ template<typename T> struct Vector2 final : mixin::Length<Vector2<T>, T> {
     }
 
 private:
-    using This = Vector2<Scalar>;
-
-    KF_IMPL_LENGTH(This, Scalar);
+    KF_IMPL_LENGTH(Self, Scalar);
     constexpr Scalar lengthImpl() const noexcept {
         return static_cast<Scalar>(math::hypot(x, y));
     }
@@ -173,55 +179,61 @@ private:
 using Vector2f = Vector2<f32>;///< Float precision 2D vector
 using Vector2i = Vector2<i32>;///< Integer precision 2D vector
 
+struct Vector3Tag {};
+
 /// @brief 3D vector template for graphics and calculations
-template<typename T> struct Vector3 final : mixin::Length<Vector3<T>, T> {
+template<typename T> struct Vector3 :
+
+    Vector3Tag,
+    mixin::Length<Vector3<T>, T>
+
+{
 
     /// @brief Vector component type
     using Scalar = T;
 
+    using Self = Vector3<Scalar>;
+
     Scalar x, y, z;
 
     /// @brief Create 3D vector with auto-deduced types
-    /// @tparam X x component type (likely auto deduced)
-    /// @tparam Y y component type (likely auto deduced)
-    /// @tparam Z z component type (likely auto deduced)
-    template<typename X, typename Y, typename Z> [[nodiscard]] static constexpr Vector3 create(X x, Y y, Z z) noexcept {
-        return {
+    [[nodiscard]] static constexpr Self create(auto x, auto y, auto z) noexcept {
+        return Self{
             .x = static_cast<Scalar>(x),
             .y = static_cast<Scalar>(y),
             .z = static_cast<Scalar>(z),
         };
     }
 
-    [[nodiscard]] static constexpr Vector3 zero() noexcept {
-        return create(0, 0, 0);
+    [[nodiscard]] static constexpr Self zero() noexcept {
+        return Self::create(0, 0, 0);
     }
 
     /// @brief Vector addition
     /// @param other Vector to add
     /// @return Sum vector
-    [[nodiscard]] constexpr Vector3 operator+(const Vector3 &other) const noexcept {
-        return create(x + other.x, y + other.y, z + other.z);
+    [[nodiscard]] constexpr Self operator+(implements<Vector3Tag> auto const &other) const noexcept {
+        return Self::create(x + other.x, y + other.y, z + other.z);
     }
 
     /// @brief Vector subtraction
     /// @param other Vector to subtract
     /// @return Difference vector
-    [[nodiscard]] constexpr Vector3 operator-(const Vector3 &other) const noexcept {
-        return create(x - other.x, y - other.y, z - other.z);
+    [[nodiscard]] constexpr Self operator-(implements<Vector3Tag> auto const &other) const noexcept {
+        return Self::create(x - other.x, y - other.y, z - other.z);
     }
 
     /// @brief Scalar multiplication
     /// @param scalar Multiplication factor
     /// @return Scaled vector
-    [[nodiscard]] constexpr Vector3 operator*(Scalar scalar) const noexcept {
-        return create(x * scalar, y * scalar, z * scalar);
+    [[nodiscard]] constexpr Self operator*(Scalar scalar) const noexcept {
+        return Self::create(x * scalar, y * scalar, z * scalar);
     }
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Vector3> {
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Self> {
         return (scalar == 0) ? none : someTrivial((*this) / scalar);
     }
 
@@ -229,14 +241,14 @@ template<typename T> struct Vector3 final : mixin::Length<Vector3<T>, T> {
     /// @param scalar Division factor
     /// @return Divided vector
     /// @warning No zero-check (use divChecked for safe division)
-    [[nodiscard]] constexpr Vector3 operator/(Scalar scalar) const noexcept {
-        return create(x / scalar, y / scalar, z / scalar);
+    [[nodiscard]] constexpr Self operator/(Scalar scalar) const noexcept {
+        return Self::create(x / scalar, y / scalar, z / scalar);
     }
 
     /// @brief Vector addition assignment
     /// @param other Vector to add
     /// @return Reference to modified vector
-    Vector3 &operator+=(const Vector3 &other) noexcept {
+    Self &operator+=(implements<Vector3Tag> auto const &other) noexcept {
         x += other.x;
         y += other.y;
         z += other.z;
@@ -246,7 +258,7 @@ template<typename T> struct Vector3 final : mixin::Length<Vector3<T>, T> {
     /// @brief Vector subtraction assignment
     /// @param other Vector to subtract
     /// @return Reference to modified vector
-    Vector3 &operator-=(const Vector3 &other) noexcept {
+    Self &operator-=(implements<Vector3Tag> auto const &other) noexcept {
         x -= other.x;
         y -= other.y;
         z -= other.z;
@@ -255,22 +267,22 @@ template<typename T> struct Vector3 final : mixin::Length<Vector3<T>, T> {
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Vector3> {
+    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Self> {
         return divChecked(this->length());
     }
 
     /// @brief Calculate dot product with another vector
     /// @param other Second vector
     /// @return Dot product value
-    [[nodiscard]] constexpr Scalar dot(const Vector3 &other) const noexcept {
+    [[nodiscard]] constexpr Scalar dot(implements<Vector3Tag> auto const &other) const noexcept {
         return static_cast<Scalar>(x * other.x + y * other.y + z * other.z);
     }
 
     /// @brief Calculate cross product with another vector
     /// @param other Second vector
     /// @return Cross product vector (perpendicular to both inputs)
-    [[nodiscard]] constexpr Vector3 cross(const Vector3 &other) const noexcept {
-        return create(
+    [[nodiscard]] constexpr Self cross(implements<Vector3Tag> auto const &other) const noexcept {
+        return Self::create(
             (y * other.z - z * other.y),
             (z * other.x - x * other.z),
             (x * other.y - y * other.x));
@@ -283,9 +295,7 @@ template<typename T> struct Vector3 final : mixin::Length<Vector3<T>, T> {
     }
 
 private:
-    using This = Vector3<Scalar>;
-
-    KF_IMPL_LENGTH(This, Scalar);
+    KF_IMPL_LENGTH(Self, Scalar);
     constexpr Scalar lengthImpl() const noexcept {
         return static_cast<Scalar>(math::sqrt(x * x + y * y + z * z));
     }
@@ -294,22 +304,27 @@ private:
 using Vector3f = Vector3<f32>;///< Float precision 3D vector
 using Vector3i = Vector3<i32>;///< Integer precision 3D vector
 
+struct QuaternionTag {};
+
 /// @brief Quaternion for 3D rotations (trivially copyable aggregate)
 /// @tparam T Floating-point component type
-template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
+template<typename T> struct Quaternion :
+
+    QuaternionTag,
+    mixin::Length<Quaternion<T>, T>
+
+{
 
     /// @brief Component type
     using Scalar = T;
 
+    using Self = Quaternion<Scalar>;
+
     Scalar x, y, z, w;
 
     /// @brief Create Quaternion with auto-deduced types
-    /// @tparam X x component type (likely auto deduced)
-    /// @tparam Y y component type (likely auto deduced)
-    /// @tparam Z z component type (likely auto deduced)
-    /// @tparam W w component type (likely auto deduced)
-    template<typename X, typename Y, typename Z, typename W> [[nodiscard]] static constexpr Quaternion create(X x, Y y, Z z, W w) noexcept {
-        return Quaternion{
+    [[nodiscard]] static constexpr Self create(auto x, auto y, auto z, auto w) noexcept {
+        return Self{
             .x = static_cast<Scalar>(x),
             .y = static_cast<Scalar>(y),
             .z = static_cast<Scalar>(z),
@@ -318,27 +333,26 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
     }
 
     /// @brief Identity quaternion (no rotation)
-    [[nodiscard]] static constexpr Quaternion identity() noexcept {
-        return create(0, 0, 0, 1);
+    [[nodiscard]] static constexpr Self identity() noexcept {
+        return Self::create(0, 0, 0, 1);
     }
 
     /// @brief Create quaternion from axis‑angle representation
     /// @param axis Rotation axis (must be unit length)
     /// @param angle Rotation angle in radians
     /// @return Quaternion representing the rotation
-    [[nodiscard]] static Quaternion fromAxisAngle(const Vector3<Scalar> &axis, Scalar angle) noexcept {
+    [[nodiscard]] static Self fromAxisAngle(implements<Vector3Tag> auto const &axis, Scalar angle) noexcept {
         const auto
             s = math::sin(angle * 0.5),
             c = math::cos(angle * 0.5);
 
-        return create(axis.x * s, axis.y * s, axis.z * s, c);
+        return Self::create(axis.x * s, axis.y * s, axis.z * s, c);
     }
 
     /// @brief Create quaternion from Euler angles (ZYX order) using any numeric vector type
-    /// @tparam U Arithmetic type of input vector components
     /// @param eulers Vector containing (roll, pitch, yaw) in radians
     /// @return Quaternion equivalent to the Euler rotation
-    template<typename U> [[nodiscard]] static Quaternion fromEulers(const Vector3<U> &eulers) noexcept {
+    [[nodiscard]] static Self fromEulers(implements<Vector3Tag> auto const &eulers) noexcept {
         constexpr auto half = static_cast<Scalar>(0.5);
 
         const auto
@@ -349,7 +363,7 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
             cy = math::cos(eulers.z * half),
             sy = math::sin(eulers.z * half);
 
-        return create(
+        return Self::create(
             (sr * cp * cy - cr * sp * sy),
             (cr * sp * cy + sr * cp * sy),
             (cr * cp * sy - sr * sp * cy),
@@ -357,8 +371,8 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
     }
 
     /// @brief Conjugate of the quaternion
-    [[nodiscard]] constexpr Quaternion conjugate() const noexcept {
-        return create(-x, -y, -z, w);
+    [[nodiscard]] constexpr Self conjugate() const noexcept {
+        return Self::create(-x, -y, -z, w);
     }
 
     /// @brief Convert quaternion to Euler angles (roll, pitch, yaw) in radians
@@ -408,36 +422,30 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
 
     /// @brief Get normalized (unit) quaternion
     /// @return Option containing unit quaternion, or empty if zero length
-    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Quaternion> {
+    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Self> {
         auto n = this->length();
 
         if (n == 0) { return none; }
 
-        return someTrivial(create(x / n, y / n, z / n, w / n));
+        return someTrivial(Self::create(x / n, y / n, z / n, w / n));
     }
 
     /// @brief Inverse of the quaternion
     /// @return Option containing inverse, or empty if zero length (non‑invertible)
-    [[nodiscard]] auto inverse() const noexcept -> TrivialOption<Quaternion> {
+    [[nodiscard]] auto inverse() const noexcept -> TrivialOption<Self> {
         const auto n2 = lengthSquared();
 
         if (n2 == 0) { return none; }
 
         const auto c = conjugate();
 
-        return someTrivial(create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
+        return someTrivial(Self::create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
     }
 
     /// @brief Rotate a 3D vector by this quaternion (assumes unit quaternion)
-    /// @tparam U Arithmetic type of input vector components
     /// @param v Vector to rotate
     /// @return Rotated vector (component type Scalar)
-    template<typename U> [[nodiscard]] auto rotate(const Vector3<U> &v) const noexcept -> Vector3<Scalar> {
-        const auto
-            vx = static_cast<Scalar>(v.x),
-            vy = static_cast<Scalar>(v.y),
-            vz = static_cast<Scalar>(v.z);
-
+    [[nodiscard]] auto rotate(implements<Vector3Tag> auto const &v) const noexcept -> decltype(v) {
         const auto
             xx = x * x,
             yy = y * y,
@@ -449,15 +457,15 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
             yw = y * w,
             zw = z * w;
 
-        return Vector3<Scalar>::create(
-            ((1 - 2 * (yy + zz)) * vx + 2 * (xy - zw) * vy + 2 * (xz + yw) * vz),
-            (2 * (xy + zw) * vx + (1 - 2 * (xx + zz)) * vy + 2 * (yz - xw) * vz),
-            (2 * (xz - yw) * vx + 2 * (yz + xw) * vy + (1 - 2 * (xx + yy)) * vz));
+        return decltype(v)::create(
+            ((1 - 2 * (yy + zz)) * v.x + 2 * (xy - zw) * v.y + 2 * (xz + yw) * v.z),
+            (2 * (xy + zw) * v.x + (1 - 2 * (xx + zz)) * v.y + 2 * (yz - xw) * v.z),
+            (2 * (xz - yw) * v.x + 2 * (yz + xw) * v.y + (1 - 2 * (xx + yy)) * v.z));
     }
 
     /// @brief Quaternion multiplication (composition of rotations)
-    [[nodiscard]] constexpr Quaternion operator*(const Quaternion &other) const noexcept {
-        return Quaternion::create(
+    [[nodiscard]] constexpr Self operator*(implements<Self> auto const &other) const noexcept {
+        return Self::create(
             (w * other.x + x * other.w + y * other.z - z * other.y),
             (w * other.y - x * other.z + y * other.w + z * other.x),
             (w * other.z + x * other.y - y * other.x + z * other.w),
@@ -465,15 +473,13 @@ template<typename T> struct Quaternion final : mixin::Length<Quaternion<T>, T> {
     }
 
     /// @brief Multiply‑assign
-    Quaternion &operator*=(const Quaternion &other) noexcept {
+    Quaternion &operator*=(implements<Self> auto const &other) noexcept {
         *this = *this * other;
         return *this;
     }
 
 private:
-    using This = Quaternion<Scalar>;
-
-    KF_IMPL_LENGTH(This, Scalar);
+    KF_IMPL_LENGTH(Self, Scalar);
     constexpr Scalar lengthImpl() const noexcept {
         return static_cast<Scalar>(math::sqrt(lengthSquared()));
     }
