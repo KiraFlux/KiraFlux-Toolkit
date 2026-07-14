@@ -25,12 +25,12 @@ namespace internal {
 /// @note Provides a static method `create` that bypasses the private constructor.
 struct SomeCreator final {
 
-    template<typename T> [[nodiscard]] static constexpr auto create(T &&value) noexcept {
-        return Option<std::decay_t<T>>{std::forward<T>(value)};
+    [[nodiscard]] static constexpr auto create(auto &&value) noexcept {
+        return Option<std::decay_t<decltype(value)>>{std::forward<decltype(value)>(value)};
     }
 
-    template<typename T> [[nodiscard]] static constexpr auto createRef(T &ref) noexcept {
-        return Option<T &>{ref};
+    [[nodiscard]] static constexpr auto createRef(auto &ref) noexcept {
+        return Option<decltype(ref) &>{ref};
     }
 };
 
@@ -80,12 +80,11 @@ private:
 };
 
 /// @brief Create Option containing a value
-/// @tparam T Type of value (deduced, decays)
 /// @param value The value to store (copied or moved)
 /// @return `Option<std::decay_t<T>>`
 /// @note This is the only way to create a non‑empty Option for value types
-template<typename T> [[nodiscard]] constexpr auto some(T &&value) noexcept -> Option<std::decay_t<T>> {
-    return internal::SomeCreator::create(std::forward<T>(value));
+[[nodiscard]] constexpr auto some(auto &&value) noexcept -> Option<std::decay_t<decltype(value)>> {
+    return internal::SomeCreator::create(std::forward<decltype(value)>(value));
 }
 
 /// @brief Create `Option<void>`
@@ -99,7 +98,7 @@ template<typename T> [[nodiscard]] constexpr auto some(T &&value) noexcept -> Op
 /// @param ref Reference to store
 /// @return `Option<T&>`
 /// @note The reference must remain valid throughout Option lifetime
-template<typename T> [[nodiscard]] constexpr auto someRef(T &ref) noexcept -> Option<T &> {
+[[nodiscard]] constexpr auto someRef(auto &ref) noexcept -> Option<decltype(ref) &> {
     return internal::SomeCreator::createRef(ref);
 }
 
@@ -210,27 +209,24 @@ template<typename T> struct Option final :
     }
 
     /// @brief Get stored value or a default (lvalue Option)
-    /// @tparam U Type of default value (deduced)
     /// @param default_value Value to return if None
     /// @return Stored value (copy) if Some, otherwise default_value (copied or moved)
-    template<typename U> [[nodiscard]] T unwrapOr(U &&default_value) const & noexcept {
-        return this->isSome() ? value() : std::forward<U>(default_value);
+    [[nodiscard]] T unwrapOr(auto &&default_value) const & noexcept {
+        return this->isSome() ? value() : std::forward<decltype(default_value)>(default_value);
     }
 
     /// @brief Get stored value or a default (rvalue Option - moves stored value)
-    /// @tparam U Type of default value (deduced)
     /// @param default_value Value to return if None
     /// @return Stored value (moved) if Some, otherwise default_value (copied or moved)
-    template<typename U> [[nodiscard]] T unwrapOr(U &&default_value) && noexcept {
-        return this->isSome() ? std::move(value()) : std::forward<U>(default_value);
+    [[nodiscard]] T unwrapOr(auto &&default_value) && noexcept {
+        return this->isSome() ? std::move(value()) : std::forward<decltype(default_value)>(default_value);
     }
 
     /// @brief Transform stored value using a function (lvalue Option)
-    /// @tparam F Callable type (auto‑deduced, must be invocable with `T&`)
     /// @param f Mapping function: `T -> U`
     /// @return `Option<U>` containing mapped value if Some, otherwise None
     /// @note If `f` returns `void`, the result is `Option<void>`
-    template<typename F> [[nodiscard]] auto map(F &&f) const & noexcept -> Option<decltype(f(std::declval<T>()))> {
+    [[nodiscard]] auto map(auto &&f) const & noexcept -> Option<decltype(f(std::declval<T>()))> {
         if (this->isNone()) { return none; }
 
         if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
@@ -242,11 +238,10 @@ template<typename T> struct Option final :
     }
 
     /// @brief Transform stored value using a function (rvalue Option - moves value)
-    /// @tparam F Callable type (auto‑deduced, must be invocable with `T&&`)
     /// @param f Mapping function: `T -> U`
     /// @return `Option<U>` containing mapped value if Some, otherwise None
     /// @note If `f` returns `void`, the result is `Option<void>`
-    template<typename F> [[nodiscard]] auto map(F &&f) && noexcept -> Option<decltype(f(std::declval<T>()))> {
+    [[nodiscard]] auto map(auto &&f) && noexcept -> Option<decltype(f(std::declval<T>()))> {
         if (this->isNone()) { return none; }
 
         if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
@@ -262,13 +257,14 @@ private:
     bool _is_some{};                    ///< Flag indicating whether value is present
 
     /// @brief Private constructor for a value (called by some())
-    template<typename U, typename = std::enable_if_t<not std::is_same_v<std::decay_t<U>, Option>>>
-    explicit constexpr Option(U &&value) noexcept {
-        construct(std::forward<U>(value));
+    explicit constexpr Option(auto &&value) noexcept
+        requires(not std::is_base_of_v<OptionTag, std::decay_t<decltype(value)>>)
+    {
+        construct(std::forward<decltype(value)>(value));
     }
 
-    template<typename U> void construct(U &&value) noexcept {
-        new (static_cast<void *>(_storage)) T(std::forward<U>(value));
+    void construct(auto &&value) noexcept {
+        new (static_cast<void *>(_storage)) T(std::forward<decltype(value)>(value));
         _is_some = true;
     }
 
@@ -488,8 +484,8 @@ private:
     FunctionType _function;
 
     /// @brief Private constructor for Some (called by kf::some)
-    template<typename F> explicit Option(F &&function) noexcept :
-        _function{std::forward<F>(function)} {}
+    explicit Option(auto &&function) noexcept :
+        _function{std::forward<decltype(function)>(function)} {}
 
     using This = Option<FunctionType>;
 
