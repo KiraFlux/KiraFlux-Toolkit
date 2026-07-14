@@ -23,3 +23,5 @@ template<typename Impl> struct Task :
 };
 
 }// namespace kf::rtos
+
+#define KF_IMPL_TASK(...) friend struct ::kf::rtos::Task<__VA_ARGS__>
