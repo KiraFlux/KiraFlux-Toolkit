@@ -6,6 +6,7 @@
 #include <kf/Array.hpp>
 #include <kf/arduino/ArduinoGPIO.hpp>
 #include <kf/arduino/ArduinoSPI.hpp>
+#include <kf/arduino/ArduinoTask.hpp>
 #include <kf/driver/display/Orientation.hpp>
 #include <kf/driver/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
@@ -22,7 +23,7 @@ using kf::arduino::ArduinoSPI;
 using kf::driver::display::Orientation;
 
 // Display Driver specialization
-using MyDisplayDriver = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput>;
+using MyDisplayDriver = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput, kf::arduino::ArduinoTask>;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialization

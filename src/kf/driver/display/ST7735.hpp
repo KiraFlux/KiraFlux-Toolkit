@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <Arduino.h>// for delay
-
 #include "kf/GPIO.hpp"
 #include "kf/Result.hpp"
 #include "kf/bus/SPI.hpp"
@@ -14,6 +12,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
 #include "kf/primitives.hpp"
+#include "kf/rtos/Task.hpp"
 
 #include "kf/driver/display/DisplayDriver.hpp"
 #include "kf/driver/display/Orientation.hpp"
@@ -33,15 +32,16 @@ namespace kf::driver::display {
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
 /// @tparam N Implementation of SPI bus Node
 /// @tparam G Implementation of GPIO with digital input support
-template<implements<bus::SpiNodeTag> N, implements<GPIO::DigitalOutputTag> G> struct ST7735 final :
+template<implements<bus::SpiNodeTag> N, implements<GPIO::DigitalOutputTag> G, implements<rtos::TaskTag> T> struct ST7735 final :
 
-    DisplayDriver<ST7735<N, G>, internal::ST7735Image, Result<void, typename N::Error>>,
+    DisplayDriver<ST7735<N, G, T>, internal::ST7735Image, Result<void, typename N::Error>>,
     mixin::Configured<internal::ST7735Config>
 
 {
 
     using SpiBusNodeImpl = N;
     using DigitalOutputImpl = G;
+    using TaskImpl = T;
     using PixelImpl = typename internal::ST7735Image::PixelImpl;
     using Error = typename SpiBusNodeImpl::Error;
     using SpiOperationResult = Result<void, Error>;
@@ -105,7 +105,7 @@ private:
         return _spi_node.writeByte(static_cast<u8>(c));
     }
 
-    using This = ST7735<N, G>;
+    using This = ST7735<N, G, T>;
     KF_IMPL_DISPLAY_DRIVER(This, internal::ST7735Image, SpiOperationResult);
 
     SpiOperationResult initImpl() noexcept {
@@ -116,10 +116,10 @@ private:
         this->reset();
 
         KF_TRY(sendCommand(Command::SWRESET));
-        delay(150);
+        TaskImpl::sleep(150);
 
         KF_TRY(sendCommand(Command::SLPOUT));
-        delay(255);
+        TaskImpl::sleep(255);
 
         KF_TRY(sendCommand(Command::COLMOD));
 
@@ -129,7 +129,7 @@ private:
         KF_TRY(this->orientation(this->config().init_orientation));
         KF_TRY(sendCommand(Command::DISPON));
 
-        delay(100);
+        TaskImpl::sleep(100);
 
         return ok();
     }
@@ -137,9 +137,9 @@ private:
     void resetImpl() const noexcept {
         // Required after power‑up to initialise the internal state machine.
         _gpio_hardware_reset.write(false);
-        delay(10);
+        TaskImpl::sleep(10);
         _gpio_hardware_reset.write(true);
-        delay(120);
+        TaskImpl::sleep(120);
     }
 
     SpiOperationResult sendImpl() noexcept {
