@@ -16,7 +16,7 @@
 
 namespace kf::internal {
 
-template<typename T> struct SliderConfig final {
+template<arithmetic T> struct SliderConfig final {
     Range<T> value_range;///< value range (slider value will clamped at this value)
     T default_value;     ///< slider value by default
     T step;              ///< slider value adjust step
@@ -31,7 +31,7 @@ struct SliderTag {};
 
 /// @tparam U UI Traits Type
 /// @tparam T Type of slider Value
-template<implements<UiTraitsTag> U, typename T> struct Slider :
+template<implements<UiTraitsTag> U, arithmetic T> struct Slider :
 
     SliderTag,
     U::Widget,

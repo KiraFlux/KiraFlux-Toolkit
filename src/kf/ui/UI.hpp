@@ -72,15 +72,12 @@ template<implements<UiTraitsTag> U> struct UI :
     };
 
     /// @brief Spin box for numeric adjustment with configurable step mode
-    /// @tparam T Arithmetic type (int, float, etc.)
-    /// @tparam A Adjuster (Arithmetic, ArithmeticPositiveOnly, Geometric)
-    template<typename T, typename A> struct SpinBox : widget::SpinBox<Traits, T, A> {
+    template<arithmetic T, implements<typename Traits::AdjusterTag> A> struct SpinBox : widget::SpinBox<Traits, T, A> {
         using widget::SpinBox<Traits, T, A>::SpinBox;
     };
 
     /// @brief Slider for numeric adjustment with constraints
-    /// @tparam T Arithmetic type (int, float, etc.)
-    template<typename T> struct Slider : widget::Slider<Traits, T> {
+    template<arithmetic T> struct Slider : widget::Slider<Traits, T> {
         using widget::Slider<Traits, T>::Slider;
     };
 

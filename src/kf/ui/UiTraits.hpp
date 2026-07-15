@@ -9,7 +9,7 @@
 
 namespace kf::internal {
 
-template<typename T> struct step_adjuster_min_step;
+template<arithmetic T> struct step_adjuster_min_step;
 
 template<> struct step_adjuster_min_step<int> {
     static constexpr int value{1};
@@ -49,7 +49,7 @@ template<implements<widget::WidgetTag> W> struct UiTraits : UiTraitsTag {
     /// @brief CRTP base for value adjustment strategies
     /// @tparam Impl The derived adjustment class.
     /// @tparam T   The numeric type to adjust.
-    template<typename Impl, typename T> struct Adjuster : AdjusterTag {
+    template<typename Impl, arithmetic T> struct Adjuster : AdjusterTag {
 
         /// @brief Applies an adjustment to a value.
         /// @param value    The current value.
@@ -64,7 +64,7 @@ template<implements<widget::WidgetTag> W> struct UiTraits : UiTraitsTag {
 #define KF_IMPL_ADJUSTER(...) friend struct Adjuster<__VA_ARGS__>
 
     /// @brief Arithmetic mode: value += direction * step
-    template<typename T> struct ArithmeticAdjuster final : Adjuster<ArithmeticAdjuster<T>, T> {
+    template<arithmetic T> struct ArithmeticAdjuster final : Adjuster<ArithmeticAdjuster<T>, T> {
     private:
         KF_IMPL_ADJUSTER(ArithmeticAdjuster<T>, T);
         static constexpr T adjustImpl(T value, T step, int direction) noexcept {
@@ -73,7 +73,7 @@ template<implements<widget::WidgetTag> W> struct UiTraits : UiTraitsTag {
     };
 
     /// @brief ArithmeticPositiveOnly mode: value += direction * step, clamp >= 0
-    template<typename T> struct ArithmeticPositiveOnlyAdjuster final : Adjuster<ArithmeticPositiveOnlyAdjuster<T>, T> {
+    template<arithmetic T> struct ArithmeticPositiveOnlyAdjuster final : Adjuster<ArithmeticPositiveOnlyAdjuster<T>, T> {
     private:
         KF_IMPL_ADJUSTER(ArithmeticPositiveOnlyAdjuster<T>, T);
         static constexpr T adjustImpl(T value, T step, int direction) noexcept {
@@ -82,7 +82,7 @@ template<implements<widget::WidgetTag> W> struct UiTraits : UiTraitsTag {
     };
 
     /// @brief Geometric mode: value *= step for positive direction, /= for negative
-    template<typename T> struct GeometricAdjuster final : Adjuster<GeometricAdjuster<T>, T> {
+    template<arithmetic T> struct GeometricAdjuster final : Adjuster<GeometricAdjuster<T>, T> {
     private:
         KF_IMPL_ADJUSTER(GeometricAdjuster<T>, T);
         static constexpr T adjustImpl(T value, T step, int direction) noexcept {

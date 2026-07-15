@@ -69,8 +69,7 @@ inline namespace objects {
 struct Vector2Tag {};
 
 /// @brief 2D vector template for graphics and calculations
-/// @tparam T Component type (float, integer, etc.)
-template<typename T> struct Vector2 :
+template<arithmetic T> struct Vector2 :
 
     Vector2Tag,
     mixin::Length<Vector2<T>, T>
@@ -182,7 +181,7 @@ using Vector2i = Vector2<i32>;///< Integer precision 2D vector
 struct Vector3Tag {};
 
 /// @brief 3D vector template for graphics and calculations
-template<typename T> struct Vector3 :
+template<arithmetic T> struct Vector3 :
 
     Vector3Tag,
     mixin::Length<Vector3<T>, T>
@@ -308,7 +307,7 @@ struct QuaternionTag {};
 
 /// @brief Quaternion for 3D rotations (trivially copyable aggregate)
 /// @tparam T Floating-point component type
-template<typename T> struct Quaternion :
+template<arithmetic T> struct Quaternion :
 
     QuaternionTag,
     mixin::Length<Quaternion<T>, T>

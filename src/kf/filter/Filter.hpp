@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/concepts.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
@@ -11,10 +12,17 @@ namespace kf::filter {
 
 struct FilterTag {};
 
-/// @brief CRTP mixin reset.
-/// @tparam Impl Derived filter implementation.
-/// @tparam T    Input/output type.
-template<typename Impl, typename T> struct Filter : FilterTag, mixin::NonCopyable, mixin::Resettable<Impl>, meta::CRTP<Impl> {
+/// @brief Filter static interface
+/// @tparam Impl Derived filter implementation
+/// @tparam T    Input/output type
+template<typename Impl, arithmetic T> struct Filter :
+
+    FilterTag,
+    mixin::NonCopyable,
+    mixin::Resettable<Impl>,
+    meta::CRTP<Impl>
+
+{
 
     /// @brief Updates the filter with a new sample.
     /// @param value The new input value.

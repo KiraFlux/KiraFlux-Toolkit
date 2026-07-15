@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/Option.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
@@ -21,11 +22,10 @@ struct LowFrequencyFilterConfig final {
 namespace kf::filter {
 
 /// @brief First-order low-pass filter (exponential smoothing).
-/// @tparam T Scalar type (e.g., float, double).
 /// @note Attenuates high-frequency noise. The `factor` determines smoothing:
 ///       factor = 1.0 -> no filtering (output = input)
 ///       factor = 0.0 -> output stays constant (infinite smoothing)
-template<typename T> struct LowFrequencyFilter :
+template<arithmetic T> struct LowFrequencyFilter :
 
     Filter<LowFrequencyFilter<T>, T>,
     mixin::Configured<internal::LowFrequencyFilterConfig>

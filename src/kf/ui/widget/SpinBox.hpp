@@ -17,7 +17,7 @@
 
 namespace kf::internal {
 
-template<typename T> struct SpinBoxConfig final {
+template<arithmetic T> struct SpinBoxConfig final {
     T default_step;///< value adjust step default value
     T step_adjust; ///< adjust step of step
 };
@@ -32,7 +32,7 @@ struct SpinBoxTag {};
 /// @tparam U UI Traits Type
 /// @tparam T Numeric type for spin box value (must be arithmetic)
 /// @tparam A Adjuster type
-template<implements<UiTraitsTag> U, typename T, implements<typename U::AdjusterTag> A> struct SpinBox :
+template<implements<UiTraitsTag> U, arithmetic T, implements<typename U::AdjusterTag> A> struct SpinBox :
 
     SpinBoxTag,
     U::Widget,

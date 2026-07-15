@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/Option.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
@@ -21,9 +22,9 @@ struct ExponentialFilterConfig final {
 namespace kf::filter {
 
 /// @brief Exponential moving average filter (EMA)
-/// @tparam T Data type (typically float or integer)
+/// @tparam T Data type
 /// @note Simple first-order IIR filter for smoothing noisy signals
-template<typename T> struct ExponentialFilter :
+template<arithmetic T> struct ExponentialFilter :
 
     Filter<ExponentialFilter<T>, T>,
     mixin::Configured<internal::ExponentialFilterConfig>
