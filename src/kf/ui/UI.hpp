@@ -38,6 +38,7 @@ template<implements<UiTraitsTag> U> struct UI :
     mixin::TimedPollable<UI<U>>
 
 {
+    using Self = UI<U>;
 
     /// @brief UI Traits implementation
     struct Traits : U {};
@@ -304,8 +305,6 @@ private:
     Queue<typename Traits::EventImpl> _events;///< Event queue for pending UI events
     typename Traits::RendererImpl &_renderer; ///< Renderer system implementation
     Option<Page &> _active_page{none};        ///< Currently active page for rendering
-
-    using Self = UI<U>;
 
     KF_IMPL_TIMED_POLLABLE(Self);
     void pollImpl(units::Milliseconds now) noexcept {

@@ -64,6 +64,8 @@ template<implements<GPIO::DigitalInputTag> G, typename T> struct QuadratureEncod
 {
     using DigitalInputImpl = G;
 
+    using Self = QuadratureEncoder<G, T>;
+
     using Config = internal::QuadratureEncoderConfig<T>;
 
     explicit constexpr QuadratureEncoder(const Config &config, DigitalInputImpl &&gpio_phase_a, DigitalInputImpl &&gpio_phase_b) noexcept :
@@ -93,8 +95,6 @@ private:
     DigitalInputImpl _gpio_phase_a, _gpio_phase_b;
     volatile typename Config::TickType _position_ticks{0};  ///< Accumulated step count
     volatile typename Config::PhaseStateType _last_state{0};///< Previous AB phase state
-
-    using Self = QuadratureEncoder<G, T>;
 
     /// @brief ISR triggered on any edge of either phase
     static void IRAM_ATTR onAnyPhaseChange(void *arg) noexcept {

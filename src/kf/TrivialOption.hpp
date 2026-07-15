@@ -40,6 +40,8 @@ template<typename T> struct RealValueOption :
 {
     friend struct internal::TrivialSomeCreator;
 
+    using Self = RealValueOption<T>;
+
     constexpr RealValueOption(NoneType) noexcept :
         _value{nan} {}
 
@@ -65,8 +67,6 @@ private:
     T _value;
 
     constexpr RealValueOption(T value) noexcept : _value{value} {}
-
-    using Self = RealValueOption<T>;
 
     KF_IMPL_INVARIANT(Self);
     bool isSomeImpl() const noexcept {
@@ -104,6 +104,8 @@ template<typename T> struct TrivialOption final :
     static_assert(std::is_trivially_copyable_v<T>);
 
     friend struct internal::TrivialSomeCreator;
+
+    using Self = TrivialOption<T>;
 
     /// @brief Construct an empty Option (None)
     constexpr TrivialOption(NoneType) noexcept :
@@ -154,8 +156,6 @@ private:
     explicit constexpr TrivialOption(const T &value) noexcept :
         _value{value}, _is_some{true} {}
 
-    using Self = TrivialOption<T>;
-
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _is_some;
@@ -175,6 +175,8 @@ template<> struct TrivialOption<usize> :
 
 {
     friend struct internal::TrivialSomeCreator;
+
+    using Self = TrivialOption<usize>;
 
     /// @brief Construct an empty Option (None)
     constexpr TrivialOption(NoneType) noexcept :
@@ -214,8 +216,6 @@ private:
 
     explicit constexpr TrivialOption(usize value) noexcept :
         _value{value} {}
-
-    using Self = TrivialOption<usize>;
 
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {

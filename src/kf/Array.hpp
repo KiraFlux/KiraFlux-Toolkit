@@ -21,6 +21,8 @@ template<typename T, usize N> struct Array :
     mixin::Equatable<Array<T, N>>
 
 {
+    using Self = Array<T, N>;
+
     constexpr static auto length{N};
 
     T items[N];
@@ -32,8 +34,6 @@ template<typename T, usize N> struct Array :
     }
 
 private:
-    using Self = Array<T, N>;
-
     KF_IMPL_SEQUENCE(Self, T);
 
     constexpr T *getDataImpl() noexcept {

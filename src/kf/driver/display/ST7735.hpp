@@ -45,6 +45,8 @@ template<implements<bus::SpiNodeTag> N, implements<GPIO::DigitalOutputTag> G, im
     using PixelImpl = typename internal::ST7735Image::PixelImpl;
     using Error = typename SpiBusNodeImpl::Error;
     using SpiOperationResult = Result<void, Error>;
+    
+    using Self = ST7735<N, G, T>;
 
     /// @brief Hardware configuration for ST7735
     using Config = internal::ST7735Config;
@@ -105,7 +107,6 @@ private:
         return _spi_node.writeByte(static_cast<u8>(c));
     }
 
-    using Self = ST7735<N, G, T>;
     KF_IMPL_DISPLAY_DRIVER(Self, internal::ST7735Image, SpiOperationResult);
 
     SpiOperationResult initImpl() noexcept {

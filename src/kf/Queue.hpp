@@ -18,6 +18,8 @@ namespace kf {
 /// @tparam T Element type
 template<typename T> struct Queue : mixin::Length<Queue<T>, usize>, mixin::Resettable<Queue<T>> {
 
+    using Self = Queue<T>;
+
     /// @brief Construct empty queue (no buffer, length 0)
     constexpr Queue() noexcept :
         _buffer{}, _length{0} {}
@@ -104,8 +106,6 @@ private:
     [[nodiscard]] constexpr usize indexAt(usize offset) const noexcept {
         return (_head + offset) % this->capacity();
     }
-
-    using Self = Queue<T>;
 
     KF_IMPL_LENGTH(Self, usize);
     constexpr usize lengthImpl() const noexcept {

@@ -19,6 +19,8 @@ namespace kf {
 /// @note Inherits Sequence, so all its methods (iterators, slice, etc.) are available
 template<typename T> struct Stack : Sequence<Stack<T>, T>, mixin::Resettable<Stack<T>> {
 
+    using Self = Stack<T>;
+
     /// @brief Construct empty stack (no buffer, length 0)
     constexpr Stack() noexcept :
         _buffer{}, _length{0} {}
@@ -83,8 +85,6 @@ template<typename T> struct Stack : Sequence<Stack<T>, T>, mixin::Resettable<Sta
 private:
     Slice<T> _buffer;
     usize _length;
-
-    using Self = Stack<T>;
 
     KF_IMPL_SEQUENCE(Self, T);
 

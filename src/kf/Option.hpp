@@ -48,6 +48,8 @@ template<> struct Option<void> final :
 {
     friend struct internal::SomeCreator;
 
+    using Self = Option<void>;
+
     /// @brief Construct an empty Option (None)
     constexpr Option(NoneType) noexcept :
         _is_some{false} {}
@@ -63,8 +65,6 @@ template<> struct Option<void> final :
 
 private:
     bool _is_some;
-
-    using Self = Option<void>;
 
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
@@ -114,6 +114,8 @@ template<typename T> struct Option final :
 
 {
     friend struct internal::SomeCreator;
+
+    using Self = Option<T>;
 
     /// @brief Construct an empty Option (None)
     constexpr Option(NoneType) noexcept :
@@ -276,8 +278,6 @@ private:
         return const_cast<Option *>(this)->value();
     }
 
-    using Self = Option<T>;
-
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _is_some;
@@ -304,6 +304,8 @@ template<typename T> struct Option<T &> final :
 
 {
     friend struct internal::SomeCreator;
+
+    using Self = Option<T &>;
 
     /// @brief Construct an empty Option (None)
     constexpr Option(NoneType) noexcept :
@@ -346,8 +348,6 @@ private:
     explicit constexpr Option(T &ref) noexcept :
         _ptr{&ref} {}
 
-    using Self = Option<T &>;
-
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _ptr != nullptr;
@@ -369,6 +369,8 @@ template<typename T> struct Option<Slice<T>> final :
 
 {
     friend struct internal::SomeCreator;
+
+    using Self = Option<Slice<T>>;
 
     /// @brief Construct an empty Option (None)
     constexpr Option(NoneType) noexcept :
@@ -404,8 +406,6 @@ private:
     explicit constexpr Option(Slice<T> slice) noexcept :
         _ptr{slice.data()}, _length{slice.length()} {}
 
-    using Self = Option<Slice<T>>;
-
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _length != is_none_mark;
@@ -432,6 +432,8 @@ template<typename R, typename... Args> struct Option<Function<R(Args...)>> final
     friend struct internal::SomeCreator;
 
     using FunctionType = Function<R(Args...)>;
+
+    using Self = Option<FunctionType>;
 
     /// @brief Construct an empty Option (None)
     constexpr Option(NoneType) noexcept :
@@ -486,8 +488,6 @@ private:
     /// @brief Private constructor for Some (called by kf::some)
     explicit Option(auto &&function) noexcept :
         _function{std::forward<decltype(function)>(function)} {}
-
-    using Self = Option<FunctionType>;
 
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {

@@ -99,6 +99,8 @@ template<typename I> struct ArduinoSpiNode :
     using BusImpl = I;
     using Error = ArduinoSpiError;
 
+    using Self = ArduinoSpiNode<I>;
+
     /// @brief Bit order for SPI transfers.
     using Config = ArduinoSpiNodeConfig;
 
@@ -169,8 +171,6 @@ private:
             static_assert(always_false<T>, "readPacketUnchecked supports only 1,2,4 byte types");
         }
     }
-
-    using Self = ArduinoSpiNode<I>;
 
     KF_IMPL_SPI_NODE(Self, Error);
 

@@ -23,6 +23,8 @@ template<typename Impl, typename T> struct Sequence :
     mixin::Length<Impl, usize>
 
 {
+    using Self = Sequence<Impl, T>;
+
     [[nodiscard]] constexpr T *data() noexcept {
         return static_cast<Impl *>(this)->getDataImpl();
     }
@@ -68,8 +70,6 @@ template<typename Impl, typename T> struct Sequence :
     }
 
 private:
-    using Self = Sequence<Impl, T>;
-
     KF_IMPL_INDEXABLE(Self, T);
 
     constexpr T &getItemImpl(usize index) noexcept {

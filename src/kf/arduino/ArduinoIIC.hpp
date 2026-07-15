@@ -89,6 +89,8 @@ template<typename I> struct ArduinoIicNode :
     using BusImpl = I;
     using Error = ArduinoIicError;
 
+    using Self = ArduinoIicNode<BusImpl>;
+
     /// @brief Configuration for an Arduino Wire I2C node.
     using Config = NodeConfig;
 
@@ -97,8 +99,6 @@ template<typename I> struct ArduinoIicNode :
 
 private:
     TwoWire &_wire;
-
-    using Self = ArduinoIicNode<BusImpl>;
 
     KF_IMPL_IIC_NODE(Self, Error);
 

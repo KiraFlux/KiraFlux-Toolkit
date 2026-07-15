@@ -31,6 +31,9 @@ template<arithmetic T> struct ComplementaryFilter final :
 
 {
     using ValueType = T;
+
+    using Self = ComplementaryFilter<ValueType>;
+
     using Config = internal::ComplementaryFilterConfig;
 
     using mixin::Configured<Config>::Configured;
@@ -53,8 +56,6 @@ template<arithmetic T> struct ComplementaryFilter final :
 
 private:
     TrivialOption<ValueType> _filtered{none};
-
-    using Self = ComplementaryFilter<ValueType>;
 
     KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
