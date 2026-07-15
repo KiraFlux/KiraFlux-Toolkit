@@ -54,9 +54,9 @@ template<arithmetic T> struct ComplementaryFilter final :
 private:
     TrivialOption<ValueType> _filtered{none};
 
-    using This = ComplementaryFilter<ValueType>;
+    using Self = ComplementaryFilter<ValueType>;
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         _filtered = none;
     }

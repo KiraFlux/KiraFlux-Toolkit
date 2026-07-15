@@ -23,9 +23,9 @@ template<typename T> struct Range final : mixin::Length<Range<T>, T> {
     }
 
 private:
-    using This = Range<T>;
+    using Self = Range<T>;
 
-    KF_IMPL_LENGTH(This, T);
+    KF_IMPL_LENGTH(Self, T);
     constexpr T lengthImpl() const noexcept {
         return end - start;
     }

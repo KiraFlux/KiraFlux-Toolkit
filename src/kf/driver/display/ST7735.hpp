@@ -105,8 +105,8 @@ private:
         return _spi_node.writeByte(static_cast<u8>(c));
     }
 
-    using This = ST7735<N, G, T>;
-    KF_IMPL_DISPLAY_DRIVER(This, internal::ST7735Image, SpiOperationResult);
+    using Self = ST7735<N, G, T>;
+    KF_IMPL_DISPLAY_DRIVER(Self, internal::ST7735Image, SpiOperationResult);
 
     SpiOperationResult initImpl() noexcept {
         _spi_node.init();

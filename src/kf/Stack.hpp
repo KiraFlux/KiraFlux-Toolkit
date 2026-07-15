@@ -84,9 +84,9 @@ private:
     Slice<T> _buffer;
     usize _length;
 
-    using This = Stack<T>;
+    using Self = Stack<T>;
 
-    KF_IMPL_SEQUENCE(This, T);
+    KF_IMPL_SEQUENCE(Self, T);
 
     constexpr T *getDataImpl() noexcept {
         return _buffer.data();
@@ -96,7 +96,7 @@ private:
         return _length;
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         for (auto &item: *this) {
             item.~T();

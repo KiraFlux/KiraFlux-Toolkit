@@ -64,14 +64,14 @@ template<> struct Option<void> final :
 private:
     bool _is_some;
 
-    using This = Option<void>;
+    using Self = Option<void>;
 
-    KF_IMPL_INVARIANT(This);
+    KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _is_some;
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         if (this->isSome()) {
             _is_some = false;
@@ -276,14 +276,14 @@ private:
         return const_cast<Option *>(this)->value();
     }
 
-    using This = Option<T>;
+    using Self = Option<T>;
 
-    KF_IMPL_INVARIANT(This);
+    KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _is_some;
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     void resetImpl() noexcept {
         if (this->isSome()) {
             value().~T();
@@ -346,14 +346,14 @@ private:
     explicit constexpr Option(T &ref) noexcept :
         _ptr{&ref} {}
 
-    using This = Option<T &>;
+    using Self = Option<T &>;
 
-    KF_IMPL_INVARIANT(This);
+    KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _ptr != nullptr;
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         _ptr = nullptr;
     }
@@ -404,14 +404,14 @@ private:
     explicit constexpr Option(Slice<T> slice) noexcept :
         _ptr{slice.data()}, _length{slice.length()} {}
 
-    using This = Option<Slice<T>>;
+    using Self = Option<Slice<T>>;
 
-    KF_IMPL_INVARIANT(This);
+    KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _length != is_none_mark;
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         _length = is_none_mark;
         _ptr = nullptr;
@@ -487,14 +487,14 @@ private:
     explicit Option(auto &&function) noexcept :
         _function{std::forward<decltype(function)>(function)} {}
 
-    using This = Option<FunctionType>;
+    using Self = Option<FunctionType>;
 
-    KF_IMPL_INVARIANT(This);
+    KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _function.isSome();
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     void resetImpl() noexcept {
         if (this->isSome()) {
             _function = std::move(FunctionType{});

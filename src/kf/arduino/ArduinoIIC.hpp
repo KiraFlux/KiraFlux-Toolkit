@@ -98,9 +98,9 @@ template<typename I> struct ArduinoIicNode :
 private:
     TwoWire &_wire;
 
-    using This = ArduinoIicNode<BusImpl>;
+    using Self = ArduinoIicNode<BusImpl>;
 
-    KF_IMPL_IIC_NODE(This, Error);
+    KF_IMPL_IIC_NODE(Self, Error);
 
     /// @brief Request `requested` bytes from the I2C device.
     /// @return Number of bytes actually available.

@@ -66,14 +66,14 @@ private:
 
     constexpr RealValueOption(T value) noexcept : _value{value} {}
 
-    using This = RealValueOption<T>;
+    using Self = RealValueOption<T>;
 
-    KF_IMPL_INVARIANT(This);
+    KF_IMPL_INVARIANT(Self);
     bool isSomeImpl() const noexcept {
         return not std::isnan(_value);
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         _value = nan;
     }
@@ -154,14 +154,14 @@ private:
     explicit constexpr TrivialOption(const T &value) noexcept :
         _value{value}, _is_some{true} {}
 
-    using This = TrivialOption<T>;
+    using Self = TrivialOption<T>;
 
-    KF_IMPL_INVARIANT(This);
+    KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _is_some;
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         _is_some = false;
     }
@@ -215,14 +215,14 @@ private:
     explicit constexpr TrivialOption(usize value) noexcept :
         _value{value} {}
 
-    using This = TrivialOption<usize>;
+    using Self = TrivialOption<usize>;
 
-    KF_IMPL_INVARIANT(This);
+    KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _value != is_none_mark;
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         _value = is_none_mark;
     }

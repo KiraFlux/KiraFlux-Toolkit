@@ -170,9 +170,9 @@ private:
         }
     }
 
-    using This = ArduinoSpiNode<I>;
+    using Self = ArduinoSpiNode<I>;
 
-    KF_IMPL_SPI_NODE(This, Error);
+    KF_IMPL_SPI_NODE(Self, Error);
 
     void initImpl() noexcept {
         pinMode(this->config().gpio_num_cs, OUTPUT);

@@ -68,9 +68,9 @@ template<typename Impl, typename T> struct Sequence :
     }
 
 private:
-    using This = Sequence<Impl, T>;
+    using Self = Sequence<Impl, T>;
 
-    KF_IMPL_INDEXABLE(This, T);
+    KF_IMPL_INDEXABLE(Self, T);
 
     constexpr T &getItemImpl(usize index) noexcept {
         return data()[index];

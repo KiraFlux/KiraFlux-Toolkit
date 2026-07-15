@@ -94,11 +94,11 @@ private:
     volatile typename Config::TickType _position_ticks{0};  ///< Accumulated step count
     volatile typename Config::PhaseStateType _last_state{0};///< Previous AB phase state
 
-    using This = QuadratureEncoder<G, T>;
+    using Self = QuadratureEncoder<G, T>;
 
     /// @brief ISR triggered on any edge of either phase
     static void IRAM_ATTR onAnyPhaseChange(void *arg) noexcept {
-        auto &self = *static_cast<This *>(arg);
+        auto &self = *static_cast<Self *>(arg);
         const auto positive_step = static_cast<typename Config::StepType>(self.config().positive_direction);
 
         const auto current_state = self.read();
@@ -124,7 +124,7 @@ private:
         self._last_state = current_state;
     }
 
-    KF_IMPL_SENSOR_DRIVER(This, typename Config::PhaseStateType, void());
+    KF_IMPL_SENSOR_DRIVER(Self, typename Config::PhaseStateType, void());
 
     void initImpl() noexcept {
         _gpio_phase_a.init();
@@ -142,7 +142,7 @@ private:
         return (state_a << 1) | state_b;// pack as AB
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     void resetImpl() noexcept {
         _position_ticks = 0;
         _last_state = this->read();

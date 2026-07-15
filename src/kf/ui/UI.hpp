@@ -305,9 +305,9 @@ private:
     typename Traits::RendererImpl &_renderer; ///< Renderer system implementation
     Option<Page &> _active_page{none};        ///< Currently active page for rendering
 
-    using This = UI<U>;
+    using Self = UI<U>;
 
-    KF_IMPL_TIMED_POLLABLE(This);
+    KF_IMPL_TIMED_POLLABLE(Self);
     void pollImpl(units::Milliseconds now) noexcept {
         if (_active_page.isNone()) { return; }
 

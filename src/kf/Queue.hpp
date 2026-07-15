@@ -105,14 +105,14 @@ private:
         return (_head + offset) % this->capacity();
     }
 
-    using This = Queue<T>;
+    using Self = Queue<T>;
 
-    KF_IMPL_LENGTH(This, usize);
+    KF_IMPL_LENGTH(Self, usize);
     constexpr usize lengthImpl() const noexcept {
         return _length;
     }
 
-    KF_IMPL_RESETTABLE(This);
+    KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         for (auto i = 0u; i < _length; ++i) {
             _buffer[indexAt(i)].~T();

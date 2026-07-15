@@ -32,9 +32,9 @@ template<typename T, usize N> struct Array :
     }
 
 private:
-    using This = Array<T, N>;
+    using Self = Array<T, N>;
 
-    KF_IMPL_SEQUENCE(This, T);
+    KF_IMPL_SEQUENCE(Self, T);
 
     constexpr T *getDataImpl() noexcept {
         return items;
@@ -44,8 +44,8 @@ private:
         return N;
     }
 
-    KF_IMPL_EQUATABLE(This);
-    constexpr bool IsEqualsImpl(const This &other) const noexcept {
+    KF_IMPL_EQUATABLE(Self);
+    constexpr bool IsEqualsImpl(const Self &other) const noexcept {
         for (auto i = 0u; i < N; i += 1) {
             if ((*this)[i] != other[i]) {
                 return false;
