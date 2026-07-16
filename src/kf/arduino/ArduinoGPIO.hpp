@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 
-#include "kf/GPIO.hpp"
+#include "kf/gpio.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/primitives.hpp"
@@ -28,11 +28,11 @@ struct ArduinoPwmOutputConfig final {
 namespace kf::arduino {
 
 /// @brief Arduino Core GPIO backend
-struct ArduinoGPIO : GpioTag {
+struct ArduinoGPIO {
 
     /// @brief Arduino digital input with configurable pull-up/down
     /// @note Pull mode is set during `init()`; after that the pin stays configured
-    struct DigitalInput : GPIO::DigitalInput<DigitalInput, void()> {
+    struct DigitalInput : gpio::DigitalInput<DigitalInput, void()> {
 
         /// @param pin       GPIO number
         /// @param pull_type Pull configuration (internal/external, up/down)
@@ -81,7 +81,7 @@ struct ArduinoGPIO : GpioTag {
 
     /// @brief Arduino ADC input (typically 12‑bit on ESP32)
     /// @note Global resolution is set via `resolution()`
-    struct AdcInput : GPIO::AdcInput<AdcInput, void()> {
+    struct AdcInput : gpio::AdcInput<AdcInput, void()> {
 
         /// @param pin GPIO number with ADC capability (e.g., `GPIO_NUM_34`)
         explicit constexpr AdcInput(gpio_num_t gpio_num) noexcept :
@@ -115,7 +115,7 @@ struct ArduinoGPIO : GpioTag {
     };
 
     /// @brief Arduino digital output
-    struct DigitalOutput : GPIO::DigitalOutput<DigitalOutput, void()> {
+    struct DigitalOutput : gpio::DigitalOutput<DigitalOutput, void()> {
 
         /// @param pin GPIO number
         explicit constexpr DigitalOutput(gpio_num_t gpio_num) noexcept :
@@ -138,7 +138,7 @@ struct ArduinoGPIO : GpioTag {
     /// @brief Arduino PWM output using ESP32 LEDC hardware
     struct PwmOutput :
 
-        GPIO::PwmOutput<PwmOutput, bool()>,
+        gpio::PwmOutput<PwmOutput, bool()>,
         mixin::Configured<internal::ArduinoPwmOutputConfig>
 
     {

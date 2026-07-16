@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "kf/GPIO.hpp"
 #include "kf/concepts.hpp"
+#include "kf/gpio.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
@@ -55,7 +55,7 @@ namespace kf::driver::sensor {
 /// @brief Quadrature encoder sensor with 4X decoding
 /// @note Arduino-Only
 /// @tparam T Physical linear unit
-template<implements<GPIO::DigitalInputTag> G, typename T> struct QuadratureEncoder final :
+template<implements<gpio::DigitalInputTag> G, typename T> struct QuadratureEncoder final :
 
     driver::sensor::SensorDriver<QuadratureEncoder<G, T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
     mixin::Resettable<QuadratureEncoder<G, T>>,

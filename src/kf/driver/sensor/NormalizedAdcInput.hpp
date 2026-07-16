@@ -5,9 +5,9 @@
 
 #include <utility>
 
-#include "kf/GPIO.hpp"
 #include "kf/concepts.hpp"
 #include "kf/filter/ExponentialFilter.hpp"
+#include "kf/gpio.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Initable.hpp"
@@ -40,7 +40,7 @@ namespace kf::driver::sensor {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
 /// @tparam G Implementation of GPIO with ADC input support
-template<implements<GPIO::AdcInputTag> G> struct NormalizedAdcInput final :
+template<implements<gpio::AdcInputTag> G> struct NormalizedAdcInput final :
 
     SensorDriver<NormalizedAdcInput<G>, f32, void()>,
     mixin::Configured<internal::NormalizedAdcInputConfig>
