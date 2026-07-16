@@ -1,31 +1,36 @@
-#include <Arduino.h>
+#include <kf/String.hpp>
+#include <kf/main.hpp>
+
 #include <kf/Slice.hpp>
 
 using kf::Slice;
 
-void setup() {
-    Serial.begin(115200);
-    delay(1000);
+void kf::main(kf::Init &init) {
+    char buffer[128];
+    kf::String str{{buffer}};
 
-    Serial.println(F("=== Slice Demo ==="));
+    init.logger.debug("=== Slice Demo ===");
 
     int raw[] = {10, 20, 30, 40, 50};
     Slice<int> s{raw, 5}; // from pointer+size
     Slice<int> s_arr{raw};// from array (deduced size)
 
-    Serial.print(F("s[2]="));
-    Serial.print(s[2]);// 30
-    s[2] = 99;         // modification
-    Serial.print(F(" -> s[2]="));
-    Serial.println(s[2]);
+    for (auto i = 0; i < s.length(); i += 1) {
+        str.format("s[{}] = {}", i, s[i]);
+        init.logger.debug(str.view());
+    }
+
+    s[2] = 99;// modification
 
     // iteration
-    Serial.print(F("elements: "));
+
+    str.reset();
+    str.append("elements: ");
     for (auto x: s) {
-        Serial.print(x);
-        Serial.print(' ');
+        str.append(x);
+        str.append(' ');
     }
-    Serial.println();
+    init.logger.debug(str.view());
 
     // sub‑slices
     auto first = s.first(2);
@@ -33,15 +38,20 @@ void setup() {
     auto mid = s.sub(1, kf::someTrivial<kf::usize>(3));
     auto from2 = s.fromOffset(2);
 
-    auto print = [](auto slice, const char *tag) {
-        Serial.print(tag);
-        Serial.print(": ");
+    auto print = [&](auto slice, const char *tag) {
+        str.reset();
+
+        str.append(tag);
+        str.append(": ");
+
         for (auto x: slice) {
-            Serial.print(x);
-            Serial.print(' ');
+            str.append(x);
+            str.append(' ');
         }
-        Serial.println();
+
+        init.logger.debug(str.view());
     };
+
     print(first, "first(2)");
     print(last, "last(2)");
     print(mid, "sub(1,3)");
@@ -57,17 +67,7 @@ void setup() {
     Slice<const int> cs2 = s;// operator Slice<const T>
     print(cs2, "converted");
 
-    // other types
-    double dbl[] = {1.1, 2.2, 3.3};
-    Slice<double> ds{dbl, 3};
-    print(ds, "double");
-
     // empty slice
     Slice<int> empty{raw, 0};
-    Serial.print(F("empty.length()="));
-    Serial.println(empty.length());
-
-    Serial.println(F("=== End ==="));
+    // empty.length(); // 0
 }
-
-void loop() {}
