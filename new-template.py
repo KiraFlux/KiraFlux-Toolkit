@@ -5,7 +5,7 @@ from typing import Sequence
 
 REPO_DIR = Path(".").resolve()
 
-PLATFORMIO_INI = """
+PLATFORMIO_INI = """; KiraFlux-Toolkit Example Project configuration
 [platformio]
 build_cache_dir = .pio/build_cache
 
@@ -39,15 +39,13 @@ void run_tests() {
 
 """
 
-MAIN_CPP = """
-#include <Arduino.h>
+MAIN_CPP = """// KiraFlux-Toolkit Example '<<<name>>>'
 
-void setup() {
-    Serial.begin(115200);
-    // TODO: implement
-}
+#include <kf/main.hpp>
 
-void loop() {
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: <<<name>>>");
+
     // TODO: implement
 }
 """
@@ -103,11 +101,13 @@ def _create_new_example(group_name: str, example_name: str) -> int:
     (example_path / "platformio.ini").write_text(PLATFORMIO_INI)
     (example_path / "makefile").write_text(EXAMPLE_MAKEFILE)
     
+    name = f"{group_name}/{example_name}"
+
     src_path = example_path / "src"
     src_path.mkdir()
-    (src_path / "main.cpp").write_text(f"// KiraFlux-Toolkit Demo '{example_name}'" + MAIN_CPP )
+    (src_path / "main.cpp").write_text(MAIN_CPP.replace("<<<name>>>", name))
 
-    print(f"Created new example '{example_name}' ({example_path})")
+    print(f"Created new example '{name}' ({example_path})")
     return 0
 
 def _start(args: Sequence[str]) -> int:
