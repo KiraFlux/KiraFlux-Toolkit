@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <kf/Logger.hpp>
 
-#include <kf/arduino/ArduinoGPIO.hpp>
+#include <kf/arduino/gpio.hpp>
 #include <kf/driver/actuator/PwmPositionServo.hpp>
 
 using PwmOutput = kf::arduino::ArduinoPwmOutput;

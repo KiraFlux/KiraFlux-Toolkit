@@ -1,7 +1,7 @@
 // Demo: kf::gpio basic usage
 
 #include <Arduino.h>
-#include <kf/arduino/ArduinoGPIO.hpp>
+#include <kf/arduino/gpio.hpp>
 
 using kf::arduino::ArduinoAdcInput;
 using kf::arduino::ArduinoDigitalInput;

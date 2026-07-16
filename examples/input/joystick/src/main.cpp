@@ -4,7 +4,7 @@
 #include <kf/Timer.hpp>
 
 // target files for this demo
-#include <kf/arduino/ArduinoGPIO.hpp>
+#include <kf/arduino/gpio.hpp>
 #include <kf/driver/sensor/Joystick.hpp>
 #include <kf/driver/sensor/NormalizedAdcInput.hpp>
 

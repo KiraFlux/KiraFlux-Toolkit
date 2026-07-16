@@ -1,7 +1,7 @@
 // KiraFlux-Toolkit Demo 'actuator: motor powered by DRV8871'
 #include <Arduino.h>
 
-#include <kf/arduino/ArduinoGPIO.hpp>
+#include <kf/arduino/gpio.hpp>
 #include <kf/driver/actuator/DRV8871.hpp>
 
 using PwmOutput = kf::arduino::ArduinoPwmOutput;

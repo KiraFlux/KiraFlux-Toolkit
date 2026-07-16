@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#include <kf/arduino/ArduinoGPIO.hpp>
+#include <kf/arduino/gpio.hpp>
 #include <kf/driver/sensor/QuadratureEncoder.hpp>
 
 // This examples uses Arduino Environment and Toolkit's Arduino GPIO Implementation for simplicity

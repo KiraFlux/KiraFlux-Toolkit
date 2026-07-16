@@ -1,7 +1,7 @@
 // KiraFlux-Toolkit Demo 'input-button'
 #include <Arduino.h>
 
-#include <kf/arduino/ArduinoGPIO.hpp>
+#include <kf/arduino/gpio.hpp>
 #include <kf/listener/LogicalLevelListener.hpp>
 
 using DigitalInput = kf::arduino::ArduinoDigitalInput;

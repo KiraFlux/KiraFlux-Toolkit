@@ -18,7 +18,7 @@
 #include <kf/image/DynamicImage.hpp>
 
 #include <Arduino.h>
-#include <kf/arduino/ArduinoGPIO.hpp>
+#include <kf/arduino/gpio.hpp>
 #include <kf/arduino/ArduinoSPI.hpp>
 #include <kf/arduino/ArduinoTask.hpp>
 #include <kf/driver/display/Orientation.hpp>
