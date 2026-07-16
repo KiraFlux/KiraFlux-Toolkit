@@ -3,19 +3,22 @@
 #include <Arduino.h>
 #include <kf/arduino/ArduinoGPIO.hpp>
 
-using kf::arduino::ArduinoGPIO;
+using kf::arduino::ArduinoAdcInput;
+using kf::arduino::ArduinoDigitalInput;
+using kf::arduino::ArduinoDigitalOutput;
+using kf::arduino::ArduinoPwmOutput;
 
-ArduinoGPIO::DigitalInput button{GPIO_NUM_10, ArduinoGPIO::DigitalInput::Pull::ExternalDown};// button to GND
-ArduinoGPIO::DigitalOutput led{GPIO_NUM_12};                                                 // LED with resistor
-ArduinoGPIO::AdcInput adc{GPIO_NUM_34};                                                      // potentiometer (12‑bit)
+ArduinoDigitalInput button{GPIO_NUM_10, ArduinoDigitalInput::Pull::ExternalDown};// button to GND
+ArduinoDigitalOutput led{GPIO_NUM_12};                                           // LED with resistor
+ArduinoAdcInput adc{GPIO_NUM_34};                                                // potentiometer (12‑bit)
 
-ArduinoGPIO::PwmOutput::Config ledc_config{
+ArduinoPwmOutput::Config ledc_config{
     .frequency_hz = 10000,
     .resolution_bits = 10,
     .gpio_num = static_cast<kf::u8>(GPIO_NUM_13),
 };
 
-ArduinoGPIO::PwmOutput pwm{ledc_config};
+ArduinoPwmOutput pwm{ledc_config};
 
 void setup() {
     Serial.begin(115200);
@@ -25,9 +28,9 @@ void setup() {
     adc.init();
     (void) pwm.init();
 
-    ArduinoGPIO::AdcInput::resolution(12);
-    Serial.println(ArduinoGPIO::AdcInput::resolution());// get current adc resolution bits
-    Serial.println(ArduinoGPIO::AdcInput::maxValue());  // get current max value with current resolution
+    ArduinoAdcInput::resolution(12);
+    Serial.println(ArduinoAdcInput::resolution());// get current adc resolution bits
+    Serial.println(ArduinoAdcInput::maxValue());  // get current max value with current resolution
 }
 
 void loop() {

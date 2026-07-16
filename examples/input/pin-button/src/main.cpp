@@ -4,7 +4,7 @@
 #include <kf/arduino/ArduinoGPIO.hpp>
 #include <kf/listener/LogicalLevelListener.hpp>
 
-using DigitalInput = kf::arduino::ArduinoGPIO::DigitalInput;
+using DigitalInput = kf::arduino::ArduinoDigitalInput;
 using Button = kf::listener::LogicalLevelListener;
 
 Button::Config my_button_listener_config{

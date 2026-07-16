@@ -18,12 +18,12 @@
 #include <kf/ui/render/ColoredTextRenderer.hpp>
 #include <kf/ui/widget/Widget.hpp>
 
-using kf::arduino::ArduinoGPIO;
+using kf::arduino::ArduinoDigitalOutput;
 using kf::arduino::ArduinoSPI;
 using kf::driver::display::Orientation;
 
 // Display Driver specialization
-using MyDisplayDriver = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput, kf::arduino::ArduinoTask>;
+using MyDisplayDriver = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoDigitalOutput, kf::arduino::ArduinoTask>;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialization
@@ -363,8 +363,8 @@ static MyDisplayDriver::Config display_config{
 static MyDisplayDriver display{
     display_config,
     spi_bus.createNode(spi_node_config),
-    ArduinoGPIO::DigitalOutput{GPIO_NUM_16},// DC
-    ArduinoGPIO::DigitalOutput{GPIO_NUM_17},// RESET
+    ArduinoDigitalOutput{GPIO_NUM_16},// DC
+    ArduinoDigitalOutput{GPIO_NUM_17},// RESET
 };
 
 // display

@@ -26,9 +26,9 @@
 
 using kf::driver::display::Orientation;
 
-using kf::arduino::ArduinoGPIO;
+using kf::arduino::ArduinoDigitalOutput;
 using kf::arduino::ArduinoSPI;
-using ST7735 = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoGPIO::DigitalOutput, kf::arduino::ArduinoTask>;
+using ST7735 = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoDigitalOutput, kf::arduino::ArduinoTask>;
 
 using P = ST7735::PixelImpl;        // Pixel format used by the display
 using Palette = kf::gfx::Palette<P>;// Palette for this pixel format
@@ -120,8 +120,8 @@ void setup() {
     static ST7735 display{
         driver_config,
         spi_bus.createNode(spi_node_config),
-        ArduinoGPIO::DigitalOutput{GPIO_NUM_22},// DC
-        ArduinoGPIO::DigitalOutput{GPIO_NUM_17},// RESET
+        ArduinoDigitalOutput{GPIO_NUM_22},// DC
+        ArduinoDigitalOutput{GPIO_NUM_17},// RESET
     };
 
     (void) spi_bus.init();

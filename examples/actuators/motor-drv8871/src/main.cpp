@@ -4,7 +4,7 @@
 #include <kf/arduino/ArduinoGPIO.hpp>
 #include <kf/driver/actuator/DRV8871.hpp>
 
-using PwmOutput = kf::arduino::ArduinoGPIO::PwmOutput;
+using PwmOutput = kf::arduino::ArduinoPwmOutput;
 using DRV8871 = kf::driver::actuator::DRV8871<PwmOutput>;
 
 // static/global: must outlive motor

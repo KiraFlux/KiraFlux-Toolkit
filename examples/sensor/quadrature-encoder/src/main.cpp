@@ -6,7 +6,7 @@
 #include <kf/driver/sensor/QuadratureEncoder.hpp>
 
 // This examples uses Arduino Environment and Toolkit's Arduino GPIO Implementation for simplicity
-using DigitalInput = kf::arduino::ArduinoGPIO::DigitalInput;
+using DigitalInput = kf::arduino::ArduinoDigitalInput;
 
 // For example, define Degrees as float alias
 using MyDegreesUnit = float;

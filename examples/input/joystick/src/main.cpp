@@ -10,7 +10,7 @@
 
 #include <kf/listener/JoystickListener.hpp>
 
-using AdcInput = kf::arduino::ArduinoGPIO::AdcInput;
+using AdcInput = kf::arduino::ArduinoAdcInput;
 using NormalizedAdcInput = kf::driver::sensor::NormalizedAdcInput<AdcInput>;
 using Joystick = kf::driver::sensor::Joystick<NormalizedAdcInput>;
 using JoystickListener = kf::listener::JoystickListener;
