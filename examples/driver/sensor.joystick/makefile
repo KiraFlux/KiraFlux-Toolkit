@@ -1,15 +1,20 @@
-.PHONY: all c clean u upload m monitor
+all: build_esp32
 
-all:
-	pio run
+build_native:
+	pio run -e native
 
-clean:
-	pio run --target clean
+run_native: build_native
+	./.pio/build/native/program	
 
-c: clean
+n: run_native
+
+build_esp32:
+	pio run -e esp32dev
+
+b: build_esp32
 
 upload:
-	pio run --target upload
+	pio run -e esp32dev --target upload
 
 u: upload
 
