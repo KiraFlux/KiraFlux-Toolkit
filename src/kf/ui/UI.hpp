@@ -155,7 +155,7 @@ public:
 
         /// @brief Build page content
         /// @note Not for direct call. Use `Page::requestBuild()`
-        [[nodiscard]] virtual WidgetsView build() noexcept { return {}; }
+        [[nodiscard]] virtual WidgetsView build() noexcept = 0;
 
         /// @brief Page behavior on entry
         virtual void onEntry() noexcept {}
