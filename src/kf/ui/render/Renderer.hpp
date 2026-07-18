@@ -73,8 +73,9 @@ template<typename Impl> struct Renderer :
     /// @brief Begin rendering specific widget
     /// @param index Widget position on page
     /// @param is_focused contrasting text region (higher visibility)
-    void beginWidget(usize index, bool is_focused) noexcept {
-        this->impl().beginWidgetImpl(index, is_focused);
+    /// @param offset Widget offset
+    void beginWidget(usize index, bool is_focused, usize offset) noexcept {
+        this->impl().beginWidgetImpl(index, is_focused, offset);
     }
 
     /// @brief Finish rendering current widget

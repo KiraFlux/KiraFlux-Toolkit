@@ -172,8 +172,12 @@ private:
         _wrapped.endPage();
     }
 
-    void beginWidgetImpl(usize index, bool is_focused) noexcept {
+    void beginWidgetImpl(usize index, bool is_focused, usize offset) noexcept {
         _focus_active = is_focused;
+
+        if (_wrapped.layout() == Layout::Vertical) {
+            _wrapped.fillSpace(offset * this->config().textual.offset_size);
+        }
     }
 
     void endWidgetImpl() noexcept {

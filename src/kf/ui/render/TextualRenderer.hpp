@@ -27,6 +27,7 @@ struct TextualRendererConfig : mixin::Resettable<TextualRendererConfig> {
     Glyph rows_total;    ///< Total available rows in display
     Glyph float_places;  ///< Decimal places for float
     Glyph double_places; ///< Decimal places for double
+    Glyph offset_size;   ///< Spaces per one offset value
     bool title_centered; ///< Render Title centered
 
 private:
@@ -36,6 +37,7 @@ private:
         rows_total = 4;
         float_places = 2;
         double_places = 4;
+        offset_size = 2;
         title_centered = true;
     }
 };
@@ -121,6 +123,12 @@ struct TextualRenderer :
         writeString(temp.view());
     }
 
+    void fillSpace(usize spaces) noexcept {
+        for (usize i = 0; i < spaces; i += 1) {
+            writeChar(' ');
+        }
+    }
+
 private:
     String _buffer;// TODO: implement TUI string with cursor logic
     internal::PlainTextRendererCursor _cursor{};
@@ -142,10 +150,7 @@ private:
         _layout = layout;
 
         if (this->config().title_centered) {
-            const auto spaces = math::max(0, (int(this->config().row_max_length) - int(title.length())) / 2);
-            for (auto i = 0; i < spaces; i += 1) {
-                writeChar(' ');
-            }
+            fillSpace(math::max(0, (int(this->config().row_max_length) - int(title.length())) / 2));
         }
         writeString(title);
         writeChar('\n');
@@ -155,9 +160,12 @@ private:
 
     void endPageImpl() noexcept {}
 
-    void beginWidgetImpl(usize, bool is_focused) noexcept {
-        if (is_focused) {
-            writeString("* ");
+    void beginWidgetImpl(usize, bool is_focused, usize offset) noexcept {
+        writeChar(is_focused ? '*' : ' ');
+        writeChar(' ');
+
+        if (_layout == Layout::Vertical) {
+            fillSpace(this->config().offset_size * offset);
         }
     }
 
