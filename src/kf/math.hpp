@@ -456,7 +456,7 @@ template<arithmetic T> struct Quaternion :
             yw = y * w,
             zw = z * w;
 
-        return decltype(v)::create(
+        return std::decay_t<decltype(v)>::create(
             ((1 - 2 * (yy + zz)) * v.x + 2 * (xy - zw) * v.y + 2 * (xz + yw) * v.z),
             (2 * (xy + zw) * v.x + (1 - 2 * (xx + zz)) * v.y + 2 * (yz - xw) * v.z),
             (2 * (xz - yw) * v.x + 2 * (yz + xw) * v.y + (1 - 2 * (xx + yy)) * v.z));
