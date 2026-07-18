@@ -224,18 +224,24 @@ public:
         Request onEvent(typename Traits::EventImpl event) noexcept {
             using Kind = typename Traits::EventImpl::Kind;
 
+            if (_widgets.empty()) {
+                return Request::Nothing;
+            }
+
+            auto &active_widget = *_widgets[_cursor];
+
             switch (event.kind()) {
                 case Kind::PageCursorMove: {
                     return moveCursor(event.value());
                 }
                 case Kind::WidgetClick: {
-                    if (not _widgets.empty()) {
-                        return _widgets[_cursor]->onClick();
+                    if (active_widget.enabled()) {
+                        return active_widget.onClick();
                     }
                 }
                 case Kind::WidgetValue: {
-                    if (not _widgets.empty()) {
-                        return _widgets[_cursor]->onEventValue(event.value());
+                    if (active_widget.enabled()) {
+                        return active_widget.onEventValue(event.value());
                     }
                 }
             }
