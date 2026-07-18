@@ -1,94 +1,82 @@
 // IIC bus scanner example using KiraFlux IIC abstraction
 // Scans all I2C addresses and reports devices that acknowledge.
 
-#include <Arduino.h>
+#include <kf/String.hpp>
+#include <kf/main.hpp>
+
 #include <kf/arduino/ArduinoIIC.hpp>
 
 using kf::arduino::ArduinoIIC;
 
 // Configuration for the IIC bus (uses default Wire)
-auto bus_config{
-    ArduinoIIC::Config::create(
-        // 0 means Wire's default value
-        0,// clock
-        0,// timeout
-        0,// buffer size
+ArduinoIIC::Config bus_config{
 
-        // GPIO_NUM_NC or -1 means Wire's default pins
-        21,
-        22),
+    // GPIO_NUM_NC or -1 means Wire's default pins
+    .gpio_num_sda = static_cast<kf::u8>(21),
+    .gpio_num_scl = static_cast<kf::u8>(22),
+    
+    // 0 means Wire's default value
+    .buffer_size = 0,
+    .clock_hz = 0,
+    .timeout = 0,
 };
 
 // Bus instance (must outlive nodes)
-ArduinoIIC bus{bus_config, Wire};
+ArduinoIIC i2c_bus{bus_config, Wire};
 
-void setup() {
-    Serial.begin(115200);
-    delay(1000);
-    Serial.println("IIC Bus Scanner");
+const char *stringFromError(ArduinoIIC::Error e) {
+    switch (e) {
+        case ArduinoIIC::Error::ClockConfigFailed: return "Clock config failed";
+        case ArduinoIIC::Error::BufferSizeConfigFailed: return "Buffer size config failed";
+        case ArduinoIIC::Error::PinConfigFailed: return "Pin config failed";
+        case ArduinoIIC::Error::BeginFailed: return "Wire.begin() failed";
+        case ArduinoIIC::Error::AddressNack: return "Address NACK";
+        case ArduinoIIC::Error::DataNack: return "Data NACK";
+        case ArduinoIIC::Error::Timeout: return "Timeout";
+        case ArduinoIIC::Error::BufferTooLong: return "Buffer too long";
+        case ArduinoIIC::Error::IncompletePacket: return "Incomplete packet";
+        default: return "Unknown error";
+    }
+}
+
+void kf::main(kf::Init &init) {
+    init.logger.info("IIC Bus Scanner");
+    char str_buffer[128];
+    kf::String str{{str_buffer}};
 
     // Initialize the bus
-    auto initRes = bus.init();
-    if (initRes.isError()) {
-        Serial.print("Bus init failed: ");
-        switch (initRes.error()) {
-            case ArduinoIIC::Error::ClockConfigFailed:
-                Serial.println("Clock config failed");
-                break;
-            case ArduinoIIC::Error::BufferSizeConfigFailed:
-                Serial.println("Buffer size config failed");
-                break;
-            case ArduinoIIC::Error::PinConfigFailed:
-                Serial.println("Pin config failed");
-                break;
-            case ArduinoIIC::Error::BeginFailed:
-                Serial.println("Wire.begin() failed");
-                break;
-            default:
-                Serial.println("Unknown error");
-        }
-        while (true) { delay(1000); }
+    if (const auto result = i2c_bus.init(); result.isError()) {
+        str.format("Bus init failed: {}", stringFromError(result.error()));
+        init.logger.error(str.view());
+        return;
     }
-    Serial.println("Bus initialized");
+
+    init.logger.info("Bus initialized successfully");
 
     // Scan addresses 1..127
-    for (uint8_t addr = 1; addr < 0x80; addr += 1) {
+    for (kf::u8 address = 1; address < 0x80; address += 1) {
         // Create node for this address
         ArduinoIIC::Node::Config node_config{
-            .address = addr,
+            .address = address,
         };
 
-        auto node = bus.createNode(node_config);
+        auto node = i2c_bus.createNode(node_config);
 
-        // Try to read a single byte (most devices will NACK if no response)
-        auto result = node.readByte();
+        // Try to write empty slice - device acknowledges with ACK if present.
+        auto result = node.writeBuffer({});
         if (result.isOk()) {
-            // Got a byte – device responded
-            Serial.print("Device found at 0x");
-            if (addr < 0x10) Serial.print('0');
-            Serial.println(addr, HEX);
+            // Device responded with ACK
+            str.format("Device found at {}", address);
+            init.logger.info(str.view());
         } else {
-            auto err = result.error();
-            if (err == ArduinoIIC::Error::AddressNack) {
-                // Normal – no device
-            } else if (err == ArduinoIIC::Error::Timeout) {
-                Serial.print("Timeout at 0x");
-                if (addr < 0x10) Serial.print('0');
-                Serial.println(addr, HEX);
-            } else {
-                // Other error – report
-                Serial.print("Error 0x");
-                if (addr < 0x10) Serial.print('0');
-                Serial.print(addr, HEX);
-                Serial.print(": ");
-                Serial.println(static_cast<int>(err));
-            }
+            // log errors
+            str.format("At {}: {}", address, stringFromError(result.error()));
+            init.logger.error(str.view());
         }
+
         // Small delay between scans
         delay(5);
     }
 
-    Serial.println("Scan done.");
+    init.logger.info("Scan done.");
 }
-
-void loop() {}
