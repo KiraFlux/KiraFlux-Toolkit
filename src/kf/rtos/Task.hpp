@@ -3,25 +3,21 @@
 
 #pragma once
 
-#include "kf/meta/CRTP.hpp"
 #include "kf/units.hpp"
+
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
 
 namespace kf::rtos {
 
-struct TaskTag {};
-
-template<typename Impl> struct Task :
-
-    TaskTag,
-    meta::CRTP<Impl>
-
-{
+struct Task {
 
     static void sleep(units::Milliseconds duration) noexcept {
-        Impl::sleepImpl(duration);
+#ifdef ARDUINO
+        ::delay(duration);
+#endif
     }
 };
 
 }// namespace kf::rtos
-
-#define KF_IMPL_TASK(...) friend struct ::kf::rtos::Task<__VA_ARGS__>

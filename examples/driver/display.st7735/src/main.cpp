@@ -19,7 +19,6 @@
 
 #include <Arduino.h>
 #include <kf/arduino/ArduinoSPI.hpp>
-#include <kf/arduino/ArduinoTask.hpp>
 #include <kf/arduino/gpio.hpp>
 #include <kf/driver/display/Orientation.hpp>
 #include <kf/driver/display/ST7735.hpp>
@@ -28,7 +27,7 @@ using kf::driver::display::Orientation;
 
 using kf::arduino::ArduinoDigitalOutput;
 using kf::arduino::ArduinoSPI;
-using ST7735 = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoDigitalOutput, kf::arduino::ArduinoTask>;
+using ST7735 = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoDigitalOutput>;
 
 using P = ST7735::PixelImpl;        // Pixel format used by the display
 using Palette = kf::gfx::Palette<P>;// Palette for this pixel format

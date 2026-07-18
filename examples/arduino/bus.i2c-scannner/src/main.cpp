@@ -14,7 +14,7 @@ ArduinoIIC::Config bus_config{
     // GPIO_NUM_NC or -1 means Wire's default pins
     .gpio_num_sda = static_cast<kf::u8>(21),
     .gpio_num_scl = static_cast<kf::u8>(22),
-    
+
     // 0 means Wire's default value
     .buffer_size = 0,
     .clock_hz = 0,

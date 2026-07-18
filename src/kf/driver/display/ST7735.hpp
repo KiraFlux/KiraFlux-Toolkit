@@ -32,21 +32,20 @@ namespace kf::driver::display {
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
 /// @tparam N Implementation of SPI bus Node
 /// @tparam G Implementation of GPIO with digital input support
-template<implements<bus::SpiNodeTag> N, implements<gpio::DigitalOutputTag> G, implements<rtos::TaskTag> T> struct ST7735 final :
+template<implements<bus::SpiNodeTag> N, implements<gpio::DigitalOutputTag> G> struct ST7735 final :
 
-    DisplayDriver<ST7735<N, G, T>, internal::ST7735Image, Result<void, typename N::Error>>,
+    DisplayDriver<ST7735<N, G>, internal::ST7735Image, Result<void, typename N::Error>>,
     mixin::Configured<internal::ST7735Config>
 
 {
 
     using SpiBusNodeImpl = N;
     using DigitalOutputImpl = G;
-    using TaskImpl = T;
     using PixelImpl = typename internal::ST7735Image::PixelImpl;
     using Error = typename SpiBusNodeImpl::Error;
     using SpiOperationResult = Result<void, Error>;
 
-    using Self = ST7735<N, G, T>;
+    using Self = ST7735<N, G>;
 
     /// @brief Hardware configuration for ST7735
     using Config = internal::ST7735Config;
@@ -117,10 +116,10 @@ private:
         this->reset();
 
         KF_TRY(sendCommand(Command::SWRESET));
-        TaskImpl::sleep(150);
+        rtos::Task::sleep(150);
 
         KF_TRY(sendCommand(Command::SLPOUT));
-        TaskImpl::sleep(255);
+        rtos::Task::sleep(255);
 
         KF_TRY(sendCommand(Command::COLMOD));
 
@@ -130,7 +129,7 @@ private:
         KF_TRY(this->orientation(this->config().init_orientation));
         KF_TRY(sendCommand(Command::DISPON));
 
-        TaskImpl::sleep(100);
+        rtos::Task::sleep(100);
 
         return ok();
     }
@@ -138,9 +137,9 @@ private:
     void resetImpl() const noexcept {
         // Required after power‑up to initialise the internal state machine.
         _gpio_hardware_reset.write(false);
-        TaskImpl::sleep(10);
+        rtos::Task::sleep(10);
         _gpio_hardware_reset.write(true);
-        TaskImpl::sleep(120);
+        rtos::Task::sleep(120);
     }
 
     SpiOperationResult sendImpl() noexcept {
