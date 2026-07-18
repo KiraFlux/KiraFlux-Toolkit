@@ -222,7 +222,7 @@ private:
     void setBackgroundImpl(Color color) noexcept {
         writeBackgroundColor(color, _focus_active ? this->config().focused_background_palette : this->config().normal_background_palette);
     }
-     
+
     // Properties
 
     constexpr Layout getLayoutImpl() const noexcept {

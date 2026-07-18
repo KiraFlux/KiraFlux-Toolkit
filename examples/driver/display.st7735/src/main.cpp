@@ -18,9 +18,9 @@
 #include <kf/image/DynamicImage.hpp>
 
 #include <Arduino.h>
-#include <kf/arduino/gpio.hpp>
 #include <kf/arduino/ArduinoSPI.hpp>
 #include <kf/arduino/ArduinoTask.hpp>
+#include <kf/arduino/gpio.hpp>
 #include <kf/driver/display/Orientation.hpp>
 #include <kf/driver/display/ST7735.hpp>
 

@@ -39,7 +39,7 @@ private:
         const auto bytes = this->data();
         return String::formatted<internal::MacAddressStringType::length>(
 
-            "%02x%02x-%02x%02x-%02x%02x", // FIXME: formatting with hex base
+            "%02x%02x-%02x%02x-%02x%02x",// FIXME: formatting with hex base
             bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]
 
         );

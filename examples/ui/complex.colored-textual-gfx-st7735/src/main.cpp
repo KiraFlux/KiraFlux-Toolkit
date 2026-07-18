@@ -4,9 +4,9 @@
 
 // uses in this demo:
 #include <kf/Array.hpp>
-#include <kf/arduino/gpio.hpp>
 #include <kf/arduino/ArduinoSPI.hpp>
 #include <kf/arduino/ArduinoTask.hpp>
+#include <kf/arduino/gpio.hpp>
 #include <kf/driver/display/Orientation.hpp>
 #include <kf/driver/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
