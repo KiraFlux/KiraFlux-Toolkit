@@ -10,7 +10,7 @@
 #include "kf/StringView.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
-#include "kf/mixin/StringRepresentable.hpp"
+#include "kf/mixin/Representable.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/ui/Block.hpp"
@@ -117,8 +117,8 @@ template<typename Impl> struct Renderer :
     void value(auto const &v) noexcept {
         using T = decltype(v);
 
-        if constexpr (std::is_base_of_v<mixin::StringRepresentableTag, T>) {
-            this->value(v.toString());
+        if constexpr (std::is_base_of_v<mixin::RepresentableTag, T>) {
+            this->value(v.repr());
         } else if constexpr (std::is_base_of_v<OptionTag, T>) {
 
             if (v.isSome()) {

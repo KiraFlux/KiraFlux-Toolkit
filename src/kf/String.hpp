@@ -10,7 +10,7 @@
 #include "kf/Stack.hpp"
 #include "kf/StringView.hpp"
 #include "kf/math.hpp"
-#include "kf/mixin/StringRepresentable.hpp"
+#include "kf/mixin/Representable.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {
@@ -183,9 +183,9 @@ struct String : Stack<char> {
                 (void) this->push(c);
             }
 
-        } else if constexpr (std::is_base_of_v<mixin::StringRepresentableTag, T>) {
+        } else if constexpr (std::is_base_of_v<mixin::RepresentableTag, T>) {
 
-            append(value.toString());
+            append(value.repr());
 
         } else if constexpr (std::is_integral_v<T>) {
 

@@ -5,7 +5,7 @@
 
 #include "kf/Array.hpp"
 #include "kf/String.hpp"
-#include "kf/mixin/StringRepresentable.hpp"
+#include "kf/mixin/Representable.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {
@@ -24,7 +24,7 @@ namespace kf {
 struct MacAddress :
 
     internal::MacAddressBase,
-    mixin::StringRepresentable<MacAddress, internal::MacAddressStringType>
+    mixin::Representable<MacAddress, internal::MacAddressStringType>
 
 {
     constexpr MacAddress() noexcept :
@@ -34,8 +34,8 @@ struct MacAddress :
         internal::MacAddressBase{.items = {a, b, c, d, e, f}} {}
 
 private:
-    KF_IMPL_STRING_REPRESENTABLE(MacAddress, internal::MacAddressStringType);
-    auto toStringImpl() const noexcept {
+    KF_IMPL_REPRESENTABLE(MacAddress, internal::MacAddressStringType);
+    auto reprImpl() const noexcept {
         const auto bytes = this->data();
         return String::formatted<internal::MacAddressStringType::length>(
 

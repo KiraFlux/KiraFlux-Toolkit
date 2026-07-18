@@ -26,7 +26,7 @@ kf::Option<Espnow::Peer> createPeer(const MacAddress &mac_address) noexcept {
         return kf::some(std::move(peer_add_result.ok()));
     } else {
         // Logging at application level, not inside library.
-        Serial.printf("Failed to create '%s' peer: %s\n", mac_address.toString().data(), peer_add_result.error().toString().data());
+        Serial.printf("Failed to create '%s' peer: %s\n", mac_address.repr().data(), peer_add_result.error().repr().data());
         return kf::none;
     }
 }
@@ -37,7 +37,7 @@ void onReceive(const MacAddress &mac, kf::Slice<const kf::u8> data) {
         Serial.printf("target: got %d bytes\n", data.length());
     }
 
-    Serial.printf("(unknown): from [%s] got %d bytes\n", mac.toString().data(), data.length());
+    Serial.printf("(unknown): from [%s] got %d bytes\n", mac.repr().data(), data.length());
 }
 
 void kf::main(kf::Init &init) {
@@ -50,12 +50,12 @@ void kf::main(kf::Init &init) {
 
     const auto init_error_option = Espnow::instance().init();
     if (init_error_option.isError()) {
-        Serial.println(init_error_option.error().toString().data());
+        Serial.println(init_error_option.error().repr().data());
         return;
     }
 
     const MacAddress &self_mac_address = Espnow::instance().mac();
-    Serial.printf("Self: %s\n", self_mac_address.toString().data());
+    Serial.printf("Self: %s\n", self_mac_address.repr().data());
 
     // Callback accepts Function, Option or none; passing none would clear it.
     Espnow::instance().callback(onReceive);
@@ -71,8 +71,8 @@ void kf::main(kf::Init &init) {
 
             const auto result = broadcast_peer.unwrap().writePacket("[broadcast]: ping");
             if (result.isError()) {
-                // Error provides toString() - convenient for logging.
-                Serial.printf("[broadcast]: Failed to send: %s\n", result.error().toString().data());
+                // Error provides repr() - convenient for logging.
+                Serial.printf("[broadcast]: Failed to send: %s\n", result.error().repr().data());
             }
         }
 
@@ -81,7 +81,7 @@ void kf::main(kf::Init &init) {
 
             const auto result = target_peer.unwrap().writePacket("ping");
             if (result.isError()) {
-                Serial.printf("Failed to send: %s\n", result.error().toString().data());
+                Serial.printf("Failed to send: %s\n", result.error().repr().data());
             }
         }
 
