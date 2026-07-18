@@ -37,6 +37,16 @@ struct ArduinoStream final :
     explicit constexpr ArduinoStream(Stream &stream) noexcept :
         _stream{stream} {}
 
+    usize availableForRead() noexcept {
+        return _stream.available();
+    }
+
+    usize availableForWrite() noexcept {
+        const auto ret = _stream.availableForWrite();
+        // Arduino Stream returns size 0 if "may write any size"
+        return (0 == ret) ? static_cast<usize>(-1) : ret;
+    }
+
 private:
     Stream &_stream;
 
