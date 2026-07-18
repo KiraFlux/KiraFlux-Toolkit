@@ -6,15 +6,15 @@
 using namespace kf::math;
 
 void kf::main(kf::Init &) {
-    
+
     // vector 2d
     {
         Vector2<float> a1{.x = 3.0f, .y = 4.0f};// aggregate initialization
-        a1.length();                            // len: 5.0
+        const auto l1 = a1.length();            // len: 5.0
         auto zero = Vector2f::zero();
 
         const auto a2 = Vector2<float>::create(12, 5.0);// create with shortcut for static casts
-        a2.length();                                    // len: 13.0
+        const auto l2 = a2.length();                    // len: 13.0
 
         auto sum = a1 + a2;
         auto sub = a1 - a2;
@@ -63,18 +63,16 @@ void kf::main(kf::Init &) {
         const auto q2 = Quaternion<double>::create(1, 2.0f, 3.0, 0);
 
         const auto i = Quaternion<float>::identity();
-        
+
         const auto c = q1.conjugate();
         const auto v = q1.inverse();
         const auto n = q1.normalized();
 
-        q1.normalize(); // applied to self
-        
+        q1.normalize();// applied to self
+
         const auto l = q1.length();
         const auto l2 = q1.lengthSquared();
         const auto rotated = q2.rotate(Vector3f::create(1, 0, 0));
         const auto e = q2.toEulers();
     }
 }
-
-void loop() {}
