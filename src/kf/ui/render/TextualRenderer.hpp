@@ -276,6 +276,12 @@ private:
     void setForegroundImpl(Color) noexcept {}
 
     void setBackgroundImpl(Color) noexcept {}
+
+    // Properties
+
+    constexpr Layout getLayoutImpl() const noexcept {
+        return _layout;
+    }
 };
 
 }// namespace kf::ui::render

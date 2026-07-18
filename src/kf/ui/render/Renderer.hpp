@@ -143,6 +143,13 @@ template<typename Impl> struct Renderer :
         this->impl().setBackgroundImpl(color);
     }
 
+    // Properties
+
+    /// @brief Get Current Layout
+    [[nodiscard]] constexpr Layout layout() const noexcept {
+        this->impl().getLayoutImpl();
+    }
+
 private:
     bool _render_requested{false};
 };
