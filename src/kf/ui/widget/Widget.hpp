@@ -9,6 +9,7 @@
 #include "kf/mixin/Styled.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/ui/Color.hpp"
 #include "kf/ui/Event.hpp"
 #include "kf/ui/Request.hpp"
 #include "kf/ui/render/Renderer.hpp"
@@ -48,7 +49,25 @@ template<implements<render::RenderTag> R, implements<EventTag> E> struct Widget 
 
     using mixin::Styled::Styled;
 
-    // TODO: add enabled/disabled
+    /// @brief Get Widget enabled value
+    [[nodiscard]] constexpr bool enabled() const noexcept {
+        return _enabled;
+    }
+
+    /// @brief Set Widget enabled value
+    constexpr void enabled(bool is_enabled) noexcept {
+        _enabled = is_enabled;
+    }
+
+    /// @brief Enable Widget
+    constexpr void enable() noexcept {
+        _enabled = true;
+    }
+
+    /// @brief Disable Widget
+    constexpr void disable() noexcept {
+        _enabled = false;
+    }
 
     /// @brief Get Contextual hint about this widget
     [[nodiscard]] constexpr StringView hint() const noexcept {
@@ -72,15 +91,19 @@ template<implements<render::RenderTag> R, implements<EventTag> E> struct Widget 
 
     /// @brief External widget rendering with focus handling
     void render(RendererImpl &render, usize index, bool focused) const noexcept {
-        render.beginWidget(index, focused);
-        render.foreground(this->style().foreground_color);
-        render.background(this->style().background_color);
+        render.beginWidget(index, focused, _offset);
+
+        render.foreground(_enabled ? this->style().foreground_color : Color::Disabled);
+        render.background(_enabled ? this->style().background_color : Color::Disabled);
+
         doRender(render);
+
         render.endWidget();
     }
 
 private:
     StringView _hint{};
+    bool _enabled{true};
     u8 _offset{0};
 };
 
