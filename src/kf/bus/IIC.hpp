@@ -4,16 +4,21 @@
 #pragma once
 
 #include "kf/Result.hpp"
+#include "kf/StringView.hpp"
 #include "kf/bus/Bus.hpp"
 #include "kf/concepts.hpp"
+#include "kf/mixin/Representable.hpp"
 #include "kf/primitives.hpp"
 #include "kf/units.hpp"
 
 namespace kf::internal {
 
+#define CASE_RETURN(__v) \
+    case __v: return #__v
+
 /// @brief Error codes for I2C operations
 /// @note Most errors correspond directly to Arduino Wire library failure conditions
-struct IicError {
+struct IicError : mixin::Representable<IicError, StringView> {
 
     enum Kind : u8 {
 
@@ -36,9 +41,30 @@ struct IicError {
     } kind;
 
     static constexpr auto create(Kind kind) noexcept -> ResultErrorWrapper<IicError> {
-        return {IicError{kind}};
+        return {IicError{.kind = kind}};
+    }
+
+private:
+    KF_IMPL_REPRESENTABLE(IicError, StringView);
+    constexpr StringView reprImpl() const noexcept {
+        switch (kind) {
+            CASE_RETURN(IicError::ClockConfigFailed);
+            CASE_RETURN(IicError::BufferSizeConfigFailed);
+            CASE_RETURN(IicError::PinConfigFailed);
+            CASE_RETURN(IicError::BeginFailed);
+            CASE_RETURN(IicError::AddressNack);
+            CASE_RETURN(IicError::DataNack);
+            CASE_RETURN(IicError::Timeout);
+            CASE_RETURN(IicError::BufferTooLong);
+            CASE_RETURN(IicError::IncompletePacket);
+
+            default:
+                CASE_RETURN(IicError::Unknown);
+        }
     }
 };
+
+#undef CASE_RETURN
 
 struct IicNodeConfig final {
 

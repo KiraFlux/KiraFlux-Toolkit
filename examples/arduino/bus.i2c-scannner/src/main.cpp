@@ -24,21 +24,6 @@ ArduinoIIC::Config bus_config{
 // Bus instance (must outlive nodes)
 ArduinoIIC i2c_bus{bus_config, Wire};
 
-const char *stringFromError(ArduinoIIC::Error e) {
-    switch (e.kind) {
-        case ArduinoIIC::Error::ClockConfigFailed: return "Clock config failed";
-        case ArduinoIIC::Error::BufferSizeConfigFailed: return "Buffer size config failed";
-        case ArduinoIIC::Error::PinConfigFailed: return "Pin config failed";
-        case ArduinoIIC::Error::BeginFailed: return "Wire.begin() failed";
-        case ArduinoIIC::Error::AddressNack: return "Address NACK";
-        case ArduinoIIC::Error::DataNack: return "Data NACK";
-        case ArduinoIIC::Error::Timeout: return "Timeout";
-        case ArduinoIIC::Error::BufferTooLong: return "Buffer too long";
-        case ArduinoIIC::Error::IncompletePacket: return "Incomplete packet";
-        default: return "Unknown error";
-    }
-}
-
 void kf::main(kf::Init &init) {
     init.logger.info("IIC Bus Scanner");
     char str_buffer[128];
@@ -46,7 +31,7 @@ void kf::main(kf::Init &init) {
 
     // Initialize the bus
     if (const auto result = i2c_bus.init(); result.isError()) {
-        str.format("Bus init failed: {}", stringFromError(result.error()));
+        str.format("Bus init failed: {}", result.error());
         init.logger.error(str.view());
         return;
     }
@@ -70,7 +55,7 @@ void kf::main(kf::Init &init) {
             init.logger.info(str.view());
         } else {
             // log errors
-            str.format("At {}: {}", address, stringFromError(result.error()));
+            str.format("At {}: {}", address, result.error());
             init.logger.error(str.view());
         }
 
