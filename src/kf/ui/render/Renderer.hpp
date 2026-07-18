@@ -148,7 +148,7 @@ template<typename Impl> struct Renderer :
 
     /// @brief Get Current Layout
     [[nodiscard]] constexpr Layout layout() const noexcept {
-        this->impl().getLayoutImpl();
+        return this->impl().getLayoutImpl();
     }
 
 private:
