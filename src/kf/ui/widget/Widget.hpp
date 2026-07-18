@@ -67,7 +67,7 @@ template<implements<render::RenderTag> R, implements<EventTag> E> struct Widget 
 
     /// @brief Set Widget offset
     constexpr void offset(usize new_offset) noexcept {
-        _offset = new_offset;
+        _offset = static_cast<u8>(new_offset);
     }
 
     /// @brief External widget rendering with focus handling
@@ -81,7 +81,7 @@ template<implements<render::RenderTag> R, implements<EventTag> E> struct Widget 
 
 private:
     StringView _hint{};
-    usize _offset{0};
+    u8 _offset{0};
 };
 
 }// namespace kf::ui::widget
