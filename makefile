@@ -12,7 +12,7 @@ test:
 	pio test -e native
 
 build-examples:
-	./build-examples.sh
+	./build-examples.py
 
 be: build-examples
 
