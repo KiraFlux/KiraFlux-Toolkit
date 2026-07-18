@@ -226,7 +226,7 @@ private:
     }
 
     KF_IMPL_EQUATABLE(StringView);
-    constexpr bool IsEqualsImpl(const StringView &other) const noexcept {
+    constexpr bool isEqualsImpl(const StringView &other) const noexcept {
         if (this->length() == other.length()) {
 
             for (usize i = 0; i < this->length(); i += 1) {

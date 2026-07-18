@@ -45,7 +45,7 @@ private:
     }
 
     KF_IMPL_EQUATABLE(Self);
-    constexpr bool IsEqualsImpl(const Self &other) const noexcept {
+    constexpr bool isEqualsImpl(const Self &other) const noexcept {
         for (auto i = 0u; i < N; i += 1) {
             if ((*this)[i] != other[i]) {
                 return false;
