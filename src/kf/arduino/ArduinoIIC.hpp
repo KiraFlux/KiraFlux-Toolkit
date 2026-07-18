@@ -20,7 +20,7 @@ namespace kf::internal {
 
 /// @brief Error codes for I2C operations.
 /// @note Most errors correspond directly to Arduino Wire library failure conditions.
-enum class ArduinoIicError : u8 {
+enum class IicError : u8 {
     // Bus errors
 
     ClockConfigFailed,     ///< Setting I2C clock frequency failed (Wire.setClock() returned false).
@@ -38,14 +38,14 @@ enum class ArduinoIicError : u8 {
     Unknown,         ///< Any other unspecified error from Arduino Wire (endTransmission code 4).
 };
 
-struct NodeConfig final {
+struct IicNodeConfig final {
     /// @brief 7‑bit I2C device address (usually 0x08–0x77)
     /// @note Wire.h uses 7‑bit format
     u8 address;
 };
 
-struct ArduinoIicBusConfig final {
-    static constexpr u8 gpio_num_nc{static_cast<u8>(GPIO_NUM_NC)};
+struct IicBusConfig final {
+    static constexpr u8 gpio_num_nc{static_cast<u8>(-1)};
     static constexpr units::Milliseconds max_timeout{60'000};
 
     u8 gpio_num_sda, gpio_num_scl;
@@ -66,17 +66,17 @@ struct ArduinoIicBusConfig final {
 ///       The node is created via `ArduinoIIC::createNode()` and must remain valid while the bus exists.
 template<typename I> struct ArduinoIicNode :
 
-    bus::IicNode<ArduinoIicNode<I>, ArduinoIicError>,
-    ::kf::mixin::Configured<NodeConfig>
+    bus::IicNode<ArduinoIicNode<I>, IicError>,
+    ::kf::mixin::Configured<IicNodeConfig>
 
 {
     using BusImpl = I;
-    using Error = ArduinoIicError;
+    using Error = IicError;
 
     using Self = ArduinoIicNode<BusImpl>;
 
     /// @brief Configuration for an Arduino Wire I2C node.
-    using Config = NodeConfig;
+    using Config = IicNodeConfig;
 
     explicit ArduinoIicNode(BusImpl &bus, const Config &config) noexcept :
         mixin::Configured<Config>{config}, _wire{bus._wire} {}
@@ -210,12 +210,12 @@ namespace kf::arduino {
 
 struct ArduinoIIC :
 
-    bus::IIC<ArduinoIIC, internal::ArduinoIicNode<ArduinoIIC>, internal::ArduinoIicError>,
-    mixin::Configured<internal::ArduinoIicBusConfig>
+    bus::IIC<ArduinoIIC, internal::ArduinoIicNode<ArduinoIIC>, internal::IicError>,
+    mixin::Configured<internal::IicBusConfig>
 
 {
-    using Config = internal::ArduinoIicBusConfig;
-    using Error = internal::ArduinoIicError;
+    using Config = internal::IicBusConfig;
+    using Error = internal::IicError;
     using Node = internal::ArduinoIicNode<ArduinoIIC>;
 
     friend Node;
