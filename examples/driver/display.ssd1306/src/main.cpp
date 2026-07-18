@@ -91,7 +91,7 @@ void setup() {
     ArduinoIIC bus{bus_config, Wire};
 
     if (const auto result = bus.init(); result.isError()) {
-        Serial.printf("IIC bus init failed: %d\n", static_cast<kf::u8>(result.error()));
+        Serial.printf("IIC bus init failed: %d\n", static_cast<kf::u8>(result.error().kind));
         return;
     }
 
@@ -104,7 +104,7 @@ void setup() {
     static SSD1306 display{std::move(bus.createNode(config))};
 
     if (const auto result = display.init(); result.isError()) {
-        Serial.printf("Display init failed: %d\n", static_cast<kf::u8>(result.error()));
+        Serial.printf("Display init failed: %d\n", static_cast<kf::u8>(result.error().kind));
         return;
     }
 
@@ -119,7 +119,7 @@ void setup() {
         if (const auto result = display.orientation(o); result.isOk()) {
             demo(display, orient_names[static_cast<int>(o)]);
         } else {
-            Serial.printf("Orientation '%s' set error: %d\n", orient_names[static_cast<int>(o)], static_cast<kf::u8>(result.error()));
+            Serial.printf("Orientation '%s' set error: %d\n", orient_names[static_cast<int>(o)], static_cast<kf::u8>(result.error().kind));
         }
     }
 

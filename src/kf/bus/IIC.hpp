@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kf/Result.hpp"
 #include "kf/bus/Bus.hpp"
 #include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
@@ -12,23 +13,31 @@ namespace kf::internal {
 
 /// @brief Error codes for I2C operations
 /// @note Most errors correspond directly to Arduino Wire library failure conditions
-enum class IicError : u8 {
+struct IicError {
 
-    // Bus errors
+    enum Kind : u8 {
 
-    ClockConfigFailed,     ///< Setting I2C clock frequency failed (Wire.setClock() returned false)
-    BufferSizeConfigFailed,///< Setting the internal buffer size failed (Wire.setBufferSize() returned different value)
-    PinConfigFailed,       ///< Setting SDA/SCL pins failed (Wire.setPins() returned false)
-    BeginFailed,           ///< Wire.begin() failed (returned false)
+        // Bus errors
 
-    // Node errors
+        ClockConfigFailed,     ///< Setting I2C clock frequency failed (Wire.setClock() returned false)
+        BufferSizeConfigFailed,///< Setting the internal buffer size failed (Wire.setBufferSize() returned different value)
+        PinConfigFailed,       ///< Setting SDA/SCL pins failed (Wire.setPins() returned false)
+        BeginFailed,           ///< Wire.begin() failed (returned false)
 
-    AddressNack,     ///< Device did not acknowledge its address after START condition
-    DataNack,        ///< Device did not acknowledge a data byte during transmission
-    Timeout,         ///< Transaction timed out (exceeded Wire timeout)
-    BufferTooLong,   ///< Data to send exceeds the internal Wire transmit buffer size
-    IncompletePacket,///< Read operation returned fewer bytes than requested
-    Unknown,         ///< Any other unspecified error from Arduino Wire (endTransmission code 4)
+        // Node errors
+
+        AddressNack,     ///< Device did not acknowledge its address after START condition
+        DataNack,        ///< Device did not acknowledge a data byte during transmission
+        Timeout,         ///< Transaction timed out (exceeded Wire timeout)
+        BufferTooLong,   ///< Data to send exceeds the internal Wire transmit buffer size
+        IncompletePacket,///< Read operation returned fewer bytes than requested
+        Unknown,         ///< Any other unspecified error from Arduino Wire (endTransmission code 4)
+
+    } kind;
+
+    static constexpr auto create(Kind kind) noexcept -> ResultErrorWrapper<IicError> {
+        return {IicError{kind}};
+    }
 };
 
 struct IicNodeConfig final {

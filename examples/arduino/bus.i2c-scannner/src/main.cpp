@@ -25,7 +25,7 @@ ArduinoIIC::Config bus_config{
 ArduinoIIC i2c_bus{bus_config, Wire};
 
 const char *stringFromError(ArduinoIIC::Error e) {
-    switch (e) {
+    switch (e.kind) {
         case ArduinoIIC::Error::ClockConfigFailed: return "Clock config failed";
         case ArduinoIIC::Error::BufferSizeConfigFailed: return "Buffer size config failed";
         case ArduinoIIC::Error::PinConfigFailed: return "Pin config failed";

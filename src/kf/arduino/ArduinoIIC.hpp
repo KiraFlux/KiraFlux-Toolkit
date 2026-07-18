@@ -64,7 +64,7 @@ private:
 
     auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, Error> {
         const usize received = request(buffer.length());
-        if (received == 0) { return error(Error::Timeout); }
+        if (received == 0) { return Error::create(Error::Timeout); }
 
         readBytesUnchecked(buffer.data(), received);
         return ok(Slice<const u8>{buffer.data(), received});
@@ -73,11 +73,11 @@ private:
     template<typename T> [[nodiscard]] auto readPacketImpl() noexcept -> Result<T, Error> {
         constexpr usize requested = sizeof(T);
         const usize received = request(requested);
-        if (received == 0) { return error(Error::Timeout); }
+        if (received == 0) { return Error::create(Error::Timeout); }
 
         if (received != requested) {
             discardReceiveBuffer();
-            return error(Error::IncompletePacket);
+            return Error::create(Error::IncompletePacket);
         }
 
         if constexpr (requested == sizeof(u8)) {
@@ -112,16 +112,16 @@ private:
     [[nodiscard]] WriteResult endTransmission(usize written, usize to_write) noexcept {
         const u8 code = _wire.endTransmission();
 
-        if (written != to_write) { return error(Error::BufferTooLong); }
+        if (written != to_write) { return Error::create(Error::BufferTooLong); }
 
         switch (code) {
             case 0: return ok();
-            case 1: return error(Error::BufferTooLong);
-            case 2: return error(Error::AddressNack);
-            case 3: return error(Error::DataNack);
-            case 4: return error(Error::Unknown);
-            case 5: return error(Error::Timeout);
-            default: return error(Error::Unknown);
+            case 1: return Error::create(Error::BufferTooLong);
+            case 2: return Error::create(Error::AddressNack);
+            case 3: return Error::create(Error::DataNack);
+            case 4: return Error::create(Error::Unknown);
+            case 5: return Error::create(Error::Timeout);
+            default: return Error::create(Error::Unknown);
         }
     }
 
@@ -184,17 +184,17 @@ private:
     auto initImpl() noexcept -> Result<void, Error> {
         if (not this->config().hasDefaultPins()) {
             if (not _wire.setPins(static_cast<int>(this->config().gpio_num_sda), static_cast<int>(this->config().gpio_num_scl))) {
-                return error(Error::PinConfigFailed);
+                return Error::create(Error::PinConfigFailed);
             }
         }
 
         if (not _wire.begin()) {
-            return error(Error::BeginFailed);
+            return Error::create(Error::BeginFailed);
         }
 
         if (not this->config().hasDefaultClock()) {
             if (not _wire.setClock(this->config().clock_hz)) {
-                return error(Error::ClockConfigFailed);
+                return Error::create(Error::ClockConfigFailed);
             }
         }
 
@@ -204,7 +204,7 @@ private:
 
         if (not this->config().hasDefaultBufferSize()) {
             if (_wire.setBufferSize(this->config().buffer_size) != this->config().buffer_size) {
-                return error(Error::BufferSizeConfigFailed);
+                return Error::create(Error::BufferSizeConfigFailed);
             }
         }
 
