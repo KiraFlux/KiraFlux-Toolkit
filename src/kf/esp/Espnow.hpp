@@ -197,12 +197,12 @@ struct Espnow final :
             return send(buffer.data(), buffer.length());
         }
 
-        VoidResult writePacketImpl(auto &&packet) noexcept {
+        VoidResult writePacketImpl(auto const &packet) noexcept {
             static_assert(sizeof(decltype(packet)) < ESP_NOW_MAX_DATA_LEN, "Message is too big!");
             return send(reinterpret_cast<const u8 *>(&packet), sizeof(decltype(packet)));
         }
 
-        VoidResult writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept {
+        VoidResult writeMixedImpl(auto const &header, Slice<const u8> buffer) noexcept {
             const auto mixed_size = sizeof(decltype(header)) + buffer.length();
             if (mixed_size > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }
             u8 mixed[mixed_size];

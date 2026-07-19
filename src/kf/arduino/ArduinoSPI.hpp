@@ -150,7 +150,7 @@ private:
     }
 
     /// @brief Write a packet of arbitrary size (generic fallback).
-    void writePacketUnchecked(auto &&packet) noexcept {
+    void writePacketUnchecked(auto const &packet) noexcept {
         writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(decltype(packet)));
     }
 
@@ -216,14 +216,14 @@ private:
         return ok();
     }
 
-    WriteResult writePacketImpl(auto &&packet) noexcept {
+    WriteResult writePacketImpl(auto const &packet) noexcept {
         beginTransaction();
         writePacketUnchecked(std::forward<decltype(packet)>(packet));
         endTransaction();
         return ok();
     }
 
-    WriteResult writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept {
+    WriteResult writeMixedImpl(auto const &header, Slice<const u8> buffer) noexcept {
         beginTransaction();
         writePacketUnchecked(std::forward<decltype(header)>(header));
         writeBytes(buffer.data(), buffer.length());

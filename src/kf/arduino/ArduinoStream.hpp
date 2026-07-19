@@ -97,7 +97,7 @@ private:
         return ok();
     }
 
-    WriteResult writePacketImpl(auto &&packet) noexcept {
+    WriteResult writePacketImpl(auto const &packet) noexcept {
         constexpr auto to_write = sizeof(decltype(packet));
         usize written;
 
@@ -112,7 +112,7 @@ private:
         return ok();
     }
 
-    WriteResult writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept {
+    WriteResult writeMixedImpl(auto const &header, Slice<const u8> buffer) noexcept {
         KF_TRY(this->writePacket(std::forward<decltype(header)>(header)));
         return this->writeBuffer(buffer);
     }

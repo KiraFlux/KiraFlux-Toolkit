@@ -96,7 +96,7 @@ private:
         return _spi_node.writeBuffer(buffer);
     }
 
-    SpiOperationResult sendPacket(auto &&packet) noexcept {
+    SpiOperationResult sendPacket(auto const &packet) noexcept {
         _gpio_data_command.write(true);
         return _spi_node.writePacket(std::forward<decltype(packet)>(packet));
     }

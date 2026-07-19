@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <utility>
-
 #include "kf/Slice.hpp"
 #include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
@@ -21,10 +19,10 @@ struct BinaryWritableTag {};
 ///       - `ResultType writeBufferImpl(Slice<const u8> buffer) noexcept`
 ///         Write a contiguous buffer of bytes
 ///
-///       - `ResultType writePacketImpl(auto &&packet) noexcept`
+///       - `ResultType writePacketImpl(trivial auto const &packet) noexcept`
 ///         Write a trivially copyable object
 ///
-///       - `ResultType writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept`
+///       - `ResultType writeMixedImpl(trivial auto const &header, Slice<const u8> buffer) noexcept`
 ///         Write a small header followed by a buffer (e.g. command + data) in one transaction
 template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWritableTag {
 
@@ -44,16 +42,16 @@ template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWrita
     /// @brief Write fixed‑size packet
     /// @param packet Value to write
     /// @return Result indicating success or error
-    [[nodiscard]] ResultType writePacket(trivial auto &&packet) noexcept {
-        return impl().writePacketImpl(std::forward<decltype(packet)>(packet));
+    [[nodiscard]] ResultType writePacket(trivial auto const &packet) noexcept {
+        return impl().writePacketImpl(packet);
     }
 
     /// @brief Write mixed packet: fixed-size header and dynamic-sized buffer
     /// @param header Header to write
     /// @param buffer Source buffer
     /// @return Result indicating success or error
-    [[nodiscard]] ResultType writeMixed(trivial auto &&header, Slice<const u8> buffer) noexcept {
-        return impl().writeMixedImpl(std::forward<decltype(header)>(header), buffer);
+    [[nodiscard]] ResultType writeMixed(trivial auto const &header, Slice<const u8> buffer) noexcept {
+        return impl().writeMixedImpl(header, buffer);
     }
 
 private:

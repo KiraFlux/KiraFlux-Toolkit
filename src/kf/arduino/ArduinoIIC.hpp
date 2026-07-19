@@ -11,8 +11,8 @@
 #include "kf/bus/IIC.hpp"
 
 namespace kf::internal {
-
-/// @brief I2C node implementation that adapts Arduino TwoWire to the library's Readable/Writable interfaces.
+// TODO: merge Arduino impl with CRTP. use preprocessor for impl select
+/// @brief I2C node implementation that adapts Arduino TwoWire to the library's BinaryReadable/BinaryWritable interfaces.
 /// @tparam I The bus implementation type (ArduinoIIC).
 /// @note This class is movable but not copyable. It holds a reference to the underlying TwoWire instance
 ///       and manages the I2C address and transaction state. All I/O operations are blocking.
@@ -131,7 +131,7 @@ private:
     }
 
     /// @brief Write a multi‑byte packet without checking (used internally).
-    [[nodiscard]] usize writePacketUnchecked(auto &&packet) noexcept {
+    [[nodiscard]] usize writePacketUnchecked(auto const &packet) noexcept {
         return writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(decltype(packet)));
     }
 
@@ -143,13 +143,13 @@ private:
         return endTransmission(written, buffer.length());
     }
 
-    WriteResult writePacketImpl(auto &&packet) noexcept {
+    WriteResult writePacketImpl(auto const &packet) noexcept {
         beginTransmission();
         const usize written = writePacketUnchecked(std::forward<decltype(packet)>(packet));
         return endTransmission(written, sizeof(decltype(packet)));
     }
 
-    WriteResult writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept {
+    WriteResult writeMixedImpl(auto const &header, Slice<const u8> buffer) noexcept {
         beginTransmission();
         const usize header_written = writePacketUnchecked(std::forward<decltype(header)>(header));
         const usize buffer_written = writeBytes(buffer.data(), buffer.length());
