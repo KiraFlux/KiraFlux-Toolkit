@@ -6,6 +6,7 @@
 #include "kf/Result.hpp"
 #include "kf/bus/IIC.hpp"
 #include "kf/image/StaticImage.hpp"
+#include "kf/math.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
 #include "kf/primitives.hpp"
 
@@ -170,7 +171,7 @@ private:
         auto remaining = this->image().buffer().length();
 
         while (remaining > 0) {
-            const auto chunk = min(packet_size, remaining);
+            const auto chunk = math::min(packet_size, remaining);
 
             KF_TRY(_node.writeMixed(Command::DataMode, {p, chunk}));
 
