@@ -18,7 +18,7 @@ template<typename Impl, typename T> struct WritableBase : mixin::WritableTag {
     /// @brief Write Value
     /// @param value Value to write (perfect-forwarded)
     /// @return `true` if write successful, `false` otherwise
-    [[noexcept]] constexpr bool write(auto &&value) noexcept {
+    [[nodiscard]] constexpr bool write(auto &&value) noexcept {
         return static_cast<Impl *>(this)->writeImpl(std::forward<decltype(value)>(value));
     }
 };
