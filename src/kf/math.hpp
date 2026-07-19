@@ -12,6 +12,14 @@
 
 namespace kf::math {
 
+inline namespace buildin_constants {
+
+constexpr f64 pi{M_PI};
+
+constexpr f64 euler{M_E};
+
+}// namespace buildin_constants
+
 inline namespace builtin_functions {
 
 using std::isinf;
@@ -495,6 +503,8 @@ template<arithmetic T> constexpr auto Quaternion<T>::inverse() const noexcept {
 
     return someTrivial(Self::create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
 }
+
+using Quaternionf = Quaternion<f32>;
 
 }// namespace objects
 
