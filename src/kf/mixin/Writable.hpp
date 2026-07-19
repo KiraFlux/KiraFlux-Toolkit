@@ -7,9 +7,9 @@
 #include <type_traits>
 #include <utility>
 
+#include "kf/StringView.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Representable.hpp"
-#include "kf/StringView.hpp"
 
 namespace kf::mixin {
 
@@ -30,38 +30,37 @@ template<typename Impl, typename T> struct WritableBase : mixin::WritableTag {
 };
 
 struct FormatToken {
+    u8 start, length;
+
     enum Kind : u8 {
         Literal,
         Anchor
     } kind;
-
-    usize start;
-    usize length;
 };
 
 struct FormatResult {
-    static constexpr auto max_tokens{32u};
+    static constexpr auto max_tokens{16u};
 
-    usize anchor_indices[max_tokens];
     FormatToken tokens[max_tokens];
-    usize count;
+    u8 anchor_indices[max_tokens];
+    u8 count;
 
-    constexpr void putAnchor(usize position, usize arg_index) noexcept {
+    constexpr void putAnchor(u8 position, u8 arg_index) noexcept {
         anchor_indices[count] = arg_index;
         tokens[count] = {
-            .kind = FormatToken::Anchor,
             .start = position,
             .length = 2,// "{}"
+            .kind = FormatToken::Anchor,
         };
 
         count += 1;
     }
 
-    constexpr void putLiteral(usize start, usize length) noexcept {
+    constexpr void putLiteral(u8 start, u8 length) noexcept {
         tokens[count] = {
-            .kind = FormatToken::Literal,
             .start = start,
             .length = length,
+            .kind = FormatToken::Literal,
         };
 
         count += 1;
