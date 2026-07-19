@@ -42,8 +42,7 @@ void kf::main(kf::Init &init) {
     }
 
     // Foreach (from Sequence)
-    for (int number : my_stack) {
-
+    for (int number: my_stack) {
     }
 
     // Read numbers
@@ -61,10 +60,10 @@ void kf::main(kf::Init &init) {
 
     // Other stack methods
 
-    (void) my_stack.top(); // -> Option<int &>
-    (void) my_stack.full(); // -> bool
-    (void) my_stack.empty(); // -> bool
-    (void) my_stack.length(); // usize -- items stored
-    (void) my_stack.capacity(); // usize -- max length
-    (void) my_stack.reset(); // discard all values
+    (void) my_stack.top();     // -> Option<int &>
+    (void) my_stack.full();    // -> bool
+    (void) my_stack.empty();   // -> bool
+    (void) my_stack.length();  // usize -- items stored
+    (void) my_stack.capacity();// usize -- max length
+    (void) my_stack.reset();   // discard all values
 }
