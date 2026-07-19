@@ -23,7 +23,7 @@ template<typename T, usize N> struct Array :
 {
     using Self = Array<T, N>;
 
-    constexpr static auto length{N};
+    constexpr static auto items_total{N};
 
     T items[N];
 
