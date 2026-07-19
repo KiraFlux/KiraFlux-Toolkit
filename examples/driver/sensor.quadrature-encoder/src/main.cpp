@@ -1,64 +1,74 @@
-// KiraFlux-Toolkit Demo 'quadrature-encoder'
-
-#include <Arduino.h>
+// KiraFlux-Toolkit Example 'driver/sensor.quadrature-encoder'
 
 #include <kf/arduino/gpio.hpp>
 #include <kf/driver/sensor/QuadratureEncoder.hpp>
+#include <kf/main.hpp>
 
-// This examples uses Arduino Environment and Toolkit's Arduino GPIO Implementation for simplicity
-using DigitalInput = kf::arduino::ArduinoDigitalInput;
+using kf::arduino::ArduinoDigitalInput;
+using kf::driver::sensor::QuadratureEncoder;
 
-// For example, define Degrees as float alias
-using MyDegreesUnit = float;
+// --- Configuration (MUST outlive the encoder instance) ---
 
-// Specialization
-using QuadratureEncoder = kf::driver::sensor::QuadratureEncoder<
-    DigitalInput,// GPIO Implementation
-    MyDegreesUnit// Position Unit type
-    >;
+// Unit type: we use degrees for position.
+using UnitType = float;
 
-// Encoder configuration. Must outlive any encoder instance.
-QuadratureEncoder::Config encoder_config{
-    .units_per_tick = 100,// 100 units = 1 encoder tick
-    .positive_direction = QuadratureEncoder::Config::Direction::CW,
+// Encoder specialization with DigitalInput GPIO and UnitType.
+using Encoder = QuadratureEncoder<ArduinoDigitalInput, UnitType>;
+
+// Encoder config: 100 units (degrees) per full tick.
+Encoder::Config encoder_config{
+    .units_per_tick = 100,// 100 degrees per tick
+    .positive_direction = Encoder::Config::Direction::CW,
 };
 
-QuadratureEncoder encoder{
-    encoder_config,                                             // by reference (Config MUST OUTLIVE this instance)
-    DigitalInput{GPIO_NUM_25, DigitalInput::Pull::ExternalDown},// moved
-    DigitalInput{GPIO_NUM_26, DigitalInput::Pull::ExternalDown},// moved
+// --- Encoder instance ---
+// Config is passed by const reference (must stay alive).
+// GPIO pins are moved into the encoder.
+Encoder encoder{
+    encoder_config,                                                           // by const reference
+    ArduinoDigitalInput{GPIO_NUM_25, ArduinoDigitalInput::Pull::ExternalDown},// phase A
+    ArduinoDigitalInput{GPIO_NUM_26, ArduinoDigitalInput::Pull::ExternalDown},// phase B
 };
 
-void setup() {
-    Serial.begin(115200);
+// --- Main application ---
 
-    // Initialize sensor (init phase A/B GPIOs)
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: driver/sensor.quadrature-encoder");
+
+    // Initialize the encoder (sets up GPIO and ISR).
     encoder.init();
-}
+    init.logger.info("Encoder initialized");
 
-void loop() {
-
-    // const auto encoder_read = encoder.read(); // read phase state as u32 ((A << 1) | B)
-
-    // Get
-
-    // get all accumulated ticks
-    const auto position_ticks = encoder.positionTicks();
-
-    // calculate units equivalent from actual ticks value
-    const auto position_units = encoder.positionUnits();
-
-    // Set
-
-    // set accumulated ticks as 0
-    // encoder.positionTicks(0);
-
-    // set accumulated ticks from calculated units equivalent (123)
-    // encoder.positionUnits(123);
-
-    // encoder.reset(); // -- Reset last read, set ticks to 0
-
-    Serial.printf("ticks: %d\tunits: %d\n", position_ticks, position_units);
-
+    // Small delay to let hardware stabilize.
     delay(100);
+
+    // --- Show initial position ---
+
+    init.logger.info("Initial position: {} ticks, {} units",
+                     encoder.positionTicks(),
+                     encoder.positionUnits());
+
+    // --- Main loop: read and log position every 200 ms ---
+
+    while (true) {
+        // Accumulated ticks (updated by ISR).
+        auto ticks = encoder.positionTicks();
+
+        // Convert ticks to physical units using the config.
+        auto units = encoder.positionUnits();
+
+        init.logger.debug("Position: {} ticks, {} units", ticks, units);
+
+        // Wait a bit before next read.
+        delay(200);
+
+        // Optional: demonstrate resetting position.
+        // Uncomment to reset position to zero after some time.
+        // static bool reset_done = false;
+        // if (not reset_done && ticks > 1000) {
+        //     encoder.reset();                        // reset ticks to 0
+        //     init.logger.info("Encoder reset");
+        //     reset_done = true;
+        // }
+    }
 }

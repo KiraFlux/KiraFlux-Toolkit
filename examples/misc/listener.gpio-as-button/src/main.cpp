@@ -1,38 +1,60 @@
-// KiraFlux-Toolkit Demo 'input-button'
-#include <Arduino.h>
+// KiraFlux-Toolkit Example 'listener/gpio-as-button'
 
 #include <kf/arduino/gpio.hpp>
 #include <kf/listener/LogicalLevelListener.hpp>
+#include <kf/main.hpp>
 
-using DigitalInput = kf::arduino::ArduinoDigitalInput;
-using Button = kf::listener::LogicalLevelListener;
+using kf::arduino::ArduinoDigitalInput;
+using kf::listener::LogicalLevelListener;
 
-Button::Config my_button_listener_config{
-    .debounce = 50,// ms
+// --- Configuration (MUST outlive the listener instance) ---
+
+LogicalLevelListener::Config button_config{
+    .debounce = 50,// ms debounce time
 };
 
-DigitalInput my_button_gpio{
+// --- GPIO input (moved into the listener) ---
+
+ArduinoDigitalInput button_gpio{
     GPIO_NUM_25,
-    DigitalInput::Pull::InternalUp,
+    ArduinoDigitalInput::Pull::InternalUp,
 };
 
-Button my_button_listener{
-    my_button_listener_config,// capture by reference
+// --- Listener instance ---
+// Config is passed by const reference (must stay alive).
+// GPIO is NOT stored inside the listener; we set it via `set()` in the loop.
+LogicalLevelListener button_listener{
+    button_config,// by const reference (MUST outlive this instance)
 };
 
-void setup() {
-    Serial.begin(115200);
+// --- Main application ---
 
-    my_button_gpio.init();
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: listener/gpio-as-button");
 
-    my_button_listener.callback([]() {
-        Serial.println("click");
+    // Initialize the GPIO pin (sets pin mode and pull-up).
+    button_gpio.init();
+    init.logger.info("GPIO initialized");
+
+    // Set up callback for button clicks.
+    // The callback is called when a stable press is detected (after debounce).
+    button_listener.callback([&]() {
+        init.logger.info("Button clicked");
     });
-}
 
-void loop() {
-    my_button_listener.set(my_button_gpio.read());
-    my_button_listener.poll(millis());
+    // --- Main loop ---
 
-    delay(1);
+    while (true) {
+        // Read the current GPIO level (debounced internally).
+        bool level = button_gpio.read();
+
+        // Feed the current level to the listener.
+        button_listener.set(level);
+
+        // Poll the listener to detect stable transitions and invoke callbacks.
+        button_listener.poll(millis());
+
+        // Small delay to avoid busy-loop.
+        delay(10);
+    }
 }

@@ -1,73 +1,66 @@
-#include <kf/String.hpp>
-#include <kf/main.hpp>
+// KiraFlux-Toolkit Example 'core/slice'
 
 #include <kf/Slice.hpp>
-
-using kf::Slice;
+#include <kf/main.hpp>
 
 void kf::main(kf::Init &init) {
-    char buffer[128];
-    kf::String str{{buffer}};
+    init.logger.info("KiraFlux-Toolkit Example: core/slice");
 
-    init.logger.debug("=== Slice Demo ===");
+    // --- Create slice from array ---
 
     int raw[] = {10, 20, 30, 40, 50};
-    Slice<int> s{raw, 5}; // from pointer+size
-    Slice<int> s_arr{raw};// from array (deduced size)
+    Slice<int> s{raw};// array constructor (deduced size 5)
 
-    for (auto i = 0; i < s.length(); i += 1) {
-        str.format("s[{}] = {}", i, s[i]);
-        init.logger.debug(str.view());
+    init.logger.debug("length: {}", s.length());
+
+    // --- Access and modify ---
+
+    for (usize i = 0; i < s.length(); i += 1) {
+        init.logger.debug("s[{}] = {}", i, s[i]);
     }
 
     s[2] = 99;// modification
 
-    // iteration
+    // --- Iteration ---
 
-    str.reset();
-    str.append("elements: ");
-    for (auto x: s) {
-        str.append(x);
-        str.append(' ');
+    init.logger.debug("elements:");
+    for (int x: s) {
+        init.logger.debug("  {}", x);
     }
-    init.logger.debug(str.view());
 
-    // sub‑slices
+    // --- Sub-slices ---
+
     auto first = s.first(2);
     auto last = s.last(2);
-    auto mid = s.sub(1, kf::someTrivial<kf::usize>(3));
+    auto mid = s.sub(1, kf::someTrivial<usize>(3));
     auto from2 = s.fromOffset(2);
 
-    auto print = [&](auto slice, const char *tag) {
-        str.reset();
-
-        str.append(tag);
-        str.append(": ");
-
+    auto print_slice = [&](auto slice, const char *tag) {
+        init.logger.debug("{}:", tag);
         for (auto x: slice) {
-            str.append(x);
-            str.append(' ');
+            init.logger.debug("  {}", x);
         }
-
-        init.logger.debug(str.view());
     };
 
-    print(first, "first(2)");
-    print(last, "last(2)");
-    print(mid, "sub(1,3)");
-    print(from2, "fromOffset(2)");
+    print_slice(first, "first(2)");
+    print_slice(last, "last(2)");
+    print_slice(mid, "sub(1,3)");
+    print_slice(from2, "fromOffset(2)");
 
-    // const‑correctness
+    // --- Const slice ---
+
     const int carr[] = {7, 8, 9};
-    Slice<const int> cs{carr, 3};// const slice
-    // cs[1] = 0; // error
-    print(cs, "const");
+    Slice<const int> cs{carr};
+    print_slice(cs, "const");
 
-    // conversion to const slice
-    Slice<const int> cs2 = s;// operator Slice<const T>
-    print(cs2, "converted");
+    // --- Implicit conversion to const ---
 
-    // empty slice
+    Slice<const int> cs2 = s;
+    print_slice(cs2, "converted");
+
+    // --- Empty slice ---
+
     Slice<int> empty{raw, 0};
-    // empty.length(); // 0
+    init.logger.debug("empty length: {}", empty.length());
+    init.logger.debug("empty is empty: {}", empty.empty());
 }

@@ -1,58 +1,47 @@
-// SSD1306 OLED Display Demo
-//
-// Focus: display driver initialization, orientation, framebuffer transfer.
-// Graphics are drawn via kf::gfx::Canvas (using display's image buffer) for clarity.
-//
-// Connections (ESP32):
-// - SDA -> GPIO21 (or your I2C SDA pin)
-// - SCL -> GPIO22 (or your I2C SCL pin)
-// - VCC -> 3.3V
-// - GND -> GND
-//
-// Note: The default I2C address is 0x3C. Change in config if needed.
+// KiraFlux-Toolkit Example 'driver/display.ssd1306'
 
-#include <Arduino.h>
-#include <Wire.h>
+#include <kf/arduino/ArduinoIIC.hpp>
+#include <kf/driver/display/SSD1306.hpp>
 #include <kf/gfx/Canvas.hpp>
 #include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/image/DynamicImage.hpp>
+#include <kf/main.hpp>
 
-// Actually uses in this demo
-#include <kf/arduino/ArduinoIIC.hpp>
-#include <kf/driver/display/SSD1306.hpp>
+#include <Wire.h>
 
 using kf::arduino::ArduinoIIC;
 using kf::driver::display::Orientation;
 using SSD1306 = kf::driver::display::SSD1306<ArduinoIIC::Node>;
 
-// Pixel format used by the display (monochrome)
-using P = SSD1306::PixelImpl;// = pixel::MonochromePixel
-using Color = P::ColorType;  // = bool
+// Pixel format: monochrome (1‑bit)
+using P = SSD1306::PixelImpl;
+using Color = P::ColorType;// bool
 
 constexpr Color ON = true;
 constexpr Color OFF = false;
 
-void demo(SSD1306 &display, const char *orientation_name) {
-    // Wrap the display's framebuffer into a Canvas.
-    // display.image() returns a StaticImage<MonochromePixel, 128, 64>.
+// --- Helper: run a demo sequence for a given orientation ---
+
+void runDemo(kf::Init &init, SSD1306 &display, const char *orientation_name) {
+    // Wrap the display framebuffer into a Canvas
     kf::gfx::Canvas<P> canvas{kf::image::DynamicImage<P>{display.image()}};
     canvas.font(kf::gfx::fonts::gyver_5x7_en);
 
-    const auto step_time_ms{1000};
+    const auto step_time_ms = 1000;
 
-    // --- Fill screen with solid ON (all pixels on) ---
+    // Fill screen with ON (all pixels white)
     canvas.background(ON);
     canvas.fill();
     (void) display.send();
     delay(step_time_ms);
 
-    // --- Fill screen with OFF (clear) ---
+    // Fill screen with OFF (clear)
     canvas.background(OFF);
     canvas.fill();
     (void) display.send();
     delay(step_time_ms);
 
-    // --- Draw diagonal lines ---
+    // Draw diagonal lines
     canvas.background(OFF);
     canvas.fill();
     canvas.foreground(ON);
@@ -63,69 +52,79 @@ void demo(SSD1306 &display, const char *orientation_name) {
     (void) display.send();
     delay(2 * step_time_ms);
 
-    // --- Show current orientation name ---
+    // Show orientation name
     canvas.background(OFF);
     canvas.fill();
     canvas.foreground(ON);
     canvas.text(10, 10, orientation_name);
     (void) display.send();
     delay(2 * step_time_ms);
+
+    init.logger.info("Demo for {} completed", orientation_name);
 }
 
-void setup() {
-    Serial.begin(115200);
-    delay(1000);
-    Serial.println("SSD1306 Driver Demo");
+// --- Main application ---
 
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: driver/display.ssd1306");
+
+    // --- I2C bus configuration ---
+
+    // 0xFF (-1) means "use Wire's default GPIOs".
+    // 0 means "use Wire's default value" for clock, timeout, buffer size.
     static ArduinoIIC::Config bus_config{
-        // 0xFF (-1) means Wire's default GPIOs
         .gpio_num_sda = 0xFF,
         .gpio_num_scl = 0xFF,
-
-        // 0 means Wire's default value
         .buffer_size = 0,
-        .clock_hz = 400'000,// I2C clock frequency (400 kHz typical)
+        .clock_hz = 400'000,// 400 kHz (typical for I2C)
         .timeout = 0,
     };
 
     ArduinoIIC bus{bus_config, Wire};
 
-    if (const auto result = bus.init(); result.isError()) {
-        Serial.printf("IIC bus init failed: %d\n", static_cast<kf::u8>(result.error().kind));
+    // Initialize the I2C bus
+    auto init_result = bus.init();
+    if (init_result.isError()) {
+        init.logger.error("I2C bus init failed: {}", init_result.error());
         return;
     }
+    init.logger.info("I2C bus initialized");
 
-    // Display configuration
-    static ArduinoIIC::Node::Config config{
-        .address = 0x3C,
+    // --- Display configuration ---
+
+    static ArduinoIIC::Node::Config node_config{
+        .address = 0x3C,// default SSD1306 address
     };
 
-    // Driver instance references config and Wire.
-    static SSD1306 display{std::move(bus.createNode(config))};
+    // Create the display driver instance (static to outlive the function)
+    static SSD1306 display{std::move(bus.createNode(node_config))};
 
-    if (const auto result = display.init(); result.isError()) {
-        Serial.printf("Display init failed: %d\n", static_cast<kf::u8>(result.error().kind));
+    // Initialize the display
+    auto display_init = display.init();
+    if (display_init.isError()) {
+        init.logger.error("Display init failed: {}", display_init.error());
         return;
     }
+    init.logger.info("Display initialized");
 
-    // Array of orientation names (only those supported by SSD1306)
-    const char *orient_names[] = {"Normal", "Mirror X", "Mirror Y"};
+    // --- Test supported orientations ---
 
-    // Test only supported orientations.
-    for (auto o: {
-             Orientation::Normal,
-             Orientation::MirrorX,
-             Orientation::MirrorY}) {
-        if (const auto result = display.orientation(o); result.isOk()) {
-            demo(display, orient_names[static_cast<int>(o)]);
+    // SSD1306 supports: Normal, MirrorX, MirrorY
+    const char *orientation_names[] = {"Normal", "Mirror X", "Mirror Y"};
+    Orientation orientations[] = {
+        Orientation::Normal,
+        Orientation::MirrorX,
+        Orientation::MirrorY,
+    };
+
+    for (usize i = 0; i < 3; i += 1) {
+        auto orient_result = display.orientation(orientations[i]);
+        if (orient_result.isOk()) {
+            runDemo(init, display, orientation_names[i]);
         } else {
-            Serial.printf("Orientation '%s' set error: %d\n", orient_names[static_cast<int>(o)], static_cast<kf::u8>(result.error().kind));
+            init.logger.error("Orientation '{}' set error: {}", orientation_names[i], orient_result.error());
         }
     }
 
-    Serial.println("Demo finished. Restarting...");
-    delay(5000);
-    ESP.restart();
+    init.logger.info("Demo completed.");
 }
-
-void loop() {}

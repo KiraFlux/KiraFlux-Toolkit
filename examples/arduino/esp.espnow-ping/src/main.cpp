@@ -1,91 +1,105 @@
-// KiraFlux-Toolkit Demo 'espnow-ping'
-
-#include <kf/main.hpp>
-
-#include <WiFi.h>// ESP‑NOW requires STA mode. Set explicitly - library does not manage WiFi.
-#include <kf/MacAddress.hpp>
-#include <kf/esp/Espnow.hpp>
+// KiraFlux-Toolkit Example 'network/espnow-ping'
 
 #include <kf/Option.hpp>
 #include <kf/Slice.hpp>
+#include <kf/main.hpp>
 #include <kf/primitives.hpp>
+
+#include <WiFi.h>// ESP-NOW requires STA mode – set explicitly
+#include <kf/MacAddress.hpp>
+#include <kf/esp/Espnow.hpp>
 
 using kf::MacAddress;
 using kf::esp::Espnow;
 
-// Option because Peer may be absent (not created or creation failed). Peer is move‑only.
-kf::Option<Espnow::Peer> broadcast_peer{kf::none}, target_peer{kf::none};
+// --- Globals ---
 
-// Factory returning Option<Peer>. Not Result - absence is a valid state (not an error).
-kf::Option<Espnow::Peer> createPeer(const MacAddress &mac_address) noexcept {
-    auto peer_add_result = Espnow::Peer::create(Espnow::Peer::Config{
+kf::Option<Espnow::Peer> broadcast_peer{kf::none};
+kf::Option<Espnow::Peer> target_peer{kf::none};
+
+// --- Factory function ---
+
+kf::Option<Espnow::Peer> createPeer(kf::Init &init, const MacAddress &mac_address) noexcept {
+    auto result = Espnow::Peer::create(Espnow::Peer::Config{
         .mac_address = mac_address,
         .wifi_interface_sta = true,
     });
-    if (peer_add_result.isOk()) {
-        return kf::some(std::move(peer_add_result.ok()));
-    } else {
-        // Logging at application level, not inside library.
-        Serial.printf("Failed to create '%s' peer: %s\n", mac_address.repr().data(), peer_add_result.error().repr().data());
-        return kf::none;
+
+    if (result.isOk()) {
+        return kf::some(std::move(result.ok()));
     }
+
+    init.logger.warn("Failed to create peer {}: {}", mac_address, result.error());
+    return kf::none;
 }
 
-// Callback for unknown peers - registered via Espnow::callback.
-void onReceive(const MacAddress &mac, kf::Slice<const kf::u8> data) {
+// --- Callback ---
+
+void onReceive(kf::Init &init, const MacAddress &mac, kf::Slice<const kf::u8> data) {
     if (target_peer.isSome() and target_peer.unwrap().mac() == mac) {
-        Serial.printf("target: got %d bytes\n", data.length());
+        init.logger.info("target: got {} bytes", data.length());
     }
 
-    Serial.printf("(unknown): from [%s] got %d bytes\n", mac.repr().data(), data.length());
+    init.logger.debug("(unknown): from {} got {} bytes", mac, data.length());
 }
+
+// --- Main application ---
 
 void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: network/espnow-ping");
 
-    // WiFi is configured explicitly before Espnow::init() because the application may have its own WiFi setup.
+    // --- WiFi setup ---
+
     if (not WiFiClass::mode(WIFI_MODE_STA)) {
-        Serial.println("Wifi mode set failed");
+        init.logger.error("Failed to set Wi-Fi mode to STA");
         return;
     }
 
-    const auto init_error_option = Espnow::instance().init();
-    if (init_error_option.isError()) {
-        Serial.println(init_error_option.error().repr().data());
+    // --- ESP-NOW initialization ---
+
+    auto init_result = Espnow::instance().init();
+    if (init_result.isError()) {
+        init.logger.error("ESP-NOW init failed: {}", init_result.error());
         return;
     }
+    init.logger.info("ESP-NOW initialized successfully");
 
-    const MacAddress &self_mac_address = Espnow::instance().mac();
-    Serial.printf("Self: %s\n", self_mac_address.repr().data());
+    // --- Self MAC address ---
 
-    // Callback accepts Function, Option or none; passing none would clear it.
-    Espnow::instance().callback(onReceive);
-    broadcast_peer = createPeer({0xff, 0xff, 0xff, 0xff, 0xff, 0xff});
-    target_peer = createPeer({0x01, 0x02, 0x03, 0x04, 0x05, 0x06});// replace with real MAC
+    const MacAddress &self_mac = Espnow::instance().mac();
+    init.logger.info("Self MAC: {}", self_mac);
+
+    // --- Callback registration ---
+
+    Espnow::instance().callback([&](const MacAddress &mac, Slice<const u8> data) {
+        onReceive(init, mac, data);
+    });
+
+    // --- Create peers ---
+
+    broadcast_peer = createPeer(init, {0xff, 0xff, 0xff, 0xff, 0xff, 0xff});
+    target_peer = createPeer(init, {0x01, 0x02, 0x03, 0x04, 0x05, 0x06});// replace with real MAC
+
+    // --- Main loop ---
 
     while (true) {
-
-        // isSome() must be checked before unwrap(), otherwise abort().
-
         if (broadcast_peer.isSome()) {
-            Serial.println("Sending: broadcast");
-
+            init.logger.info("Sending: broadcast");
             const auto result = broadcast_peer.unwrap().writePacket("[broadcast]: ping");
             if (result.isError()) {
-                // Error provides repr() - convenient for logging.
-                Serial.printf("[broadcast]: Failed to send: %s\n", result.error().repr().data());
+                init.logger.error("[broadcast]: send failed: {}", result.error());
             }
         }
 
         if (target_peer.isSome()) {
-            Serial.println("Sending: target");
-
+            init.logger.info("Sending: target");
             const auto result = target_peer.unwrap().writePacket("ping");
             if (result.isError()) {
-                Serial.printf("Failed to send: %s\n", result.error().repr().data());
+                init.logger.error("[target]: send failed: {}", result.error());
             }
         }
 
         delay(5000);
-        Serial.println(millis());
+        init.logger.debug("Tick: {}", millis());
     }
 }

@@ -1,46 +1,56 @@
-#include <Arduino.h>
+// KiraFlux-Toolkit Example 'core/timer'
+
 #include <kf/Timer.hpp>
+#include <kf/main.hpp>
 
-kf::Timer::Config one_shot_config{.value = 2000};
-kf::Timer::Config periodic_config{.value = 100};// 100 ms = 10 Hz
-kf::Timer::Config stopwatch_config{.value = 0};
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: core/timer");
 
-kf::Timer one_shot{one_shot_config};
-kf::Timer periodic{periodic_config};
-kf::Timer stopwatch{stopwatch_config};
+    // --- Timer configurations ---
 
-bool one_shot_armed{true};
+    Timer::Config one_shot_config{.value = 2000};// fires once after 2 seconds
+    Timer::Config periodic_config{.value = 500}; // fires every 500 ms (2 Hz)
+    Timer::Config stopwatch_config{.value = 0};  // zero period = stopwatch mode
 
-void setup() {
-    Serial.begin(115200);
-    delay(1000);
-    Serial.println("Timer demo");
+    Timer one_shot{one_shot_config};
+    Timer periodic{periodic_config};
+    Timer stopwatch{stopwatch_config};
 
-    const auto now = millis();
+    // --- Start all timers ---
+
+    auto now = millis();
     one_shot.start(now);
     periodic.start(now);
     stopwatch.start(now);
-}
 
-void loop() {
-    const auto now = millis();
+    bool one_shot_armed{true};
 
-    Serial.print("One-shot remaining: ");
-    Serial.println(one_shot.remaining(now));
+    // --- Main loop (100 iterations, 100 ms each = 10 seconds total) ---
 
-    if (one_shot_armed and one_shot.expired(now)) {
-        one_shot_armed = false;
-        Serial.println("One-shot expired");
+    for (auto i = 0u; i < 100u; i += 1) {
+        now = millis();
+
+        // One-shot timer: show remaining time
+        init.logger.debug("One-shot remaining: {} ms", one_shot.remaining(now));
+
+        // Check if one-shot expired
+        if (one_shot_armed and one_shot.expired(now)) {
+            one_shot_armed = false;
+            init.logger.info("One-shot expired");
+        }
+
+        // Periodic timer: tick every 100 ms
+        if (periodic.expired(now)) {
+            init.logger.info("Periodic tick at {}", now);
+            periodic.start(now);// re-arm for next period
+        }
+
+        // Stopwatch: show elapsed time
+        init.logger.debug("Stopwatch: {} ms", stopwatch.elapsed(now));
+
+        // Small delay to avoid flooding the log
+        delay(100);
     }
 
-    if (periodic.expired(now)) {
-        Serial.print("Periodic tick at ");
-        Serial.println(now);
-        periodic.start(now);// re-arm for next period
-    }
-
-    Serial.print("Stopwatch: ");
-    Serial.println(stopwatch.elapsed(now));
-
-    delay(50);
+    init.logger.info("Timer demo finished");
 }

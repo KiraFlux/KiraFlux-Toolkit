@@ -1,25 +1,46 @@
-// KiraFlux-Toolkit Demo 'sensor-sharp'
-#include <Arduino.h>
+// KiraFlux-Toolkit Example 'sensor/sharp'
 
 #include <kf/arduino/gpio.hpp>
 #include <kf/driver/sensor/Sharp.hpp>
+#include <kf/main.hpp>
 
-using AdcInput = kf::arduino::ArduinoAdcInput;
-using Sharp = kf::driver::sensor::Sharp<AdcInput>;
+using kf::arduino::ArduinoAdcInput;
+using kf::driver::sensor::Sharp;
 
-Sharp my_sensor{AdcInput{GPIO_NUM_30}};
+// --- Sensor instance ---
+// The Sharp sensor takes an ADC input by move.
+// The ADC input must be initialized (pin mode) before use.
+Sharp distance_sensor{ArduinoAdcInput{GPIO_NUM_30}};
 
-void setup() {
-    Serial.begin(115200);
+// --- Main application ---
 
-    AdcInput::resolution(10);
-    my_sensor.init();
-}
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: sensor/sharp");
 
-void loop() {
-    const kf::units::Millimeters distance = my_sensor.read();
+    // Set ADC resolution globally (affects all ADC reads).
+    // The Sharp sensor formula assumes 10-bit resolution (0..1023).
+    ArduinoAdcInput::resolution(10);
+    init.logger.debug("ADC resolution set to 10 bits");
 
-    Serial.println(distance);
+    // Initialize the sensor (sets up the ADC pin).
+    distance_sensor.init();
+    init.logger.info("Sharp sensor initialized");
 
-    delay(50);
+    // Small delay for hardware stabilization.
+    delay(100);
+
+    // --- Main loop: read distance every 50 ms for 10 seconds ---
+
+    for (int i = 0; i < 200; i += 1) {
+        // Read distance in millimeters.
+        // The sensor uses the ADC value and a conversion formula.
+        auto distance_mm = distance_sensor.read();
+
+        init.logger.info("Distance: {} mm", distance_mm);
+
+        // Wait 50 ms between readings.
+        delay(50);
+    }
+
+    init.logger.info("Demo finished");
 }

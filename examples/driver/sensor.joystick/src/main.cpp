@@ -1,29 +1,27 @@
-// Demo for KiraFlux input abstractions: NormalizedAdcInput, Joystick, JoystickListener
+// KiraFlux-Toolkit Example 'driver/sensor.joystick'
 
 #include <Arduino.h>
 #include <kf/Timer.hpp>
-
-// target files for this demo
 #include <kf/arduino/gpio.hpp>
 #include <kf/driver/sensor/Joystick.hpp>
 #include <kf/driver/sensor/NormalizedAdcInput.hpp>
-
 #include <kf/listener/JoystickListener.hpp>
+#include <kf/main.hpp>
 
 using AdcInput = kf::arduino::ArduinoAdcInput;
 using NormalizedAdcInput = kf::driver::sensor::NormalizedAdcInput<AdcInput>;
 using Joystick = kf::driver::sensor::Joystick<NormalizedAdcInput>;
 using JoystickListener = kf::listener::JoystickListener;
+using Direction = JoystickListener::Direction;
 
-// Configuration – must outlive joystick instance (referenced)
-Joystick::Config my_joystick_config{
+// --- Global configuration (must outlive the joystick and listener instances) ---
+// These configs are passed by const reference to the Joystick and JoystickListener.
+// They MUST remain valid for the entire lifetime of the joystick and my_listener.
+
+Joystick::Config joystick_config{
     .x = {
         .inverted = false,
-
-        // tuned automatically:
-        // .dead_zone = ... ,
-        // .range_positive = ... ,
-        // .range_negative = ... ,
+        // dead_zone, range_positive, range_negative are tuned automatically
     },
     .y = {
         .inverted = true,
@@ -34,104 +32,120 @@ NormalizedAdcInput::FilterImpl::Config axis_filter_config{
     .factor = 0.1f,
 };
 
-// Joystick – must outlive listener instance (referenced)
-Joystick my_joystick{
-    my_joystick_config,   // referenced, must stay alive
-    axis_filter_config,   // referenced, must stay alive
-    AdcInput{GPIO_NUM_34},// moved
-    AdcInput{GPIO_NUM_35},// moved
-};
-
-JoystickListener::Config my_listener_config{
+JoystickListener::Config listener_config{
     .repeat_timer = {
-        .value = 100,// ms
+        .value = 100,// ms between repeated events
     },
     .delay_timer = {
-        .value = 500,// ms
+        .value = 500,// ms delay before first repeat
     },
-    .threshold = 0.7f,// neutral zone threshold (normalized value)
+    .threshold = 0.7f,// neutral zone threshold
 };
 
+// --- Global instances (must outlive the application) ---
+// The joystick takes ADC inputs by move (moved into the joystick).
+// The joystick configuration is passed by const reference (must stay alive).
+
+Joystick joystick{
+    joystick_config,      // by const reference (MUST outlive this instance)
+    axis_filter_config,   // by const reference (MUST outlive this instance)
+    AdcInput{GPIO_NUM_34},// moved (X axis)
+    AdcInput{GPIO_NUM_35},// moved (Y axis)
+};
+
+// The listener takes its configuration by const reference (must stay alive).
 JoystickListener my_listener{
-    my_listener_config,// referenced, must stay alive
+    listener_config,// by const reference (MUST outlive this instance)
 };
 
-using Direction = JoystickListener::Direction;
+// --- Helper: convert direction to string ---
 
-const char *stringFromDirection(Direction dir) {
+const char *directionToString(Direction dir) {
     switch (dir) {
         case Direction::Center: return "Center";
         case Direction::Up: return "Up";
         case Direction::Down: return "Down";
         case Direction::Left: return "Left";
         case Direction::Right: return "Right";
+        default: return "?";
     }
-    return "?";// unreachable, but silences warning
 }
 
-// Calibration: create a combined tuner for both axes.
-// The tuner internally uses AxisTuner for X and Y; it reads raw values from
-// the joystick axes automatically on each poll().
-void tune(Joystick::Config &config) {
+// --- Calibration: tune both axes ---
+// The tuner reads raw values from the joystick axes and computes dead zones and ranges.
+// This MUST be called AFTER joystick.init() because GPIO must be ready.
+
+void tuneJoystick(Joystick::Config &config, kf::Logger &logger) {
     const unsigned samples = 100;
 
-    Joystick::Tuner tuner{config, my_joystick, samples};
+    // Tuner takes config by reference (modifies it) and joystick by reference (reads from it).
+    Joystick::Tuner tuner{config, joystick, samples};
 
     tuner.reset();
+    logger.info("Calibration started...");
 
     while (tuner.running()) {
-        tuner.poll();// reads X and Y raw values and feeds the tuners
-        delay(1);
+        tuner.poll();// reads X and Y raw values, feeds the tuners
+        delay(1);    // small delay to avoid busy-loop
     }
+
+    logger.info("Calibration finished");
 }
 
-static kf::Timer::Config log_timer_config{
-    .value = 500,// print every 500 ms
-};
+// --- Main application ---
 
-static kf::Timer log_timer{log_timer_config};
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: driver/sensor.joystick");
 
-void setup() {
-    Serial.begin(115200);
-    delay(1000);
-    Serial.println("Joystick Listener Demo");
+    // Initialize hardware (ADC pins). This MUST be called before calibration.
+    joystick.init();
+    init.logger.info("Joystick initialized");
 
-    my_joystick.init();      // sets pin modes
-    tune(my_joystick_config);// calibrate – needs GPIO ready, call after init()
+    // Calibrate axes (computes dead zones and ranges from raw readings).
+    // The joystick_config is modified with the calibrated values.
+    tuneJoystick(joystick_config, init.logger);
+
+    // Set up listener callback.
+    // The listener will call this function when direction changes.
+    my_listener.callback([&](Direction direction) {
+        init.logger.info("Direction: {}", directionToString(direction));
+    });
+
+    // Timer for periodic logging of raw values (debug only).
+    Timer log_timer{Timer::Config{.value = 500}};
     log_timer.start(millis());
 
-    my_listener.callback([](JoystickListener::Direction direction) {
-        Serial.println(stringFromDirection(direction));
-    });
-}
+    // --- Main loop ---
 
-void loop() {
-    const auto now = millis();
+    while (true) {
+        auto now = millis();
 
-    const float x_norm = my_joystick.axis_x.read();
-    const float y_norm = my_joystick.axis_y.read();
+        // Read normalized values (filtered and calibrated).
+        float x_norm = joystick.axis_x.read();
+        float y_norm = joystick.axis_y.read();
 
-    // Periodically log raw and normalized values
-    if (log_timer.expired(now)) {
-        log_timer.start(now);
+        // Log raw and normalized values every 500 ms (debug).
+        if (log_timer.expired(now)) {
+            log_timer.start(now);
 
-        const int x_raw = my_joystick.axis_x.readRaw();
-        const int y_raw = my_joystick.axis_y.readRaw();
+            int x_raw = joystick.axis_x.readRaw();
+            int y_raw = joystick.axis_y.readRaw();
 
-        const auto [x, y, magnitude] = my_joystick.read();// normalized to unit circle
+            auto [x, y, magnitude] = joystick.read();// normalized to unit circle
 
-        Serial.printf(
-            "Ax: %5d %+1.3f \t"
-            "Ay: %5d %+1.3f \t"
-            "Both: (%+1.3f, %+1.3f): %1.3f\n",
-            x_raw, x_norm,
-            y_raw, y_norm,
-            x, y, magnitude);
+            init.logger.debug(
+                "Ax: {:5d} {:+.3f}\tAy: {:5d} {:+.3f}\tBoth: ({:+.3f}, {:+.3f}) {:.3f}",
+                x_raw, x_norm,
+                y_raw, y_norm,
+                x, y, magnitude);
+        }
+
+        // Update listener with the current normalized vector.
+        // This triggers direction change events and autorepeat.
+        my_listener.set(kf::math::Vector2f{.x = x_norm, .y = y_norm});
+        my_listener.poll(now);
+
+        // Small delay to avoid flooding the system.
+        delay(10);
     }
-
-    // Direction change events (with autorepeat)
-    my_listener.set(kf::math::Vector2f{.x = x_norm, .y = y_norm});
-    my_listener.poll(now);
-
-    delay(10);
 }

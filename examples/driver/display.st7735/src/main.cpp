@@ -1,56 +1,46 @@
-// ST7735 Driver Demo
-//
-// Focus: display driver initialization, orientation, framebuffer transfer.
-// Graphics are drawn via kf::gfx::Canvas (using display's image buffer) for clarity.
-//
-// Connections (ESP32):
-// - TFT_CS   -> GPIO5
-// - TFT_DC   -> GPIO2
-// - TFT_RST  -> GPIO15
-// - TFT_MOSI -> GPIO23 (default SPI MOSI)
-// - TFT_SCLK -> GPIO18 (default SPI SCK)
-// - VCC      -> 3.3V
-// - GND      -> GND
+// KiraFlux-Toolkit Example 'driver/display.st7735'
 
-#include <kf/gfx/Canvas.hpp>
-#include <kf/gfx/Palette.hpp>
-#include <kf/gfx/fonts/gyver_5x7.hpp>
-#include <kf/image/DynamicImage.hpp>
-
-#include <Arduino.h>
 #include <kf/arduino/ArduinoSPI.hpp>
 #include <kf/arduino/gpio.hpp>
 #include <kf/driver/display/Orientation.hpp>
 #include <kf/driver/display/ST7735.hpp>
+#include <kf/gfx/Canvas.hpp>
+#include <kf/gfx/Palette.hpp>
+#include <kf/gfx/fonts/gyver_5x7.hpp>
+#include <kf/image/DynamicImage.hpp>
+#include <kf/main.hpp>
 
-using kf::driver::display::Orientation;
+#include <SPI.h>
 
 using kf::arduino::ArduinoDigitalOutput;
 using kf::arduino::ArduinoSPI;
+using kf::driver::display::Orientation;
 using ST7735 = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoDigitalOutput>;
 
-using P = ST7735::PixelImpl;        // Pixel format used by the display
-using Palette = kf::gfx::Palette<P>;// Palette for this pixel format
+// Pixel format: RGB565 (16‑bit)
+using P = ST7735::PixelImpl;
+using Palette = kf::gfx::Palette<P>;
 
-// Predefined colors
-constexpr P::ColorType red = P::fromRgb(0xFF, 0x00, 0x00);
-constexpr P::ColorType green = P::fromRgb(0x00, 0xFF, 0x00);
-constexpr P::ColorType blue = P::fromRgb(0x00, 0x00, 0xFF);
-constexpr P::ColorType black = Palette::black;
-constexpr P::ColorType white = Palette::white;
+// Predefined colors (using hardware-specific RGB conversion)
+constexpr auto red = P::fromRgb(0xFF, 0x00, 0x00);
+constexpr auto green = P::fromRgb(0x00, 0xFF, 0x00);
+constexpr auto blue = P::fromRgb(0x00, 0x00, 0xFF);
+constexpr auto black = Palette::black;
+constexpr auto white = Palette::white;
 
-void demo(ST7735 &display, const char *orientation_name) {
-    // Wrap the display's framebuffer (ViewportImage) into a Canvas.
-    // display.image() returns a ViewportImage that automatically handles orientation.
+// --- Helper: run a demo sequence for a given orientation ---
+
+void runDemo(kf::Init &init, ST7735 &display, const char *orientation_name) {
+    // Wrap the display framebuffer into a Canvas
     kf::gfx::Canvas<P> canvas{kf::image::DynamicImage<P>{display.image()}};
     canvas.font(kf::gfx::fonts::gyver_5x7_en);
 
-    const auto step_time_ms{1000};
+    const auto step_time_ms = 1000;
 
-    // --- Fill screen with solid colors ---
+    // Fill screen with solid colors
     canvas.background(red);
     canvas.fill();
-    (void) display.send();// transfer framebuffer to hardware
+    (void) display.send();
     delay(step_time_ms);
 
     canvas.background(green);
@@ -63,7 +53,7 @@ void demo(ST7735 &display, const char *orientation_name) {
     (void) display.send();
     delay(step_time_ms);
 
-    // --- Draw diagonal lines ---
+    // Draw diagonal lines on white background
     canvas.background(white);
     canvas.fill();
     for (int i = 0; i < canvas.width(); i += 10) {
@@ -75,80 +65,100 @@ void demo(ST7735 &display, const char *orientation_name) {
     (void) display.send();
     delay(2 * step_time_ms);
 
-    // --- Show current orientation name ---
+    // Show orientation name on black background
     canvas.background(black);
     canvas.fill();
     canvas.foreground(white);
     canvas.text(10, 10, orientation_name);
     (void) display.send();
     delay(2 * step_time_ms);
+
+    init.logger.info("Demo for {} completed", orientation_name);
 }
 
-void setup() {
-    Serial.begin(115200);
-    delay(1000);
-    Serial.println("ST7735 Driver Demo");
+// --- Main application ---
 
-    // use defaults
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: driver/display.st7735");
+
+    // --- SPI bus configuration ---
+
+    // Use default SPI pins (GPIO_NUM_NC means "use hardware defaults")
     static ArduinoSPI::Config spi_bus_config{
-        // use defaults
-        .gpio_num_mosi = static_cast<kf::u8>(GPIO_NUM_NC),
-        .gpio_num_miso = static_cast<kf::u8>(GPIO_NUM_NC),
-        .gpio_num_sck = static_cast<kf::u8>(GPIO_NUM_NC),
+        .gpio_num_mosi = static_cast<u8>(GPIO_NUM_NC),
+        .gpio_num_miso = static_cast<u8>(GPIO_NUM_NC),
+        .gpio_num_sck = static_cast<u8>(GPIO_NUM_NC),
     };
 
-    static ArduinoSPI spi_bus{
-        spi_bus_config,
-        SPI,
+    ArduinoSPI spi_bus{spi_bus_config, SPI};
+
+    // Initialize the SPI bus
+    auto init_result = spi_bus.init();
+    if (init_result.isError()) {
+        init.logger.error("SPI bus init failed");
+        return;
+    }
+    init.logger.info("SPI bus initialized");
+
+    // --- Display configuration ---
+
+    // Node configuration: CS pin and SPI frequency
+    static ArduinoSPI::Node::Config spi_node_config{
+        .clock_hz = 27'000'000,
+        .gpio_num_cs = static_cast<u8>(GPIO_NUM_5),
+        .bit_order = ArduinoSPI::Node::Config::BitOrder::MostSignificant,
+        .clock_bits = ArduinoSPI::Node::Config::ClockBits::None,
     };
 
-    static auto spi_node_config{
-        ArduinoSPI::Node::Config::create(
-            // CS
-            GPIO_NUM_5,
-            // SPI frequency
-            27'000'000),
-    };
-
-    // Configuration must live as long as the display (static).
+    // Driver configuration: initial orientation
     static ST7735::Config driver_config{
         .init_orientation = Orientation::Normal,
     };
 
-    // Driver instance references config and SPI bus.
+    // Driver instance (static to outlive the function)
     static ST7735 display{
-        driver_config,
-        spi_bus.createNode(spi_node_config),
-        ArduinoDigitalOutput{GPIO_NUM_22},// DC
-        ArduinoDigitalOutput{GPIO_NUM_17},// RESET
+        driver_config,                      // by const reference
+        spi_bus.createNode(spi_node_config),// moved
+        ArduinoDigitalOutput{GPIO_NUM_22},  // DC
+        ArduinoDigitalOutput{GPIO_NUM_17},  // RESET
     };
 
-    (void) spi_bus.init();
-
-    if (display.init().isError()) {
-        Serial.println("Display init failed!");
+    // Initialize the display
+    auto display_init = display.init();
+    if (display_init.isError()) {
+        init.logger.error("Display init failed");
         return;
     }
+    init.logger.info("Display initialized");
 
-    // Array of orientation names for display.
-    const char *orient_names[] = {"Normal", "Mirror X", "Mirror Y", "Flip", "Clock Wise", "Counter Clock Wise"};
+    // --- Test all orientations (6 supported modes) ---
 
-    // Test all orientations.
-    for (auto o: {
-             Orientation::Normal,
-             Orientation::MirrorX,
-             Orientation::MirrorY,
-             Orientation::Flip,
-             Orientation::ClockWise,
-             Orientation::CounterClockWise,
-         }) {
-        (void) display.orientation(o);// change hardware orientation
-        demo(display, orient_names[static_cast<int>(o)]);
+    Orientation orientations[] = {
+        Orientation::Normal,
+        Orientation::MirrorX,
+        Orientation::MirrorY,
+        Orientation::Flip,
+        Orientation::ClockWise,
+        Orientation::CounterClockWise,
+    };
+
+    const char *orientation_names[] = {
+        "Normal",
+        "Mirror X",
+        "Mirror Y",
+        "Flip",
+        "Clock Wise",
+        "Counter Clock Wise",
+    };
+
+    for (usize i = 0; i < 6; i += 1) {
+        auto orient_result = display.orientation(orientations[i]);
+        if (orient_result.isOk()) {
+            runDemo(init, display, orientation_names[i]);
+        } else {
+            init.logger.error("Orientation '{}' set error", orientation_names[i]);
+        }
     }
 
-    Serial.println("Demo finished. Restarting...");
-    delay(5000);
-    ESP.restart();
+    init.logger.info("Demo completed.");
 }
-
-void loop() {}

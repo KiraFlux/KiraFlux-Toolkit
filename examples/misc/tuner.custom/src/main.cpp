@@ -1,123 +1,129 @@
-// KiraFlux-Toolkit Demo 'tuner'
-#include <Arduino.h>
+// KiraFlux-Toolkit Example 'tuner/custom'
 
+#include <kf/main.hpp>
 #include <kf/tuner/Tuner.hpp>
 
-struct MyTuner;// forward declaration
+// --- Forward declaration ---
 
-// config imitation for this demo
-// tuner`s goal is find config values
+struct MyTuner;
+
+// --- Configuration for the tuner ---
+// The tuner will collect samples and compute middle (min+max/2) and average.
+
 struct MyConfig {
-    static constexpr int value_limit{1000};
+    static constexpr int value_limit = 1000;
 
     const char *name;
-    int middle, average;
+    int middle;
+    int average;
 
+    // Factory method: create a tuner for this config.
     MyTuner createTuner(int samples) noexcept;
-
-    void print() const noexcept {
-        Serial.printf("%s: middle=%d, average=%d\n", name, middle, average);
-    }
 };
+
+// --- Simulated sensor reading ---
 
 int mySensorReadRaw() noexcept {
     return random(0, MyConfig::value_limit);
 }
 
-// state-machine based tuner
+// --- Tuner implementation ---
+// Inherits from kf::tuner::Tuner<MyTuner> and implements reset, poll, running.
+
 struct MyTuner : kf::tuner::Tuner<MyTuner> {
-    explicit MyTuner(MyConfig &config, int samples) noexcept : _config{config}, _samples_total{samples} {}
+    explicit MyTuner(MyConfig &config, int samples) noexcept
+        : _config{config}, _samples_total{samples} {}
 
 private:
-    MyConfig &_config;
-    const int _samples_total;
-    int _samples_collected{};
-    int _min{}, _max{}, _sum{};
+    MyConfig &_config;       // reference to config (modified after calculation)
+    int const _samples_total;// total samples to collect
+    int _samples_collected{0};
+    int _min{0}, _max{0}, _sum{0};
 
-    enum class State {
+    enum class State : kf::u8 {
         Idle,
         Collecting,
-        Calculating
-    } _state;
+        Calculating,
+    } _state{State::Idle};
 
-    void processSample(int sample) {
+    // Process a single sample: update min, max, sum.
+    void processSample(int sample) noexcept {
         _sum += sample;
-        _min = min(sample, _min);
-        _max = max(sample, _max);
+        if (sample < _min) _min = sample;
+        if (sample > _max) _max = sample;
     }
 
-    // impl
+    // --- CRTP implementation ---
 
     KF_IMPL_RESETTABLE(MyTuner);
     void resetImpl() noexcept {
-        // reset tuner state
         _samples_collected = 0;
         _min = MyConfig::value_limit;
         _max = 0;
         _sum = 0;
         _state = State::Collecting;
-
-        Serial.printf("[%d] %s: starting\n", millis(), _config.name);
     }
 
     KF_IMPL_POLLABLE(MyTuner);
     void pollImpl() noexcept {
-        // on pull - state-depended
         switch (_state) {
             case State::Idle:
                 return;
 
             case State::Collecting: {
                 processSample(mySensorReadRaw());
-
                 _samples_collected += 1;
 
                 if (_samples_collected >= _samples_total) {
                     _state = State::Calculating;
                 }
+                break;
             }
-                return;
 
             case State::Calculating: {
                 _config.middle = (_min + _max) / 2;
                 _config.average = _sum / _samples_total;
-
                 _state = State::Idle;
-
-                Serial.printf("[%d] %s: done\n", millis(), _config.name);
+                break;
             }
-                return;
         }
     }
 
-    // Tuner CRTP interface impl
-
     KF_IMPL_TUNER(MyTuner);
     bool runningImpl() const noexcept {
-        // tuner is running if it is not idle
         return _state != State::Idle;
     }
 };
 
-MyTuner MyConfig::createTuner(int samples) noexcept { return MyTuner{*this, samples}; }
+// --- Factory method implementation ---
 
-void setup() {
-    Serial.begin(115200);
+MyTuner MyConfig::createTuner(int samples) noexcept {
+    return MyTuner{*this, samples};
+}
 
-    // create separate configs
-    MyConfig config_1{"Config 1"}, config_2{"Config 2"}, config_3{"Config 3"};
+// --- Main application ---
 
-    // for each config create it own tuner
-    auto tuner_1{config_1.createTuner(50)};
-    auto tuner_2{config_1.createTuner(250)};
-    auto tuner_3{config_1.createTuner(1000)};
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: tuner/custom");
 
-    // launch tuners
+    // --- Create three configurations with different sample counts ---
+    MyConfig config_1{"Config 1", 0, 0};
+    MyConfig config_2{"Config 2", 0, 0};
+    MyConfig config_3{"Config 3", 0, 0};
+
+    // --- Create tuners for each config ---
+    auto tuner_1 = config_1.createTuner(50);
+    auto tuner_2 = config_2.createTuner(250);
+    auto tuner_3 = config_3.createTuner(1000);
+
+    // --- Launch all tuners (parallel) ---
     tuner_1.reset();
     tuner_2.reset();
     tuner_3.reset();
 
-    // parallel tuners polling
+    init.logger.info("Tuners started (samples: 50, 250, 1000)");
+
+    // Poll all tuners until all are done.
     while (tuner_1.running() or tuner_2.running() or tuner_3.running()) {
         tuner_1.poll();
         tuner_2.poll();
@@ -125,11 +131,9 @@ void setup() {
         delay(1);
     }
 
-    // after this all tuners are done
-
-    config_1.print();
-    config_2.print();
-    config_3.print();
+    // --- Results ---
+    init.logger.info("All tuners completed");
+    init.logger.info("{}: middle={}, average={}", config_1.name, config_1.middle, config_1.average);
+    init.logger.info("{}: middle={}, average={}", config_2.name, config_2.middle, config_2.average);
+    init.logger.info("{}: middle={}, average={}", config_3.name, config_3.middle, config_3.average);
 }
-
-void loop() {}
