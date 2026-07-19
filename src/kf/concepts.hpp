@@ -14,4 +14,7 @@ concept implements = std::derived_from<Impl, Tag>;
 template<typename T>
 concept arithmetic = std::is_arithmetic_v<T>;
 
+template<typename T>
+concept trivial = std::is_trivially_copyable_v<T>;
+
 }// namespace kf
