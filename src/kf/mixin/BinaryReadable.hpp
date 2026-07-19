@@ -3,10 +3,9 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include "kf/Result.hpp"
 #include "kf/Slice.hpp"
+#include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::mixin {
@@ -39,10 +38,9 @@ template<typename Impl, typename ErrorImpl> struct BinaryReadable : BinaryReadab
     }
 
     /// @brief Read fixed‑size buffer
-    /// @tparam T Type of packet (trivially copyable)
+    /// @tparam T Type of packet
     /// @return Packet value or error
-    template<typename T> [[nodiscard]] auto readPacket() noexcept -> Result<T, ErrorImpl> {
-        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+    template<trivial T> [[nodiscard]] auto readPacket() noexcept -> Result<T, ErrorImpl> {
         return impl().template readPacketImpl<T>();
     }
 

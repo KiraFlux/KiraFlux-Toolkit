@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "kf/NoneType.hpp"
+#include "kf/concepts.hpp"
 #include "kf/mixin/Invariant.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/primitives.hpp"
@@ -18,7 +19,7 @@ namespace kf {
 /// @brief Tag struct for identifying Option types
 struct OptionTag {};
 
-template<typename> struct TrivialOption;
+template<trivial T> struct TrivialOption;
 
 namespace internal {
 
@@ -26,12 +27,12 @@ namespace internal {
 /// @note Provides a static method `create` that bypasses the private constructor.
 struct TrivialSomeCreator final {
 
-    [[nodiscard]] static constexpr auto create(auto const &value) noexcept {
+    [[nodiscard]] static constexpr auto create(trivial auto const &value) noexcept {
         return TrivialOption<std::remove_cvref_t<decltype(value)>>{value};
     }
 };
 
-template<typename T> struct RealValueOption :
+template<trivial T> struct RealValueOption :
 
     OptionTag,
     mixin::Invariant<RealValueOption<T>>,
@@ -85,24 +86,22 @@ private:
 /// @param value The value to store (copied)
 /// @return `TrivialOption<T>`
 /// @note This is the only way to create a non‑empty TrivialOption
-[[nodiscard]] constexpr auto someTrivial(auto const &value) noexcept {
+[[nodiscard]] constexpr auto someTrivial(trivial auto const &value) noexcept {
     return internal::TrivialSomeCreator::create(value);
 }
 
 /// @brief Trivially copyable optional container for trivially copyable types
-/// @tparam T Stored type (must be trivially copyable)
+/// @tparam T Stored type
 /// @note Safe for byte serialization
 /// @note Created via `kf::someTrivial()` or `kf::none`
 /// @note Always check `isSome()` before `unwrap()`, otherwise `abort()`
-template<typename T> struct TrivialOption final :
+template<trivial T> struct TrivialOption final :
 
     OptionTag,
     mixin::Invariant<TrivialOption<T>>,
     mixin::Resettable<TrivialOption<T>>
 
 {
-    static_assert(std::is_trivially_copyable_v<T>);
-
     friend struct internal::TrivialSomeCreator;
 
     using Self = TrivialOption<T>;

@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <type_traits>
 #include <utility>
 
 #include "kf/Slice.hpp"
+#include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::mixin {
@@ -44,8 +44,7 @@ template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWrita
     /// @brief Write fixed‑size packet
     /// @param packet Value to write
     /// @return Result indicating success or error
-    [[nodiscard]] ResultType writePacket(auto &&packet) noexcept {
-        static_assert(std::is_trivially_copyable_v<std::decay_t<decltype(packet)>>, "packet must be trivially copyable");// TODO: use concept constraint
+    [[nodiscard]] ResultType writePacket(trivial auto &&packet) noexcept {
         return impl().writePacketImpl(std::forward<decltype(packet)>(packet));
     }
 
@@ -53,8 +52,7 @@ template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWrita
     /// @param header Header to write
     /// @param buffer Source buffer
     /// @return Result indicating success or error
-    [[nodiscard]] ResultType writeMixed(auto &&header, Slice<const u8> buffer) noexcept {
-        static_assert(std::is_trivially_copyable_v<std::decay_t<decltype(header)>>, "header must be trivially copyable");
+    [[nodiscard]] ResultType writeMixed(trivial auto &&header, Slice<const u8> buffer) noexcept {
         return impl().writeMixedImpl(std::forward<decltype(header)>(header), buffer);
     }
 
