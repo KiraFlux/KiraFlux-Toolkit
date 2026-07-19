@@ -30,7 +30,7 @@ struct String : Stack<char> {
 
     /// @brief Get char array with formatted content
     /// @tparam N Array length
-    template<usize N, typename... Args> [[nodiscard]] static constexpr auto formatted(internal::FormatString<Args...> fmt, const Args &...args) noexcept -> Array<char, N> {
+    template<usize N, typename... Args> [[nodiscard]] static constexpr auto formatted(const internal::FormatString<Args...> &fmt, const Args &...args) noexcept -> Array<char, N> {
         Array<char, N> ret{};
 
         String{ret.slice()}.format(fmt, args...);

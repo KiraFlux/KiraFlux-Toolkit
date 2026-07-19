@@ -32,14 +32,14 @@ struct Logger :
         return _key;
     }
 
-#define MAKE(__kf_level__, __kf_level_name__)                                                                         \
-    template<typename... Args> void __kf_level__(internal::FormatString<Args...> fmt, const Args &...args) noexcept { \
-        this->append('[');                                                                                            \
-        this->append(_key);                                                                                           \
-        this->append(":" __kf_level_name__ "] ");                                                                     \
-        this->format(fmt, args...);                                                                                   \
-        this->append('\n');                                                                                           \
-        flush();                                                                                                      \
+#define MAKE(__kf_level__, __kf_level_name__)                                                                                \
+    template<typename... Args> void __kf_level__(const internal::FormatString<Args...> &fmt, const Args &...args) noexcept { \
+        this->append('[');                                                                                                   \
+        this->append(_key);                                                                                                  \
+        this->append(":" __kf_level_name__ "] ");                                                                            \
+        this->format(fmt, args...);                                                                                          \
+        this->append('\n');                                                                                                  \
+        flush();                                                                                                             \
     }
 
     MAKE(debug, "D")

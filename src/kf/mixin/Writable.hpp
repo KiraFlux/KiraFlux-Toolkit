@@ -221,7 +221,7 @@ template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Imp
     /// @param fmt format string implicit consteval-constructed from literal
     /// @param ...args format arguments
     /// @note For argument placement use `{}` as anchor
-    template<typename... Args> constexpr void format(internal::FormatString<Args...> fmt, const Args &...args) noexcept {
+    template<typename... Args> constexpr void format(const internal::FormatString<Args...> &fmt, const Args &...args) noexcept {
         const auto tuple = std::forward_as_tuple(args...);
 
         for (auto i = 0u; i < fmt.result.count; i += 1) {
