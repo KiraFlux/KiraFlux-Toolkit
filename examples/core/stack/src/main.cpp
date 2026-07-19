@@ -85,8 +85,8 @@ void kf::main(kf::Init &init) {
     my_stack.reset();
 
     // Data pointer and slice access.
-    int *raw = my_stack.data();         // pointer to underlying buffer
-    auto slice = my_stack.slice();      // Slice<int> view of the stack content
+    int *raw = my_stack.data();                     // pointer to underlying buffer
+    auto slice = my_stack.slice();                  // Slice<int> view of the stack content
     Slice<const int> const_slice = my_stack.slice();// const version
 
     // Indexing (inherited from Sequence)
