@@ -56,8 +56,8 @@ void setup() {
     my_string.append('c');
 
     // from Stack<char>
-    const bool ok = my_string.push('c');
-    const kf::Option<char> popped = my_string.pop();
+    const bool ok = my_string.write('c');
+    const kf::Option<char> popped = my_string.read();
 
     // convert to c-style string - add terminating null
     Serial.print(my_string.cString());

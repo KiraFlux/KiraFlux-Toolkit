@@ -163,7 +163,7 @@ struct String : Stack<char> {
 
         if constexpr (std::is_same_v<T, char>) {
 
-            (void) this->push(value);
+            (void) this->write(value);
 
         } else if constexpr (std::is_same_v<T, bool>) {
 
@@ -180,7 +180,7 @@ struct String : Stack<char> {
                     break;
                 }
 
-                (void) this->push(c);
+                (void) this->write(c);
             }
 
         } else if constexpr (std::is_base_of_v<mixin::RepresentableTag, T>) {
@@ -259,14 +259,14 @@ private:
                 break;
             }
 
-            (void) this->push(*str);
+            (void) this->write(*str);
             str += 1;
         }
     }
 
     constexpr void appendInteger(i64 value) noexcept {
         if (0 == value) {
-            (void) push('0');
+            (void) write('0');
             return;
         }
 
@@ -286,12 +286,12 @@ private:
         }
 
         if (is_negative) {
-            (void) push('-');
+            (void) write('-');
         }
 
         while (digits > 0) {
             digits -= 1;
-            (void) push(buffer[digits]);
+            (void) write(buffer[digits]);
         }
     }
 
@@ -330,7 +330,7 @@ private:
         }
 
         if (is_negative) {
-            (void) push('-');
+            (void) write('-');
         }
 
         appendInteger(integer_part);
@@ -339,14 +339,14 @@ private:
             return;
         }
 
-        (void) push('.');
+        (void) write('.');
 
         auto fraction = fraction_part;
         for (auto i = 0u; i < precision; i += 1) {
             fraction *= 10.0;
 
             const auto fraction_digit = static_cast<u8>(fraction);
-            (void) push('0' + fraction_digit);
+            (void) write('0' + fraction_digit);
 
             fraction -= fraction_digit;
 

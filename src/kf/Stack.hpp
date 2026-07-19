@@ -9,15 +9,26 @@
 #include "kf/Option.hpp"
 #include "kf/Sequence.hpp"
 #include "kf/Slice.hpp"
+#include "kf/mixin/Readable.hpp"
 #include "kf/mixin/Resettable.hpp"
+#include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf {
 
+struct StackTag {};
+
 /// @brief LIFO container on fixed‑size buffer (non‑owning)
 /// @tparam T Element type
-/// @note Inherits Sequence, so all its methods (iterators, slice, etc.) are available
-template<typename T> struct Stack : Sequence<Stack<T>, T>, mixin::Resettable<Stack<T>> {
+template<typename T> struct Stack :
+
+    StackTag,
+    Sequence<Stack<T>, T>,
+    mixin::Readable<Stack<T>, T>,
+    mixin::Writable<Stack<T>, T>,
+    mixin::Resettable<Stack<T>>
+
+{
 
     using Self = Stack<T>;
 
@@ -53,35 +64,6 @@ template<typename T> struct Stack : Sequence<Stack<T>, T>, mixin::Resettable<Sta
         return this->empty() ? none : someRef<const T &>(_buffer[_length - 1]);
     }
 
-    /// @brief Put Item on stack top
-    /// @return true if item added, false otherwise
-    [[nodiscard]] constexpr bool push(auto &&item) noexcept {
-        if (this->full()) {
-            return false;
-        }
-
-        new (&_buffer[_length]) T(std::forward<decltype(item)>(item));
-
-        _length += 1;
-
-        return true;
-    }
-
-    /// @brief Get item from top
-    /// @return option with item if some, none if empty
-    [[nodiscard]] constexpr Option<T> pop() noexcept {
-        if (this->empty()) {
-            return none;
-        }
-
-        _length -= 1;
-
-        auto value = std::move(_buffer[_length]);
-        _buffer[_length].~T();
-
-        return some(std::move(value));
-    }
-
 private:
     Slice<T> _buffer;
     usize _length;
@@ -94,6 +76,33 @@ private:
 
     constexpr usize lengthImpl() const noexcept {
         return _length;
+    }
+
+    KF_IMPL_READABLE(Self, T);
+    constexpr auto readImpl() noexcept -> Option<T> {
+        if (this->empty()) {
+            return none;
+        }
+
+        _length -= 1;
+
+        auto value = std::move(_buffer[_length]);
+        _buffer[_length].~T();
+
+        return some(std::move(value));
+    }
+
+    KF_IMPL_WRITABLE(Self, T);
+    constexpr bool writeImpl(auto &&item) noexcept {
+        if (this->full()) {
+            return false;
+        }
+
+        new (&_buffer[_length]) T(std::forward<decltype(item)>(item));
+
+        _length += 1;
+
+        return true;
     }
 
     KF_IMPL_RESETTABLE(Self);
