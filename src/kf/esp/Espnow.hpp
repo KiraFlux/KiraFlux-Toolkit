@@ -16,6 +16,7 @@
 #include "kf/Result.hpp"
 #include "kf/Slice.hpp"
 #include "kf/StringView.hpp"
+#include "kf/mixin/BinaryWritable.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/MacAddressed.hpp"
@@ -23,7 +24,6 @@
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Representable.hpp"
 #include "kf/mixin/Singleton.hpp"
-#include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {
@@ -106,7 +106,7 @@ struct Espnow final :
 
         mixin::NonCopyable,
         mixin::MacAddressed,
-        mixin::Writable<Peer, VoidResult>
+        mixin::BinaryWritable<Peer, VoidResult>
 
     {
         /// @brief Peer configuration
@@ -190,7 +190,7 @@ struct Espnow final :
             }
         }
 
-        KF_IMPL_WRITABLE(Peer, VoidResult);
+        KF_IMPL_BINARY_WRITABLE(Peer, VoidResult);
 
         VoidResult writeBufferImpl(Slice<const u8> buffer) noexcept {
             if (buffer.length() > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }

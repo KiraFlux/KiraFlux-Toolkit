@@ -9,8 +9,8 @@
 
 #include "kf/Result.hpp"
 #include "kf/mixin/BinaryReadable.hpp"
+#include "kf/mixin/BinaryWritable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
-#include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {
@@ -29,7 +29,7 @@ struct ArduinoStream final :
 
     mixin::NonCopyable,
     mixin::BinaryReadable<ArduinoStream, internal::ArduinoStreamError>,
-    mixin::Writable<ArduinoStream, kf::Result<void, internal::ArduinoStreamError>>
+    mixin::BinaryWritable<ArduinoStream, kf::Result<void, internal::ArduinoStreamError>>
 
 {
     using Error = internal::ArduinoStreamError;
@@ -87,7 +87,7 @@ private:
 
     using WriteResult = Result<void, Error>;
 
-    KF_IMPL_WRITABLE(ArduinoStream, WriteResult);
+    KF_IMPL_BINARY_WRITABLE(ArduinoStream, WriteResult);
 
     WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
         const auto to_write = buffer.length();

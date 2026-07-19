@@ -6,28 +6,27 @@
 #include <type_traits>
 #include <utility>
 
-#include "kf/Result.hpp"
 #include "kf/Slice.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::mixin {
 
-struct WritableTag {};
+struct BinaryWritableTag {};
 
-/// @brief CRTP base class for writable streams.
-/// @tparam Impl      Derived class.
-/// @tparam ErrorImpl Error type used by the implementation.
+/// @brief CRTP base class for writable streams
+/// @tparam Impl      Derived class
+/// @tparam ErrorImpl Error type used by the implementation
 /// @note Derived classes must implement:
 ///
-///       - `Result<void, Error> writeBufferImpl(Slice<const u8> buffer) noexcept`
-///         Write a contiguous buffer of bytes.
+///       - `ResultType writeBufferImpl(Slice<const u8> buffer) noexcept`
+///         Write a contiguous buffer of bytes
 ///
-///       - `Result<void, Error> writePacketImpl(auto &&packet) noexcept`
-///         Write a trivially copyable object.
+///       - `ResultType writePacketImpl(auto &&packet) noexcept`
+///         Write a trivially copyable object
 ///
-///       - `Result<void, Error> writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept`
-///         Write a small header followed by a buffer (e.g. command + data) in one transaction.
-template<typename Impl, typename ResultType> struct Writable : WritableTag {
+///       - `ResultType writeMixedImpl(auto &&header, Slice<const u8> buffer) noexcept`
+///         Write a small header followed by a buffer (e.g. command + data) in one transaction
+template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWritableTag {
 
     /// @brief Write single byte
     /// @return Result indicating success or error
@@ -46,7 +45,7 @@ template<typename Impl, typename ResultType> struct Writable : WritableTag {
     /// @param packet Value to write
     /// @return Result indicating success or error
     [[nodiscard]] ResultType writePacket(auto &&packet) noexcept {
-        static_assert(std::is_trivially_copyable_v<std::decay_t<decltype(packet)>>, "packet must be trivially copyable");
+        static_assert(std::is_trivially_copyable_v<std::decay_t<decltype(packet)>>, "packet must be trivially copyable");// TODO: use concept constraint
         return impl().writePacketImpl(std::forward<decltype(packet)>(packet));
     }
 
@@ -66,4 +65,4 @@ private:
 
 }// namespace kf::mixin
 
-#define KF_IMPL_WRITABLE(...) friend struct kf::mixin::Writable<__VA_ARGS__>
+#define KF_IMPL_BINARY_WRITABLE(...) friend struct kf::mixin::BinaryWritable<__VA_ARGS__>
