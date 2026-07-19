@@ -9,14 +9,16 @@
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/Slice.hpp"
+#include "kf/StringView.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
+#include "kf/mixin/Representable.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf::internal {
 
-struct NvsError {
+struct NvsError : mixin::Representable<NvsError, StringView> {
 
     enum Kind : char {
         InvalidLength,
@@ -29,21 +31,40 @@ struct NvsError {
     [[nodiscard]] static constexpr auto fromEsp(const esp_err_t e) -> ResultErrorWrapper<NvsError> {
         switch (e) {
             case ESP_ERR_NVS_NOT_FOUND:
-                return {NotFound};
+                return {{.kind = NotFound}};
 
             case ESP_ERR_NVS_INVALID_LENGTH:
-                return {InvalidLength};
+                return {{.kind = InvalidLength}};
 
             case ESP_ERR_NVS_NOT_ENOUGH_SPACE:
-                return {NotEnoughSpace};
+                return {{.kind = NotEnoughSpace}};
 
             case ESP_ERR_NVS_INVALID_HANDLE:
             case ESP_ERR_NVS_READ_ONLY:
             case ESP_ERR_NVS_INVALID_NAME:
             default:
-                return {Unknown};
+                return {{.kind = Unknown}};
         }
     }
+
+private:
+#define CASE_RETURN(__v) \
+    case __v: return #__v
+
+    KF_IMPL_REPRESENTABLE(NvsError, StringView);
+    StringView reprImpl() const noexcept {
+
+        switch (kind) {
+            CASE_RETURN(NvsError::InvalidLength);
+            CASE_RETURN(NvsError::NotFound);
+            CASE_RETURN(NvsError::NotEnoughSpace);
+            CASE_RETURN(NvsError::BlobSizeMismatch);
+            default:
+                CASE_RETURN(NvsError::Unknown);
+        }
+    }
+
+#undef CASE_RETURN
 };
 
 }// namespace kf::internal
@@ -79,7 +100,7 @@ struct NVS final :
         const auto result = wrap(nvs_get_blob(_handle.unwrap(), key, static_cast<void *>(buffer.data()), &len));
 
         if (len != buffer.length()) {
-            return error(Error{Error::BlobSizeMismatch});
+            return error(Error{.kind = Error::BlobSizeMismatch});
         }
 
         return result;
