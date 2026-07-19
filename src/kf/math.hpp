@@ -118,10 +118,8 @@ template<arithmetic T> struct Vector2 :
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
-    /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Self> {
-        return (scalar == 0) ? none : someTrivial((*this) / scalar);
-    }
+    /// @return TrivialOption containing divided vector or empty if divisor is zero
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept;
 
     /// @brief Scalar division
     /// @param scalar Division factor
@@ -150,10 +148,8 @@ template<arithmetic T> struct Vector2 :
     }
 
     /// @brief Get normalized (unit) vector
-    /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Self> {
-        return divChecked(this->length());
-    }
+    /// @return TrivialOption containing unit vector or empty if vector is zero-length
+    [[nodiscard]] constexpr auto normalized() const noexcept;
 
     /// @brief Calculate dot product with another vector
     /// @param other Second vector
@@ -174,6 +170,14 @@ private:
         return static_cast<Scalar>(math::hypot(x, y));
     }
 };
+
+template<arithmetic T> constexpr auto Vector2<T>::divChecked(Scalar scalar) const noexcept {
+    return (scalar == 0) ? TrivialOption<Self>{none} : someTrivial((*this) / scalar);
+}
+
+template<arithmetic T> constexpr auto Vector2<T>::normalized() const noexcept {
+    return divChecked(this->length());
+}
 
 using Vector2f = Vector2<f32>;///< Float precision 2D vector
 using Vector2i = Vector2<i32>;///< Integer precision 2D vector
@@ -231,10 +235,8 @@ template<arithmetic T> struct Vector3 :
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
-    /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept -> TrivialOption<Self> {
-        return (scalar == 0) ? none : someTrivial((*this) / scalar);
-    }
+    /// @return TrivialOption containing divided vector or empty if divisor is zero
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept;
 
     /// @brief Scalar division
     /// @param scalar Division factor
@@ -265,10 +267,8 @@ template<arithmetic T> struct Vector3 :
     }
 
     /// @brief Get normalized (unit) vector
-    /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Self> {
-        return divChecked(this->length());
-    }
+    /// @return TrivialOption containing unit vector or empty if vector is zero-length
+    [[nodiscard]] constexpr auto normalized() const noexcept;
 
     /// @brief Calculate dot product with another vector
     /// @param other Second vector
@@ -299,6 +299,14 @@ private:
         return static_cast<Scalar>(math::sqrt(x * x + y * y + z * z));
     }
 };
+
+template<arithmetic T> constexpr auto Vector3<T>::divChecked(Scalar scalar) const noexcept {
+    return (scalar == 0) ? TrivialOption<Self>{none} : someTrivial((*this) / scalar);
+}
+
+template<arithmetic T> constexpr auto Vector3<T>::normalized() const noexcept {
+    return divChecked(this->length());
+}
 
 using Vector3f = Vector3<f32>;///< Float precision 3D vector
 using Vector3i = Vector3<i32>;///< Integer precision 3D vector
@@ -408,7 +416,7 @@ template<arithmetic T> struct Quaternion :
     }
 
     /// @brief Normalize the quaternion in‑place (does nothing if zero)
-    void normalize() noexcept {
+    constexpr void normalize() noexcept {
         auto n = this->length();
 
         if (n > 0) {
@@ -420,31 +428,17 @@ template<arithmetic T> struct Quaternion :
     }
 
     /// @brief Get normalized (unit) quaternion
-    /// @return Option containing unit quaternion, or empty if zero length
-    [[nodiscard]] auto normalized() const noexcept -> TrivialOption<Self> {
-        auto n = this->length();
-
-        if (n == 0) { return none; }
-
-        return someTrivial(Self::create(x / n, y / n, z / n, w / n));
-    }
+    /// @return TrivialOption containing unit quaternion, or empty if zero length
+    [[nodiscard]] constexpr auto normalized() const noexcept;
 
     /// @brief Inverse of the quaternion
-    /// @return Option containing inverse, or empty if zero length (non‑invertible)
-    [[nodiscard]] auto inverse() const noexcept -> TrivialOption<Self> {
-        const auto n2 = lengthSquared();
-
-        if (n2 == 0) { return none; }
-
-        const auto c = conjugate();
-
-        return someTrivial(Self::create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
-    }
+    /// @return TrivialOption containing inverse, or empty if zero length (non‑invertible)
+    [[nodiscard]] constexpr auto inverse() const noexcept;
 
     /// @brief Rotate a 3D vector by this quaternion (assumes unit quaternion)
     /// @param v Vector to rotate
-    /// @return Rotated vector (component type Scalar)
-    [[nodiscard]] auto rotate(implements<Vector3Tag> auto const &v) const noexcept -> decltype(v) {
+    /// @return Rotated vector
+    [[nodiscard]] constexpr auto rotate(implements<Vector3Tag> auto const &v) const noexcept {
         const auto
             xx = x * x,
             yy = y * y,
@@ -483,6 +477,24 @@ private:
         return static_cast<Scalar>(math::sqrt(lengthSquared()));
     }
 };
+
+template<arithmetic T> constexpr auto Quaternion<T>::normalized() const noexcept {
+    const auto n = this->length();
+
+    if (n == 0) { return TrivialOption<Self>{none}; }
+
+    return someTrivial(Self::create(x / n, y / n, z / n, w / n));
+}
+
+template<arithmetic T> constexpr auto Quaternion<T>::inverse() const noexcept {
+    const auto n2 = lengthSquared();
+
+    if (n2 == 0) { return TrivialOption<Self>{none}; }
+
+    const auto c = conjugate();
+
+    return someTrivial(Self::create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
+}
 
 }// namespace objects
 
