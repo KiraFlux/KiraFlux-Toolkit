@@ -109,7 +109,7 @@ template<implements<UiTraitsTag> U> struct UI :
 
     /// @brief Add event to processing queue
     void addEvent(typename Traits::EventImpl event) noexcept {
-        (void) _events.push(event);// TODO: return
+        (void) _events.write(event);// TODO: return
     }
 
 private:
@@ -321,7 +321,7 @@ private:
             auto events_processed = 0u;
 
             while (not _events.empty() and events_processed < max_events_per_poll) {
-                const auto event = _events.pop();
+                const auto event = _events.read();
 
                 if (event.isNone()) {
                     break;
