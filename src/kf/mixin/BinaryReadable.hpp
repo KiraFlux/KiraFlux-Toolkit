@@ -11,19 +11,19 @@
 
 namespace kf::mixin {
 
-struct ReadableTag {};
+struct BinaryReadableTag {};
 
-/// @brief CRTP base class for readable streams (e.g. I2C, SPI, UART).
-/// @tparam Impl      Derived class.
-/// @tparam ErrorImpl Error type used by the implementation.
+/// @brief CRTP base class for readable byte streams
+/// @tparam Impl      Derived class
+/// @tparam ErrorImpl Error type used by the implementation
 /// @note Derived classes must implement:
 ///
 ///       - `Result<Slice<const u8>, Error> readBufferImpl(Slice<u8> buffer) noexcept`
-///         Read up to buffer.size() bytes into the given buffer. Returns a slice of actually read data.
+///         Read up to buffer.size() bytes into the given buffer. Returns a slice of actually read data
 ///
 ///       - `template<typename T> Result<T, Error> readPacketImpl() noexcept`
-///         Read a trivially copyable object of type T (size fixed at compile time).
-template<typename Impl, typename ErrorImpl> struct Readable : ReadableTag {
+///         Read a trivially copyable object of type T (size fixed at compile time)
+template<typename Impl, typename ErrorImpl> struct BinaryReadable : BinaryReadableTag {
 
     /// @brief Read single byte
     /// @return Byte value or error
@@ -53,4 +53,4 @@ private:
 
 }// namespace kf::mixin
 
-#define KF_IMPL_READABLE(...) friend struct kf::mixin::Readable<__VA_ARGS__>
+#define KF_IMPL_BINARY_READABLE(...) friend struct kf::mixin::BinaryReadable<__VA_ARGS__>

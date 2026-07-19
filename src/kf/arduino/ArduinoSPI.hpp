@@ -9,8 +9,8 @@
 #include <utility>
 
 #include "kf/Result.hpp"
+#include "kf/mixin/BinaryReadable.hpp"
 #include "kf/mixin/Configured.hpp"
-#include "kf/mixin/Readable.hpp"
 #include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
@@ -85,7 +85,7 @@ struct ArduinoSpiBusConfig final {
     }
 };
 
-/// @brief SPI node implementation that adapts Arduino SPIClass to the library's Readable/Writable interfaces.
+/// @brief SPI node implementation that adapts Arduino SPIClass to the library's BinaryReadable/Writable interfaces.
 /// @tparam I The bus implementation type (ArduinoSPI).
 /// @note This class is movable but not copyable. It manages a dedicated chip select pin and SPI settings.
 ///       Each transaction begins with CS active and applies the stored SPI configuration.

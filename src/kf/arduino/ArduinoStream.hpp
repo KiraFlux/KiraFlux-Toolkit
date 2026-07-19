@@ -8,8 +8,8 @@
 #include <Stream.h>
 
 #include "kf/Result.hpp"
+#include "kf/mixin/BinaryReadable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
-#include "kf/mixin/Readable.hpp"
 #include "kf/mixin/Writable.hpp"
 #include "kf/primitives.hpp"
 
@@ -28,7 +28,7 @@ namespace kf::arduino {
 struct ArduinoStream final :
 
     mixin::NonCopyable,
-    mixin::Readable<ArduinoStream, internal::ArduinoStreamError>,
+    mixin::BinaryReadable<ArduinoStream, internal::ArduinoStreamError>,
     mixin::Writable<ArduinoStream, kf::Result<void, internal::ArduinoStreamError>>
 
 {
@@ -50,7 +50,7 @@ struct ArduinoStream final :
 private:
     Stream &_stream;
 
-    KF_IMPL_READABLE(ArduinoStream, Error);
+    KF_IMPL_BINARY_READABLE(ArduinoStream, Error);
 
     auto readBufferImpl(Slice<u8> dest) noexcept -> Result<Slice<const u8>, Error> {
         constexpr auto min_available{1u};
