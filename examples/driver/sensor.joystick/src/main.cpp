@@ -134,7 +134,7 @@ void kf::main(kf::Init &init) {
             auto [x, y, magnitude] = joystick.read();// normalized to unit circle
 
             init.logger.debug(
-                "Ax: {:5d} {:+.3f}\tAy: {:5d} {:+.3f}\tBoth: ({:+.3f}, {:+.3f}) {:.3f}",
+                "Ax: {} {}\tAy: {} {}\tBoth: ({}, {}) {}",
                 x_raw, x_norm,
                 y_raw, y_norm,
                 x, y, magnitude);

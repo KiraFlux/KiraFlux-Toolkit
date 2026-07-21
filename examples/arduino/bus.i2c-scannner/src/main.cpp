@@ -49,10 +49,10 @@ void kf::main(kf::Init &init) {
         auto const result = node.writeBuffer({});
 
         if (result.isOk()) {
-            init.logger.info("Device found at 0x{:02X}", address);
+            init.logger.info("Device found at {}", address);
         } else {
             // Log the error at debug level (common: AddressNack, Timeout, etc.)
-            init.logger.debug("No device at 0x{:02X} (error: {})", address, result.error());
+            init.logger.debug("No device at {} (error: {})", address, result.error());
         }
 
         // Small delay to avoid bus contention or excessive polling.
