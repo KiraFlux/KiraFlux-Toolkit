@@ -16,8 +16,8 @@ template<typename Impl> struct CRTP {
     }
 
     /// @return Const reference to derived object
-    const Impl &impl() const noexcept {
-        return *static_cast<const Impl *>(this);
+    Impl const &impl() const noexcept {
+        return *static_cast<Impl const *>(this);
     }
 };
 

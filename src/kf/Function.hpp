@@ -109,8 +109,8 @@ private:
         return *reinterpret_cast<Base *>(_storage);
     }
 
-    [[nodiscard]] const Base &func() const noexcept {
-        return *reinterpret_cast<const Base *>(_storage);
+    [[nodiscard]] Base const &func() const noexcept {
+        return *reinterpret_cast<Base const *>(_storage);
     }
 
     void destroy() noexcept {

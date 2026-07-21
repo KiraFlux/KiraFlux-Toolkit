@@ -51,7 +51,7 @@ void kf::main(kf::Init &init) {
 
     // data() returns pointer to the underlying buffer (mutable and const).
     int *raw = arr2.data();
-    const int *const_raw = arr2.data();// const overload
+    int const *const_raw = arr2.data();// const overload
 
     // slice() returns a non-owning view of the entire array.
     auto slice = arr2.slice();

@@ -34,7 +34,7 @@ template<typename Impl, typename InputType, typename CallbackSignature> struct L
     }
 
 protected:
-    constexpr const Option<InputType> &value() const noexcept {
+    constexpr Option<InputType> const &value() const noexcept {
         return _value;
     }
 

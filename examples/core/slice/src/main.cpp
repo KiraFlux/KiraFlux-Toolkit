@@ -35,7 +35,7 @@ void kf::main(kf::Init &init) {
     auto mid = s.sub(1, kf::someTrivial<usize>(3));
     auto from2 = s.fromOffset(2);
 
-    auto print_slice = [&](auto slice, const char *tag) {
+    auto print_slice = [&](auto slice, char const *tag) {
         init.logger.debug("{}:", tag);
         for (auto x: slice) {
             init.logger.debug("  {}", x);
@@ -49,13 +49,13 @@ void kf::main(kf::Init &init) {
 
     // --- Const slice ---
 
-    const int carr[] = {7, 8, 9};
-    Slice<const int> cs{carr};
+    int const carr[] = {7, 8, 9};
+    Slice<int const> cs{carr};
     print_slice(cs, "const");
 
     // --- Implicit conversion to const ---
 
-    Slice<const int> cs2 = s;
+    Slice<int const> cs2 = s;
     print_slice(cs2, "converted");
 
     // --- Empty slice ---

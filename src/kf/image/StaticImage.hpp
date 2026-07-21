@@ -30,7 +30,7 @@ template<implements<pixel::PixelTag> P, units::Pixels W, units::Pixels H> struct
     constexpr StaticImage() noexcept :
         _buffer{} {}
 
-    explicit constexpr StaticImage(const BufferStorage &buffer) noexcept :
+    explicit constexpr StaticImage(BufferStorage const &buffer) noexcept :
         _buffer{buffer} {}
 
 private:

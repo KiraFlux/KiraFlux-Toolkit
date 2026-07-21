@@ -43,30 +43,30 @@ using std::tan;
 inline namespace custom_functions {
 
 /// @brief Abs
-[[nodiscard]] constexpr auto abs(const auto &x) noexcept {
+[[nodiscard]] constexpr auto abs(auto const &x) noexcept {
     return (x > 0) ? x : static_cast<decltype(x)>(-x);
 }
 
 /// @brief Min
-[[nodiscard]] constexpr auto min(const auto &a, const auto &b) noexcept {
+[[nodiscard]] constexpr auto min(auto const &a, auto const &b) noexcept {
     return (a < b) ? a : b;
 }
 
 /// @brief Max
-[[nodiscard]] constexpr auto max(const auto &a, const auto &b) noexcept {
+[[nodiscard]] constexpr auto max(auto const &a, auto const &b) noexcept {
     return (a > b) ? a : b;
 }
 
 /// @brief Constrain value between lower and upper bounds
-[[nodiscard]] constexpr auto clamp(const auto &value, const auto &low, const auto &high) noexcept {
+[[nodiscard]] constexpr auto clamp(auto const &value, auto const &low, auto const &high) noexcept {
     return min(high, max(value, low));
 }
 
 /// @brief Linear interpolate value from input (low..high) to output (log..high)
 [[nodiscard]] constexpr auto linearMap(
-    const auto &value,
-    const auto &in_low, const auto &in_high,
-    const auto &out_low, const auto &out_high) noexcept {
+    auto const &value,
+    auto const &in_low, auto const &in_high,
+    auto const &out_low, auto const &out_high) noexcept {
     return (value - in_low) * (out_high - out_low) / (in_high - in_low) + out_low;
 }
 
@@ -357,7 +357,7 @@ template<arithmetic T> struct Quaternion :
     /// @param angle Rotation angle in radians
     /// @return Quaternion representing the rotation
     [[nodiscard]] static Self fromAxisAngle(implements<Vector3Tag> auto const &axis, Scalar angle) noexcept {
-        const auto
+        auto const
             s = math::sin(angle * 0.5),
             c = math::cos(angle * 0.5);
 
@@ -370,7 +370,7 @@ template<arithmetic T> struct Quaternion :
     [[nodiscard]] static Self fromEulers(implements<Vector3Tag> auto const &eulers) noexcept {
         constexpr auto half = static_cast<Scalar>(0.5);
 
-        const auto
+        auto const
             cr = math::cos(eulers.x * half),
             sr = math::sin(eulers.x * half),
             cp = math::cos(eulers.y * half),
@@ -396,7 +396,7 @@ template<arithmetic T> struct Quaternion :
     ///       Handles gimbal lock (pitch = +-90 deg) by setting yaw = 0 and adjusting roll.
     template<typename U = T> [[nodiscard]] Vector3<U> toEulers() const noexcept {
         // sin(pitch) term (sarg)
-        const auto sarg = -2 * (x * z - w * y) / lengthSquared();
+        auto const sarg = -2 * (x * z - w * y) / lengthSquared();
 
         constexpr auto lim = T{0.99999};
 
@@ -447,7 +447,7 @@ template<arithmetic T> struct Quaternion :
     /// @param v Vector to rotate
     /// @return Rotated vector
     [[nodiscard]] constexpr auto rotate(implements<Vector3Tag> auto const &v) const noexcept {
-        const auto
+        auto const
             xx = x * x,
             yy = y * y,
             zz = z * z,
@@ -487,7 +487,7 @@ private:
 };
 
 template<arithmetic T> constexpr auto Quaternion<T>::normalized() const noexcept {
-    const auto n = this->length();
+    auto const n = this->length();
 
     if (n == 0) { return TrivialOption<Self>{none}; }
 
@@ -495,11 +495,11 @@ template<arithmetic T> constexpr auto Quaternion<T>::normalized() const noexcept
 }
 
 template<arithmetic T> constexpr auto Quaternion<T>::inverse() const noexcept {
-    const auto n2 = lengthSquared();
+    auto const n2 = lengthSquared();
 
     if (n2 == 0) { return TrivialOption<Self>{none}; }
 
-    const auto c = conjugate();
+    auto const c = conjugate();
 
     return someTrivial(Self::create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
 }

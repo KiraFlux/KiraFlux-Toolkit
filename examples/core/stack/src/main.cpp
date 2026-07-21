@@ -21,7 +21,7 @@ void kf::main(kf::Init &init) {
 
     // --- Error handling: reading from an empty stack returns none ---
 
-    if (const auto value = my_stack.read(); value.isNone()) {
+    if (auto const value = my_stack.read(); value.isNone()) {
         init.logger.error("read from empty stack - returns None");
     }
 
@@ -54,7 +54,7 @@ void kf::main(kf::Init &init) {
     // Iteration order is from bottom (oldest) to top (newest).
 
     init.logger.info("stack contents (bottom to top):");
-    for (const int &value: my_stack) {
+    for (int const &value: my_stack) {
         init.logger.debug("  {}", value);
     }
 
@@ -87,7 +87,7 @@ void kf::main(kf::Init &init) {
     // Data pointer and slice access.
     int *raw = my_stack.data();                     // pointer to underlying buffer
     auto slice = my_stack.slice();                  // Slice<int> view of the stack content
-    Slice<const int> const_slice = my_stack.slice();// const version
+    Slice<int const> const_slice = my_stack.slice();// const version
 
     // Indexing (inherited from Sequence)
     // my_stack[0] - bottom element (if length > 0)

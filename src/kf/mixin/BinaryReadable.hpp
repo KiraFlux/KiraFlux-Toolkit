@@ -33,7 +33,7 @@ template<typename Impl, typename ErrorImpl> struct BinaryReadable : BinaryReadab
     /// @brief Read arbitrary number of bytes into buffer
     /// @param buffer Destination buffer
     /// @return Slice containing actually read data, or error
-    [[nodiscard]] auto readBuffer(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, ErrorImpl> {
+    [[nodiscard]] auto readBuffer(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, ErrorImpl> {
         return impl().readBufferImpl(buffer);
     }
 
@@ -46,7 +46,7 @@ template<typename Impl, typename ErrorImpl> struct BinaryReadable : BinaryReadab
 
 private:
     Impl &impl() noexcept { return *static_cast<Impl *>(this); }
-    const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
+    Impl const &impl() const noexcept { return *static_cast<Impl const *>(this); }
 };
 
 }// namespace kf::mixin

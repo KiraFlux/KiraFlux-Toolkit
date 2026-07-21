@@ -22,12 +22,12 @@ constexpr Color OFF = false;
 
 // --- Helper: run a demo sequence for a given orientation ---
 
-void runDemo(kf::Init &init, SSD1306 &display, const char *orientation_name) {
+void runDemo(kf::Init &init, SSD1306 &display, char const *orientation_name) {
     // Wrap the display framebuffer into a Canvas
     kf::gfx::Canvas<P> canvas{kf::image::DynamicImage<P>{display.image()}};
     canvas.font(kf::gfx::fonts::gyver_5x7_en);
 
-    const auto step_time_ms = 1000;
+    auto const step_time_ms = 1000;
 
     // Fill screen with ON (all pixels white)
     canvas.background(ON);
@@ -110,7 +110,7 @@ void kf::main(kf::Init &init) {
     // --- Test supported orientations ---
 
     // SSD1306 supports: Normal, MirrorX, MirrorY
-    const char *orientation_names[] = {"Normal", "Mirror X", "Mirror Y"};
+    char const *orientation_names[] = {"Normal", "Mirror X", "Mirror Y"};
     Orientation orientations[] = {
         Orientation::Normal,
         Orientation::MirrorX,

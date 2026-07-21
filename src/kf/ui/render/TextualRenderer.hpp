@@ -87,7 +87,7 @@ struct TextualRenderer :
     /// @brief Text renderer configuration
     using Config = internal::TextualRendererConfig;
 
-    explicit constexpr TextualRenderer(const Config &config, Slice<char> source) noexcept :
+    explicit constexpr TextualRenderer(Config const &config, Slice<char> source) noexcept :
         mixin::Configured<Config>::Configured{config}, _buffer{source} {}
 
     /// @brief Helper to write character with cursor tracking
@@ -226,9 +226,9 @@ private:
     }
 
     void sliderImpl(f32 fill) noexcept {
-        const usize start_col = _cursor.col;
-        const usize inner_width = this->config().row_max_length - start_col - 1;// -1 for closing char
-        const usize fill_chars = fill * inner_width;
+        usize const start_col = _cursor.col;
+        usize const inner_width = this->config().row_max_length - start_col - 1;// -1 for closing char
+        usize const fill_chars = fill * inner_width;
 
         writeChar('[');
 

@@ -22,7 +22,7 @@ void kf::main(kf::Init &init) {
 
     // --- Error handling: reading from an empty queue returns none ---
 
-    if (const auto value = my_queue.read(); value.isNone()) {
+    if (auto const value = my_queue.read(); value.isNone()) {
         init.logger.error("read from empty queue - returns None");
     }
 

@@ -9,21 +9,21 @@ template<typename T> struct TestTrivialOption {
     static constexpr int value{12345}, default_value{0};
 
     static void some() noexcept {
-        const TrivialOption<T> option = kf::someTrivial(T{value});
+        TrivialOption<T> const option = kf::someTrivial(T{value});
 
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_FALSE(option.isNone());
     }
 
     static void none() noexcept {
-        const TrivialOption<T> option = kf::none;
+        TrivialOption<T> const option = kf::none;
 
         TEST_ASSERT_TRUE(option.isNone());
         TEST_ASSERT_FALSE(option.isSome());
     }
 
     static void unwrap() noexcept {
-        const TrivialOption<T> option = kf::someTrivial(T{value});
+        TrivialOption<T> const option = kf::someTrivial(T{value});
 
         TEST_ASSERT_TRUE(option.unwrap().value == value);
     }

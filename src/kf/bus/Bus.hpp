@@ -40,7 +40,7 @@ template<typename Impl, implements<BusNodeTag> NodeImpl, typename ErrorImpl> str
     mixin::Quitable<Impl>
 
 {
-    [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept {
+    [[nodiscard]] NodeImpl createNode(typename NodeImpl::Config const &config) noexcept {
         return NodeImpl{*static_cast<Impl *>(this), config};
     }
 };

@@ -50,7 +50,7 @@ void kf::main(kf::Init &init) {
     init.logger.info("Sweeping 0° -> 90° -> 0°");
 
     for (auto angle = -90; angle <= 90; angle += 1) {
-        const auto pos = 90 - abs(angle);// 0 ->  90 ->  0
+        auto const pos = 90 - abs(angle);// 0 ->  90 ->  0
         servo.set(pos);
         delay(20);
     }

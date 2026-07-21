@@ -102,7 +102,7 @@ template<typename I> struct ArduinoSpiNode :
     /// @brief Bit order for SPI transfers.
     using Config = ArduinoSpiNodeConfig;
 
-    explicit ArduinoSpiNode(BusImpl &bus, const Config &config) noexcept :
+    explicit ArduinoSpiNode(BusImpl &bus, Config const &config) noexcept :
         mixin::Configured<Config>{config}, _spi{bus._spi} {}
 
 private:
@@ -130,7 +130,7 @@ private:
     }
 
     /// @brief Write raw bytes to the device (simplex).
-    void writeBytes(const u8 *buffer, usize length) noexcept {
+    void writeBytes(u8 const *buffer, usize length) noexcept {
         _spi.transferBytes(buffer, nullptr, length);
     }
 
@@ -151,7 +151,7 @@ private:
 
     /// @brief Write a packet of arbitrary size (generic fallback).
     void writePacketUnchecked(auto const &packet) noexcept {
-        writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(decltype(packet)));
+        writeBytes(reinterpret_cast<u8 const *>(&packet), sizeof(decltype(packet)));
     }
 
     /// @brief Read a 1/2/4‑byte packet using dedicated SPI transfer functions (faster than generic loop).
@@ -182,11 +182,11 @@ private:
         _spi.transferBytes(nullptr, buffer, length);
     }
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, Error> {
+    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
         beginTransaction();
         readBytes(buffer.data(), buffer.length());
         endTransaction();
-        return ok<Slice<const u8>>(buffer);
+        return ok<Slice<u8 const>>(buffer);
     }
 
     template<typename T> auto readPacketImpl() noexcept -> Result<T, Error> {
@@ -209,7 +209,7 @@ private:
 
     using WriteResult = Result<void, Error>;
 
-    WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
+    WriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
         beginTransaction();
         writeBytes(buffer.data(), buffer.length());
         endTransaction();
@@ -223,7 +223,7 @@ private:
         return ok();
     }
 
-    WriteResult writeMixedImpl(auto const &header, Slice<const u8> buffer) noexcept {
+    WriteResult writeMixedImpl(auto const &header, Slice<u8 const> buffer) noexcept {
         beginTransaction();
         writePacketUnchecked(std::forward<decltype(header)>(header));
         writeBytes(buffer.data(), buffer.length());
@@ -248,7 +248,7 @@ struct ArduinoSPI :
 
     friend Node;
 
-    explicit ArduinoSPI(const Config &config, SPIClass &spi) :
+    explicit ArduinoSPI(Config const &config, SPIClass &spi) :
         mixin::Configured<Config>{config}, _spi{spi} {}
 
 private:

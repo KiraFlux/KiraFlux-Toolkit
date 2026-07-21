@@ -194,15 +194,15 @@ struct MainPage : MyUI::Page {
         });
 
         // style
-        const auto style = click_button.style();
+        auto const style = click_button.style();
         click_button.style(Style{
             .foreground_color = kf::ui::Color::Normal,
             .background_color = kf::ui::Color::Normal,
         });
         click_button.foreground(kf::ui::Color::Normal);
-        const auto fg = click_button.foreground();
+        auto const fg = click_button.foreground();
         click_button.background(kf::ui::Color::Normal);
-        const auto bg = click_button.background();
+        auto const bg = click_button.background();
 
         check_box.callback([this](bool state) {
             Serial.print("Checkbox changed to: ");
@@ -436,11 +436,11 @@ void setup() {
 
 void loop() {
     if (Serial.available()) {
-        const char c = Serial.read();
+        char const c = Serial.read();
         my_ui.addEvent(eventFromChar(c));
     }
 
-    const auto now = millis();
+    auto const now = millis();
     my_ui.poll(now);
 
     delay(10);// 100 hz

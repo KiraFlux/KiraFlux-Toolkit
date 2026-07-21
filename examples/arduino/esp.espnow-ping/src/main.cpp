@@ -19,7 +19,7 @@ kf::Option<Espnow::Peer> target_peer{kf::none};
 
 // --- Factory function ---
 
-kf::Option<Espnow::Peer> createPeer(kf::Init &init, const MacAddress &mac_address) noexcept {
+kf::Option<Espnow::Peer> createPeer(kf::Init &init, MacAddress const &mac_address) noexcept {
     auto result = Espnow::Peer::create(Espnow::Peer::Config{
         .mac_address = mac_address,
         .wifi_interface_sta = true,
@@ -35,7 +35,7 @@ kf::Option<Espnow::Peer> createPeer(kf::Init &init, const MacAddress &mac_addres
 
 // --- Callback ---
 
-void onReceive(kf::Init &init, const MacAddress &mac, kf::Slice<const kf::u8> data) {
+void onReceive(kf::Init &init, MacAddress const &mac, kf::Slice<kf::u8 const> data) {
     if (target_peer.isSome() and target_peer.unwrap().mac() == mac) {
         init.logger.info("target: got {} bytes", data.length());
     }
@@ -66,12 +66,12 @@ void kf::main(kf::Init &init) {
 
     // --- Self MAC address ---
 
-    const MacAddress &self_mac = Espnow::instance().mac();
+    MacAddress const &self_mac = Espnow::instance().mac();
     init.logger.info("Self MAC: {}", self_mac);
 
     // --- Callback registration ---
 
-    Espnow::instance().callback([&](const MacAddress &mac, Slice<const u8> data) {
+    Espnow::instance().callback([&](MacAddress const &mac, Slice<u8 const> data) {
         onReceive(init, mac, data);
     });
 
@@ -85,7 +85,7 @@ void kf::main(kf::Init &init) {
     while (true) {
         if (broadcast_peer.isSome()) {
             init.logger.info("Sending: broadcast");
-            const auto result = broadcast_peer.unwrap().writePacket("[broadcast]: ping");
+            auto const result = broadcast_peer.unwrap().writePacket("[broadcast]: ping");
             if (result.isError()) {
                 init.logger.error("[broadcast]: send failed: {}", result.error());
             }
@@ -93,7 +93,7 @@ void kf::main(kf::Init &init) {
 
         if (target_peer.isSome()) {
             init.logger.info("Sending: target");
-            const auto result = target_peer.unwrap().writePacket("ping");
+            auto const result = target_peer.unwrap().writePacket("ping");
             if (result.isError()) {
                 init.logger.error("[target]: send failed: {}", result.error());
             }

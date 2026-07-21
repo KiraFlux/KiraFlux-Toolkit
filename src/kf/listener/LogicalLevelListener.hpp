@@ -45,7 +45,7 @@ private:
     void pollImpl(units::Milliseconds now) noexcept {
         if (this->value().isNone()) { return; }
 
-        const bool state = this->value().unwrap();
+        bool const state = this->value().unwrap();
 
         if (_first) {
             _first = false;

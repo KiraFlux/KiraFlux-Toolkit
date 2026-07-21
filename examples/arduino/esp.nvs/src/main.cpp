@@ -47,7 +47,7 @@ void kf::main(kf::Init &init) {
         // Write defaults back to NVS
         auto save_result = my_nvs.setBlob(
             "app_config",
-            {reinterpret_cast<const u8 *>(&my_app_config), sizeof(my_app_config)});
+            {reinterpret_cast<u8 const *>(&my_app_config), sizeof(my_app_config)});
 
         if (save_result.isError()) {
             init.logger.error("Failed to save config: {}", save_result.error());

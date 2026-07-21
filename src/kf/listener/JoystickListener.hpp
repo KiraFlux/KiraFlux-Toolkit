@@ -24,9 +24,9 @@ struct JoystickListenerConfig final {
     Timer::Config repeat_timer, delay_timer;
     f32 threshold;///< 0..1
 
-    [[nodiscard]] JoystickListenerDirection calculateDirection(const math::Vector2f &v) const noexcept {
-        const auto ax = math::abs(v.x);
-        const auto ay = math::abs(v.y);
+    [[nodiscard]] JoystickListenerDirection calculateDirection(math::Vector2f const &v) const noexcept {
+        auto const ax = math::abs(v.x);
+        auto const ay = math::abs(v.y);
         if (ax < threshold and ay < threshold) {
             return JoystickListenerDirection::Center;
         }
@@ -71,7 +71,7 @@ private:
     void pollImpl(units::Milliseconds now) noexcept {
         if (this->value().isNone()) { return; }
 
-        const auto new_direction = this->config().calculateDirection(this->value().unwrap());
+        auto const new_direction = this->config().calculateDirection(this->value().unwrap());
 
         if (new_direction != _current_direction) {
             _current_direction = new_direction;

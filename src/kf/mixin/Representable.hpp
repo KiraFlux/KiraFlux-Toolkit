@@ -15,7 +15,7 @@ template<typename Impl, typename ReprType> struct Representable : RepresentableT
     /// @brief Get string representation of the object
     /// @return String of type `ReprType`
     [[nodiscard]] constexpr ReprType repr() const noexcept {
-        return static_cast<const Impl *>(this)->reprImpl();
+        return static_cast<Impl const *>(this)->reprImpl();
     }
 };
 

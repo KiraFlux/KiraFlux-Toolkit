@@ -73,11 +73,11 @@ template<typename... Args> struct BasicFormatString {
         anchor_begin_char{'{'},
         anchor_end_char{'}'};
 
-    const char *str;
+    char const *str;
     usize length;
     internal::FormatResult result;
 
-    template<usize N> consteval BasicFormatString(const char (&s)[N]) noexcept :
+    template<usize N> consteval BasicFormatString(char const (&s)[N]) noexcept :
         str{s}, length{N - 1}, result{parse(s)} {
 
         if (result.count != sizeof...(Args)) {
@@ -86,7 +86,7 @@ template<typename... Args> struct BasicFormatString {
         }
     }
 
-    template<usize M> static constexpr FormatResult parse(const char (&fmt)[M]) noexcept {
+    template<usize M> static constexpr FormatResult parse(char const (&fmt)[M]) noexcept {
         constexpr auto format_literal_length{M - 1};
 
         FormatResult result{
@@ -153,7 +153,7 @@ template<typename... Args> using FormatString = BasicFormatString<std::type_iden
 template<typename T> static constexpr bool is_c_string_v{
 
     std::is_same_v<T, char *> or
-    std::is_same_v<T, const char *> or
+    std::is_same_v<T, char const *> or
     (std::is_array_v<T> and std::is_same_v<std::remove_extent_t<T>, char>)
 
 };
@@ -189,7 +189,7 @@ template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Imp
 
         } else if constexpr (internal::is_c_string_v<T>) {
 
-            appendNullTerminatedString(static_cast<const char *>(value));
+            appendNullTerminatedString(static_cast<char const *>(value));
 
         } else if constexpr (std::is_base_of_v<SequenceTag, T>) {
 
@@ -221,11 +221,11 @@ template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Imp
     /// @param fmt format string implicit consteval-constructed from literal
     /// @param ...args format arguments
     /// @note For argument placement use `{}` as anchor
-    template<typename... Args> constexpr void format(const internal::FormatString<Args...> &fmt, const Args &...args) noexcept {
-        const auto tuple = std::forward_as_tuple(args...);
+    template<typename... Args> constexpr void format(internal::FormatString<Args...> const &fmt, Args const &...args) noexcept {
+        auto const tuple = std::forward_as_tuple(args...);
 
         for (auto i = 0u; i < fmt.result.count; i += 1) {
-            const auto &token = fmt.result.tokens[i];
+            auto const &token = fmt.result.tokens[i];
 
             if (token.kind == internal::FormatToken::Literal) {
                 this->append(StringView{fmt.str + token.start, token.length});
@@ -236,7 +236,7 @@ template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Imp
     }
 
 private:
-    constexpr void appendNullTerminatedString(const char *str) noexcept {
+    constexpr void appendNullTerminatedString(char const *str) noexcept {
         if (nullptr == str) {
             return;
         }
@@ -256,8 +256,8 @@ private:
             return;
         }
 
-        const bool is_negative = (value < 0);
-        const auto abs_value = is_negative ? static_cast<u64>(-value) : static_cast<u64>(value);
+        bool const is_negative = (value < 0);
+        auto const abs_value = is_negative ? static_cast<u64>(-value) : static_cast<u64>(value);
 
         auto digits = 0u;
         char buffer[21]{};
@@ -285,8 +285,8 @@ private:
             return;
         }
 
-        const bool is_negative = (value < 0);
-        const bool just_integer_part = (0 == precision);
+        bool const is_negative = (value < 0);
+        bool const just_integer_part = (0 == precision);
 
         if (math::isinf(value)) {
             appendNullTerminatedString(is_negative ? "-inf" : "+inf");
@@ -297,8 +297,8 @@ private:
             value = -value;
         }
 
-        const auto integer_part = static_cast<i64>(value);
-        const auto fraction_part = value - integer_part;
+        auto const integer_part = static_cast<i64>(value);
+        auto const fraction_part = value - integer_part;
 
         auto integer_digits = 0u;
         for (auto v = integer_part; v > 0; v /= 10) {
@@ -324,7 +324,7 @@ private:
         for (auto i = 0u; i < precision; i += 1) {
             fraction *= 10.0;
 
-            const auto fraction_digit = static_cast<u8>(fraction);
+            auto const fraction_digit = static_cast<u8>(fraction);
             (void) this->write('0' + fraction_digit);
 
             fraction -= fraction_digit;
@@ -335,7 +335,7 @@ private:
         }
     }
 
-    template<usize I, typename... Args> constexpr void applyArg(usize index, const std::tuple<const Args &...> &tuple) {
+    template<usize I, typename... Args> constexpr void applyArg(usize index, std::tuple<Args const &...> const &tuple) {
         if (I == index) {
             append(std::get<I>(tuple));
         } else if constexpr (I + 1 < sizeof...(Args)) {

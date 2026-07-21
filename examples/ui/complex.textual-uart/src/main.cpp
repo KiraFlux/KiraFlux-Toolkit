@@ -231,9 +231,9 @@ void setup() {
     my_renderer.callback([](kf::StringView text) {
         Serial.println("---");
 
-        const auto &active_page = my_ui.activePage();
+        auto const &active_page = my_ui.activePage();
         if (active_page.isSome()) {
-            const auto &selected_widget = active_page.unwrap().selectedWidget();
+            auto const &selected_widget = active_page.unwrap().selectedWidget();
 
             if (selected_widget.isSome()) {
                 Serial.println(selected_widget.unwrap().hint().data());
@@ -253,11 +253,11 @@ void setup() {
 
 void loop() {
     if (Serial.available()) {
-        const char c = Serial.read();
+        char const c = Serial.read();
         my_ui.addEvent(eventFromChar(c));
     }
 
-    const auto now = millis();
+    auto const now = millis();
     my_ui.poll(now);
 
     delay(10);// 100 hz

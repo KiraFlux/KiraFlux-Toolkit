@@ -60,7 +60,7 @@ JoystickListener my_listener{
 
 // --- Helper: convert direction to string ---
 
-const char *directionToString(Direction dir) {
+char const *directionToString(Direction dir) {
     switch (dir) {
         case Direction::Center: return "Center";
         case Direction::Up: return "Up";
@@ -76,7 +76,7 @@ const char *directionToString(Direction dir) {
 // This MUST be called AFTER joystick.init() because GPIO must be ready.
 
 void tuneJoystick(Joystick::Config &config, kf::Logger &logger) {
-    const unsigned samples = 100;
+    unsigned const samples = 100;
 
     // Tuner takes config by reference (modifies it) and joystick by reference (reads from it).
     Joystick::Tuner tuner{config, joystick, samples};

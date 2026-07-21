@@ -31,9 +31,9 @@ private:
     }
 
     static void setPixelImpl(Slice<BufferType> buffer, PositionType stride, PositionType abs_x, PositionType abs_y, ColorType color) noexcept {
-        const auto page = abs_y / page_height;
-        const auto bit_mask = static_cast<u8>(1 << (abs_y % page_height));
-        const usize index = page * stride + abs_x;
+        auto const page = abs_y / page_height;
+        auto const bit_mask = static_cast<u8>(1 << (abs_y % page_height));
+        usize const index = page * stride + abs_x;
 
         if (color) {
             buffer[index] |= bit_mask;
@@ -50,19 +50,19 @@ private:
         PositionType width,
         PositionType height,
         ColorType on) noexcept {
-        const auto start_page = offset_y / page_height;
-        const auto end_page = ((offset_y + height + page_height - 1) / page_height);
-        const u8 fill_byte = on ? 0xFF : 0x00;
+        auto const start_page = offset_y / page_height;
+        auto const end_page = ((offset_y + height + page_height - 1) / page_height);
+        u8 const fill_byte = on ? 0xFF : 0x00;
 
         for (auto page = start_page; page < end_page; page += 1) {
-            const u8 mask = calculatePageMask(page, offset_y, height);
+            u8 const mask = calculatePageMask(page, offset_y, height);
             if (mask == 0) { continue; }
 
             for (auto x = 0; x < width; x += 1) {
-                const auto abs_x = offset_x + x;
+                auto const abs_x = offset_x + x;
                 if (abs_x < 0 or abs_x >= stride) { continue; }
 
-                const usize index = page * stride + abs_x;
+                usize const index = page * stride + abs_x;
                 if (index < buffer.length()) {
                     buffer[index] = (buffer[index] & ~mask) | (fill_byte & mask);
                 }
@@ -71,7 +71,7 @@ private:
     }
 
     static void copyImpl(
-        Slice<const BufferType> src,
+        Slice<BufferType const> src,
         PositionType src_w,
         PositionType src_h,
         PositionType src_x,
@@ -82,38 +82,38 @@ private:
         PositionType dst_stride,
         PositionType dst_x,
         PositionType dst_y) noexcept {
-        const PositionType src_page_h = page_height;
-        const PositionType src_start_page = src_y / src_page_h;
-        const PositionType src_end_page = (src_y + copy_h + src_page_h - 1) / src_page_h;
+        PositionType const src_page_h = page_height;
+        PositionType const src_start_page = src_y / src_page_h;
+        PositionType const src_end_page = (src_y + copy_h + src_page_h - 1) / src_page_h;
 
         for (PositionType p = src_start_page; p < src_end_page; ++p) {
-            const PositionType src_page_y = p * src_page_h;
-            const PositionType src_row_begin = math::max(src_y, src_page_y);
-            const PositionType src_row_end = math::min(src_y + copy_h, src_page_y + src_page_h);
-            const PositionType rows = src_row_end - src_row_begin;
+            PositionType const src_page_y = p * src_page_h;
+            PositionType const src_row_begin = math::max(src_y, src_page_y);
+            PositionType const src_row_end = math::min(src_y + copy_h, src_page_y + src_page_h);
+            PositionType const rows = src_row_end - src_row_begin;
             if (rows <= 0) { continue; }
 
-            const u8 src_bit_offs = static_cast<u8>(src_row_begin - src_page_y);
-            const PositionType dst_global_y = dst_y + (src_row_begin - src_y);
-            const PositionType dst_page = dst_global_y / src_page_h;
-            const u8 dst_bit_offs = static_cast<u8>(dst_global_y % src_page_h);
+            u8 const src_bit_offs = static_cast<u8>(src_row_begin - src_page_y);
+            PositionType const dst_global_y = dst_y + (src_row_begin - src_y);
+            PositionType const dst_page = dst_global_y / src_page_h;
+            u8 const dst_bit_offs = static_cast<u8>(dst_global_y % src_page_h);
 
-            const u8 dst_mask = static_cast<u8>(((1u << rows) - 1u) << dst_bit_offs);
-            const u8 src_mask = static_cast<u8>(((1u << rows) - 1u) << src_bit_offs);
+            u8 const dst_mask = static_cast<u8>(((1u << rows) - 1u) << dst_bit_offs);
+            u8 const src_mask = static_cast<u8>(((1u << rows) - 1u) << src_bit_offs);
 
             for (PositionType x = 0; x < copy_w; ++x) {
-                const PositionType src_col = src_x + x;
-                const PositionType dst_col = dst_x + x;
+                PositionType const src_col = src_x + x;
+                PositionType const dst_col = dst_x + x;
                 if (dst_col >= dst_stride) { continue; }
 
-                const usize src_idx = static_cast<usize>(p) * src_w + src_col;
+                usize const src_idx = static_cast<usize>(p) * src_w + src_col;
                 if (src_idx >= src.length()) { continue; }
 
                 u8 src_byte = src[src_idx];
                 u8 src_bits = static_cast<u8>((src_byte & src_mask) >> src_bit_offs);
                 src_bits = static_cast<u8>(src_bits << dst_bit_offs);
 
-                const usize dst_idx = static_cast<usize>(dst_page) * dst_stride + dst_col;
+                usize const dst_idx = static_cast<usize>(dst_page) * dst_stride + dst_col;
                 if (dst_idx >= dst.length()) { continue; }
 
                 dst[dst_idx] = static_cast<u8>((dst[dst_idx] & ~dst_mask) | src_bits);
@@ -125,11 +125,11 @@ private:
     /// @brief Calculate page mask for specified region
     /// @return Bit mask for the visible portion of the page
     static u8 calculatePageMask(int page, int offset_y, int height) noexcept {
-        const auto page_top = (page * page_height);
-        const auto page_bottom = (page_top + page_height - 1);
+        auto const page_top = (page * page_height);
+        auto const page_bottom = (page_top + page_height - 1);
 
-        const auto visible_top = math::max(offset_y, page_top);
-        const auto visible_bottom = (math::min(offset_y + height, page_bottom + 1));
+        auto const visible_top = math::max(offset_y, page_top);
+        auto const visible_bottom = (math::min(offset_y + height, page_bottom + 1));
 
         if (visible_top >= visible_bottom) { return 0; }
 

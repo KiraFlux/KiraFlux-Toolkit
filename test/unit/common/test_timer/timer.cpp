@@ -102,12 +102,12 @@ void test_unsigned_wrap() {
     TEST_ASSERT_EQUAL(period_0, timer.elapsed(near_max));
     TEST_ASSERT_EQUAL(period_100, timer.remaining(near_max));
 
-    const auto later_a = near_max + small_inc;
+    auto const later_a = near_max + small_inc;
     TEST_ASSERT_EQUAL(small_inc, timer.elapsed(later_a));
     TEST_ASSERT_FALSE(timer.expired(later_a));
     TEST_ASSERT_EQUAL(period_100 - small_inc, timer.remaining(later_a));
 
-    const auto later_b = near_max + large_inc;
+    auto const later_b = near_max + large_inc;
     TEST_ASSERT_EQUAL(large_inc, timer.elapsed(later_b));
     TEST_ASSERT_TRUE(timer.expired(later_b));
     TEST_ASSERT_EQUAL(period_0, timer.remaining(later_b));

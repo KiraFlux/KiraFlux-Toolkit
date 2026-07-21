@@ -20,7 +20,7 @@ template<typename Impl, typename T> struct Indexable : IndexableTag {
     }
 
     /// @brief Get readonly access to item by index
-    [[nodiscard]] constexpr const T &operator[](usize index) const noexcept {
+    [[nodiscard]] constexpr T const &operator[](usize index) const noexcept {
         return (*const_cast<Indexable *>(this))[index];
     }
 };

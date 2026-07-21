@@ -34,8 +34,8 @@ template<implements<UiTraitsTag> U> struct CheckBox :
     }
 
     Request onEventValue(typename U::EventImpl::Value event_value) noexcept override {
-        const bool new_value = (event_value > 0);
-        const auto request = (this->value() == new_value) ? Request::Nothing : Request::Redraw;
+        bool const new_value = (event_value > 0);
+        auto const request = (this->value() == new_value) ? Request::Nothing : Request::Redraw;
 
         this->value(new_value);
 

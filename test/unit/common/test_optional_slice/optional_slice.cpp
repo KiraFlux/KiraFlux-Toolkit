@@ -28,7 +28,7 @@ template<typename T> struct TestOptionalSlice {
         Option<Slice<T>> option = kf::none;
         TEST_ASSERT_TRUE(option.isNone());
         TEST_ASSERT_FALSE(option.isSome());
-        const auto value = option.unwrapOr(slice_b);
+        auto const value = option.unwrapOr(slice_b);
         TEST_ASSERT_EQUAL_PTR(data_b, value.data());
         TEST_ASSERT_EQUAL(data_b_size, value.length());
     }
@@ -43,8 +43,8 @@ template<typename T> struct TestOptionalSlice {
     }
 
     static void copy() {
-        const auto original = kf::some(slice_a);
-        const auto copy = original;
+        auto const original = kf::some(slice_a);
+        auto const copy = original;
         TEST_ASSERT_TRUE(original.isSome());
         TEST_ASSERT_TRUE(copy.isSome());
         TEST_ASSERT_EQUAL_PTR(data_a, copy.unwrap().data());
@@ -74,7 +74,7 @@ template<typename T> struct TestOptionalSlice {
     }
 
     static void const_instance() {
-        const auto option = kf::some(slice_a);
+        auto const option = kf::some(slice_a);
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_EQUAL_PTR(data_a, option.unwrap().data());
     }

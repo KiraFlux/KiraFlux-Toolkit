@@ -43,11 +43,11 @@ template<arithmetic T> struct ComplementaryFilter final :
     /// @param dx Rate of change (derivative) of the value
     /// @param dt Time step in seconds since last update
     /// @return Filtered value combining prediction and measurement
-    [[nodiscard]] const ValueType &calc(ValueType x, ValueType dx, Seconds dt) noexcept {
+    [[nodiscard]] ValueType const &calc(ValueType x, ValueType dx, Seconds dt) noexcept {
         if (_filtered.isNone()) {
             _filtered = someTrivial(x);
         } else {
-            const auto prediction = _filtered + dx * dt;
+            auto const prediction = _filtered + dx * dt;
             _filtered = someTrivial(this->config().factor * prediction + (1.0f - this->config().factor) * x);
         }
 

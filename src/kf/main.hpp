@@ -6,20 +6,23 @@
 #include "kf/Logger.hpp"
 #include "kf/StringView.hpp"
 
-#define KF_NOTICE_STRING "KiraFlux Toolkit v0.3.5"
-
-#ifndef KF_MAIN_LOGGER_KEY
-#define KF_MAIN_LOGGER_KEY "main"
+#ifndef KF_CONFIG_MAIN_LOGGER_KEY
+#define KF_CONFIG_MAIN_LOGGER_KEY "main"
 #endif
 
-#ifndef KF_MAIN_LOGGER_BUFFER_LENGTH
-#define KF_MAIN_LOGGER_BUFFER_LENGTH 256
+#ifndef KF_CONFIG_MAIN_LOGGER_BUFFER_LENGTH
+#define KF_CONFIG_MAIN_LOGGER_BUFFER_LENGTH 256
+#endif
+
+#ifndef KF_CONFIG_SERIAL_BAUDRATE
+#define KF_CONFIG_SERIAL_BAUDRATE 115200
 #endif
 
 namespace kf {
 
-/// @brief App Initial Context
+/// @brief App Context
 struct Init {
+    // TODO: add io - (platform-depended binary IO class instance)
 
     /// @brief application logger
     Logger logger;
@@ -31,16 +34,18 @@ void main(Init &init);
 namespace internal {
 
 void launch() noexcept {
-    static char main_logger_buffer[(KF_MAIN_LOGGER_BUFFER_LENGTH)]{};
+    static char main_logger_buffer[(KF_CONFIG_MAIN_LOGGER_BUFFER_LENGTH)]{};
 
     Init init{
         .logger = Logger{
-            (KF_MAIN_LOGGER_KEY),
+            (KF_CONFIG_MAIN_LOGGER_KEY),
             {main_logger_buffer},
         },
     };
 
-    init.logger.info((KF_NOTICE_STRING));
+    // TODO: set logger writer here (use init.io)
+
+    init.logger.info("KiraFlux Toolkit v0.3.5");
 
     main(init);
 }
@@ -53,12 +58,8 @@ void launch() noexcept {
 
 #include <Arduino.h>
 
-#ifndef KF_SERIAL_BAUDRATE
-#define KF_SERIAL_BAUDRATE 115200
-#endif
-
 void setup() {
-    Serial.begin(KF_SERIAL_BAUDRATE);
+    Serial.begin((KF_CONFIG_SERIAL_BAUDRATE));
 
     kf::Logger::writer = [](kf::StringView str) {
         if (not str.empty()) {
@@ -91,5 +92,3 @@ int main() {
 }
 
 #endif
-
-#undef KF_NOTICE_STRING

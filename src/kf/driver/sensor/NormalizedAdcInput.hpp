@@ -78,7 +78,7 @@ template<implements<gpio::AdcInputTag> G> struct NormalizedAdcInput final :
         }
 
         void pollImpl() noexcept {
-            const auto sample = Config::AdcSignedValue(_normalized_input.readRaw());
+            auto const sample = Config::AdcSignedValue(_normalized_input.readRaw());
             _max_sample = math::max(_max_sample, sample);
             _min_sample = math::min(_min_sample, sample);
             _sum += sample;
@@ -89,13 +89,13 @@ template<implements<gpio::AdcInputTag> G> struct NormalizedAdcInput final :
             constexpr auto zone_percents{10};
 
             config.dead_zone = static_cast<Config::AdcSignedValue>((_max_sample - _min_sample) / zone_percents + margin);
-            const auto center = static_cast<Config::AdcSignedValue>(_sum / this->samples_total);
+            auto const center = static_cast<Config::AdcSignedValue>(_sum / this->samples_total);
             config.range_positive = Config::calcPositiveRange(AdcInputImpl::maxValue(), center);
             config.range_negative = Config::calcNegativeRange(center);
         }
     };
 
-    explicit NormalizedAdcInput(const Config &config, const typename FilterImpl::Config &filter_config, AdcInputImpl &&gpio) noexcept :
+    explicit NormalizedAdcInput(Config const &config, typename FilterImpl::Config const &filter_config, AdcInputImpl &&gpio) noexcept :
         mixin::Configured<Config>{config}, _filter{filter_config}, _gpio{std::move(gpio)} {}
 
     [[nodiscard]] u16 readRaw() const noexcept {
@@ -114,7 +114,7 @@ private:
 
     [[nodiscard]] f32 readImpl() noexcept {
         // Applies dead zone, filtering, and optional inversion
-        const auto deviation = static_cast<Config::AdcSignedValue>(readRaw()) - this->config().range_negative;
+        auto const deviation = static_cast<Config::AdcSignedValue>(readRaw()) - this->config().range_negative;
 
         if (math::abs(deviation) < this->config().dead_zone) {
             return 0.0f;

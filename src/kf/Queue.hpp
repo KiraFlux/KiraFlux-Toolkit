@@ -63,8 +63,8 @@ template<typename T> struct Queue :
     }
 
     /// @brief Get const reference to the front element
-    [[nodiscard]] constexpr auto front() const noexcept -> Option<const T &> {
-        return this->empty() ? none : someRef<const T &>(_buffer[indexAt(0)]);
+    [[nodiscard]] constexpr auto front() const noexcept -> Option<T const &> {
+        return this->empty() ? none : someRef<T const &>(_buffer[indexAt(0)]);
     }
 
     /// @brief Get mutable reference to the back element
@@ -73,8 +73,8 @@ template<typename T> struct Queue :
     }
 
     /// @brief Get const reference to the back element
-    [[nodiscard]] constexpr auto back() const noexcept -> Option<const T &> {
-        return this->empty() ? none : someRef<const T &>(_buffer[indexAt(_length - 1)]);
+    [[nodiscard]] constexpr auto back() const noexcept -> Option<T const &> {
+        return this->empty() ? none : someRef<T const &>(_buffer[indexAt(_length - 1)]);
     }
 
 private:

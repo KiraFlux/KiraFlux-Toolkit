@@ -68,7 +68,7 @@ template<implements<gpio::DigitalInputTag> G, typename T> struct QuadratureEncod
 
     using Config = internal::QuadratureEncoderConfig<T>;
 
-    explicit constexpr QuadratureEncoder(const Config &config, DigitalInputImpl &&gpio_phase_a, DigitalInputImpl &&gpio_phase_b) noexcept :
+    explicit constexpr QuadratureEncoder(Config const &config, DigitalInputImpl &&gpio_phase_a, DigitalInputImpl &&gpio_phase_b) noexcept :
         mixin::Configured<Config>::Configured{config}, _gpio_phase_a{std::move(gpio_phase_a)}, _gpio_phase_b{std::move(gpio_phase_b)} {}
 
     /// @brief Current accumulated position in ticks
@@ -93,15 +93,15 @@ template<implements<gpio::DigitalInputTag> G, typename T> struct QuadratureEncod
 
 private:
     DigitalInputImpl _gpio_phase_a, _gpio_phase_b;
-    volatile typename Config::TickType _position_ticks{0};  ///< Accumulated step count
-    volatile typename Config::PhaseStateType _last_state{0};///< Previous AB phase state
+    typename Config::TickType volatile _position_ticks{0};  ///< Accumulated step count
+    typename Config::PhaseStateType volatile _last_state{0};///< Previous AB phase state
 
     /// @brief ISR triggered on any edge of either phase
     static void IRAM_ATTR onAnyPhaseChange(void *arg) noexcept {
         auto &self = *static_cast<Self *>(arg);
-        const auto positive_step = static_cast<typename Config::StepType>(self.config().positive_direction);
+        auto const positive_step = static_cast<typename Config::StepType>(self.config().positive_direction);
 
-        const auto current_state = self.read();
+        auto const current_state = self.read();
 
         // Index formed by concatenating last and current states (4 bits)
         // 4X decoding lookup table (index = (last_A << 3 | last_B << 2 | cur_A << 1 | cur_B))
@@ -137,8 +137,8 @@ private:
     }
 
     typename Config::PhaseStateType readImpl() const noexcept {
-        const auto state_a = static_cast<typename Config::PhaseStateType>(_gpio_phase_a.read());
-        const auto state_b = static_cast<typename Config::PhaseStateType>(_gpio_phase_b.read());
+        auto const state_a = static_cast<typename Config::PhaseStateType>(_gpio_phase_a.read());
+        auto const state_b = static_cast<typename Config::PhaseStateType>(_gpio_phase_b.read());
         return (state_a << 1) | state_b;// pack as AB
     }
 

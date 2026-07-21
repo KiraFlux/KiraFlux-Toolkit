@@ -129,7 +129,7 @@ template<typename T> struct Option final :
     /// @brief Copy constructor
     /// @param other Source Option
     /// @note Copies stored value if any
-    Option(const Option &other) noexcept : _is_some{other._is_some} {
+    Option(Option const &other) noexcept : _is_some{other._is_some} {
         if (this->isSome()) {
             construct(other.value());
         }
@@ -149,7 +149,7 @@ template<typename T> struct Option final :
     /// @param other Source Option
     /// @return Reference to this
     /// @note Copies stored value if any
-    Option &operator=(const Option &other) noexcept {
+    Option &operator=(Option const &other) noexcept {
         if (this != &other) {
             if (other.isSome()) {
                 if (this->isSome()) {
@@ -198,7 +198,7 @@ template<typename T> struct Option final :
     /// @brief Unwrap the stored value (const lvalue Option)
     /// @return Const reference to stored value
     /// @note Aborts if None
-    [[nodiscard]] const T &unwrap() const & noexcept {
+    [[nodiscard]] T const &unwrap() const & noexcept {
         return const_cast<Option *>(this)->unwrap();
     }
 
@@ -274,7 +274,7 @@ private:
         return *reinterpret_cast<T *>(_storage);
     }
 
-    [[nodiscard]] const T &value() const noexcept {
+    [[nodiscard]] T const &value() const noexcept {
         return const_cast<Option *>(this)->value();
     }
 
@@ -330,7 +330,7 @@ template<typename T> struct Option<T &> final :
     /// @brief Unwrap the stored reference (const lvalue Option)
     /// @return Const reference to stored object
     /// @note Aborts if None
-    [[nodiscard]] const T &unwrap() const noexcept {
+    [[nodiscard]] T const &unwrap() const noexcept {
         return const_cast<Option *>(this)->unwrap();
     }
 
@@ -467,7 +467,7 @@ template<typename R, typename... Args> struct Option<Function<R(Args...)>> final
     /// @brief Get stored function (const lvalue reference)
     /// @return Const reference to stored function
     /// @note Aborts if None
-    [[nodiscard]] const FunctionType &unwrap() const & noexcept {
+    [[nodiscard]] FunctionType const &unwrap() const & noexcept {
         if (this->isNone()) { abort(); }
         return _function;
     }

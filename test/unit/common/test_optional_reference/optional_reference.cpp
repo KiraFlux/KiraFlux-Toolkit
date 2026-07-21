@@ -62,7 +62,7 @@ template<typename T> struct TestOptionalReference {
     }
 
     static void const_instance() {
-        const auto option = kf::someRef(value);
+        auto const option = kf::someRef(value);
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_TRUE(&value == &option.unwrap());
     }

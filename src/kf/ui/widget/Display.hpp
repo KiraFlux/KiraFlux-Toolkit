@@ -26,16 +26,16 @@ template<implements<UiTraitsTag> U, typename T> struct Display :
     constexpr Display() noexcept :
         U::Widget{Style::defaults()}, _value{} {}
 
-    explicit constexpr Display(const T &value, Style style = Style::defaults()) noexcept :
+    explicit constexpr Display(T const &value, Style style = Style::defaults()) noexcept :
         U::Widget{style}, _value{value} {}
 
     /// @brief Get the current displayed value
-    [[nodiscard]] constexpr const T &value() const noexcept {
+    [[nodiscard]] constexpr T const &value() const noexcept {
         return _value;
     }
 
     /// @brief Update the displayed value
-    void value(const T &new_value) noexcept {
+    void value(T const &new_value) noexcept {
         _value = new_value;
     }
 

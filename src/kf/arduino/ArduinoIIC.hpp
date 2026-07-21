@@ -31,7 +31,7 @@ template<typename I> struct ArduinoIicNode :
     /// @brief Configuration for an Arduino Wire I2C node.
     using Config = IicNodeConfig;
 
-    explicit ArduinoIicNode(BusImpl &bus, const Config &config) noexcept :
+    explicit ArduinoIicNode(BusImpl &bus, Config const &config) noexcept :
         mixin::Configured<Config>{config}, _wire{bus._wire} {}
 
 private:
@@ -54,7 +54,7 @@ private:
     /// @brief Discard any remaining bytes in the receive buffer (flush).
     /// @note Used after a partial read or error to prepare for the next transaction.
     void discardReceiveBuffer() noexcept {
-        const auto to_discard = _wire.available();
+        auto const to_discard = _wire.available();
         for (auto i = 0; i < to_discard; i += 1) {
             (void) _wire.read();
         }
@@ -62,17 +62,17 @@ private:
 
     // interface impl
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<const u8>, Error> {
-        const usize received = request(buffer.length());
+    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
+        usize const received = request(buffer.length());
         if (received == 0) { return Error::create(Error::Timeout); }
 
         readBytesUnchecked(buffer.data(), received);
-        return ok(Slice<const u8>{buffer.data(), received});
+        return ok(Slice<u8 const>{buffer.data(), received});
     }
 
     template<typename T> [[nodiscard]] auto readPacketImpl() noexcept -> Result<T, Error> {
         constexpr usize requested = sizeof(T);
-        const usize received = request(requested);
+        usize const received = request(requested);
         if (received == 0) { return Error::create(Error::Timeout); }
 
         if (received != requested) {
@@ -100,7 +100,7 @@ private:
 
     /// @brief Write raw bytes to the I2C device (must be between begin/endTransmission).
     /// @return number of bytes actually placed in the internal transmit buffer (may be less than `length` if buffer full).
-    [[nodiscard]] usize writeBytes(const u8 *buffer, usize length) noexcept {
+    [[nodiscard]] usize writeBytes(u8 const *buffer, usize length) noexcept {
         return _wire.write(buffer, length);
     }
 
@@ -110,7 +110,7 @@ private:
     /// @return Success or specific I2C error.
     /// @note Possible errors: AddressNack, DataNack, Timeout, BufferTooLong, Unknown.
     [[nodiscard]] WriteResult endTransmission(usize written, usize to_write) noexcept {
-        const u8 code = _wire.endTransmission();
+        u8 const code = _wire.endTransmission();
 
         if (written != to_write) { return Error::create(Error::BufferTooLong); }
 
@@ -132,27 +132,27 @@ private:
 
     /// @brief Write a multi‑byte packet without checking (used internally).
     [[nodiscard]] usize writePacketUnchecked(auto const &packet) noexcept {
-        return writeBytes(reinterpret_cast<const u8 *>(&packet), sizeof(decltype(packet)));
+        return writeBytes(reinterpret_cast<u8 const *>(&packet), sizeof(decltype(packet)));
     }
 
     // interface impl
 
-    WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
+    WriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
         beginTransmission();
-        const usize written = writeBytes(buffer.data(), buffer.length());
+        usize const written = writeBytes(buffer.data(), buffer.length());
         return endTransmission(written, buffer.length());
     }
 
     WriteResult writePacketImpl(auto const &packet) noexcept {
         beginTransmission();
-        const usize written = writePacketUnchecked(std::forward<decltype(packet)>(packet));
+        usize const written = writePacketUnchecked(std::forward<decltype(packet)>(packet));
         return endTransmission(written, sizeof(decltype(packet)));
     }
 
-    WriteResult writeMixedImpl(auto const &header, Slice<const u8> buffer) noexcept {
+    WriteResult writeMixedImpl(auto const &header, Slice<u8 const> buffer) noexcept {
         beginTransmission();
-        const usize header_written = writePacketUnchecked(std::forward<decltype(header)>(header));
-        const usize buffer_written = writeBytes(buffer.data(), buffer.length());
+        usize const header_written = writePacketUnchecked(std::forward<decltype(header)>(header));
+        usize const buffer_written = writeBytes(buffer.data(), buffer.length());
         return endTransmission(header_written + buffer_written, sizeof(decltype(header)) + buffer.length());
     }
 };
@@ -173,7 +173,7 @@ struct ArduinoIIC :
 
     friend Node;
 
-    explicit ArduinoIIC(const Config &config, TwoWire &wire) noexcept :
+    explicit ArduinoIIC(Config const &config, TwoWire &wire) noexcept :
         mixin::Configured<Config>{config}, _wire{wire} {}
 
 private:

@@ -12,7 +12,7 @@ namespace kf {
 
 namespace internal {
 
-using StringViewBase = Slice<const char>;
+using StringViewBase = Slice<char const>;
 
 }
 
@@ -27,7 +27,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
         internal::StringViewBase{buffer} {}
 
     /// @brief Construct from C‑string (nullptr allowed)
-    constexpr StringView(const char *str) noexcept :
+    constexpr StringView(char const *str) noexcept :
         internal::StringViewBase{str, (nullptr == str) ? 0 : cStringLength(str)} {}
 
     // Trimming
@@ -215,7 +215,7 @@ private:
         return c == ' ' or c == '\t' or c == '\n' or c == '\r' or c == '\v' or c == '\f';
     }
 
-    [[nodiscard]] static constexpr usize cStringLength(const char *str) noexcept {
+    [[nodiscard]] static constexpr usize cStringLength(char const *str) noexcept {
         usize len = 0;
 
         while (str[len] != '\0') {
@@ -226,7 +226,7 @@ private:
     }
 
     KF_IMPL_EQUATABLE(StringView);
-    constexpr bool isEqualsImpl(const StringView &other) const noexcept {
+    constexpr bool isEqualsImpl(StringView const &other) const noexcept {
         if (this->length() == other.length()) {
 
             for (usize i = 0; i < this->length(); i += 1) {

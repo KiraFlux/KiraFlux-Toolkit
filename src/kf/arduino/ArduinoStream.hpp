@@ -42,7 +42,7 @@ struct ArduinoStream final :
     }
 
     usize availableForWrite() noexcept {
-        const auto ret = _stream.availableForWrite();
+        auto const ret = _stream.availableForWrite();
         // Arduino Stream returns size 0 if "may write any size"
         return (0 == ret) ? static_cast<usize>(-1) : ret;
     }
@@ -52,15 +52,15 @@ private:
 
     KF_IMPL_BINARY_READABLE(ArduinoStream, Error);
 
-    auto readBufferImpl(Slice<u8> dest) noexcept -> Result<Slice<const u8>, Error> {
+    auto readBufferImpl(Slice<u8> dest) noexcept -> Result<Slice<u8 const>, Error> {
         constexpr auto min_available{1u};
 
         if (_stream.available() < min_available) { return error(Error::ReadNotAvailable); }
 
-        const auto bytes_read = _stream.readBytes(dest.data(), dest.length());
+        auto const bytes_read = _stream.readBytes(dest.data(), dest.length());
         if (bytes_read < min_available) { return error(Error::ReadFailed); }
 
-        return ok(Slice<const u8>{dest.data(), bytes_read});
+        return ok(Slice<u8 const>{dest.data(), bytes_read});
     }
 
     template<typename T> auto readPacketImpl() noexcept -> Result<T, Error> {
@@ -68,7 +68,7 @@ private:
         if (_stream.available() < to_read) { return error(Error::ReadNotAvailable); }
 
         if constexpr (to_read == sizeof(u8)) {
-            const auto read_result = _stream.read();
+            auto const read_result = _stream.read();
             if (-1 == read_result) {
                 return error(Error::ReadFailed);
             } else {
@@ -76,7 +76,7 @@ private:
             }
         } else {
             T dest;
-            const auto bytes_read = _stream.readBytes(reinterpret_cast<u8 *>(&dest), to_read);
+            auto const bytes_read = _stream.readBytes(reinterpret_cast<u8 *>(&dest), to_read);
             if (to_read == bytes_read) {
                 return ok(dest);
             } else {
@@ -89,8 +89,8 @@ private:
 
     KF_IMPL_BINARY_WRITABLE(ArduinoStream, WriteResult);
 
-    WriteResult writeBufferImpl(Slice<const u8> buffer) noexcept {
-        const auto to_write = buffer.length();
+    WriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
+        auto const to_write = buffer.length();
         // _stream.availableForWrite() ?
         if (_stream.write(buffer.data(), to_write) != to_write) { return error(Error::WriteFailed); }
 
@@ -104,7 +104,7 @@ private:
         if constexpr (to_write == sizeof(u8)) {
             written = _stream.write(static_cast<u8>(packet));
         } else {
-            written = _stream.write(reinterpret_cast<const u8 *>(&packet), to_write);
+            written = _stream.write(reinterpret_cast<u8 const *>(&packet), to_write);
         }
 
         if (to_write != written) { return error(Error::WriteFailed); }
@@ -112,7 +112,7 @@ private:
         return ok();
     }
 
-    WriteResult writeMixedImpl(auto const &header, Slice<const u8> buffer) noexcept {
+    WriteResult writeMixedImpl(auto const &header, Slice<u8 const> buffer) noexcept {
         KF_TRY(this->writePacket(std::forward<decltype(header)>(header)));
         return this->writeBuffer(buffer);
     }

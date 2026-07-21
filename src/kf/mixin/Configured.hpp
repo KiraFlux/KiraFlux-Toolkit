@@ -12,17 +12,17 @@ template<typename ConfigType> struct Configured : ConfiguredTag {
 
     /// @brief Constructs a configurable object
     /// @param config Configuration reference that must outlive the object
-    explicit constexpr Configured(const ConfigType &config) noexcept :
+    explicit constexpr Configured(ConfigType const &config) noexcept :
         _config{config} {}
 
     /// @brief Returns the stored configuration.
     /// @return Const reference to the configuration.
-    [[nodiscard]] constexpr const ConfigType &config() const noexcept {
+    [[nodiscard]] constexpr ConfigType const &config() const noexcept {
         return _config;
     }
 
 private:
-    const ConfigType &_config;
+    ConfigType const &_config;
 };
 
 }// namespace kf::mixin

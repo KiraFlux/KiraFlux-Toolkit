@@ -15,8 +15,8 @@ struct String : Stack<char> {
     using Stack<char>::Stack;
 
     /// @brief Make string null-terminated and get data pointer
-    [[nodiscard]] constexpr const char *cString() noexcept {
-        const auto terminator_index = this->full() ? this->capacity() - 1 : this->length();
+    [[nodiscard]] constexpr char const *cString() noexcept {
+        auto const terminator_index = this->full() ? this->capacity() - 1 : this->length();
 
         (*this)[terminator_index] = '\0';
 
@@ -30,7 +30,7 @@ struct String : Stack<char> {
 
     /// @brief Get char array with formatted content
     /// @tparam N Array length
-    template<usize N, typename... Args> [[nodiscard]] static constexpr auto formatted(const internal::FormatString<Args...> &fmt, const Args &...args) noexcept -> Array<char, N> {
+    template<usize N, typename... Args> [[nodiscard]] static constexpr auto formatted(internal::FormatString<Args...> const &fmt, Args const &...args) noexcept -> Array<char, N> {
         Array<char, N> ret{};
 
         String{ret.slice()}.format(fmt, args...);

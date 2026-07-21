@@ -36,7 +36,7 @@ struct MacAddress :
 private:
     KF_IMPL_REPRESENTABLE(MacAddress, internal::MacAddressStringType);
     auto reprImpl() const noexcept {
-        const auto bytes = this->data();
+        auto const bytes = this->data();
         return String::formatted<internal::MacAddressStringType::items_total>(
 
             "%02x%02x-%02x%02x-%02x%02x",// FIXME: formatting with hex base

@@ -27,7 +27,7 @@ template<typename T, usize N> struct Array :
 
     T items[N];
 
-    constexpr void fill(const T &value) noexcept {
+    constexpr void fill(T const &value) noexcept {
         for (auto &item: *this) {
             item = value;
         }
@@ -45,7 +45,7 @@ private:
     }
 
     KF_IMPL_EQUATABLE(Self);
-    constexpr bool isEqualsImpl(const Self &other) const noexcept {
+    constexpr bool isEqualsImpl(Self const &other) const noexcept {
         for (auto i = 0u; i < N; i += 1) {
             if ((*this)[i] != other[i]) {
                 return false;

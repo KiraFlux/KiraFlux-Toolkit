@@ -13,7 +13,7 @@ struct MyTuner;
 struct MyConfig {
     static constexpr int value_limit = 1000;
 
-    const char *name;
+    char const *name;
     int middle;
     int average;
 

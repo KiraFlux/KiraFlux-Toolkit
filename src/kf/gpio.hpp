@@ -24,7 +24,7 @@ template<typename Impl, typename LevelType, typename InitSignature> struct Input
     /// @brief Reads the current input value
     /// @return The value read from the hardware
     LevelType read() const noexcept {
-        return static_cast<const Impl *>(this)->readImpl();
+        return static_cast<Impl const *>(this)->readImpl();
     }
 };
 
@@ -114,7 +114,7 @@ template<typename Impl, typename LevelType, typename InitSignature> struct Outpu
 
 {
     void write(LevelType level) const noexcept {
-        static_cast<const Impl *>(this)->writeImpl(level);
+        static_cast<Impl const *>(this)->writeImpl(level);
     }
 };
 
@@ -145,12 +145,12 @@ template<typename Impl, typename InitSignature> struct PwmOutput :
 
     /// @brief Returns the PWM frequency in Hz
     [[nodiscard]] u32 frequency() const noexcept {
-        return static_cast<const Impl *>(this)->getFrequencyImpl();
+        return static_cast<Impl const *>(this)->getFrequencyImpl();
     }
 
     /// @brief Returns the PWM resolution in bits
     [[nodiscard]] usize resolution() const noexcept {
-        return static_cast<const Impl *>(this)->getResolutionImpl();
+        return static_cast<Impl const *>(this)->getResolutionImpl();
     }
 
     /// @brief Returns the maximum duty cycle value (2^resolution - 1)
@@ -161,7 +161,7 @@ template<typename Impl, typename InitSignature> struct PwmOutput :
     /// @brief Write pulse (width in microseconds), map in to a duty cycle value and write
     /// @param pulse_width Pulse width in microseconds
     void writePulse(units::Microseconds pulse_width) const noexcept {
-        const auto t = static_cast<u64>(pulse_width) * frequency() * maxDuty();
+        auto const t = static_cast<u64>(pulse_width) * frequency() * maxDuty();
         this->write(static_cast<u16>(t / 1'000'000u));
     }
 };

@@ -47,7 +47,7 @@ struct Timer final :
 
     /// @brief Get Time before Timer expire
     [[nodiscard]] constexpr units::Milliseconds remaining(units::Milliseconds now) noexcept {
-        const auto e = elapsed(now);
+        auto const e = elapsed(now);
         if (e < this->config().value) {// because of unsigned arithmetic
             return this->config().value - e;
         } else {

@@ -10,16 +10,16 @@ namespace kf::mixin {
 
 struct Styled {
 
-    explicit constexpr Styled(const ui::Style &style) noexcept :
+    explicit constexpr Styled(ui::Style const &style) noexcept :
         _style{style} {}
 
     /// @brief Get style
-    [[nodiscard]] constexpr const ui::Style &style() const noexcept {
+    [[nodiscard]] constexpr ui::Style const &style() const noexcept {
         return _style;
     }
 
     /// @brief Set style
-    constexpr void style(const ui::Style &new_style) noexcept {
+    constexpr void style(ui::Style const &new_style) noexcept {
         _style = new_style;
     }
 

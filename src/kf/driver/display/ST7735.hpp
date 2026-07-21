@@ -79,7 +79,7 @@ template<implements<bus::SpiNodeTag> N, implements<gpio::DigitalOutputTag> G> st
         COLMOD = 0x3A ///< Color mode setting
     };
 
-    explicit constexpr ST7735(const Config &config, SpiBusNodeImpl &&node, DigitalOutputImpl &&gpio_data_command, DigitalOutputImpl &&gpio_reset) noexcept :
+    explicit constexpr ST7735(Config const &config, SpiBusNodeImpl &&node, DigitalOutputImpl &&gpio_data_command, DigitalOutputImpl &&gpio_reset) noexcept :
         mixin::Configured<internal::ST7735Config>{config}, _spi_node{std::move(node)}, _gpio_data_command{std::move(gpio_data_command)}, _gpio_hardware_reset{std::move(gpio_reset)} {}
 
 private:
@@ -91,7 +91,7 @@ private:
 
     // Low-level communication
 
-    SpiOperationResult sendBuffer(Slice<const u8> buffer) noexcept {
+    SpiOperationResult sendBuffer(Slice<u8 const> buffer) noexcept {
         _gpio_data_command.write(true);
         return _spi_node.writeBuffer(buffer);
     }
@@ -144,7 +144,7 @@ private:
 
     SpiOperationResult sendImpl() noexcept {
         KF_TRY(sendCommand(Command::RAMWR));
-        return sendBuffer({reinterpret_cast<const u8 *>(this->image().buffer().data()), this->image().size()});
+        return sendBuffer({reinterpret_cast<u8 const *>(this->image().buffer().data()), this->image().size()});
     }
 
     SpiOperationResult setOrientationImpl(Orientation orientation) noexcept {
@@ -158,12 +158,12 @@ private:
             MadCtl::MirrorY | MadCtl::MirrorTranspose,// Orientation::CounterClockWise
         };
 
-        const u8 madctl = _madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
+        u8 const madctl = _madctl_base_mode | orient_to_transform[static_cast<u8>(orientation)];
 
         this->image().transposed((madctl & MadCtl::MirrorTranspose) != 0);
 
-        const u8 data_x[4]{0, 0, 0, static_cast<u8>(this->image().maxX())};
-        const u8 data_y[4]{0, 0, 0, static_cast<u8>(this->image().maxY())};
+        u8 const data_x[4]{0, 0, 0, static_cast<u8>(this->image().maxX())};
+        u8 const data_y[4]{0, 0, 0, static_cast<u8>(this->image().maxY())};
 
         KF_TRY(sendCommand(Command::MADCTL));
         KF_TRY(sendPacket(madctl));

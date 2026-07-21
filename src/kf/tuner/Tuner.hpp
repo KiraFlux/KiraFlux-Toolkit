@@ -31,7 +31,7 @@ template<typename Impl> struct Tuner :
 
     /// @brief Check if the tuner is still running (collecting or calculating).
     [[nodiscard]] bool running() const noexcept {
-        return static_cast<const Impl *>(this)->runningImpl();
+        return static_cast<Impl const *>(this)->runningImpl();
     }
 };
 

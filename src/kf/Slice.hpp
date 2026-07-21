@@ -74,8 +74,8 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
         return sub(offset, someTrivial(_length - offset));
     }
 
-    constexpr operator Slice<const T>() const noexcept {
-        return Slice<const T>{_ptr, _length};
+    constexpr operator Slice<T const>() const noexcept {
+        return Slice<T const>{_ptr, _length};
     }
 
 private:

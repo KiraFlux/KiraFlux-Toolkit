@@ -42,7 +42,7 @@ template<implements<UiTraitsTag> U, arithmetic T> struct Slider :
 
     using Config = internal::SliderConfig<T>;
 
-    explicit constexpr Slider(const Config &config, Style style = Style::defaults()) noexcept :
+    explicit constexpr Slider(Config const &config, Style style = Style::defaults()) noexcept :
         U::Widget{style},
         mixin::ValueCallbacked<T>{config.value_range.clamped(config.default_value)},
         mixin::Configured<Config>{config}, _show_value{config.init_show_value} {}

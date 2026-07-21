@@ -37,7 +37,7 @@ private:
 
 template<> struct ComboBoxItem<StringView> final : mixin::Labeled, mixin::Styled {
 
-    template<usize N> constexpr ComboBoxItem(const char (&str)[N], ui::Style style = ui::Style::defaults()) noexcept :
+    template<usize N> constexpr ComboBoxItem(char const (&str)[N], ui::Style style = ui::Style::defaults()) noexcept :
         mixin::Labeled{str}, mixin::Styled{style} {}
 
     [[nodiscard]] constexpr StringView value() const noexcept {
@@ -74,14 +74,14 @@ template<implements<UiTraitsTag> U, typename T> struct ComboBox :
 {
     using Config = internal::ComboBoxConfig<T>;
 
-    explicit constexpr ComboBox(const Config &config, Style style = Style::defaults()) noexcept :
+    explicit constexpr ComboBox(Config const &config, Style style = Style::defaults()) noexcept :
         U::Widget{style}, mixin::Configured<Config>::Configured{config} {}
 
     /// @brief Set selection to the first item whose value equals `new_value`
     /// @param new_value Value to match against items
     /// @note If no matching item is found, the selection remains unchanged
     /// @note undefined behavior if `config().items` is empty
-    void value(const T &new_value) noexcept {
+    void value(T const &new_value) noexcept {
         for (auto i = 0u; i < totalItems(); i += 1) {
             if (this->config().items[i].value() == new_value) {
                 _cursor = i;
@@ -92,7 +92,7 @@ template<implements<UiTraitsTag> U, typename T> struct ComboBox :
 
     /// @return Reference to selected item's value
     /// @note undefined behavior if `config().items` is empty
-    [[nodiscard]] constexpr const T &value() const noexcept {
+    [[nodiscard]] constexpr T const &value() const noexcept {
         return this->config().items[_cursor].value();
     }
 
@@ -106,7 +106,7 @@ template<implements<UiTraitsTag> U, typename T> struct ComboBox :
     }
 
     void doRender(typename U::RendererImpl &render) const noexcept override {
-        const auto &item = this->config().items[_cursor];
+        auto const &item = this->config().items[_cursor];
 
         render.beginBlock(Block::Alternative);
 
@@ -126,7 +126,7 @@ private:
 
     /// @brief Move selection cursor with circular wrapping
     void moveCursor(isize delta) noexcept {
-        const auto n = totalItems();
+        auto const n = totalItems();
         if (n > 0) {
             _cursor = (_cursor + delta + n) % n;
         }

@@ -43,8 +43,8 @@ void array_char() {
 }
 
 void array_const() {
-    const int data[] = {10, 20, 30};
-    Slice<const int> s{data};
+    int const data[] = {10, 20, 30};
+    Slice<int const> s{data};
     TEST_ASSERT_EQUAL_PTR(data, s.data());
     TEST_ASSERT_EQUAL(3, s.length());
     TEST_ASSERT_EQUAL(10, s[0]);
@@ -85,8 +85,8 @@ void element() {
 }
 
 void const_slice() {
-    const int data[] = {7, 8, 9};
-    Slice<const int> s{data, 3};
+    int const data[] = {7, 8, 9};
+    Slice<int const> s{data, 3};
     TEST_ASSERT_EQUAL(7, s[0]);
     TEST_ASSERT_EQUAL(8, s[1]);
     TEST_ASSERT_EQUAL(9, s[2]);
@@ -158,7 +158,7 @@ namespace conversion {
 void to_const() {
     int data[] = {1, 2, 3};
     Slice<int> s{data, 3};
-    Slice<const int> cs = s;
+    Slice<int const> cs = s;
     TEST_ASSERT_EQUAL_PTR(s.data(), cs.data());
     TEST_ASSERT_EQUAL(s.length(), cs.length());
     TEST_ASSERT_EQUAL(1, cs[0]);
@@ -168,16 +168,16 @@ void to_const() {
 
 void empty_to_const() {
     Slice<int> s{};
-    Slice<const int> cs = s;
+    Slice<int const> cs = s;
     TEST_ASSERT_NULL(cs.data());
     TEST_ASSERT_EQUAL(0, cs.length());
     TEST_ASSERT_TRUE(cs.empty());
 }
 
 void const_slice_from_const_ptr() {
-    const int data[] = {4, 5, 6};
-    Slice<const int> s{data, 3};
-    Slice<const int> cs = s;
+    int const data[] = {4, 5, 6};
+    Slice<int const> s{data, 3};
+    Slice<int const> cs = s;
     TEST_ASSERT_EQUAL_PTR(s.data(), cs.data());
     TEST_ASSERT_EQUAL(s.length(), cs.length());
     TEST_ASSERT_EQUAL(4, cs[0]);

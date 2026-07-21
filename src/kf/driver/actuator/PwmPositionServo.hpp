@@ -53,14 +53,14 @@ template<implements<gpio::PwmOutputTag> G> struct PwmPositionServo final :
     /// @brief Construct servo with the same angle range for both mapping and safe operation
     /// @param config Mapping between angle and pulse width
     /// @param gpio    PWM output gpio
-    explicit constexpr PwmPositionServo(const Config &config, PwmOutputImpl &&gpio) noexcept :
+    explicit constexpr PwmPositionServo(Config const &config, PwmOutputImpl &&gpio) noexcept :
         mixin::Configured<Config>{config}, _angle_safe_range{config.angle_range}, _pwm_gpio{std::move(gpio)} {}
 
     /// @brief Construct servo with separate safe angle range (may be narrower than config range)
     /// @param config Mapping between angle and pulse width
     /// @param gpio PWM output gpio
     /// @param angle_safe_range Additional clamping range for safety (e.g., to avoid mechanical limits)
-    explicit constexpr PwmPositionServo(const Config &config, PwmOutputImpl &&gpio, Config::AngleRange angle_safe_range) noexcept :
+    explicit constexpr PwmPositionServo(Config const &config, PwmOutputImpl &&gpio, Config::AngleRange angle_safe_range) noexcept :
         mixin::Configured<Config>{config}, _angle_safe_range{angle_safe_range}, _pwm_gpio{std::move(gpio)} {}
 
 private:

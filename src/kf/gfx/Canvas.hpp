@@ -28,7 +28,7 @@ template<implements<pixel::PixelTag> P> struct Canvas {
     using PaletteType = Palette<PixelImpl>;
 
     struct State {
-        Option<const Font &> active_font;///< Currently selected font
+        Option<Font const &> active_font;///< Currently selected font
         ColorType foreground_color;      ///< Drawing color
         ColorType background_color;      ///< Background/fill color
         bool auto_next_line;             ///< Automatically wrap text to next line
@@ -43,7 +43,7 @@ template<implements<pixel::PixelTag> P> struct Canvas {
         }
     };
 
-    explicit constexpr Canvas(const image::DynamicImage<P> &frame, State state = State::defaults()) noexcept : _frame{frame}, _state{state} {}
+    explicit constexpr Canvas(image::DynamicImage<P> const &frame, State state = State::defaults()) noexcept : _frame{frame}, _state{state} {}
 
     /// @brief Creates validated sub-canvas within current bounds
     [[nodiscard]] auto sub(
@@ -111,10 +111,10 @@ template<implements<pixel::PixelTag> P> struct Canvas {
     // Properties: Font
 
     /// @brief Get current text font
-    [[nodiscard]] const Font &font() const noexcept { return _state.active_font.unwrapOr(Font::blank()); }
+    [[nodiscard]] Font const &font() const noexcept { return _state.active_font.unwrapOr(Font::blank()); }
 
     /// @brief Set current text font
-    void font(const Font &new_font) noexcept { _state.active_font = someRef(new_font); }
+    void font(Font const &new_font) noexcept { _state.active_font = someRef(new_font); }
 
     // Control
 
@@ -177,7 +177,7 @@ template<implements<pixel::PixelTag> P> struct Canvas {
     /// @brief Draw static image at specified position
     /// @param x Left position
     /// @param y Top position
-    template<units::Pixels W, units::Pixels H> void image(units::Pixels x, units::Pixels y, const image::StaticImage<P, W, H> &image) noexcept {
+    template<units::Pixels W, units::Pixels H> void image(units::Pixels x, units::Pixels y, image::StaticImage<P, W, H> const &image) noexcept {
         PixelImpl::copy(
             image.buffer(), image.width(), image.height(),
             _frame.buffer(), _frame.stride(),
@@ -200,17 +200,17 @@ template<implements<pixel::PixelTag> P> struct Canvas {
             return;
         }
 
-        const auto dx = math::abs(x1 - x0);
-        const auto dy = -math::abs(y1 - y0);
-        const auto sx = (x0 < x1) ? 1 : -1;
-        const auto sy = (y0 < y1) ? 1 : -1;
+        auto const dx = math::abs(x1 - x0);
+        auto const dy = -math::abs(y1 - y0);
+        auto const sx = (x0 < x1) ? 1 : -1;
+        auto const sy = (y0 < y1) ? 1 : -1;
         auto error = dx + dy;
 
         while (true) {
             _frame.setPixel(x0, y0, _state.foreground_color);
             if (x0 == x1 and y0 == y1) { break; }
 
-            const auto double_error = 2 * error;
+            auto const double_error = 2 * error;
             if (double_error >= dy) {
                 if (x0 == x1) { break; }
                 error += dy;
@@ -247,10 +247,10 @@ template<implements<pixel::PixelTag> P> struct Canvas {
 
         if (fill) {
             // Fill circle
-            const auto r_squared = radius * radius;
+            auto const r_squared = radius * radius;
             for (auto y = -radius; y <= radius; y += 1) {
-                const int y_squared = y * y;
-                const auto width = static_cast<int>(math::sqrt(r_squared - y_squared));
+                int const y_squared = y * y;
+                auto const width = static_cast<int>(math::sqrt(r_squared - y_squared));
 
                 // todo lineH
                 for (auto x = -width; x <= width; x += 1) {
@@ -306,9 +306,9 @@ template<implements<pixel::PixelTag> P> struct Canvas {
     ///
     ///   \t - Tab (4 character widths)
     void text(units::Pixels start_x, units::Pixels start_y, StringView text) noexcept {
-        const auto font_width = font().glyph_width;
-        const auto font_height = font().glyph_height;
-        const auto font_total_height = font().heightTotal();
+        auto const font_width = font().glyph_width;
+        auto const font_height = font().glyph_height;
+        auto const font_total_height = font().heightTotal();
 
         auto cursor_x = start_x;
         auto cursor_y = start_y;
@@ -353,8 +353,8 @@ template<implements<pixel::PixelTag> P> struct Canvas {
                 }
 
                 case '\t': {
-                    const auto tab_width = tabWidth();
-                    const auto new_x = ((cursor_x / tab_width) + 1) * tab_width;
+                    auto const tab_width = tabWidth();
+                    auto const new_x = ((cursor_x / tab_width) + 1) * tab_width;
                     clearLineSegment(cursor_x, cursor_y, new_x, current_background_color);
                     cursor_x = new_x;
                     continue;
@@ -425,11 +425,11 @@ private:
     /// @param x Left position
     /// @param y Top position
     /// @param glyph Pointer to glyph bitmap data
-    void drawGlyph(units::Pixels x, units::Pixels y, const u8 *glyph, ColorType color_on, ColorType color_off) noexcept {
+    void drawGlyph(units::Pixels x, units::Pixels y, u8 const *glyph, ColorType color_on, ColorType color_off) noexcept {
         if (nullptr == glyph) {
             // Draw box for unknown character
-            const auto x1 = static_cast<units::Pixels>(x + font().glyph_width - 1);
-            const auto y1 = static_cast<units::Pixels>(y + font().glyph_height - 1);
+            auto const x1 = static_cast<units::Pixels>(x + font().glyph_width - 1);
+            auto const y1 = static_cast<units::Pixels>(y + font().glyph_height - 1);
 
             drawLineHorizontal(x, y, x1, color_on);
             drawLineHorizontal(x, y1, x1, color_on);
@@ -438,14 +438,14 @@ private:
             return;
         }
 
-        const auto font_width = font().glyph_width;
-        const auto font_height = font().glyph_height;
+        auto const font_width = font().glyph_width;
+        auto const font_height = font().glyph_height;
 
         for (auto col = 0u; col < font_width; col += 1) {
-            const auto pixel_x = static_cast<units::Pixels>(x + col);
+            auto const pixel_x = static_cast<units::Pixels>(x + col);
 
             for (auto row = 0u; row < font_height; row += 1) {
-                const auto color = (glyph[col] >> row) & 1 ? color_on : color_off;
+                auto const color = (glyph[col] >> row) & 1 ? color_on : color_off;
                 _frame.setPixel(pixel_x, static_cast<units::Pixels>(y + row), color);
             }
 

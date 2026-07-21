@@ -41,7 +41,7 @@ template<implements<gpio::PwmOutputTag> G> struct DRV8871 final :
     /// @param config Driver configuration (dead zones, max input)
     /// @param forward PWM output for forward rotation
     /// @param backward PWM output for backward rotation
-    explicit DRV8871(const Config &config, PwmOutputImpl &&forward, PwmOutputImpl &&backward) noexcept :
+    explicit DRV8871(Config const &config, PwmOutputImpl &&forward, PwmOutputImpl &&backward) noexcept :
         mixin::Configured<Config>(config),
         _pwm_gpio_forward{std::move(forward)}, _pwm_gpio_backward{std::move(backward)} {}
 
@@ -49,7 +49,7 @@ private:
     PwmOutputImpl _pwm_gpio_forward, _pwm_gpio_backward;// TODO: use one GPIO object
 
     /// @brief Map speed command to PWM duty cycle respecting dead zone
-    Config::DutyType calcDuty(Config::InputType value, Config::DutyType dead_zone, const PwmOutputImpl &pwm_output) const noexcept {
+    Config::DutyType calcDuty(Config::InputType value, Config::DutyType dead_zone, PwmOutputImpl const &pwm_output) const noexcept {
         return math::linearMap<Config::DutyType>(
             math::clamp(value, static_cast<Config::InputType>(0), this->config().max_input),
             0, this->config().max_input,

@@ -60,8 +60,8 @@ template<typename T> struct Stack :
 
     /// @brief Get Readonly access to stack top value
     /// @return optional constant reference to stack top item
-    [[nodiscard]] constexpr auto top() const noexcept -> Option<const T &> {
-        return this->empty() ? none : someRef<const T &>(_buffer[_length - 1]);
+    [[nodiscard]] constexpr auto top() const noexcept -> Option<T const &> {
+        return this->empty() ? none : someRef<T const &>(_buffer[_length - 1]);
     }
 
 private:

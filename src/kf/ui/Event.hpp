@@ -44,7 +44,7 @@ template<usize N> struct Event : EventTag {
     }
 
     [[nodiscard]] Value value() const noexcept {
-        const auto raw = static_cast<Value>(_storage & value_mask);
+        auto const raw = static_cast<Value>(_storage & value_mask);
         return (raw & sign_bit_mask) ? static_cast<Value>(raw | ~value_mask) : raw;
     }
 

@@ -29,12 +29,12 @@ using kf::Option;
 template<typename T> struct TestOption {
     static constexpr int value{12345}, default_value{0};
 
-    static constexpr auto mapper{[](const T &) { return 123.456f; }};
+    static constexpr auto mapper{[](T const &) { return 123.456f; }};
 
-    static constexpr auto void_mapper{[](const T &) -> void {}};
+    static constexpr auto void_mapper{[](T const &) -> void {}};
 
     static void some() noexcept {
-        const Option<T> option = kf::some(T{value});
+        Option<T> const option = kf::some(T{value});
 
         TEST_ASSERT_FALSE(option.isNone());
         TEST_ASSERT_TRUE(option.isSome());
@@ -48,7 +48,7 @@ template<typename T> struct TestOption {
     }
 
     static void none() noexcept {
-        const Option<T> option = kf::none;
+        Option<T> const option = kf::none;
 
         TEST_ASSERT_TRUE(option.isNone());
         TEST_ASSERT_FALSE(option.isSome());
@@ -62,7 +62,7 @@ template<typename T> struct TestOption {
     }
 
     static void unwrap() noexcept {
-        const Option<T> option = kf::some(T{value});
+        Option<T> const option = kf::some(T{value});
 
         TEST_ASSERT_TRUE(value == option.unwrap().value);
 
@@ -75,7 +75,7 @@ template<typename T> struct TestOption {
     }
 
     static void unwrap_or() noexcept {
-        const Option<T> option = kf::none;
+        Option<T> const option = kf::none;
 
         TEST_ASSERT_TRUE(value == option.unwrapOr(T{value}).value);
 
@@ -102,7 +102,7 @@ template<typename T> struct TestOption {
     }
 
     static void map_some() noexcept {
-        const auto option = kf::some(T{value}).map(mapper);
+        auto const option = kf::some(T{value}).map(mapper);
 
         TEST_ASSERT_TRUE(option.isSome());
         TEST_ASSERT_TRUE(option.unwrap() == mapper(T{value}));
@@ -116,7 +116,7 @@ template<typename T> struct TestOption {
     }
 
     static void void_map_some() noexcept {
-        const auto option = kf::some(T{value}).map(void_mapper);
+        auto const option = kf::some(T{value}).map(void_mapper);
 
         TEST_ASSERT_TRUE(option.isSome());
 
@@ -129,7 +129,7 @@ template<typename T> struct TestOption {
     }
 
     static void map_none() noexcept {
-        const auto option = Option<T>{kf::none}.map(mapper);
+        auto const option = Option<T>{kf::none}.map(mapper);
 
         TEST_ASSERT_TRUE(option.isNone());
 

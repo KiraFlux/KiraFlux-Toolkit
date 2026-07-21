@@ -34,7 +34,7 @@ void kf::main(kf::Init &init) {
     init.logger.info("c-string: {}", str.cString());
 
     // Static factory: create a formatted string directly into an Array
-    const auto arr = kf::String::formatted<64>("Number: {}, Float: {}", 42, 3.1415);
+    auto const arr = kf::String::formatted<64>("Number: {}, Float: {}", 42, 3.1415);
     init.logger.info("static formatted: {}", arr);
 
     // --- Stack<char> inherited behavior ---
@@ -56,8 +56,8 @@ void kf::main(kf::Init &init) {
     str.append('c');                 // char
 
     // Stack operations: write (push) and read (pop)
-    const bool ok = str.write('c');            // writes a character to the stack
-    const kf::Option<char> popped = str.read();// reads a character from the stack
+    bool const ok = str.write('c');            // writes a character to the stack
+    kf::Option<char> const popped = str.read();// reads a character from the stack
 
     // Iteration (inherited from Sequence)
     init.logger.info("iterating over string:");

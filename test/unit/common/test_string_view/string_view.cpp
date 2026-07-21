@@ -5,7 +5,7 @@ using kf::Slice;
 using kf::StringView;
 using kf::TrivialOption;
 
-static void assertStringViewEqual(StringView actual, const char *expected, size_t len) {
+static void assertStringViewEqual(StringView actual, char const *expected, size_t len) {
     TEST_ASSERT_EQUAL_UINT32(len, actual.length());
 
     if (len) {
@@ -24,7 +24,7 @@ void default_() {
 }
 
 void cstring() {
-    const char *s{"hello"};
+    char const *s{"hello"};
     StringView sv{s};
 
     TEST_ASSERT_EQUAL_PTR(s, sv.data());
@@ -32,7 +32,7 @@ void cstring() {
 }
 
 void ptr_size() {
-    const char *d{"world"};
+    char const *d{"world"};
     StringView sv{d, 3};
 
     TEST_ASSERT_EQUAL_PTR(d, sv.data());
@@ -50,8 +50,8 @@ void literal() {
 }
 
 void slice() {
-    const char *d{"slice"};
-    Slice<const char> sl{d, 5};
+    char const *d{"slice"};
+    Slice<char const> sl{d, 5};
     StringView sv{d, sl.length()};
 
     TEST_ASSERT_EQUAL_PTR(d, sv.data());
@@ -72,7 +72,7 @@ namespace test_access {
 
 void iterators() {
     StringView sv{"12345"};
-    const char *it{sv.begin()};
+    char const *it{sv.begin()};
 
     TEST_ASSERT_EQUAL('1', *it);
     it += 1;

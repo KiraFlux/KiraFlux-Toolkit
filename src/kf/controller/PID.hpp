@@ -52,7 +52,7 @@ struct PID final :
     /// @brief Construct PID controller instance
     /// @param PID tuning parameters
     /// @param dx_filter_alpha Derivative filter smoothing factor (default: 1.0 = no filtering)
-    explicit PID(const Config &config) noexcept :
+    explicit PID(Config const &config) noexcept :
         mixin::Configured<Config>{config}, _derivative_filter{config.derivative_filter} {}
 
     /// @brief Calculate PID controller output

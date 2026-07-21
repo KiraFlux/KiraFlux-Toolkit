@@ -64,3 +64,5 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 TabWidth: 4
 UseTab: Never
+QualifierAlignment: Custom
+QualifierOrder: ['type', 'const', 'volatile']

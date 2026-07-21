@@ -67,8 +67,8 @@ template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joy
     InputImpl axis_x, axis_y;
 
     explicit Joystick(
-        const Config &config,
-        const typename InputImpl::FilterImpl::Config &filter_config,
+        Config const &config,
+        typename InputImpl::FilterImpl::Config const &filter_config,
         typename InputImpl::AdcInputImpl &&pin_x,
         typename InputImpl::AdcInputImpl &&pin_y) noexcept :
         axis_x{config.x, filter_config, std::move(pin_x)},
@@ -85,9 +85,9 @@ private:
     [[nodiscard]] Value readImpl() noexcept {
         // Output is normalized to unit circle (clamped at magnitude 1.0)
 
-        const auto x = axis_x.read();
-        const auto y = axis_y.read();
-        const auto h = math::hypot(x, y);
+        auto const x = axis_x.read();
+        auto const y = axis_y.read();
+        auto const h = math::hypot(x, y);
 
         if (h < 1e-3) { return {0, 0, 0}; }
         if (h > 1) { return {x / h, y / h, 1}; }

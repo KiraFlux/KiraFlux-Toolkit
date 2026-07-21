@@ -184,26 +184,26 @@ public:
         }
 
         /// @brief Get Readonly access to 'go to this page' Widget
-        [[nodiscard]] constexpr const Widget &link() const noexcept {
+        [[nodiscard]] constexpr Widget const &link() const noexcept {
             return _to_this;
         }
 
         /// @brief Get selected widget
-        [[nodiscard]] constexpr auto selectedWidget() const noexcept -> Option<const Widget &> {
-            return _widgets.empty() ? none : someRef<const Widget &>(*_widgets[_cursor]);
+        [[nodiscard]] constexpr auto selectedWidget() const noexcept -> Option<Widget const &> {
+            return _widgets.empty() ? none : someRef<Widget const &>(*_widgets[_cursor]);
         }
 
         /// @brief Render page content to display.
         /// @param render Renderer instance.
         /// @note Handles cursor positioning and widget focus.
         void render(typename Traits::RendererImpl &render) noexcept {
-            const usize available = render.beginPage(this->label(), _layout);
+            usize const available = render.beginPage(this->label(), _layout);
 
             if (_widgets.empty()) {
                 // TODO: render placeholder page content
             } else {
-                const usize start = (_widgets.length() > available) ? math::min(static_cast<usize>(_cursor), _widgets.length() - available) : 0;
-                const usize end = math::min(start + available, _widgets.length());
+                usize const start = (_widgets.length() > available) ? math::min(static_cast<usize>(_cursor), _widgets.length() - available) : 0;
+                usize const end = math::min(start + available, _widgets.length());
 
                 for (auto i = start; i < end; i += 1) {
                     auto widget = _widgets[i];
@@ -272,7 +272,7 @@ public:
         /// @brief Move cursor within page bounds
         /// @param delta Cursor movement delta (positive/negative)
         [[nodiscard]] Request moveCursor(isize delta) noexcept {
-            const auto n = _widgets.length();
+            auto const n = _widgets.length();
             if (n > 1) {
                 _cursor = (_cursor + delta + n) % n;
                 return Request::Redraw;
@@ -321,13 +321,13 @@ private:
             auto events_processed = 0u;
 
             while (not _events.empty() and events_processed < max_events_per_poll) {
-                const auto event = _events.read();
+                auto const event = _events.read();
 
                 if (event.isNone()) {
                     break;
                 }
 
-                const auto request = _active_page.unwrap().onEvent(event.unwrap());
+                auto const request = _active_page.unwrap().onEvent(event.unwrap());
 
                 switch (request) {
                     case Request::Nothing:

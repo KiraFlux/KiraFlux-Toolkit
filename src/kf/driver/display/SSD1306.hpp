@@ -71,7 +71,7 @@ template<implements<bus::IicNodeTag> N> struct SSD1306 final :
 
     /// @brief Set display contrast level (0..255)
     [[nodiscard]] IicOperationResult contrast(u8 value) noexcept {
-        const u8 packet[]{CommandMode, Contrast, value};
+        u8 const packet[]{CommandMode, Contrast, value};
         return _node.writePacket(packet);
     }
 
@@ -94,7 +94,7 @@ private:
 
     /// @brief Send single command to display
     [[nodiscard]] IicOperationResult sendCommand(Command c) noexcept {
-        const u8 packet[]{OneCommandMode, static_cast<u8>(c)};
+        u8 const packet[]{OneCommandMode, static_cast<u8>(c)};
         return _node.writePacket(packet);
     }
 
@@ -171,7 +171,7 @@ private:
         auto remaining = this->image().buffer().length();
 
         while (remaining > 0) {
-            const auto chunk = math::min(packet_size, remaining);
+            auto const chunk = math::min(packet_size, remaining);
 
             KF_TRY(_node.writeMixed(Command::DataMode, {p, chunk}));
 
@@ -189,7 +189,7 @@ private:
 
         constexpr auto flip_x = 0b01;
         constexpr auto flip_y = 0b10;
-        const auto flags = static_cast<u8>(orientation);
+        auto const flags = static_cast<u8>(orientation);
 
         KF_TRY(sendCommand((flags & flip_x) ? FlipH : NormalH));
         KF_TRY(sendCommand((flags & flip_y) ? FlipV : NormalV));

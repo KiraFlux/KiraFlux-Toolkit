@@ -35,7 +35,7 @@ template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWrita
     /// @brief Write arbitrary data from buffer
     /// @param buffer Source data
     /// @return Result indicating success or error
-    [[nodiscard]] ResultType writeBuffer(Slice<const u8> buffer) noexcept {
+    [[nodiscard]] ResultType writeBuffer(Slice<u8 const> buffer) noexcept {
         return impl().writeBufferImpl(buffer);
     }
 
@@ -50,13 +50,13 @@ template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWrita
     /// @param header Header to write
     /// @param buffer Source buffer
     /// @return Result indicating success or error
-    [[nodiscard]] ResultType writeMixed(trivial auto const &header, Slice<const u8> buffer) noexcept {
+    [[nodiscard]] ResultType writeMixed(trivial auto const &header, Slice<u8 const> buffer) noexcept {
         return impl().writeMixedImpl(header, buffer);
     }
 
 private:
     Impl &impl() noexcept { return *static_cast<Impl *>(this); }
-    const Impl &impl() const noexcept { return *static_cast<const Impl *>(this); }
+    Impl const &impl() const noexcept { return *static_cast<Impl const *>(this); }
 };
 
 }// namespace kf::mixin

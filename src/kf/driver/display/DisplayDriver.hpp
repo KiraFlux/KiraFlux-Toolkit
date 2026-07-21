@@ -35,7 +35,7 @@ template<typename Impl, implements<image::ImageTag> ImageImpl, typename ResultTy
     }
 
     /// @brief Readonly access at image buffer
-    [[nodiscard]] const ImageImpl &image() const noexcept {
+    [[nodiscard]] ImageImpl const &image() const noexcept {
         return _screen_image;
     }
 

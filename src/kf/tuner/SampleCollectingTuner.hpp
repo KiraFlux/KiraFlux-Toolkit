@@ -36,7 +36,7 @@ template<typename Impl, typename T> struct SampleCollectingTuner : Tuner<SampleC
     };
 
     /// @brief Total number of samples to collect before calculating.
-    const SampleCounterType samples_total;
+    SampleCounterType const samples_total;
 
     explicit SampleCollectingTuner(ConfigType &config, SampleCounterType samples) noexcept :
         _config{config}, samples_total{samples} {}
@@ -86,8 +86,8 @@ private:
         return *static_cast<Impl *>(this);
     }
 
-    const Impl &impl() const noexcept {
-        return *static_cast<const Impl *>(this);
+    Impl const &impl() const noexcept {
+        return *static_cast<Impl const *>(this);
     }
 };
 

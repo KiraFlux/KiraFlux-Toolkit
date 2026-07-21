@@ -16,7 +16,7 @@ template<typename Impl, typename T> struct Iterator : IteratorTag, mixin::Equata
 
     /// @brief Get current element
     [[nodiscard]] constexpr T value() const noexcept {
-        return static_cast<const Impl *>(this)->getValueImpl();
+        return static_cast<Impl const *>(this)->getValueImpl();
     }
 
     /// @brief Advance to next element

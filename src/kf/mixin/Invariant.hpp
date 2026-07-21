@@ -13,7 +13,7 @@ template<typename Impl> struct Invariant {
     /// @brief Checks whether the object contains a Some
     /// @return `true` if a value is present, `false` otherwise.
     [[nodiscard]] constexpr bool isSome() const noexcept {
-        return static_cast<const Impl *>(this)->isSomeImpl();
+        return static_cast<Impl const *>(this)->isSomeImpl();
     }
 
     /// @brief Checks whether the object is None

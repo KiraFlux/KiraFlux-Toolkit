@@ -91,7 +91,7 @@ struct Espnow final :
     mixin::MacAddressed,
     mixin::Initable<Espnow, Result<void, internal::EspnowError>()>,
     mixin::Quitable<Espnow>,
-    mixin::Callbacked<void(const MacAddress &, Slice<const u8>)>
+    mixin::Callbacked<void(MacAddress const &, Slice<u8 const>)>
 
 {
     /// @brief ESP-NOW operation error type
@@ -143,7 +143,7 @@ struct Espnow final :
         /// @brief Add a new peer to ESP‑NOW network
         /// @param config Peer Configuration
         /// @return Peer object on success, Error on failure
-        [[nodiscard]] static auto create(const Config &config) noexcept -> Result<Peer, Error> {
+        [[nodiscard]] static auto create(Config const &config) noexcept -> Result<Peer, Error> {
             esp_now_peer_info_t peer_info{
                 .channel = 0,
                 .ifidx = static_cast<wifi_interface_t>(config.wifi_interface_sta ? WIFI_IF_STA : WIFI_IF_AP),
@@ -151,7 +151,7 @@ struct Espnow final :
             };
             std::copy(config.mac_address.begin(), config.mac_address.end(), peer_info.peer_addr);
 
-            const auto e = esp_now_add_peer(&peer_info);
+            auto const e = esp_now_add_peer(&peer_info);
             if (ESP_OK == e) {
                 return ok(std::move(Peer{config.mac_address}));
             } else {
@@ -161,7 +161,7 @@ struct Espnow final :
 
         /// @brief Remove peer from ESP-NOW network
         [[nodiscard]] VoidResult del() noexcept {
-            const auto e = esp_now_del_peer(_mac_address.data());
+            auto const e = esp_now_del_peer(_mac_address.data());
             if (ESP_OK == e) {
                 return ok();
             } else {
@@ -178,11 +178,11 @@ struct Espnow final :
         bool _owns{true};
 
         /// @note Called only by Peer::create
-        explicit Peer(const MacAddress &mac) noexcept : mixin::MacAddressed{mac} {}
+        explicit Peer(MacAddress const &mac) noexcept : mixin::MacAddressed{mac} {}
 
         /// @brief Internal send implementation
-        [[nodiscard]] VoidResult send(const u8 *data, usize len) noexcept {
-            const auto e = esp_now_send(_mac_address.data(), data, len);
+        [[nodiscard]] VoidResult send(u8 const *data, usize len) noexcept {
+            auto const e = esp_now_send(_mac_address.data(), data, len);
             if (ESP_OK == e) {
                 return ok();
             } else {
@@ -192,22 +192,22 @@ struct Espnow final :
 
         KF_IMPL_BINARY_WRITABLE(Peer, VoidResult);
 
-        VoidResult writeBufferImpl(Slice<const u8> buffer) noexcept {
+        VoidResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
             if (buffer.length() > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }
             return send(buffer.data(), buffer.length());
         }
 
         VoidResult writePacketImpl(auto const &packet) noexcept {
             static_assert(sizeof(decltype(packet)) < ESP_NOW_MAX_DATA_LEN, "Message is too big!");
-            return send(reinterpret_cast<const u8 *>(&packet), sizeof(decltype(packet)));
+            return send(reinterpret_cast<u8 const *>(&packet), sizeof(decltype(packet)));
         }
 
-        VoidResult writeMixedImpl(auto const &header, Slice<const u8> buffer) noexcept {
-            const auto mixed_size = sizeof(decltype(header)) + buffer.length();
+        VoidResult writeMixedImpl(auto const &header, Slice<u8 const> buffer) noexcept {
+            auto const mixed_size = sizeof(decltype(header)) + buffer.length();
             if (mixed_size > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }
             u8 mixed[mixed_size];
 
-            const auto header_data = reinterpret_cast<const u8 *>(&header);
+            auto const header_data = reinterpret_cast<u8 const *>(&header);
             std::copy(header_data, header_data + sizeof(decltype(header)), mixed);
             std::copy(buffer.begin(), buffer.end(), mixed + sizeof(decltype(header)));
 
@@ -222,11 +222,11 @@ private:
     constexpr Espnow() noexcept : MacAddressed{{}} {}
 
     /// @brief ESP‑NOW receive callback (static wrapper)
-    static void onReceive(const esp_now_recv_info_t *info, const u8 *data, int size) noexcept {
+    static void onReceive(esp_now_recv_info_t const *info, u8 const *data, int size) noexcept {
         MacAddress source_mac_address;
         std::copy(info->src_addr, info->src_addr + ESP_NOW_ETH_ALEN, source_mac_address.begin());
 
-        Espnow::instance().invoke(source_mac_address, Slice<const u8>{data, static_cast<usize>(size)});
+        Espnow::instance().invoke(source_mac_address, Slice<u8 const>{data, static_cast<usize>(size)});
     }
 
     KF_IMPL_INITABLE(Espnow, VoidResult());

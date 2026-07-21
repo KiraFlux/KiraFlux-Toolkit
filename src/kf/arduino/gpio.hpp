@@ -37,7 +37,7 @@ struct ArduinoDigitalInput : gpio::DigitalInput<ArduinoDigitalInput, void()> {
         _gpio_num{static_cast<u8>(gpio_num)}, _state{static_cast<u8>(pull_type)} {}
 
 private:
-    const u8 _gpio_num;
+    u8 const _gpio_num;
     u8 _state;
 
     [[nodiscard]] u8 matchMode(bool inverted_reading) const noexcept {
@@ -51,13 +51,13 @@ private:
     KF_IMPL_GPIO_DIGITAL_INPUT(ArduinoDigitalInput, void());
 
     void initImpl() noexcept {
-        const bool inverted_reading = ((_state & pull_up_bit) == 0);
+        bool const inverted_reading = ((_state & pull_up_bit) == 0);
         pinMode(_gpio_num, matchMode(inverted_reading));
         _state = static_cast<u8>(inverted_reading);
     }
 
     bool readImpl() const noexcept {
-        const auto level = static_cast<bool>(digitalRead(_gpio_num));
+        auto const level = static_cast<bool>(digitalRead(_gpio_num));
 
         // if inverted
         if (static_cast<bool>(_state)) {
@@ -87,7 +87,7 @@ struct ArduinoAdcInput : gpio::AdcInput<ArduinoAdcInput, void()> {
 private:
     inline static usize resolution_bits{12};// Arduino default resolution on ESP32 is 12-bits
 
-    const u8 _gpio_num;
+    u8 const _gpio_num;
 
     KF_IMPL_GPIO_ADC_INPUT(ArduinoAdcInput, void());
 
@@ -119,7 +119,7 @@ struct ArduinoDigitalOutput : gpio::DigitalOutput<ArduinoDigitalOutput, void()> 
         _gpio_num{static_cast<u8>(gpio_num)} {}
 
 private:
-    const u8 _gpio_num;
+    u8 const _gpio_num;
 
     KF_IMPL_GPIO_DIGITAL_OUTPUT(ArduinoDigitalOutput, void());
 

@@ -43,7 +43,7 @@ template<implements<UiTraitsTag> U, arithmetic T, implements<typename U::Adjuste
     using AdjusterImpl = A;
     using Config = internal::SpinBoxConfig<T>;
 
-    explicit constexpr SpinBox(const Config &config, T default_value = T{}, Style style = Style::defaults()) noexcept :
+    explicit constexpr SpinBox(Config const &config, T default_value = T{}, Style style = Style::defaults()) noexcept :
         U::Widget{style}, mixin::ValueCallbacked<T>{default_value}, mixin::Configured<Config>{config}, _step(config.default_step) {}
 
     /// @brief Toggle between value adjustment and step adjustment modes

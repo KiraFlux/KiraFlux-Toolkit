@@ -29,7 +29,7 @@ template<typename Impl, typename T> struct Sequence :
         return static_cast<Impl *>(this)->getDataImpl();
     }
 
-    [[nodiscard]] constexpr const T *data() const noexcept {
+    [[nodiscard]] constexpr T const *data() const noexcept {
         return const_cast<Sequence *>(this)->data();
     }
 
@@ -45,11 +45,11 @@ template<typename Impl, typename T> struct Sequence :
         return begin() + this->length();
     }
 
-    [[nodiscard]] constexpr const T *begin() const noexcept {
+    [[nodiscard]] constexpr T const *begin() const noexcept {
         return data();
     }
 
-    [[nodiscard]] constexpr const T *end() const noexcept {
+    [[nodiscard]] constexpr T const *end() const noexcept {
         return begin() + this->length();
     }
 
@@ -62,7 +62,7 @@ template<typename Impl, typename T> struct Sequence :
     }
 
     /// @brief Get readonly slice
-    [[nodiscard]] constexpr Slice<const T> slice() const noexcept {
+    [[nodiscard]] constexpr Slice<T const> slice() const noexcept {
         return {
             this->data(),
             this->length(),

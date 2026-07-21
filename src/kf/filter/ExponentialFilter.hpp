@@ -40,7 +40,7 @@ private:
 
     KF_IMPL_FILTER(ExponentialFilter<ValueType>, ValueType);
 
-    ValueType calcImpl(const ValueType &value) noexcept {
+    ValueType calcImpl(ValueType const &value) noexcept {
         if (_filtered.isNone()) {
             _filtered = someTrivial(value);
         } else {

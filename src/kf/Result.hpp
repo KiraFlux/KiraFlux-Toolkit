@@ -19,12 +19,12 @@ template<typename Impl, trivial E> struct ResultErrorController {
 
     /// @brief Check if result contains an error
     [[nodiscard]] constexpr bool isError() const noexcept {
-        return static_cast<const Impl *>(this)->isErrorImpl();
+        return static_cast<Impl const *>(this)->isErrorImpl();
     }
 
     /// @brief Get the stored error (panic if not error)
-    [[nodiscard]] const E &error() const noexcept {
-        if (isError()) { return static_cast<const Impl *>(this)->getErrorImpl(); }
+    [[nodiscard]] E const &error() const noexcept {
+        if (isError()) { return static_cast<Impl const *>(this)->getErrorImpl(); }
         abort();
     }
 };
@@ -93,7 +93,7 @@ template<typename T, typename E> struct Result final :
     }
 
     /// @brief Get the stored value (const overload)
-    [[nodiscard]] const T &ok() const & noexcept {
+    [[nodiscard]] T const &ok() const & noexcept {
         return const_cast<Result *>(this)->ok();
     }
 
@@ -139,7 +139,7 @@ private:
         return not _is_ok;
     }
 
-    [[nodiscard]] const E &getErrorImpl() const noexcept {
+    [[nodiscard]] E const &getErrorImpl() const noexcept {
         return _error;
     }
 };
@@ -199,7 +199,7 @@ private:
         return _is_error;
     }
 
-    [[nodiscard]] const E &getErrorImpl() const noexcept {
+    [[nodiscard]] E const &getErrorImpl() const noexcept {
         return _error;
     }
 };

@@ -127,7 +127,7 @@ struct ColoredTextRenderer :
     using Wrapped = TextualRenderer;
     using Config = internal::ColoredTextRendererConfig;
 
-    explicit constexpr ColoredTextRenderer(const Config &config, Slice<char> source) noexcept :
+    explicit constexpr ColoredTextRenderer(Config const &config, Slice<char> source) noexcept :
         mixin::Configured<Config>{config}, _wrapped{config.textual, source} {}
 
     void callback(auto &&callback) noexcept {
@@ -138,15 +138,15 @@ private:
     Wrapped _wrapped;
     bool _focus_active{false};
 
-    void writeColor(Color color, char base_code, const Config::Palette &palette) noexcept {
+    void writeColor(Color color, char base_code, Config::Palette const &palette) noexcept {
         _wrapped.writeChar(base_code + static_cast<char>(palette.get(color)));
     }
 
-    void writeForegroundColor(Color color, const Config::Palette &palette) noexcept {
+    void writeForegroundColor(Color color, Config::Palette const &palette) noexcept {
         writeColor(color, '\xF0', palette);
     }
 
-    void writeBackgroundColor(Color color, const Config::Palette &palette) noexcept {
+    void writeBackgroundColor(Color color, Config::Palette const &palette) noexcept {
         writeColor(color, '\xB0', palette);
     }
 

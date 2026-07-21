@@ -28,7 +28,7 @@ struct NvsError : mixin::Representable<NvsError, StringView> {
         Unknown,
     } kind;
 
-    [[nodiscard]] static constexpr auto fromEsp(const esp_err_t e) -> ResultErrorWrapper<NvsError> {
+    [[nodiscard]] static constexpr auto fromEsp(esp_err_t const e) -> ResultErrorWrapper<NvsError> {
         switch (e) {
             case ESP_ERR_NVS_NOT_FOUND:
                 return {{.kind = NotFound}};
@@ -84,20 +84,20 @@ struct NVS final :
     using ResultType = Result<void, Error>;
 
     /// @brief Construct NVS storage component
-    explicit constexpr NVS(const char *nvs_namespace) noexcept :
+    explicit constexpr NVS(char const *nvs_namespace) noexcept :
         _namespace{nvs_namespace} {}
 
     /// @brief Get NVS Namespace name
-    [[nodiscard]] constexpr const char *name() const noexcept {
+    [[nodiscard]] constexpr char const *name() const noexcept {
         return _namespace;
     }
 
     /// @brief Get blob value
     /// @param key blob entry key
     /// @param buffer blob destination buffer
-    [[nodiscard]] ResultType getBlob(const char *key, Slice<u8> buffer) noexcept {
+    [[nodiscard]] ResultType getBlob(char const *key, Slice<u8> buffer) noexcept {
         auto len = buffer.length();
-        const auto result = wrap(nvs_get_blob(_handle.unwrap(), key, static_cast<void *>(buffer.data()), &len));
+        auto const result = wrap(nvs_get_blob(_handle.unwrap(), key, static_cast<void *>(buffer.data()), &len));
 
         if (len != buffer.length()) {
             return error(Error{.kind = Error::BlobSizeMismatch});
@@ -109,7 +109,7 @@ struct NVS final :
     /// @brief Set blob value
     /// @param key blob entry key
     /// @param buffer blob source buffer
-    [[nodiscard]] ResultType setBlob(const char *key, Slice<const u8> buffer) noexcept {
+    [[nodiscard]] ResultType setBlob(char const *key, Slice<u8 const> buffer) noexcept {
         return wrap(nvs_set_blob(_handle.unwrap(), key, buffer.data(), buffer.length()));
     }
 
@@ -119,7 +119,7 @@ struct NVS final :
     }
 
 private:
-    const char *_namespace;
+    char const *_namespace;
     TrivialOption<nvs_handle_t> _handle{none};
 
     [[nodiscard]] static ResultType wrap(esp_err_t e) noexcept {

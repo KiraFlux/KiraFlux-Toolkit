@@ -38,7 +38,7 @@ void kf::main(kf::Init &init) {
 
     // write buffer
 
-    kf::Slice<const kf::u8> my_buffer_view{buffer};
+    kf::Slice<kf::u8 const> my_buffer_view{buffer};
     (void) my_stream.writeBuffer(my_buffer_view);
 
     // write packet (Trivially copyable struct)
@@ -56,13 +56,13 @@ void kf::main(kf::Init &init) {
 
     // read byte
 
-    const kf::Result<kf::u8, ArduinoStream::Error> read_byte_result = my_stream.readByte();
+    kf::Result<kf::u8, ArduinoStream::Error> const read_byte_result = my_stream.readByte();
     if (read_byte_result.isOk()) {
-        const kf::u8 my_byte = read_byte_result.ok();// get result value
+        kf::u8 const my_byte = read_byte_result.ok();// get result value
     } else {
         // same as read_byte_result.isError()
 
-        const ArduinoStream::Error my_byte_error = read_byte_result.error();
+        ArduinoStream::Error const my_byte_error = read_byte_result.error();
     }
 
     // read into buffer

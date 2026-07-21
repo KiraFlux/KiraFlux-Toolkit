@@ -30,12 +30,12 @@ constexpr auto white = Palette::white;
 
 // --- Helper: run a demo sequence for a given orientation ---
 
-void runDemo(kf::Init &init, ST7735 &display, const char *orientation_name) {
+void runDemo(kf::Init &init, ST7735 &display, char const *orientation_name) {
     // Wrap the display framebuffer into a Canvas
     kf::gfx::Canvas<P> canvas{kf::image::DynamicImage<P>{display.image()}};
     canvas.font(kf::gfx::fonts::gyver_5x7_en);
 
-    const auto step_time_ms = 1000;
+    auto const step_time_ms = 1000;
 
     // Fill screen with solid colors
     canvas.background(red);
@@ -142,7 +142,7 @@ void kf::main(kf::Init &init) {
         Orientation::CounterClockWise,
     };
 
-    const char *orientation_names[] = {
+    char const *orientation_names[] = {
         "Normal",
         "Mirror X",
         "Mirror Y",

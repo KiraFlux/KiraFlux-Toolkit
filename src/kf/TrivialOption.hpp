@@ -54,7 +54,7 @@ template<trivial T> struct RealValueOption :
         return _value;
     }
 
-    [[nodiscard]] const T &unwrap() const noexcept {
+    [[nodiscard]] T const &unwrap() const noexcept {
         return const_cast<RealValueOption *>(this)->unwrap();
     }
 
@@ -126,7 +126,7 @@ template<trivial T> struct TrivialOption final :
     /// @brief Unwrap the stored value (const lvalue Option)
     /// @return Const reference to stored value
     /// @note Aborts if None
-    [[nodiscard]] const T &unwrap() const & noexcept {
+    [[nodiscard]] T const &unwrap() const & noexcept {
         return const_cast<TrivialOption *>(this)->unwrap();
     }
 
@@ -152,7 +152,7 @@ private:
     };
     bool _is_some;
 
-    explicit constexpr TrivialOption(const T &value) noexcept :
+    explicit constexpr TrivialOption(T const &value) noexcept :
         _value{value}, _is_some{true} {}
 
     KF_IMPL_INVARIANT(Self);

@@ -9,11 +9,11 @@ namespace kf::mixin {
 /// @tparam Impl Equatable Implementation class with `constexpr bool isEqualsImpl(const Impl &) const noexcept`
 template<typename Impl> struct Equatable {
 
-    [[nodiscard]] constexpr bool operator==(const Impl &other) const noexcept {
-        return static_cast<const Impl *>(this)->isEqualsImpl(other);
+    [[nodiscard]] constexpr bool operator==(Impl const &other) const noexcept {
+        return static_cast<Impl const *>(this)->isEqualsImpl(other);
     }
 
-    [[nodiscard]] constexpr bool operator!=(const Impl &other) const noexcept {
+    [[nodiscard]] constexpr bool operator!=(Impl const &other) const noexcept {
         return not(*this == other);
     }
 };
