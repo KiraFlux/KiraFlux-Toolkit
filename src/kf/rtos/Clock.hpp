@@ -19,7 +19,7 @@ struct Clock {
     /// @brief Get current time in Milliseconds
     [[nodiscard]] static units::Milliseconds now() noexcept {
 #ifdef ARDUINO
-        ::millis();
+        return ::millis();
 #else
         struct timespec ts;
         ::clock_gettime(CLOCK_MONOTONIC, &ts);
