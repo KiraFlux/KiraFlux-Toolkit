@@ -1,6 +1,10 @@
-#include <Arduino.h>
+#include <kf/main.hpp>
 
 #include <kf/Array.hpp>
+#include <kf/Logger.hpp>
+#include <kf/rtos/Clock.hpp>
+#include <kf/rtos/Task.hpp>
+
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
@@ -16,32 +20,11 @@ using MyUI = kf::ui::UI<
             kf::ui::render::TextualRenderer,// Renderer implementation: plain text
             MyEvent>>>;
 
-static MyUI::Traits::RendererImpl::Config my_renderer_config{
-    .row_max_length = 50,// console width = 50 chars
-    .rows_total = 5,     // only 5 rows available (for scrolling)
-    .float_places = 3,   // float rendering like:  1234.567
-    .double_places = 6,  // double rendering like: 1.2345670
-    .title_centered = false,
-};
-
-static kf::Array<char, 256> my_renderer_buffer{};
-
-// allocate memory for event queue
-static char my_event_buffer[64 * sizeof(MyUI::Traits::EventImpl)];
-
-static MyUI::Traits::RendererImpl my_renderer{
-    my_renderer_config,// by ref
-    my_renderer_buffer.slice(),
-};
-
-static MyUI my_ui{
-    {reinterpret_cast<MyUI::Traits::EventImpl *>(my_event_buffer), sizeof(my_event_buffer)},
-    my_renderer,// by ref
-};
-
 // User-defined example pages
 
 struct MainPage : MyUI::Page {
+
+    inline static kf::Logger logger{"main"};
 
     int my_value{12345};
 
@@ -86,19 +69,18 @@ struct MainPage : MyUI::Page {
         &slider,
     }};
 
-    explicit MainPage() : Page{my_ui} {
+    explicit MainPage(MyUI &ui) : Page{ui} {
         this->label("Main");
 
         click_button.callback([this]() {
-            Serial.println("Test button clicked!");
+            logger.info("Test button clicked!");
             my_value += 1;
             value_display.value(my_value);
             _ui.requestRender();
         });
 
         check_box.callback([this](bool state) {
-            Serial.print("Checkbox changed to: ");
-            Serial.println(state ? "ON" : "OFF");
+            logger.info("Checkbox changed to: {}", state ? "ON" : "OFF");
             my_value *= -1;
             value_display.value(my_value);
         });
@@ -112,21 +94,22 @@ struct MainPage : MyUI::Page {
 
     // behavior on entry
     void onEntry() noexcept override {
-        Serial.println("Entry on Main");
+        logger.debug("Entry on Main");
     }
 
     // behavior on leave
     void onExit() noexcept override {
-        Serial.println("Exit from Main");
+        logger.debug("Exit from Main");
     }
 
 protected:
     // behavior on UI polling
     void onPoll(kf::units::Milliseconds now) noexcept override {}
-
-} main_page{};
+};
 
 struct SettingsPage : MyUI::Page {
+
+    inline static kf::Logger logger{"setting"};
 
     using PresetInput = MyUI::ComboBox<int>;
 
@@ -185,31 +168,27 @@ struct SettingsPage : MyUI::Page {
         &spin_box,
     }};
 
-    explicit SettingsPage() : Page{my_ui} {
+    explicit SettingsPage(MyUI &ui) : Page{ui} {
         this->label("Settings");
 
         ints_combo_box.callback([](auto item) {
-            Serial.print("Int Combo selected: ");
-            Serial.println(item.value());
+            logger.info("Int Combo selected: {}", item.value());
         });
         labeled_ints_combo_box.hint("Hint: this is int combo box for some this example");
 
         strings_combo_box.callback([](auto item) {
-            Serial.print("String Combo selected: ");
-            Serial.println(item.value().data());
+            logger.info("String Combo selected: {}", item.value().data());
         });
 
         spin_box.callback([](int value) {
-            Serial.print("SpinBox value: ");
-            Serial.println(value);
+            logger.info("SpinBox value: {}", value);
         });
     }
 
     WidgetsView build() noexcept override {
         return widgets_storage.slice();
     }
-
-} settings_page{};
+};
 
 // Simple function for conversion from char to event
 MyEvent eventFromChar(char c) {
@@ -224,23 +203,44 @@ MyEvent eventFromChar(char c) {
     }
 }
 
-void setup() {
-    Serial.begin(115200);
+void kf::main(kf::Init &init) {
+    // allocate memory for buffers
+    static char my_renderer_buffer[256]{};
+    static char my_event_buffer[64 * sizeof(MyUI::Traits::EventImpl)];
+
+    MyUI::Traits::RendererImpl::Config my_renderer_config{
+        .row_max_length = 50,// console width = 50 chars
+        .rows_total = 5,     // only 5 rows available (for scrolling)
+        .float_places = 3,   // float rendering like:  1234.567
+        .double_places = 6,  // double rendering like: 1.2345670
+        .title_centered = false,
+    };
+
+    MyUI::Traits::RendererImpl my_renderer{
+        my_renderer_config,// by ref
+        {my_renderer_buffer},
+    };
+
+    MyUI my_ui{
+        {reinterpret_cast<MyUI::Traits::EventImpl *>(my_event_buffer), sizeof(my_event_buffer)},
+        my_renderer,// by ref
+    };
+
+    SettingsPage settings_page{my_ui};
+    MainPage main_page{my_ui};
 
     // post-render procedure
-    my_renderer.callback([](kf::StringView text) {
-        Serial.println("---");
+    my_renderer.callback([&init, &my_ui](kf::StringView text) {
+        init.logger.info("UI: {}\n", text);
 
         auto const &active_page = my_ui.activePage();
         if (active_page.isSome()) {
             auto const &selected_widget = active_page.unwrap().selectedWidget();
 
             if (selected_widget.isSome()) {
-                Serial.println(selected_widget.unwrap().hint().data());
+                init.logger.info("hint: {}", selected_widget.unwrap().hint().data());
             }
         }
-
-        Serial.print(text.data());
     });
 
     // insert navigation button on both pages
@@ -249,16 +249,17 @@ void setup() {
 
     my_ui.activePage(main_page);// start ui with main page
     my_ui.requestRender();      // Force update for first ui rendering
-}
 
-void loop() {
-    if (Serial.available()) {
-        char const c = Serial.read();
-        my_ui.addEvent(eventFromChar(c));
+    while (true) {
+
+        while (init.io.availableForRead() > 0) {
+            if (auto const read = init.io.readByte(); read.isOk()) {
+                my_ui.addEvent(eventFromChar(read.ok()));
+            }
+        }
+
+        my_ui.poll(rtos::Clock::now());
+
+        rtos::Task::sleep(10);
     }
-
-    auto const now = millis();
-    my_ui.poll(now);
-
-    delay(10);// 100 hz
 }
