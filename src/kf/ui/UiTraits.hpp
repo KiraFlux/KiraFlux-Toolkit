@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/concepts.hpp"
+#include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/ui/widget/Widget.hpp"
 
@@ -86,7 +87,7 @@ template<implements<widget::WidgetTag> W> struct UiTraits : UiTraitsTag {
     private:
         KF_IMPL_ADJUSTER(GeometricAdjuster<T>, T);
         static constexpr T adjustImpl(T value, T step, int direction) noexcept {
-            return (direction == 0) ? value : ((direction > 0) ? (value * step) : max(value / step, internal::step_adjuster_min_step<T>::value));
+            return (direction == 0) ? value : ((direction > 0) ? (value * step) : math::max(value / step, internal::step_adjuster_min_step<T>::value));
         }
     };
 };
