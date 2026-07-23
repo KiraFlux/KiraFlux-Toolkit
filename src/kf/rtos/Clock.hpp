@@ -25,7 +25,7 @@ struct Clock {
         ::clock_gettime(CLOCK_MONOTONIC, &ts);
 
         return units::Milliseconds{
-            (static_cast<u64>(ts.tv_sec) * 1000) + (static_cast<u64>(ts.tv_nsec) / 1'000'000),
+            static_cast<u32>((static_cast<u64>(ts.tv_sec) * 1000) + (static_cast<u64>(ts.tv_nsec) / 1'000'000)),
         };
 #endif
     }
