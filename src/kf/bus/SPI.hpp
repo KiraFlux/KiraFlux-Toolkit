@@ -3,6 +3,11 @@
 
 #pragma once
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#include <SPI.h>
+#endif
+
 #include "kf/Result.hpp"
 #include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
@@ -11,11 +16,6 @@
 #include "kf/mixin/Initable.hpp"
 
 #include "kf/bus/Bus.hpp"
-
-#ifdef ARDUINO
-#include <Arduino.h>
-#include <SPI.h>
-#endif
 
 namespace kf::internal {
 
@@ -247,16 +247,22 @@ private:
 };
 
 struct SpiBusImpl : SpiBusBase<SpiBusImpl> {
-    friend SpiNodeImpl<SpiBusImpl>;
+    using Self = SpiBusImpl;
 
-    using SpiBusBase<SpiBusImpl>::SpiBusBase;
+    using Config = SpiBusConfig;
+    using Error = SpiError;
+    using Node = SpiNodeImpl<SpiBusImpl>;
+
+    friend Node;
+
+    using SpiBusBase<Self>::SpiBusBase;
 
 private:
     SPIClass _spi{VSPI};
 
-    KF_IMPL_BUS(SpiBusImpl, SpiError);
+    KF_IMPL_BUS(Self, Error);
 
-    Result<void, SpiError> initImpl() noexcept {
+    auto initImpl() noexcept -> Result<void, Error> {
         if (this->config().hasDefaultPins()) {
             _spi.begin();
         } else {
@@ -276,7 +282,6 @@ template<typename B> struct SpiNodeImpl : SpiNodeBase<SpiNodeImpl<B>> {
     using Self = SpiNodeImpl<B>;
 
     using Error = SpiError;
-
     using Config = SpiNodeConfig;
 
     explicit SpiNodeImpl(B &bus, Config const &config) noexcept :
@@ -312,13 +317,18 @@ private:
 };
 
 struct SpiBusImpl : SpiBusBase<SpiBusImpl> {
+    using Self = SpiBusImpl;
 
-    using SpiBusBase<SpiBusImpl>::SpiBusBase;
+    using Config = SpiBusConfig;
+    using Error = SpiError;
+    using Node = SpiNodeImpl<SpiBusImpl>;
+
+    using SpiBusBase<Self>::SpiBusBase;
 
 private:
-    KF_IMPL_BUS(SpiBusImpl, SpiError);
+    KF_IMPL_BUS(Self, Error);
 
-    auto initImpl() noexcept -> Result<void, SpiError> {
+    auto initImpl() noexcept -> Result<void, Error> {
         return ok();
     }
 
@@ -331,12 +341,6 @@ private:
 
 namespace kf::bus {
 
-struct SPI : internal::SpiBusImpl {
-    using Config = internal::SpiBusConfig;
-    using Error = internal::SpiError;
-    using Node = internal::SpiNodeImpl<internal::SpiBusImpl>;
-
-    using internal::SpiBusImpl::SpiBusImpl;
-};
+using SPI = internal::SpiBusImpl;
 
 }// namespace kf::bus
