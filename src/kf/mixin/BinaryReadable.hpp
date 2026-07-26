@@ -17,10 +17,10 @@ struct BinaryReadableTag {};
 /// @tparam ErrorImpl Error type used by the implementation
 /// @note Derived classes must implement:
 ///
-///       - `Result<Slice<const u8>, Error> readBufferImpl(Slice<u8> buffer) noexcept`
+///       - `auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error>`
 ///         Read up to buffer.size() bytes into the given buffer. Returns a slice of actually read data
 ///
-///       - `template<typename T> Result<T, Error> readPacketImpl() noexcept`
+///       - `template<typename T> auto readPacketImpl() noexcept -> Result<T, Error>`
 ///         Read a trivially copyable object of type T (size fixed at compile time)
 template<typename Impl, typename ErrorImpl> struct BinaryReadable : BinaryReadableTag {
 
