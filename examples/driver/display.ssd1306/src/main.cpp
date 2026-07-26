@@ -1,17 +1,14 @@
 // KiraFlux-Toolkit Example 'driver/display.ssd1306'
 
-#include <kf/arduino/ArduinoIIC.hpp>
+#include <kf/bus/I2C.hpp>
 #include <kf/driver/display/SSD1306.hpp>
 #include <kf/gfx/Canvas.hpp>
 #include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/main.hpp>
 
-#include <Wire.h>
-
-using kf::arduino::ArduinoIIC;
 using kf::driver::display::Orientation;
-using SSD1306 = kf::driver::display::SSD1306<ArduinoIIC::Node>;
+using kf::driver::display::SSD1306;
 
 // Pixel format: monochrome (1‑bit)
 using P = SSD1306::PixelImpl;
@@ -72,7 +69,7 @@ void kf::main(kf::Init &init) {
 
     // 0xFF (-1) means "use Wire's default GPIOs".
     // 0 means "use Wire's default value" for clock, timeout, buffer size.
-    static ArduinoIIC::Config bus_config{
+    static bus::I2C::Config bus_config{
         .gpio_num_sda = 0xFF,
         .gpio_num_scl = 0xFF,
         .buffer_size = 0,
@@ -80,10 +77,13 @@ void kf::main(kf::Init &init) {
         .timeout = 0,
     };
 
-    ArduinoIIC bus{bus_config, Wire};
+    bus::I2C i2c_bus{
+        bus_config,// by ref
+        0,         // i2c bus number
+    };
 
     // Initialize the I2C bus
-    auto init_result = bus.init();
+    auto init_result = i2c_bus.init();
     if (init_result.isError()) {
         init.logger.error("I2C bus init failed: {}", init_result.error());
         return;
@@ -92,12 +92,12 @@ void kf::main(kf::Init &init) {
 
     // --- Display configuration ---
 
-    static ArduinoIIC::Node::Config node_config{
+    static bus::I2C::Node::Config node_config{
         .address = 0x3C,// default SSD1306 address
     };
 
     // Create the display driver instance (static to outlive the function)
-    static SSD1306 display{std::move(bus.createNode(node_config))};
+    static SSD1306 display{std::move(i2c_bus.createNode(node_config))};
 
     // Initialize the display
     auto display_init = display.init();

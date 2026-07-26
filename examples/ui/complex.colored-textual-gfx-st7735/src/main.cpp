@@ -1,28 +1,36 @@
 // Demo: setup UI with colored textual render system into hardware display
 
-#include <Arduino.h>
+// App
+#include <kf/main.hpp>
+#include <kf/rtos/Clock.hpp>
+#include <kf/rtos/Task.hpp>
+#include <kf/Logger.hpp>
 
-// uses in this demo:
+// Algorithm
 #include <kf/Array.hpp>
-#include <kf/arduino/ArduinoSPI.hpp>
-#include <kf/arduino/gpio.hpp>
+
+// Hardware
+#include <kf/bus/SPI.hpp>
 #include <kf/driver/display/Orientation.hpp>
 #include <kf/driver/display/ST7735.hpp>
+#include <kf/gpio.hpp>
+
+// Graphics stack
 #include <kf/gfx/Canvas.hpp>
 #include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/image/DynamicImage.hpp>
+
+// UI stack
 #include <kf/ui/Event.hpp>
 #include <kf/ui/Style.hpp>
 #include <kf/ui/UI.hpp>
 #include <kf/ui/render/ColoredTextRenderer.hpp>
 #include <kf/ui/widget/Widget.hpp>
 
-using kf::arduino::ArduinoDigitalOutput;
-using kf::arduino::ArduinoSPI;
 using kf::driver::display::Orientation;
 
 // Display Driver specialization
-using MyDisplayDriver = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoDigitalOutput>;
+using MyDisplayDriver = kf::driver::display::ST7735;
 using P = MyDisplayDriver::PixelImpl;// shortcut for pixel impl
 
 // UI specialization
@@ -50,23 +58,6 @@ using Event = MyUI::Traits::EventImpl;
 using Render = MyUI::Traits::RendererImpl;
 using Color = kf::ui::Color;
 using Style = kf::ui::Style;
-
-static kf::Array<char, 256> my_renderer_buffer{};
-
-// allocate memory for event queue
-static char my_event_buffer[64 * sizeof(MyUI::Traits::EventImpl)];
-
-static Render::Config my_renderer_config{};// will set in setup
-
-static Render my_renderer{
-    my_renderer_config,// by ref
-    my_renderer_buffer.slice(),
-};
-
-static MyUI my_ui{
-    {reinterpret_cast<MyUI::Traits::EventImpl *>(my_event_buffer), sizeof(my_event_buffer)},
-    my_renderer,// by ref
-};
 
 // User-defined example pages
 
@@ -172,7 +163,9 @@ struct MainPage : MyUI::Page {
         },
     };
 
-    explicit MainPage() : Page{my_ui /* layout = kf::ui::Layout::Vertical */} {
+    inline static kf::Logger logger{"main"};
+
+    explicit MainPage(MyUI &ui) : Page{ui /* layout = kf::ui::Layout::Vertical */} {
         this->label("Main");
 
         for (auto i = 0u; i < array_widgets; i += 1) {
@@ -184,7 +177,7 @@ struct MainPage : MyUI::Page {
         }
 
         click_button.callback([this]() {
-            Serial.println("Test button clicked!");
+            logger.info("Test button clicked!");
 
             if (my_value.isSome()) {
                 my_value.unwrap() += 1;
@@ -205,8 +198,7 @@ struct MainPage : MyUI::Page {
         auto const bg = click_button.background();
 
         check_box.callback([this](bool state) {
-            Serial.print("Checkbox changed to: ");
-            Serial.println(state ? "ON" : "OFF");
+            logger.info("Checkbox changed to: {}", state ? "ON" : "OFF");
 
             if (my_value.isSome()) {
                 my_value = kf::none;
@@ -238,19 +230,19 @@ struct MainPage : MyUI::Page {
 
     // behavior on entry
     void onEntry() noexcept override {
-        Serial.println("Entry on Main");
+        logger.debug("Entry on Main");
     }
 
     // behavior on leave
     void onExit() noexcept override {
-        Serial.println("Exit from Main");
+        logger.debug("Exit from Main");
     }
 
 protected:
     // behavior on UI polling
     void onPoll(kf::units::Milliseconds now) noexcept override {}
 
-} main_page{};
+};
 
 struct SettingsPage : MyUI::Page {
 
@@ -300,18 +292,18 @@ struct SettingsPage : MyUI::Page {
         },
     };
 
-    explicit SettingsPage() : Page{my_ui} {
+    inline static kf::Logger logger{"settings"};
+
+    explicit SettingsPage(MyUI &ui) : Page{ui} {
         this->label("Settings");
 
         layout_combo_box.callback([this](MyCombo::Config::Item item) {
             this->layout(item.value());
-            Serial.print("Combo selected: ");
-            Serial.println(item.label().data());
+            logger.info("Combo selected: {}", item.label());
         });
 
         spin_box.callback([](int value) {
-            Serial.print("SpinBox value: ");
-            Serial.println(value);
+            logger.info("SpinBox value: {}", value);
         });
     }
 
@@ -319,7 +311,7 @@ struct SettingsPage : MyUI::Page {
         return widgets_storage.slice();
     }
 
-} settings_page{};
+};
 
 // Simple function for conversion from char to event
 Event eventFromChar(char c) {
@@ -334,50 +326,65 @@ Event eventFromChar(char c) {
     }
 }
 
-static ArduinoSPI::Config spi_bus_config{
-    // use defaults
-    .gpio_num_mosi = static_cast<kf::u8>(GPIO_NUM_NC),
-    .gpio_num_miso = static_cast<kf::u8>(GPIO_NUM_NC),
-    .gpio_num_sck = static_cast<kf::u8>(GPIO_NUM_NC),
-};
-
-static ArduinoSPI spi_bus{
-    spi_bus_config,
-    SPI,
-};
-
-static auto spi_node_config{
-    ArduinoSPI::Node::Config::create(
-        GPIO_NUM_5,// CS
-        27'000'000 // SPI frequency
-        ),
-};
-
-// display config
-static MyDisplayDriver::Config display_config{
-    .init_orientation = Orientation::ClockWise,
-};
-
-// Driver instance references config and SPI bus.
-static MyDisplayDriver display{
-    display_config,
-    spi_bus.createNode(spi_node_config),
-    ArduinoDigitalOutput{GPIO_NUM_16},// DC
-    ArduinoDigitalOutput{GPIO_NUM_17},// RESET
-};
-
 // display
 
-void setup() {
-    Serial.begin(115200);
+void kf::main(kf::Init &init) {
+
+    // allocate memory for buffers
+    static char my_renderer_buffer[256]{};
+    static char my_event_buffer[64 * sizeof(MyUI::Traits::EventImpl)];
+
+    static Render::Config my_renderer_config{};// will set in setup
+
+    static Render my_renderer{
+        my_renderer_config,// by ref
+        {my_renderer_buffer},
+    };
+
+    static MyUI my_ui{
+        {reinterpret_cast<MyUI::Traits::EventImpl *>(my_event_buffer), sizeof(my_event_buffer)},
+        my_renderer,// by ref
+    };
+
+    static MainPage main_page{my_ui};
+    static SettingsPage settings_page{my_ui};
+
+    static bus::SPI::Config spi_bus_config{
+        // use defaults
+        .gpio_num_mosi = static_cast<kf::u8>(GPIO_NUM_NC),
+        .gpio_num_miso = static_cast<kf::u8>(GPIO_NUM_NC),
+        .gpio_num_sck = static_cast<kf::u8>(GPIO_NUM_NC),
+    };
+
+    static bus::SPI spi_bus{spi_bus_config};
+
+    // display config
+    static MyDisplayDriver::Config driver_config{
+        // Node configuration
+        .spi_node = {
+            .clock_hz = 27'000'000,
+            .gpio_num_cs = static_cast<u8>(GPIO_NUM_5),
+            .bit_order = bus::SPI::Node::Config::BitOrder::MostSignificant,
+            .clock_bits = bus::SPI::Node::Config::ClockBits::None,
+        },
+
+        .init_orientation = Orientation::ClockWise,
+    };
+
+    // Driver instance (static: SHOULD NOT lay on stack cuz buffer image is 40KiB)
+    static MyDisplayDriver display{
+        spi_bus,      // used to create node
+        driver_config,// by const reference
+        gpio::G22,    // DC
+        gpio::G17,    // RESET
+    };
 
     (void) spi_bus.init();
 
     // display setup
     if (display.init().isError()) {
-        Serial.println("Failed to init display. halting...");
-
-        while (true) {}
+        init.logger.error("Failed to init display. halting...");
+        return;
     }
 
     // render setup
@@ -400,15 +407,16 @@ void setup() {
 
         (void) display.send();// SPI cannot tell anything about error => ignoring
 
-        // show buffer content
-        for (auto c: text) {
-            if (c < 0x80) {
-                Serial.write(c);
-            } else {
-                Serial.write(' ');
-                Serial.print(c, 16);
-            }
-        }
+        // TODO: hex formatting {x}
+        // // show buffer content
+        // for (auto c: text) {
+        //     if (c < 0x80) {
+        //         Serial.write(c);
+        //     } else {
+        //         Serial.write(' ');
+        //         Serial.print(c, 16);
+        //     }
+        // }
     });
 
     // render config setup
@@ -432,16 +440,18 @@ void setup() {
 
     my_ui.activePage(main_page);// start ui with main page
     my_ui.requestRender();      // Force update for first ui rendering
-}
 
-void loop() {
-    if (Serial.available()) {
-        char const c = Serial.read();
-        my_ui.addEvent(eventFromChar(c));
+    while (true) {
+
+        // process all incoming keys into UI event queue
+        while (init.io.availableForRead()) {
+            if (auto const read = init.io.readByte(); read.isOk()) {
+                my_ui.addEvent(eventFromChar(read.ok()));
+            }
+        }
+
+        my_ui.poll(rtos::Clock::now());
+
+        rtos::Task::sleep(10);// 100 hz
     }
-
-    auto const now = millis();
-    my_ui.poll(now);
-
-    delay(10);// 100 hz
 }

@@ -1,36 +1,34 @@
 // KiraFlux-Toolkit Example 'listener/gpio-as-button'
 
-#include <kf/arduino/gpio.hpp>
+#include <kf/gpio.hpp>
 #include <kf/listener/LogicalLevelListener.hpp>
 #include <kf/main.hpp>
+#include <kf/rtos/Task.hpp>
 
-using kf::arduino::ArduinoDigitalInput;
 using kf::listener::LogicalLevelListener;
-
-// --- Configuration (MUST outlive the listener instance) ---
-
-LogicalLevelListener::Config button_config{
-    .debounce = 50,// ms debounce time
-};
-
-// --- GPIO input (moved into the listener) ---
-
-ArduinoDigitalInput button_gpio{
-    GPIO_NUM_25,
-    ArduinoDigitalInput::Pull::InternalUp,
-};
-
-// --- Listener instance ---
-// Config is passed by const reference (must stay alive).
-// GPIO is NOT stored inside the listener; we set it via `set()` in the loop.
-LogicalLevelListener button_listener{
-    button_config,// by const reference (MUST outlive this instance)
-};
-
-// --- Main application ---
 
 void kf::main(kf::Init &init) {
     init.logger.info("KiraFlux-Toolkit Example: listener/gpio-as-button");
+
+    // --- Configuration (MUST outlive the listener instance) ---
+
+    LogicalLevelListener::Config button_config{
+        .debounce = 50,// ms debounce time
+    };
+
+    // --- GPIO input (moved into the listener) ---
+
+    gpio::DigitalInput button_gpio{
+        gpio::G25,
+        gpio::DigitalInput::Pull::InternalUp,
+    };
+
+    // --- Listener instance ---
+    // Config is passed by const reference (must stay alive).
+    // GPIO is NOT stored inside the listener; we set it via `set()` in the loop.
+    LogicalLevelListener button_listener{
+        button_config,// by const reference (MUST outlive this instance)
+    };
 
     // Initialize the GPIO pin (sets pin mode and pull-up).
     button_gpio.init();
@@ -46,7 +44,7 @@ void kf::main(kf::Init &init) {
 
     while (true) {
         // Read the current GPIO level (debounced internally).
-        bool level = button_gpio.read();
+        bool level = button_gpio.level();
 
         // Feed the current level to the listener.
         button_listener.set(level);
@@ -55,6 +53,6 @@ void kf::main(kf::Init &init) {
         button_listener.poll(millis());
 
         // Small delay to avoid busy-loop.
-        delay(10);
+        rtos::Task::sleep(10);
     }
 }

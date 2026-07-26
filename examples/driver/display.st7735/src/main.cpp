@@ -1,21 +1,17 @@
 // KiraFlux-Toolkit Example 'driver/display.st7735'
 
-#include <kf/arduino/ArduinoSPI.hpp>
-#include <kf/arduino/gpio.hpp>
+#include <kf/bus/SPI.hpp>
 #include <kf/driver/display/Orientation.hpp>
 #include <kf/driver/display/ST7735.hpp>
 #include <kf/gfx/Canvas.hpp>
 #include <kf/gfx/Palette.hpp>
 #include <kf/gfx/fonts/gyver_5x7.hpp>
+#include <kf/gpio.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/main.hpp>
 
-#include <SPI.h>
-
-using kf::arduino::ArduinoDigitalOutput;
-using kf::arduino::ArduinoSPI;
 using kf::driver::display::Orientation;
-using ST7735 = kf::driver::display::ST7735<ArduinoSPI::Node, ArduinoDigitalOutput>;
+using kf::driver::display::ST7735;
 
 // Pixel format: RGB565 (16‑bit)
 using P = ST7735::PixelImpl;
@@ -84,13 +80,13 @@ void kf::main(kf::Init &init) {
     // --- SPI bus configuration ---
 
     // Use default SPI pins (GPIO_NUM_NC means "use hardware defaults")
-    static ArduinoSPI::Config spi_bus_config{
+    static bus::SPI::Config spi_bus_config{
         .gpio_num_mosi = static_cast<u8>(GPIO_NUM_NC),
         .gpio_num_miso = static_cast<u8>(GPIO_NUM_NC),
         .gpio_num_sck = static_cast<u8>(GPIO_NUM_NC),
     };
 
-    ArduinoSPI spi_bus{spi_bus_config, SPI};
+    bus::SPI spi_bus{spi_bus_config};
 
     // Initialize the SPI bus
     auto init_result = spi_bus.init();
@@ -102,25 +98,25 @@ void kf::main(kf::Init &init) {
 
     // --- Display configuration ---
 
-    // Node configuration: CS pin and SPI frequency
-    static ArduinoSPI::Node::Config spi_node_config{
-        .clock_hz = 27'000'000,
-        .gpio_num_cs = static_cast<u8>(GPIO_NUM_5),
-        .bit_order = ArduinoSPI::Node::Config::BitOrder::MostSignificant,
-        .clock_bits = ArduinoSPI::Node::Config::ClockBits::None,
-    };
-
-    // Driver configuration: initial orientation
+    // Driver configuration
     static ST7735::Config driver_config{
+        // Node configuration
+        .spi_node = {
+            .clock_hz = 27'000'000,
+            .gpio_num_cs = static_cast<u8>(GPIO_NUM_5),
+            .bit_order = bus::SPI::Node::Config::BitOrder::MostSignificant,
+            .clock_bits = bus::SPI::Node::Config::ClockBits::None,
+        },
+
         .init_orientation = Orientation::Normal,
     };
 
-    // Driver instance (static to outlive the function)
+    // Driver instance (static: SHOULD NOT lay on stack cuz buffer image is 40KiB)
     static ST7735 display{
-        driver_config,                      // by const reference
-        spi_bus.createNode(spi_node_config),// moved
-        ArduinoDigitalOutput{GPIO_NUM_22},  // DC
-        ArduinoDigitalOutput{GPIO_NUM_17},  // RESET
+        spi_bus,      // used to create node
+        driver_config,// by const reference
+        gpio::G22,    // DC
+        gpio::G17,    // RESET
     };
 
     // Initialize the display

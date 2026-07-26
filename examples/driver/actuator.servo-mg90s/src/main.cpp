@@ -1,61 +1,59 @@
 // KiraFlux-Toolkit Example 'actuator/PwmPositionServo'
 
-#include <kf/arduino/gpio.hpp>
 #include <kf/driver/actuator/PwmPositionServo.hpp>
+#include <kf/gpio.hpp>
 #include <kf/main.hpp>
+#include <kf/rtos/Task.hpp>
 
-using kf::arduino::ArduinoPwmOutput;
-using PwmPositionServo = kf::driver::actuator::PwmPositionServo<ArduinoPwmOutput>;
-
-// --- Servo configuration ---
-
-// Mapping: angle (0..180°) → pulse width (500..2500 µs)
-PwmPositionServo::Config servo_config{
-    .angle_range = {.start = 0, .end = 180},
-    .pulse_range = {.start = 500, .end = 2500},
-};
-
-// PWM output: 50 Hz, 12-bit resolution (standard servo)
-ArduinoPwmOutput::Config pwm_config{
-    .frequency_hz = 50,
-    .resolution_bits = 12,
-    .gpio_num = static_cast<kf::u8>(GPIO_NUM_13),
-};
-
-// --- Servo instance with safe angle limit (0‑90° instead of 0‑180°) ---
-
-PwmPositionServo servo{
-    servo_config,                                               // by const reference
-    ArduinoPwmOutput{pwm_config},                               // moved
-    PwmPositionServo::Config::AngleRange{.start = 0, .end = 90},// narrow override
-};
-
-// --- Main application ---
+using kf::driver::actuator::PwmPositionServo;
 
 void kf::main(kf::Init &init) {
     init.logger.info("KiraFlux-Toolkit Example: actuator/PwmPositionServo");
+
+    // --- Servo configuration ---
+
+    PwmPositionServo::Config servo_config{
+
+        // Mapping: angle (0..180) -> pulse width (500..2500 us)
+        .angle_range = {.start = 0, .end = 180},
+        .pulse_range = {.start = 500, .end = 2500},
+
+        // PWM output: 50 Hz, 12-bit resolution (standard servo)
+        .pwm = {
+            .frequency_hz = 50,
+            .resolution_bits = 12,
+        },
+    };
+
+    // --- Servo instance with safe angle limit (0‑90 instead of 0‑180) ---
+
+    PwmPositionServo servo{
+        servo_config,                                               // by const reference
+        gpio::G13,                                                  // GPIO should support PWM
+        PwmPositionServo::Config::AngleRange{.start = 0, .end = 90},// (optional) narrow override
+    };
 
     // Initialize the servo (PWM output)
     if (not servo.init()) {
         init.logger.error("Servo init failed");
         return;
     }
+    
     init.logger.info("Servo initialized");
 
     // Small delay to stabilize hardware
-    delay(1000);
+    rtos::Task::sleep(1000);
 
-    // Sweep from 0° to 90° and back (safe range override)
+    // Sweep from 0 to 90 and back (safe range override)
     // The angle is clamped to 0..90 due to the override limit.
-    init.logger.info("Sweeping 0° -> 90° -> 0°");
+    init.logger.info("Sweeping 0 -> 90 -> 0");
 
-    for (auto angle = -90; angle <= 90; angle += 1) {
-        auto const pos = 90 - abs(angle);// 0 ->  90 ->  0
-        servo.set(pos);
-        delay(20);
+    for (auto angle = 0; angle <= 90; angle += 1) {
+        servo.set(angle);
+        rtos::Task::sleep(20);
     }
 
-    delay(1000);
+    rtos::Task::sleep(1000);
 
     // Stop the servo (disable PWM signal)
     servo.stop();
