@@ -10,7 +10,9 @@
 #include "kf/concepts.hpp"
 #include "kf/mixin/BinaryReadable.hpp"
 #include "kf/mixin/BinaryWritable.hpp"
+#include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Quitable.hpp"
 
 // autoconfig
 
@@ -34,7 +36,6 @@
 
 #define KF_PLATFORM_APP_IO_READ_CHAR_FAILED (-1)
 #define KF_PLATFORM_APP_FUNCTION_DECLARATION void setup()
-#define KF_PLATFORM_APP_INIT() Serial.begin((KF_CONFIG_SERIAL_BAUDRATE))
 #define KF_PLATFORM_APP_QUIT()
 
 void loop() {}// not used
@@ -54,31 +55,7 @@ inline termios kf_original_tty;
 #define KF_PLATFORM_APP_IO_READ_CHAR_FAILED EOF
 #define KF_PLATFORM_APP_FUNCTION_DECLARATION int main()
 
-#define KF_PLATFORM_APP_INIT()                                                                   \
-    do {                                                                                         \
-        if (::isatty(STDIN_FILENO)) {                                                            \
-            /* 1. enable raw mode (like arduino UART) */                                         \
-            ::tcgetattr(STDIN_FILENO, &kf_original_tty);                                         \
-            termios raw = kf_original_tty;                                                       \
-            raw.c_lflag &= ~(ICANON | ECHO);                                                     \
-            raw.c_cc[VMIN] = 0;  /* 0 - nonblocking is no bytes */                               \
-            raw.c_cc[VTIME] = 0; /* no timeouts */                                               \
-            ::tcsetattr(STDIN_FILENO, TCSANOW, &raw);                                            \
-                                                                                                 \
-            /* 2. change stdin handler to async mode */                                          \
-            int flags = ::fcntl(STDIN_FILENO, F_GETFL, 0);                                       \
-            ::fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);                                  \
-        }                                                                                        \
-        /* Disable sync iostream with C functions for correct std::cin.get() work in raw mode */ \
-        std::ios_base::sync_with_stdio(false);                                                   \
-    } while (0)
-
-#define KF_PLATFORM_APP_QUIT() (                                                                                  \
-    ::isatty(STDIN_FILENO) ? (                                                                                    \
-                                 ::fcntl(STDIN_FILENO, F_SETFL, ::fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK), \
-                                 ::tcsetattr(STDIN_FILENO, TCSANOW, &kf_original_tty))                            \
-                           : 0,                                                                                   \
-    0)
+#define KF_PLATFORM_APP_QUIT() (0)
 
 #endif
 
@@ -96,6 +73,8 @@ using AppIoWriteResult = Result<void, AppIoError>;
 struct AppIO :
 
     mixin::NonCopyable,
+    mixin::Initable<AppIO, void()>,
+    mixin::Quitable<AppIO>,
     mixin::BinaryReadable<AppIO, AppIoError>,
     mixin::BinaryWritable<AppIO, AppIoWriteResult>
 
@@ -109,7 +88,7 @@ struct AppIO :
     [[nodiscard]] usize availableForRead() noexcept {
         return (
 #ifdef ARDUINO
-            Serial.available()
+            _serial.available()
 #else
             std::cin.rdbuf()->in_avail()
 #endif
@@ -118,7 +97,7 @@ struct AppIO :
 
     [[nodiscard]] usize availableForWrite() noexcept {
 #ifdef ARDUINO
-        auto const ret = Serial.availableForWrite();
+        auto const ret = _serial.availableForWrite();
         // Arduino Stream returns size 0 if "may write any size"
         return (0 == ret) ? static_cast<usize>(-1) : ret;
 #else
@@ -128,13 +107,54 @@ struct AppIO :
 
     void flush() noexcept {
 #ifdef ARDUINO
-        Serial.flush();
+        _serial.flush();
 #else
         (void) std::cout.flush();
 #endif
     }
 
 private:
+#ifdef ARDUINO
+    HardwareSerial _serial{0};
+#endif
+
+    KF_IMPL_INITABLE(Self, void());
+    void initImpl() noexcept {
+#ifdef ARDUINO
+        _serial.begin((KF_CONFIG_SERIAL_BAUDRATE));
+#else
+        if (::isatty(STDIN_FILENO)) {
+
+            /* 1. enable raw mode (like arduino UART) */
+            ::tcgetattr(STDIN_FILENO, &kf_original_tty);
+            termios raw = kf_original_tty;
+            raw.c_lflag &= ~(ICANON | ECHO);
+            raw.c_cc[VMIN] = 0;  /* 0 - nonblocking is no bytes */
+            raw.c_cc[VTIME] = 0; /* no timeouts */
+            ::tcsetattr(STDIN_FILENO, TCSANOW, &raw);
+
+            /* 2. change stdin handler to async mode */
+            int flags = ::fcntl(STDIN_FILENO, F_GETFL, 0);
+            ::fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+        }
+
+        /* Disable sync iostream with C functions for correct std::cin.get() work in raw mode */
+        std::ios_base::sync_with_stdio(false);
+#endif
+    }
+
+    KF_IMPL_QUITABLE(Self);
+    void quitImpl() noexcept {
+#ifdef ARDUINO
+        _serial.end();
+#else
+        if (::isatty(STDIN_FILENO)) {
+            ::fcntl(STDIN_FILENO, F_SETFL, ::fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
+            ::tcsetattr(STDIN_FILENO, TCSANOW, &kf_original_tty);
+        }
+#endif
+    }
+
     KF_IMPL_BINARY_READABLE(Self, Error);
 
     auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
@@ -146,7 +166,7 @@ private:
         usize bytes_read;
 
 #ifdef ARDUINO
-        bytes_read = Serial.readBytes(reinterpret_cast<char *>(buffer.data()), to_read);
+        bytes_read = _serial.readBytes(reinterpret_cast<char *>(buffer.data()), to_read);
 #else
         std::cin.read(reinterpret_cast<char *>(buffer.data()), to_read);
         bytes_read = static_cast<usize>(std::cin.gcount());
@@ -165,7 +185,7 @@ private:
         if constexpr (to_read == sizeof(u8)) {
             int const c = (
 #ifdef ARDUINO
-                Serial.read()
+                _serial.read()
 #else
                 std::cin.get()
 #endif
@@ -181,7 +201,7 @@ private:
 
             usize bytes_read;
 #ifdef ARDUINO
-            bytes_read = Serial.readBytes(reinterpret_cast<u8 *>(&packet), to_read);
+            bytes_read = _serial.readBytes(reinterpret_cast<u8 *>(&packet), to_read);
 #else
             std::cin.read(reinterpret_cast<char *>(&packet), to_read);
             bytes_read = static_cast<usize>(std::cin.gcount());
@@ -202,7 +222,7 @@ private:
 
             if (
 #ifdef ARDUINO
-                Serial.write(buffer.data(), to_write) != to_write
+                _serial.write(buffer.data(), to_write) != to_write
 #else
                 not std::cout.write(reinterpret_cast<char const *>(buffer.data()), to_write).good()
 #endif
@@ -221,9 +241,9 @@ private:
         usize written;
 
         if constexpr (to_write == sizeof(u8)) {
-            written = Serial.write(static_cast<u8>(packet));
+            written = _serial.write(static_cast<u8>(packet));
         } else {
-            written = Serial.write(reinterpret_cast<u8 const *>(&packet), to_write);
+            written = _serial.write(reinterpret_cast<u8 const *>(&packet), to_write);
         }
 
         if (to_write != written)
@@ -268,8 +288,6 @@ void main(Init &init);
 }// namespace kf
 
 KF_PLATFORM_APP_FUNCTION_DECLARATION {
-    KF_PLATFORM_APP_INIT();
-
     static char main_logger_buffer[(KF_CONFIG_MAIN_LOGGER_BUFFER_LENGTH)]{};
 
     static kf::Init init{
@@ -280,6 +298,8 @@ KF_PLATFORM_APP_FUNCTION_DECLARATION {
         },
     };
 
+    init.io.init();
+
     kf::Logger::writer = [](kf::StringView str) {
         (void) init.io.writeBuffer({reinterpret_cast<kf::u8 const *>(str.data()), str.length()});
         init.io.flush();
@@ -289,6 +309,8 @@ KF_PLATFORM_APP_FUNCTION_DECLARATION {
 
     main(init);
 
+    init.io.quit();
+
     return KF_PLATFORM_APP_QUIT();
 }
 
@@ -297,7 +319,6 @@ KF_PLATFORM_APP_FUNCTION_DECLARATION {
 #undef KF_PLATFORM_APP_IO_READ_CHAR_FAILED
 
 #undef KF_PLATFORM_APP_FUNCTION_DECLARATION
-#undef KF_PLATFORM_APP_INIT
 #undef KF_PLATFORM_APP_QUIT
 
 #undef KF_CONFIG_MAIN_LOGGER_KEY
