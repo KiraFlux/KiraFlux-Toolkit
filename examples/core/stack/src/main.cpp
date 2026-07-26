@@ -1,5 +1,8 @@
 // KiraFlux-Toolkit Example 'core/stack'
 
+// Demonstrates LIFO container (Stack) with fixed-size buffer.
+// Shows push, pop, iteration, and availability checks.
+
 #include <kf/Stack.hpp>
 #include <kf/main.hpp>
 
@@ -7,7 +10,6 @@ void kf::main(kf::Init &init) {
     init.logger.info("KiraFlux-Toolkit Example: core/stack");
 
     // --- Stack overview ---
-
     // Stack<T> is a non-owning LIFO container that operates on a fixed-size buffer.
     // It inherits from Sequence, so it supports iteration, indexing, and slicing.
     // Memory must be provided by the user (e.g., a local array or kf::Array).
@@ -20,17 +22,15 @@ void kf::main(kf::Init &init) {
     kf::Stack<int> my_stack{buffer};// equivalent to Stack{buffer, 0}
 
     // --- Error handling: reading from an empty stack returns none ---
-
     if (auto const value = my_stack.read(); value.isNone()) {
         init.logger.error("read from empty stack - returns None");
     }
 
     // --- Writing (push) ---
-
     // Stack::write() adds an element to the top. Returns true if successful,
     // false if the stack is full (capacity reached).
 
-    for (int i = 0; i < 10; i += 1) {
+    for (int i = 0; i < (n + 2); i += 1) {
         if (my_stack.write(i)) {
             init.logger.debug("write: {} -> ok", i);
         } else {
@@ -41,15 +41,19 @@ void kf::main(kf::Init &init) {
     // Only the first n elements (0..7) were stored.
     // The remaining (8,9) were rejected.
 
-    // --- Accessing elements ---
+    // --- Availability ---
+    // availableForRead() returns the number of elements currently in the stack.
+    // availableForWrite() returns the number of free slots (capacity - length).
+    init.logger.info("availableForRead: {} (elements in stack)", my_stack.availableForRead());
+    init.logger.info("availableForWrite: {} (free slots)", my_stack.availableForWrite());
 
+    // --- Accessing elements ---
     // top() returns Option<T&> - mutable reference to the top element.
     if (auto top = my_stack.top(); top.isSome()) {
         init.logger.info("top element: {}", top.unwrap());
     }
 
     // --- Iteration (inherited from Sequence) ---
-
     // Stack provides begin()/end() and supports range-based for.
     // Iteration order is from bottom (oldest) to top (newest).
 
@@ -59,14 +63,15 @@ void kf::main(kf::Init &init) {
     }
 
     // --- Reading (pop) ---
-
     // read() removes and returns the top element as Option<T>.
     // Returns None if the stack is empty.
 
     init.logger.info("popping elements:");
-    for (int i = 0; i < 10; i += 1) {
+    for (int i = 0; i < (n + 2); i += 1) {
         if (auto value = my_stack.read(); value.isSome()) {
             init.logger.debug("read: {} -> ok", value.unwrap());
+            // Show updated availability after each pop.
+            init.logger.debug("  remaining: {}, free: {}", my_stack.availableForRead(), my_stack.availableForWrite());
         } else {
             init.logger.warn("read: {} -> empty, stopped", i);
             break;
@@ -76,7 +81,6 @@ void kf::main(kf::Init &init) {
     // After reading all elements, the stack is empty again.
 
     // --- Other utility methods ---
-
     init.logger.info("empty: {}", my_stack.empty());      // true
     init.logger.info("length: {}", my_stack.length());    // 0
     init.logger.info("capacity: {}", my_stack.capacity());// n
@@ -93,7 +97,6 @@ void kf::main(kf::Init &init) {
     // my_stack[0] - bottom element (if length > 0)
 
     // --- Performance note ---
-
     // All operations are O(1). No dynamic allocations.
     // Stack is suitable for real-time / embedded contexts.
 }

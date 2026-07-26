@@ -8,11 +8,14 @@
 
 #include "kf/Option.hpp"
 #include "kf/Slice.hpp"
+#include "kf/primitives.hpp"
+
 #include "kf/mixin/Length.hpp"
+#include "kf/mixin/ReadAvailable.hpp"
 #include "kf/mixin/Readable.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/mixin/Writable.hpp"
-#include "kf/primitives.hpp"
+#include "kf/mixin/WriteAvailable.hpp"
 
 namespace kf {
 
@@ -25,7 +28,9 @@ template<typename T> struct Queue :
     QueueTag,
     mixin::Length<Queue<T>, usize>,
     mixin::Readable<Queue<T>, T>,
+    mixin::ReadAvailable<Queue<T>>,
     mixin::Writable<Queue<T>, T>,
+    mixin::WriteAvailable<Queue<T>>,
     mixin::Resettable<Queue<T>>
 
 {
@@ -109,6 +114,11 @@ private:
         return some(std::move(value));
     }
 
+    KF_IMPL_READ_AVAILABLE(Self);
+    usize availableForReadImpl() const noexcept {
+        return this->length();
+    }
+
     KF_IMPL_WRITABLE(Self, T);
     constexpr bool writeImpl(auto &&item) noexcept {
         if (this->full()) {
@@ -122,9 +132,14 @@ private:
         return true;
     }
 
+    KF_IMPL_WRITE_AVAILABLE(Self);
+    usize availableForWriteImpl() const noexcept {
+        return this->capacity() - this->length();
+    }
+
     KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
-        for (auto i = 0u; i < _length; ++i) {
+        for (auto i = 0u; i < _length; i += 1) {
             _buffer[indexAt(i)].~T();
         }
 

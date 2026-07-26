@@ -7,12 +7,16 @@
 #include <utility>// move, forward
 
 #include "kf/Option.hpp"
-#include "kf/Sequence.hpp"
 #include "kf/Slice.hpp"
+#include "kf/primitives.hpp"
+
+#include "kf/mixin/ReadAvailable.hpp"
 #include "kf/mixin/Readable.hpp"
 #include "kf/mixin/Resettable.hpp"
 #include "kf/mixin/Writable.hpp"
-#include "kf/primitives.hpp"
+#include "kf/mixin/WriteAvailable.hpp"
+
+#include "kf/Sequence.hpp"
 
 namespace kf {
 
@@ -25,7 +29,9 @@ template<typename T> struct Stack :
     StackTag,
     Sequence<Stack<T>, T>,
     mixin::Readable<Stack<T>, T>,
+    mixin::ReadAvailable<Stack<T>>,
     mixin::Writable<Stack<T>, T>,
+    mixin::WriteAvailable<Stack<T>>,
     mixin::Resettable<Stack<T>>
 
 {
@@ -92,6 +98,11 @@ private:
         return some(std::move(value));
     }
 
+    KF_IMPL_READ_AVAILABLE(Self);
+    usize availableForReadImpl() const noexcept {
+        return this->length();
+    }
+
     KF_IMPL_WRITABLE(Self, T);
     constexpr bool writeImpl(auto &&item) noexcept {
         if (this->full()) {
@@ -103,6 +114,11 @@ private:
         _length += 1;
 
         return true;
+    }
+
+    KF_IMPL_WRITE_AVAILABLE(Self);
+    usize availableForWriteImpl() const noexcept {
+        return this->capacity() - this->length();
     }
 
     KF_IMPL_RESETTABLE(Self);

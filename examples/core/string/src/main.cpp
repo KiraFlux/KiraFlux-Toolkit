@@ -1,5 +1,9 @@
 // KiraFlux-Toolkit Example 'core/string'
 
+// Demonstrates dynamic string building with kf::String.
+// String inherits from Stack<char>, providing LIFO operations
+// plus string-specific features like formatting and null-termination.
+
 #include <kf/String.hpp>
 #include <kf/main.hpp>
 
@@ -41,10 +45,15 @@ void kf::main(kf::Init &init) {
 
     // String inherits all methods from Stack<char>:
     // - write, read, reset, top, length, capacity, full, empty, data
+    // - availableForRead, availableForWrite (from ReadAvailable/WriteAvailable mixins)
     // - Sequence methods: begin, end, operator[], slice, iteration
 
     // Reset clears the string (length becomes 0)
     str.reset();
+
+    // Check availability after reset (empty string)
+    init.logger.info("after reset - availableForRead: {}, availableForWrite: {}",
+                     str.availableForRead(), str.availableForWrite());
 
     // Append various types (inherited from mixin::Writable<Impl, char>)
     str.append(kf::StringView{"sv"});// any Sequence<char>
@@ -55,9 +64,17 @@ void kf::main(kf::Init &init) {
     str.append(0.4 - 0.3, 50);       // float with custom precision
     str.append('c');                 // char
 
+    // Availability after appending content
+    init.logger.info("after append - availableForRead: {} (characters in string), availableForWrite: {} (free space)",
+                     str.availableForRead(), str.availableForWrite());
+
     // Stack operations: write (push) and read (pop)
     bool const ok = str.write('c');            // writes a character to the stack
     kf::Option<char> const popped = str.read();// reads a character from the stack
+
+    // Availability after push/pop
+    init.logger.info("after write+read - availableForRead: {}, availableForWrite: {}",
+                     str.availableForRead(), str.availableForWrite());
 
     // Iteration (inherited from Sequence)
     init.logger.info("iterating over string:");
