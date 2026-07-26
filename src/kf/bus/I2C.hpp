@@ -3,20 +3,20 @@
 
 #pragma once
 
-#include <type_traits>
-
 #ifdef ARDUINO
 #include <Wire.h>
 #endif
 
 #include "kf/Result.hpp"
 #include "kf/StringView.hpp"
-#include "kf/bus/Bus.hpp"
 #include "kf/concepts.hpp"
-#include "kf/mixin/Configured.hpp"
-#include "kf/mixin/Representable.hpp"
 #include "kf/primitives.hpp"
 #include "kf/units.hpp"
+
+#include "kf/mixin/Configured.hpp"
+#include "kf/mixin/Representable.hpp"
+
+#include "kf/bus/Bus.hpp"
 
 #define CASE_RETURN(__v) \
     case __v: return #__v
@@ -79,14 +79,16 @@ struct IicNodeConfig final {
 };
 
 struct IicBusConfig final {
-    static constexpr u8 gpio_num_nc{static_cast<u8>(-1)};
 
     u8 gpio_num_sda, gpio_num_scl;
     u16 buffer_size;
     u32 clock_hz;
     units::Milliseconds timeout;
 
-    constexpr bool hasDefaultPins() const noexcept { return gpio_num_sda == gpio_num_nc and gpio_num_scl == gpio_num_nc; }
+    constexpr bool hasDefaultPins() const noexcept {
+        constexpr auto gpio_num_nc{static_cast<u8>(-1)};
+        return gpio_num_sda == gpio_num_nc and gpio_num_scl == gpio_num_nc;
+    }
 
     constexpr bool hasDefaultClock() const noexcept { return clock_hz == 0; }
 
@@ -95,49 +97,50 @@ struct IicBusConfig final {
     constexpr bool hasDefaultBufferSize() const noexcept { return buffer_size == 0; }
 };
 
-/// @brief I2C node implementation that adapts Arduino TwoWire to the library's BinaryReadable/BinaryWritable interfaces.
-/// @tparam I The bus implementation type (I2C).
-/// @note This class is movable but not copyable. It holds a reference to the underlying TwoWire instance
-///       and manages the I2C address and transaction state. All I/O operations are blocking.
-///       The node is created via `I2C::createNode()` and must remain valid while the bus exists.
-template<typename I> struct IicNode :
+template<typename Impl> struct IicNodeBase :
 
-    bus::BusNode<IicNode<I>, IicError>,
-    ::kf::mixin::Configured<IicNodeConfig>
+    bus::BusNode<Impl, IicError>,
+    mixin::Configured<IicNodeConfig>
 
 {
-    using BusImpl = I;
+    using mixin::Configured<IicNodeConfig>::Configured;
+};
+
+template<typename B> struct IicNodeImpl;
+
+template<typename Impl> struct IicBusBase :
+
+    bus::Bus<Impl, IicNodeImpl<Impl>, IicError>,
+    mixin::Configured<IicBusConfig>
+
+{
+    using mixin::Configured<IicBusConfig>::Configured;
+};
+
+#ifdef ARDUINO
+
+/// @brief I2C node implementation that adapts Arduino TwoWire to the library's BinaryReadable/BinaryWritable interfaces
+/// @tparam B The bus implementation type (I2C)
+/// @note This class is movable but not copyable. It holds a reference to the underlying TwoWire instance
+///       and manages the I2C address and transaction state. All I/O operations are blocking
+///       The node is created via `I2C::createNode()` and must remain valid while the bus exists
+template<typename B> struct IicNodeImpl : IicNodeBase<IicNodeImpl<B>> {
+    using Self = IicNodeImpl<B>;
+
     using Error = IicError;
-
-    using Self = IicNode<BusImpl>;
-
-    /// @brief Configuration for an Arduino Wire I2C node.
     using Config = IicNodeConfig;
 
-    explicit IicNode(BusImpl &bus, Config const &config) noexcept :
-        mixin::Configured<Config>{config}
-#ifdef ARDUINO
-
-        ,
-        _wire{bus._wire}
-#endif
-
-    {
-    }
+    explicit constexpr IicNodeImpl(B &bus, Config const &config) noexcept :
+        IicNodeBase<IicNodeImpl>{config}, _wire{bus._wire} {}
 
 private:
-#ifdef ARDUINO
     TwoWire &_wire;
-#endif
 
     KF_IMPL_BUS_NODE(Self, Error);
 
     using WriteResult = Result<void, Error>;
 
-    // interface impl
-
     auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
-#ifdef ARDUINO
         usize const received = request(buffer.length());
 
         if (received == 0) {
@@ -147,13 +150,9 @@ private:
         readBytesUnchecked(buffer.data(), received);
 
         return ok(Slice<u8 const>{buffer.data(), received});
-#else
-        return Error::create(Error::Unknown);
-#endif
     }
 
-    template<typename T> auto readPacketImpl() noexcept -> Result<T, Error> {
-#ifdef ARDUINO
+    template<trivial T> auto readPacketImpl() noexcept -> Result<T, Error> {
         constexpr usize requested = sizeof(T);
 
         usize const received = request(requested);
@@ -174,58 +173,41 @@ private:
             readBytesUnchecked(reinterpret_cast<u8 *>(&packet), requested);
             return ok(packet);
         }
-#else
-        return Error::create(Error::Unknown);
-#endif
     }
 
     WriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
-#ifdef ARDUINO
         beginTransmission();
         usize const written = writeBytes(buffer.data(), buffer.length());
         return endTransmission(written, buffer.length());
-#else
-        return ok();
-#endif
     }
 
-    WriteResult writePacketImpl(auto const &packet) noexcept {
-#ifdef ARDUINO
+    WriteResult writePacketImpl(trivial auto const &packet) noexcept {
         beginTransmission();
         usize const written = writePacketUnchecked(packet);
         return endTransmission(written, sizeof(decltype(packet)));
-#else
-        return ok();
-#endif
     }
 
-    WriteResult writeMixedImpl(auto const &header, Slice<u8 const> buffer) noexcept {
-#ifdef ARDUINO
+    WriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
         beginTransmission();
         usize const header_written = writePacketUnchecked(header);
         usize const buffer_written = writeBytes(buffer.data(), buffer.length());
         return endTransmission(header_written + buffer_written, sizeof(decltype(header)) + buffer.length());
-#else
-        return ok();
-#endif
     }
 
-#ifdef ARDUINO
-
-    /// @brief Request `requested` bytes from the I2C device.
-    /// @return Number of bytes actually available.
+    /// @brief Request `requested` bytes from the I2C device
+    /// @return Number of bytes actually available
     [[nodiscard]] usize request(usize requested) noexcept {
         return _wire.requestFrom(static_cast<int>(this->config().address), static_cast<int>(requested));
     }
 
-    /// @brief Read raw bytes from the internal Wire buffer after a successful request.
-    /// @warning Assumes that exactly `length` bytes are available; call only after checking request() result.
+    /// @brief Read raw bytes from the internal Wire buffer after a successful request
+    /// @warning Assumes that exactly `length` bytes are available; call only after checking request() result
     void readBytesUnchecked(u8 *buffer, usize length) noexcept {
         (void) _wire.readBytes(buffer, length);
     }
 
-    /// @brief Discard any remaining bytes in the receive buffer (flush).
-    /// @note Used after a partial read or error to prepare for the next transaction.
+    /// @brief Discard any remaining bytes in the receive buffer (flush)
+    /// @note Used after a partial read or error to prepare for the next transaction
     void discardReceiveBuffer() noexcept {
         auto const to_discard = _wire.available();
         for (auto i = 0; i < to_discard; i += 1) {
@@ -233,23 +215,23 @@ private:
         }
     }
 
-    /// @brief Begin an I2C transmission (send START condition).
-    /// @note Must be called before writing any data.
+    /// @brief Begin an I2C transmission (send START condition)
+    /// @note Must be called before writing any data
     void beginTransmission() noexcept {
         _wire.beginTransmission(this->config().address);
     }
 
-    /// @brief Write raw bytes to the I2C device (must be between begin/endTransmission).
-    /// @return number of bytes actually placed in the internal transmit buffer (may be less than `length` if buffer full).
+    /// @brief Write raw bytes to the I2C device (must be between begin/endTransmission)
+    /// @return number of bytes actually placed in the internal transmit buffer (may be less than `length` if buffer full)
     [[nodiscard]] usize writeBytes(u8 const *buffer, usize length) noexcept {
         return _wire.write(buffer, length);
     }
 
-    /// @brief End the transmission (send STOP) and check for errors.
-    /// @param written Number of bytes successfully written in this transaction.
-    /// @param to_write Total number of bytes that were intended to be written.
-    /// @return Success or specific I2C error.
-    /// @note Possible errors: AddressNack, DataNack, Timeout, BufferTooLong, Unknown.
+    /// @brief End the transmission (send STOP) and check for errors
+    /// @param written Number of bytes successfully written in this transaction
+    /// @param to_write Total number of bytes that were intended to be written
+    /// @return Success or specific I2C error
+    /// @note Possible errors: AddressNack, DataNack, Timeout, BufferTooLong, Unknown
     [[nodiscard]] WriteResult endTransmission(usize written, usize to_write) noexcept {
         u8 const code = _wire.endTransmission();
 
@@ -266,52 +248,48 @@ private:
         }
     }
 
-    /// @brief Write a single‑byte packet without checking (used internally for small writes).
+    /// @brief Write a single‑byte packet without checking (used internally for small writes)
     [[nodiscard]] usize writePacketUnchecked(u8 packet) noexcept {
         return _wire.write(packet);
     }
 
-    /// @brief Write a multi‑byte packet without checking (used internally).
+    /// @brief Write a multi‑byte packet without checking (used internally)
     [[nodiscard]] usize writePacketUnchecked(auto const &packet) noexcept {
         return writeBytes(reinterpret_cast<u8 const *>(&packet), sizeof(decltype(packet)));
     }
-
-#endif
 };
 
-#ifdef ARDUINO
-struct IicBusBase :
+struct IicBusImpl : IicBusBase<IicBusImpl> {
+    using Self = IicBusImpl;
 
-    bus::Bus<IicBusBase, IicNode<IicBusBase>, IicError>,
-    mixin::Configured<IicBusConfig>
+    using Config = IicBusConfig;
+    using Error = IicError;
+    using Node = IicNodeImpl<IicBusImpl>;
 
-{
-    friend IicNode<IicBusBase>;
+    friend Node;
 
-    explicit IicBusBase(IicBusConfig const &config, usize i2c_bus_num) noexcept :
-        mixin::Configured<IicBusConfig>{config},
-        _wire{static_cast<u8>(i2c_bus_num)} {
-    }
+    explicit IicBusImpl(Config const &config, usize i2c_bus_num) noexcept :
+        IicBusBase<Self>{config}, _wire{static_cast<u8>(i2c_bus_num)} {}
 
 private:
     TwoWire _wire;
 
-    KF_IMPL_BUS(IicBusBase, IicError);
+    KF_IMPL_BUS(Self, Error);
 
-    auto initImpl() noexcept -> Result<void, IicError> {
+    auto initImpl() noexcept -> Result<void, Error> {
         if (not this->config().hasDefaultPins()) {
             if (not _wire.setPins(static_cast<int>(this->config().gpio_num_sda), static_cast<int>(this->config().gpio_num_scl))) {
-                return IicError::create(IicError::PinConfigFailed);
+                return Error::create(Error::PinConfigFailed);
             }
         }
 
         if (not _wire.begin()) {
-            return IicError::create(IicError::BeginFailed);
+            return Error::create(Error::BeginFailed);
         }
 
         if (not this->config().hasDefaultClock()) {
             if (not _wire.setClock(this->config().clock_hz)) {
-                return IicError::create(IicError::ClockConfigFailed);
+                return Error::create(Error::ClockConfigFailed);
             }
         }
 
@@ -321,7 +299,7 @@ private:
 
         if (not this->config().hasDefaultBufferSize()) {
             if (_wire.setBufferSize(this->config().buffer_size) != this->config().buffer_size) {
-                return IicError::create(IicError::BufferSizeConfigFailed);
+                return Error::create(Error::BufferSizeConfigFailed);
             }
         }
 
@@ -332,40 +310,71 @@ private:
         (void) _wire.end();// just ignore
     }
 };
+
 #else
-struct IicBusBase :
 
-    bus::Bus<IicBusBase, IicNode<IicBusBase>, IicError>,
-    mixin::Configured<IicBusConfig>
+template<typename B> struct IicNodeImpl : IicNodeBase<IicNodeImpl> {
+    using Self = IicNodeImpl<B>;
 
-{
-    friend IicNode<IicBusBase>;
+    using Error = IicError;
+    using Config = IicNodeConfig;
 
-    explicit IicBusBase(IicBusConfig const &config, usize i2c_bus_num) noexcept :
-        mixin::Configured<IicBusConfig>{config} {}
+    explicit IicNodeImpl(B &bus, Config const &config) noexcept :
+        IicNodeBase<Self>{config} {}
 
 private:
-    KF_IMPL_BUS(IicBusBase, IicError);
+    KF_IMPL_BUS_NODE(Self, Error);
 
-    auto initImpl() noexcept -> Result<void, IicError> {
+    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
+        return Error::create(Error::Unknown);
+    }
+
+    template<trivial T> auto readPacketImpl() noexcept -> Result<T, Error> {
+        return Error::create(Error::Unknown);
+    }
+
+    auto writeBufferImpl(Slice<u8 const> buffer) noexcept -> Result<void, Error> {
+        return ok();
+    }
+
+    auto writePacketImpl(trivial auto const &packet) noexcept -> Result<void, Error> {
+        return ok();
+    }
+
+    auto writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept -> Result<void, Error> {
+        return ok();
+    }
+};
+
+struct IicBusImpl : IicBusBase<IicBusImpl> {
+    using Self = IicBusImpl;
+
+    using Config = IicBusConfig;
+    using Error = IicError;
+    using Node = IicNodeImpl<IicBusImpl>;
+
+    friend Node;
+
+    explicit constexpr IicBusImpl(Config const &config, usize i2c_bus_num) noexcept :
+        IicBusBase<Self>{config} {}
+
+private:
+    KF_IMPL_BUS(Self, Error);
+
+    auto initImpl() noexcept -> Result<void, Error> {
         return ok();
     }
 
     void quitImpl() noexcept {}
 };
+
 #endif
 
 }// namespace kf::internal
 
 namespace kf::bus {
 
-struct I2C : internal::IicBusBase {
-    using Config = internal::IicBusConfig;
-    using Error = internal::IicError;
-    using Node = internal::IicNode<internal::IicBusBase>;
-
-    using internal::IicBusBase::IicBusBase;
-};
+using I2C = internal::IicBusImpl;
 
 }// namespace kf::bus
 
