@@ -158,8 +158,6 @@ template<typename T> static constexpr bool is_c_string_v{
 
 };
 
-template<typename> static constexpr bool always_false_v{false};
-
 }// namespace kf::internal
 
 namespace kf::mixin {
@@ -212,7 +210,7 @@ template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Imp
             appendReal(value, precision);
 
         } else {
-            static_assert(internal::always_false_v<T>, "Unsupported type for append");
+            static_assert(not sizeof(T), "Unsupported type for append");
         }
     }
 
