@@ -5,15 +5,20 @@ from typing import Sequence
 
 REPO_DIR = Path(".").resolve()
 
-PLATFORMIO_INI = """; KiraFlux-Toolkit Example Project configuration
-[platformio]
+PLATFORMIO_INI = """[platformio]
 build_cache_dir = .pio/build_cache
 
 [env:example]
-build_unflags = -std=gnu++11
-build_flags = -std=gnu++20
 lib_extra_dirs = ../../..
+
 monitor_speed = 115200
+
+build_flags = 
+    -std=gnu++20
+    -D NO_GLOBAL_INSTANCES
+
+build_unflags = 
+    -std=gnu++11
 
 [env:esp32dev]
 extends = env:example
@@ -23,8 +28,7 @@ framework = arduino
 
 [env:native]
 extends = env:example
-platform = native
-"""
+platform = native"""
 
 TEST_CPP = """
 #include <runner.hpp>
