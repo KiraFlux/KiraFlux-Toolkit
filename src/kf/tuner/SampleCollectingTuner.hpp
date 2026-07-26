@@ -27,7 +27,6 @@ namespace kf::tuner {
 ///          the Calculating state and call `calculateImpl()`.
 template<typename Impl, typename T> struct SampleCollectingTuner : Tuner<SampleCollectingTuner<Impl, T>> {
     using ConfigType = T;
-    using SampleCounterType = u16;
 
     enum class State : u8 {
         Idle,
@@ -36,14 +35,14 @@ template<typename Impl, typename T> struct SampleCollectingTuner : Tuner<SampleC
     };
 
     /// @brief Total number of samples to collect before calculating.
-    SampleCounterType const samples_total;
+    usize const samples_total;
 
-    explicit SampleCollectingTuner(ConfigType &config, SampleCounterType samples) noexcept :
+    explicit SampleCollectingTuner(ConfigType &config, usize samples) noexcept :
         _config{config}, samples_total{samples} {}
 
 private:
     ConfigType &_config;
-    SampleCounterType _samples_processed{0};
+    usize _samples_processed{0};
     State _state{State::Idle};
 
     KF_IMPL_TUNER(SampleCollectingTuner<Impl, T>);
