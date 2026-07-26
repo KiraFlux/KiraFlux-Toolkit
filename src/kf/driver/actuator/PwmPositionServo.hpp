@@ -3,10 +3,7 @@
 
 #pragma once
 
-#include <utility>
-
 #include "kf/Range.hpp"
-#include "kf/concepts.hpp"
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Configured.hpp"
@@ -22,6 +19,7 @@ struct PwmPositionServoConfig final {
 
     AngleRange angle_range;
     PulseRange pulse_range;
+    gpio::PwmOutput::Config pwm;
 
     /// @brief Convert angle to pulse width using linear interpolation
     /// @param angle Target servo angle
@@ -37,14 +35,12 @@ namespace kf::driver::actuator {
 
 /// @brief PWM-controlled position servo driver for ESP32 LEDC hardware
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
-/// @tparam G Implementation of GPIO with PWM output support
-template<implements<gpio::PwmOutputTag> G> struct PwmPositionServo final :
+struct PwmPositionServo final :
 
-    ActuatorDriver<PwmPositionServo<G>, units::Degrees, bool()>,
+    ActuatorDriver<PwmPositionServo, units::Degrees, bool()>,
     mixin::Configured<internal::PwmPositionServoConfig>
 
 {
-    using PwmOutputImpl = G;
 
     /// @brief Configuration for PWM position servo (angle <-> pulse width mapping)
     /// @note Contains hardware‑independent mapping and is self‑validating
@@ -52,33 +48,33 @@ template<implements<gpio::PwmOutputTag> G> struct PwmPositionServo final :
 
     /// @brief Construct servo with the same angle range for both mapping and safe operation
     /// @param config Mapping between angle and pulse width
-    /// @param gpio    PWM output gpio
-    explicit constexpr PwmPositionServo(Config const &config, PwmOutputImpl &&gpio) noexcept :
-        mixin::Configured<Config>{config}, _angle_safe_range{config.angle_range}, _pwm_gpio{std::move(gpio)} {}
+    /// @param gpio_num PWM output gpio number
+    explicit constexpr PwmPositionServo(Config const &config, gpio::GpioNumber gpio_num) noexcept :
+        mixin::Configured<Config>{config}, _angle_safe_range{config.angle_range}, _pwm_output{config.pwm, gpio_num} {}
 
     /// @brief Construct servo with separate safe angle range (may be narrower than config range)
     /// @param config Mapping between angle and pulse width
-    /// @param gpio PWM output gpio
+    /// @param gpio_num PWM output gpio number
     /// @param angle_safe_range Additional clamping range for safety (e.g., to avoid mechanical limits)
-    explicit constexpr PwmPositionServo(Config const &config, PwmOutputImpl &&gpio, Config::AngleRange angle_safe_range) noexcept :
-        mixin::Configured<Config>{config}, _angle_safe_range{angle_safe_range}, _pwm_gpio{std::move(gpio)} {}
+    explicit constexpr PwmPositionServo(Config const &config, gpio::GpioNumber gpio_num, Config::AngleRange angle_safe_range) noexcept :
+        mixin::Configured<Config>{config}, _angle_safe_range{angle_safe_range}, _pwm_output{config.pwm, gpio_num} {}
 
 private:
     Config::AngleRange _angle_safe_range;///< Safe operating angle range (clamped before mapping)
-    PwmOutputImpl _pwm_gpio;             ///< PWM output gpio
+    gpio::PwmOutput _pwm_output;         ///< PWM output gpio
 
-    KF_IMPL_ACTUATOR_DRIVER(PwmPositionServo<G>, units::Degrees, bool());
+    KF_IMPL_ACTUATOR_DRIVER(PwmPositionServo, units::Degrees, bool());
 
     bool initImpl() noexcept {
-        return _pwm_gpio.init();
+        return _pwm_output.init();
     }
 
     void setImpl(units::Degrees angle) noexcept {
-        _pwm_gpio.writePulse(this->config().pulseWidthFromAngle(_angle_safe_range.clamped(angle)));
+        _pwm_output.writePulse(this->config().pulseWidthFromAngle(_angle_safe_range.clamped(angle)));
     }
 
     void stopImpl() noexcept {
-        _pwm_gpio.write(0);
+        _pwm_output.write(0);
     }
 };
 

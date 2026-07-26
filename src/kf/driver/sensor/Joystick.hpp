@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/concepts.hpp"
+#include "kf/gpio.hpp"
 #include "kf/math.hpp"
 #include "kf/meta/CRTP.hpp"
 #include "kf/tuner/Tuner.hpp"
@@ -25,7 +26,7 @@ namespace kf::driver::sensor {
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
 template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joystick<I>, internal::JoystickValue, void()> {
-
+    using Self = Joystick<I>;
     using InputImpl = I;
 
     /// @brief Normalized joystick reading value
@@ -33,6 +34,7 @@ template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joy
 
     struct Config final {
         typename InputImpl::Config x, y;
+        typename InputImpl::FilterImpl::Config filter;
     };
 
     /// @brief Tuner for a complete two‑axis joystick.
@@ -40,7 +42,7 @@ template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joy
     ///       After reset(), call poll() repeatedly until running() returns false.
     ///       The tuner reads raw values from the joystick axes internally.
     struct Tuner : tuner::Tuner<Tuner> {
-        explicit Tuner(Config &config, Joystick &joystick, u16 samples) noexcept :
+        explicit Tuner(Config &config, Joystick &joystick, usize samples) noexcept :
             _tuner_x{config.x, joystick.axis_x, samples},
             _tuner_y{config.y, joystick.axis_y, samples} {}
 
@@ -66,16 +68,12 @@ template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joy
 
     InputImpl axis_x, axis_y;
 
-    explicit Joystick(
-        Config const &config,
-        typename InputImpl::FilterImpl::Config const &filter_config,
-        typename InputImpl::AdcInputImpl &&pin_x,
-        typename InputImpl::AdcInputImpl &&pin_y) noexcept :
-        axis_x{config.x, filter_config, std::move(pin_x)},
-        axis_y{config.y, filter_config, std::move(pin_y)} {}
+    explicit Joystick(Config const &config, gpio::GpioNumber gpio_num_axis_x, gpio::GpioNumber gpio_num_axis_y) noexcept :
+        axis_x{config.x, config.filter, gpio_num_axis_x},
+        axis_y{config.y, config.filter, gpio_num_axis_y} {}
 
 private:
-    KF_IMPL_SENSOR_DRIVER(Joystick<I>, Value, void());
+    KF_IMPL_SENSOR_DRIVER(Self, Value, void());
 
     void initImpl() noexcept {
         axis_x.init();

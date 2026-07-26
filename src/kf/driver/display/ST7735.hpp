@@ -22,6 +22,7 @@ namespace kf::internal {
 using ST7735Image = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
 
 struct ST7735Config final {
+    bus::SPI::Node::Config spi_node;
     driver::display::Orientation init_orientation;
 };
 
@@ -30,22 +31,17 @@ struct ST7735Config final {
 namespace kf::driver::display {
 
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
-/// @tparam N Implementation of SPI bus Node
-/// @tparam G Implementation of GPIO with digital input support
-template<implements<bus::SpiNodeTag> N, implements<gpio::DigitalOutputTag> G> struct ST7735 final :
+struct ST7735 final :
 
-    DisplayDriver<ST7735<N, G>, internal::ST7735Image, Result<void, typename N::Error>>,
+    DisplayDriver<ST7735, internal::ST7735Image, Result<void, bus::SPI::Error>>,
     mixin::Configured<internal::ST7735Config>
 
 {
 
-    using SpiBusNodeImpl = N;
-    using DigitalOutputImpl = G;
-    using PixelImpl = typename internal::ST7735Image::PixelImpl;
-    using Error = typename SpiBusNodeImpl::Error;
-    using SpiOperationResult = Result<void, Error>;
+    using PixelImpl = internal::ST7735Image::PixelImpl;
+    using SpiOperationResult = Result<void, bus::SPI::Error>;
 
-    using Self = ST7735<N, G>;
+    using Self = ST7735;
 
     /// @brief Hardware configuration for ST7735
     using Config = internal::ST7735Config;
@@ -79,30 +75,33 @@ template<implements<bus::SpiNodeTag> N, implements<gpio::DigitalOutputTag> G> st
         COLMOD = 0x3A ///< Color mode setting
     };
 
-    explicit constexpr ST7735(Config const &config, SpiBusNodeImpl &&node, DigitalOutputImpl &&gpio_data_command, DigitalOutputImpl &&gpio_reset) noexcept :
-        mixin::Configured<internal::ST7735Config>{config}, _spi_node{std::move(node)}, _gpio_data_command{std::move(gpio_data_command)}, _gpio_hardware_reset{std::move(gpio_reset)} {}
+    explicit constexpr ST7735(bus::SPI &spi_bus, Config const &config, gpio::GpioNumber gpio_num_data_command, gpio::GpioNumber gpio_num_reset) noexcept :
+        mixin::Configured<internal::ST7735Config>{config},
+        _spi_node{spi_bus.createNode(config.spi_node)},
+        _gpio_data_command{gpio_num_data_command},
+        _gpio_hardware_reset{gpio_num_reset} {}
 
 private:
-    SpiBusNodeImpl _spi_node;
-    DigitalOutputImpl _gpio_data_command;
-    DigitalOutputImpl _gpio_hardware_reset;
+    bus::SPI::Node _spi_node;
+    gpio::DigitalOutput _gpio_data_command;
+    gpio::DigitalOutput _gpio_hardware_reset;
 
     u8 _madctl_base_mode{0};///< Base MADCTL value
 
     // Low-level communication
 
     SpiOperationResult sendBuffer(Slice<u8 const> buffer) noexcept {
-        _gpio_data_command.write(true);
+        _gpio_data_command.level(true);
         return _spi_node.writeBuffer(buffer);
     }
 
-    SpiOperationResult sendPacket(auto const &packet) noexcept {
-        _gpio_data_command.write(true);
-        return _spi_node.writePacket(std::forward<decltype(packet)>(packet));
+    SpiOperationResult sendPacket(trivial auto const &packet) noexcept {
+        _gpio_data_command.level(true);
+        return _spi_node.writePacket(packet);
     }
 
     SpiOperationResult sendCommand(Command c) noexcept {
-        _gpio_data_command.write(false);
+        _gpio_data_command.level(false);
         return _spi_node.writeByte(static_cast<u8>(c));
     }
 
@@ -136,9 +135,9 @@ private:
 
     void resetImpl() const noexcept {
         // Required after power‑up to initialise the internal state machine.
-        _gpio_hardware_reset.write(false);
+        _gpio_hardware_reset.level(false);
         rtos::Task::sleep(10);
-        _gpio_hardware_reset.write(true);
+        _gpio_hardware_reset.level(true);
         rtos::Task::sleep(120);
     }
 

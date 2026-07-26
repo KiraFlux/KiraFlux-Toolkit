@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/bus/IIC.hpp"
+#include "kf/bus/I2C.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/math.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
@@ -22,16 +22,10 @@ using SSD1306Image = image::StaticImage<pixel::MonochromePixel, 128, 64>;
 namespace kf::driver::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-/// @tparam N Implementation of IIC bus Node
-template<implements<bus::IicNodeTag> N> struct SSD1306 final :
+struct SSD1306 : DisplayDriver<SSD1306, internal::SSD1306Image, Result<void, bus::I2C::Error>> {
 
-    DisplayDriver<SSD1306<N>, internal::SSD1306Image, Result<void, typename N::Error>>
-
-{
-
-    using IicNodeImpl = N;
     using PixelImpl = typename internal::SSD1306Image::PixelImpl;
-    using IicOperationResult = Result<void, typename IicNodeImpl::Error>;
+    using IicOperationResult = Result<void, bus::I2C::Error>;
 
     /// @brief SSD1306 command set
     enum Command : u8 {
@@ -67,12 +61,12 @@ template<implements<bus::IicNodeTag> N> struct SSD1306 final :
     static constexpr u8 default_address = {0x3C};
 
     /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(IicNodeImpl &&node) noexcept : _node{std::move(node)} {}
+    explicit SSD1306(bus::I2C::Node &&i2c_node) noexcept : _i2c_node{std::move(i2c_node)} {}
 
     /// @brief Set display contrast level (0..255)
     [[nodiscard]] IicOperationResult contrast(u8 value) noexcept {
         u8 const packet[]{CommandMode, Contrast, value};
-        return _node.writePacket(packet);
+        return _i2c_node.writePacket(packet);
     }
 
     /// @brief Enable or disable display power
@@ -90,15 +84,15 @@ template<implements<bus::IicNodeTag> N> struct SSD1306 final :
     }
 
 private:
-    IicNodeImpl _node;
+    bus::I2C::Node _i2c_node;
 
     /// @brief Send single command to display
     [[nodiscard]] IicOperationResult sendCommand(Command c) noexcept {
         u8 const packet[]{OneCommandMode, static_cast<u8>(c)};
-        return _node.writePacket(packet);
+        return _i2c_node.writePacket(packet);
     }
 
-    KF_IMPL_DISPLAY_DRIVER(SSD1306<N>, internal::SSD1306Image, IicOperationResult);
+    KF_IMPL_DISPLAY_DRIVER(SSD1306, internal::SSD1306Image, IicOperationResult);
 
     /// @brief Initialize display hardware via I2C
     IicOperationResult initImpl() noexcept {
@@ -144,7 +138,7 @@ private:
             0x3F,
         };
 
-        return _node.writePacket(init_commands);
+        return _i2c_node.writePacket(init_commands);
     }
 
     constexpr void resetImpl() const noexcept {}
@@ -154,7 +148,7 @@ private:
 
         static constexpr auto packet_size = 64u;// Optimal for ESP32 performance // TODO: move to config, rename to chunk_size
 
-        static constexpr u8 set_area_commands[] = {
+        static constexpr u8 set_area_commands[]{
             CommandMode,
             // Set full display window
             ColumnAddr,
@@ -165,7 +159,7 @@ private:
             PixelImpl::template pages<64> - 1,
         };
 
-        KF_TRY(_node.writePacket(set_area_commands));
+        KF_TRY(_i2c_node.writePacket(set_area_commands));
 
         auto p = this->image().buffer().data();
         auto remaining = this->image().buffer().length();
@@ -173,7 +167,7 @@ private:
         while (remaining > 0) {
             auto const chunk = math::min(packet_size, remaining);
 
-            KF_TRY(_node.writeMixed(Command::DataMode, {p, chunk}));
+            KF_TRY(_i2c_node.writeMixed(Command::DataMode, {p, chunk}));
 
             p += chunk;
             remaining -= chunk;

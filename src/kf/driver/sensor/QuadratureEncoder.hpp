@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "kf/concepts.hpp"
 #include "kf/gpio.hpp"
+#include "kf/primitives.hpp"
+
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Resettable.hpp"
-#include "kf/primitives.hpp"
 
 #include "kf/driver/sensor/SensorDriver.hpp"
 
@@ -35,6 +35,7 @@ template<typename T> struct QuadratureEncoderConfig final {
 
     UnitType units_per_tick;     ///< Conversion factor: physical units per encoder tick
     Direction positive_direction;///< Desired positive rotation direction
+    gpio::DigitalInput::Pull pull;///< Phase Pull type
 
     /// @brief Converts ticks to physical units
     [[nodiscard]] constexpr UnitType unitsFromTicks(TickType value) const noexcept {
@@ -55,21 +56,19 @@ namespace kf::driver::sensor {
 /// @brief Quadrature encoder sensor with 4X decoding
 /// @note Arduino-Only
 /// @tparam T Physical linear unit
-template<implements<gpio::DigitalInputTag> G, typename T> struct QuadratureEncoder final :
+template<typename T> struct QuadratureEncoder final :
 
-    driver::sensor::SensorDriver<QuadratureEncoder<G, T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
-    mixin::Resettable<QuadratureEncoder<G, T>>,
+    driver::sensor::SensorDriver<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
+    mixin::Resettable<QuadratureEncoder<T>>,
     mixin::Configured<internal::QuadratureEncoderConfig<T>>
 
 {
-    using DigitalInputImpl = G;
-
-    using Self = QuadratureEncoder<G, T>;
+    using Self = QuadratureEncoder<T>;
 
     using Config = internal::QuadratureEncoderConfig<T>;
 
-    explicit constexpr QuadratureEncoder(Config const &config, DigitalInputImpl &&gpio_phase_a, DigitalInputImpl &&gpio_phase_b) noexcept :
-        mixin::Configured<Config>::Configured{config}, _gpio_phase_a{std::move(gpio_phase_a)}, _gpio_phase_b{std::move(gpio_phase_b)} {}
+    explicit constexpr QuadratureEncoder(Config const &config, gpio::GpioNumber gpio_num_phase_a, gpio::GpioNumber gpio_num_phase_b) noexcept :
+        mixin::Configured<Config>::Configured{config}, _gpio_phase_a{gpio_num_phase_a, config.pull}, _gpio_phase_b{gpio_num_phase_b, config.pull} {}
 
     /// @brief Current accumulated position in ticks
     [[nodiscard]] auto positionTicks() const noexcept -> typename Config::TickType {
@@ -92,7 +91,7 @@ template<implements<gpio::DigitalInputTag> G, typename T> struct QuadratureEncod
     }
 
 private:
-    DigitalInputImpl _gpio_phase_a, _gpio_phase_b;
+    gpio::DigitalInput _gpio_phase_a, _gpio_phase_b;
     typename Config::TickType volatile _position_ticks{0};  ///< Accumulated step count
     typename Config::PhaseStateType volatile _last_state{0};///< Previous AB phase state
 
@@ -128,17 +127,17 @@ private:
 
     void initImpl() noexcept {
         _gpio_phase_a.init();
-        _gpio_phase_a.attachInterrupt(onAnyPhaseChange, static_cast<void *>(this), DigitalInputImpl::Interrupt::OnChange);
+        _gpio_phase_a.attachInterrupt(onAnyPhaseChange, static_cast<void *>(this), gpio::DigitalInput::Interrupt::OnChange);
 
         _gpio_phase_b.init();
-        _gpio_phase_b.attachInterrupt(onAnyPhaseChange, static_cast<void *>(this), DigitalInputImpl::Interrupt::OnChange);
+        _gpio_phase_b.attachInterrupt(onAnyPhaseChange, static_cast<void *>(this), gpio::DigitalInput::Interrupt::OnChange);
 
         this->reset();
     }
 
     typename Config::PhaseStateType readImpl() const noexcept {
-        auto const state_a = static_cast<typename Config::PhaseStateType>(_gpio_phase_a.read());
-        auto const state_b = static_cast<typename Config::PhaseStateType>(_gpio_phase_b.read());
+        auto const state_a = static_cast<typename Config::PhaseStateType>(_gpio_phase_a.level());
+        auto const state_b = static_cast<typename Config::PhaseStateType>(_gpio_phase_b.level());
         return (state_a << 1) | state_b;// pack as AB
     }
 

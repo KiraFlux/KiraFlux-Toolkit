@@ -3,17 +3,15 @@
 
 #pragma once
 
-#include <utility>
-
-#include "kf/concepts.hpp"
 #include "kf/filter/ExponentialFilter.hpp"
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
+#include "kf/primitives.hpp"
+#include "kf/tuner/SampleCollectingTuner.hpp"
+
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
-#include "kf/primitives.hpp"
-#include "kf/tuner/SampleCollectingTuner.hpp"
 
 #include "kf/driver/sensor/SensorDriver.hpp"
 
@@ -39,15 +37,14 @@ struct NormalizedAdcInputConfig final {
 namespace kf::driver::sensor {
 
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
-/// @tparam G Implementation of GPIO with ADC input support
-template<implements<gpio::AdcInputTag> G> struct NormalizedAdcInput final :
+struct NormalizedAdcInput final :
 
-    SensorDriver<NormalizedAdcInput<G>, f32, void()>,
+    SensorDriver<NormalizedAdcInput, f32, void()>,
     mixin::Configured<internal::NormalizedAdcInputConfig>
 
 {
+    using Self = NormalizedAdcInput;
 
-    using AdcInputImpl = G;
     using FilterImpl = filter::ExponentialFilter<f32>;
     using Config = internal::NormalizedAdcInputConfig;
 
@@ -61,7 +58,7 @@ template<implements<gpio::AdcInputTag> G> struct NormalizedAdcInput final :
     ///       - on calculate: compute dead zone and ranges based on collected data.
     struct Tuner final : tuner::SampleCollectingTuner<Tuner, Config> {
 
-        explicit Tuner(Config &config, NormalizedAdcInput &normalized_input, u16 samples) :
+        explicit Tuner(Config &config, NormalizedAdcInput &normalized_input, usize samples) :
             tuner::SampleCollectingTuner<Tuner, Config>{config, samples}, _normalized_input{normalized_input} {}
 
     private:
@@ -73,7 +70,7 @@ template<implements<gpio::AdcInputTag> G> struct NormalizedAdcInput final :
 
         constexpr void resetImpl() noexcept {
             _max_sample = 0;
-            _min_sample = AdcInputImpl::maxValue();
+            _min_sample = gpio::AdcInput::maxValue();
             _sum = 0;
         }
 
@@ -90,26 +87,26 @@ template<implements<gpio::AdcInputTag> G> struct NormalizedAdcInput final :
 
             config.dead_zone = static_cast<Config::AdcSignedValue>((_max_sample - _min_sample) / zone_percents + margin);
             auto const center = static_cast<Config::AdcSignedValue>(_sum / this->samples_total);
-            config.range_positive = Config::calcPositiveRange(AdcInputImpl::maxValue(), center);
+            config.range_positive = Config::calcPositiveRange(gpio::AdcInput::maxValue(), center);
             config.range_negative = Config::calcNegativeRange(center);
         }
     };
 
-    explicit NormalizedAdcInput(Config const &config, typename FilterImpl::Config const &filter_config, AdcInputImpl &&gpio) noexcept :
-        mixin::Configured<Config>{config}, _filter{filter_config}, _gpio{std::move(gpio)} {}
+    explicit NormalizedAdcInput(Config const &config, typename FilterImpl::Config const &filter_config, gpio::GpioNumber gpio_num) noexcept :
+        mixin::Configured<Config>{config}, _filter{filter_config}, _adc_input{gpio_num} {}
 
-    [[nodiscard]] u16 readRaw() const noexcept {
-        return _gpio.read();
+    [[nodiscard]] gpio::AdcInput::Value readRaw() const noexcept {
+        return _adc_input.read();
     }
 
 private:
     FilterImpl _filter;
-    AdcInputImpl _gpio;
+    gpio::AdcInput _adc_input;
 
-    KF_IMPL_SENSOR_DRIVER(NormalizedAdcInput<G>, f32, void());
+    KF_IMPL_SENSOR_DRIVER(Self, f32, void());
 
     void initImpl() noexcept {
-        _gpio.init();
+        _adc_input.init();
     }
 
     [[nodiscard]] f32 readImpl() noexcept {

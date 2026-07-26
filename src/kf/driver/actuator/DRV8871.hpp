@@ -3,24 +3,27 @@
 
 #pragma once
 
-#include <utility>
-
-#include "kf/concepts.hpp"
-#include "kf/driver/actuator/ActuatorDriver.hpp"
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Configured.hpp"
+
+#include "kf/driver/actuator/ActuatorDriver.hpp"
 
 namespace kf::internal {
 
 /// @brief Configuration for the DRV8871 motor driver
 struct DRV8871Config {
-    using DutyType = kf::u16; ///< PWM duty cycle type (0..maxDuty)
     using InputType = kf::i16;///< Signed input command type
 
-    InputType max_input;        ///< Maximum absolute input value (e.g., 1000)
-    DutyType forward_dead_zone; ///< Minimum PWM duty to start moving forward
-    DutyType backward_dead_zone;///< Minimum PWM duty to start moving backward
+    gpio::PwmOutput::Config pwm;         ///< PWM configuration (shared with both GPIO objects)
+    InputType max_input;                 ///< Maximum absolute input value (e.g., 1000)
+    gpio::PwmOutput::Duty duty_dead_zone;///< Minimum PWM duty to start moving forward
+
+    /// @brief Map speed command to PWM duty cycle respecting dead zone
+    [[nodiscard]] constexpr gpio::PwmOutput::Duty calcDuty(InputType value) const noexcept {
+        auto const clamped_input = math::clamp(value, 0, max_input);
+        return static_cast<gpio::PwmOutput::Duty>(math::linearMap(clamped_input, 0, max_input, duty_dead_zone, pwm.maxDuty()));
+    }
 };
 
 }// namespace kf::internal
@@ -28,35 +31,26 @@ struct DRV8871Config {
 namespace kf::driver::actuator {
 
 /// @brief DRV8871 H-bridge motor driver abstraction
-/// @tparam G Implementation of GPIO with PWM output support
-template<implements<gpio::PwmOutputTag> G> struct DRV8871 final :
+struct DRV8871 final :
 
-    driver::actuator::ActuatorDriver<DRV8871<G>, internal::DRV8871Config::InputType, bool()>,
+    driver::actuator::ActuatorDriver<DRV8871, internal::DRV8871Config::InputType, bool()>,
     mixin::Configured<internal::DRV8871Config>
 
 {
-    using PwmOutputImpl = G;
     using Config = internal::DRV8871Config;
 
     /// @param config Driver configuration (dead zones, max input)
-    /// @param forward PWM output for forward rotation
-    /// @param backward PWM output for backward rotation
-    explicit DRV8871(Config const &config, PwmOutputImpl &&forward, PwmOutputImpl &&backward) noexcept :
+    /// @param gpio_num_forward PWM gpio output for forward rotation
+    /// @param gpio_num_backward PWM gpio output for backward rotation
+    explicit DRV8871(Config const &config, gpio::GpioNumber gpio_num_forward, gpio::GpioNumber gpio_num_backward) noexcept :
         mixin::Configured<Config>(config),
-        _pwm_gpio_forward{std::move(forward)}, _pwm_gpio_backward{std::move(backward)} {}
+        _pwm_gpio_forward{config.pwm, gpio_num_forward},
+        _pwm_gpio_backward{config.pwm, gpio_num_backward} {}
 
 private:
-    PwmOutputImpl _pwm_gpio_forward, _pwm_gpio_backward;// TODO: use one GPIO object
+    gpio::PwmOutput _pwm_gpio_forward, _pwm_gpio_backward;
 
-    /// @brief Map speed command to PWM duty cycle respecting dead zone
-    Config::DutyType calcDuty(Config::InputType value, Config::DutyType dead_zone, PwmOutputImpl const &pwm_output) const noexcept {
-        return math::linearMap<Config::DutyType>(
-            math::clamp(value, static_cast<Config::InputType>(0), this->config().max_input),
-            0, this->config().max_input,
-            dead_zone, pwm_output.config().maxDuty());
-    }
-
-    KF_IMPL_ACTUATOR_DRIVER(DRV8871<G>, Config::InputType, bool());
+    KF_IMPL_ACTUATOR_DRIVER(DRV8871, Config::InputType, bool());
 
     bool initImpl() noexcept {
         if (not _pwm_gpio_forward.init()) { return false; }
@@ -67,9 +61,9 @@ private:
     void setImpl(Config::InputType value) noexcept {
         if (value < 0) {
             _pwm_gpio_forward.write(0);
-            _pwm_gpio_backward.write(calcDuty(-value, this->config().backward_dead_zone, _pwm_gpio_backward));
+            _pwm_gpio_backward.write(this->config().calcDuty(-value));
         } else {
-            _pwm_gpio_forward.write(calcDuty(value, this->config().forward_dead_zone, _pwm_gpio_forward));
+            _pwm_gpio_forward.write(this->config().calcDuty(value));
             _pwm_gpio_backward.write(0);
         }
     }
