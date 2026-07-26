@@ -6,6 +6,8 @@
 #include "kf/Slice.hpp"
 #include "kf/Stack.hpp"
 #include "kf/StringView.hpp"
+
+#include "kf/mixin/Flush.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Writable.hpp"
 
@@ -15,6 +17,7 @@ namespace kf {
 struct Logger :
 
     mixin::NonCopyable,
+    mixin::Flush<Logger>,
     private mixin::Writable<Logger, char>
 
 {
@@ -39,7 +42,7 @@ struct Logger :
         this->append(":" __kf_level_name__ "] ");                                                                            \
         this->format(fmt, args...);                                                                                          \
         this->append('\n');                                                                                                  \
-        flush();                                                                                                             \
+        this->flush();                                                                                                       \
     }
 
     MAKE(debug, "D")
@@ -49,15 +52,15 @@ struct Logger :
 
 #undef MAKE
 
-    /// @brief Write all buffered chars
-    void flush() noexcept {
-        writer({_stack.slice()});
-        _stack.reset();
-    }
-
 private:
     Stack<char> _stack;
     StringView _key;
+
+    KF_IMPL_FLUSH(Logger);
+    void flushImpl() noexcept {
+        writer({_stack.slice()});
+        _stack.reset();
+    }
 
     KF_IMPL_WRITABLE(Logger, char);
     bool writeImpl(char c) noexcept {
