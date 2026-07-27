@@ -16,6 +16,8 @@ inline namespace buildin_constants {
 
 constexpr f64 pi{M_PI};
 
+constexpr f64 half_pi{half_pi};
+
 constexpr f64 euler{M_E};
 
 }// namespace buildin_constants
@@ -402,12 +404,12 @@ template<arithmetic T> struct Quaternion :
 
         // North pole (pitch = +90 deg)
         if (sarg >= lim) {
-            return Vector3<U>::create(0, M_PI_2, 2 * math::atan2(y, x));// roll, pitch, yaw
+            return Vector3<U>::create(0, half_pi, 2 * math::atan2(y, x));// roll, pitch, yaw
         }
 
         // South pole (pitch = -90 deg)
         if (sarg <= -lim) {
-            return Vector3<U>::create(0, -M_PI_2, -2 * math::atan2(y, x));// roll, pitch, yaw
+            return Vector3<U>::create(0, -half_pi, -2 * math::atan2(y, x));// roll, pitch, yaw
         }
 
         // Regular case
