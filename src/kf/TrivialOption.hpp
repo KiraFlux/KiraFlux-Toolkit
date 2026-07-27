@@ -19,91 +19,22 @@ namespace kf {
 /// @brief Tag struct for identifying Option types
 struct OptionTag {};
 
-template<trivial T> struct TrivialOption;
-
-namespace internal {
-
-/// @brief Helper for constructing TrivialOption with a value
-/// @note Provides a static method `create` that bypasses the private constructor.
-struct TrivialSomeCreator final {
-
-    [[nodiscard]] static constexpr auto create(trivial auto const &value) noexcept {
-        return TrivialOption<std::remove_cvref_t<decltype(value)>>{value};
-    }
-};
-
-template<trivial T> struct RealValueOption :
-
-    OptionTag,
-    mixin::Invariant<RealValueOption<T>>,
-    mixin::Resettable<RealValueOption<T>>
-
-{
-    friend struct internal::TrivialSomeCreator;
-
-    using Self = RealValueOption<T>;
-
-    constexpr RealValueOption(NoneType) noexcept :
-        _value{nan} {}
-
-    constexpr RealValueOption() noexcept :
-        _value{nan} {}
-
-    constexpr RealValueOption(T value) noexcept :
-        _value{value} {}
-
-    [[nodiscard]] T &unwrap() noexcept {
-        if (this->isNone()) { abort(); }
-        return _value;
-    }
-
-    [[nodiscard]] T const &unwrap() const noexcept {
-        return const_cast<RealValueOption *>(this)->unwrap();
-    }
-
-    [[nodiscard]] T unwrapOr(T default_value) const noexcept {
-        return this->isSome() ? _value : default_value;
-    }
-
-private:
-    static constexpr auto nan{std::numeric_limits<T>::quiet_NaN()};
-
-    T _value;
-
-    KF_IMPL_INVARIANT(Self);
-    bool isSomeImpl() const noexcept {
-        return not std::isnan(_value);
-    }
-
-    KF_IMPL_RESETTABLE(Self);
-    constexpr void resetImpl() noexcept {
-        _value = nan;
-    }
-};
-
-}// namespace internal
-
-/// @brief Create TrivialOption containing a value
-/// @param value The value to store (copied)
-/// @return `TrivialOption<T>`
-[[nodiscard]] constexpr auto someTrivial(trivial auto const &value) noexcept {
-    return internal::TrivialSomeCreator::create(value);
-}
+template<typename T> struct TrivialOption;
 
 /// @brief Trivially copyable optional container for trivially copyable types
 /// @tparam T Stored type
 /// @note Safe for byte serialization
 /// @note Created via `kf::someTrivial()` or `kf::none`
 /// @note Always check `isSome()` before `unwrap()`, otherwise `abort()`
-template<trivial T> struct TrivialOption final :
+template<trivial T>
+    requires(not enum_type<T> and not float_type<T>)
+struct TrivialOption<T> :
 
     OptionTag,
     mixin::Invariant<TrivialOption<T>>,
     mixin::Resettable<TrivialOption<T>>
 
 {
-    friend struct internal::TrivialSomeCreator;
-
     using Self = TrivialOption<T>;
 
     /// @brief Construct an empty Option (None)
@@ -167,6 +98,51 @@ private:
     }
 };
 
+template<enum_type E> struct TrivialOption<E> :
+
+    OptionTag,
+    mixin::Invariant<TrivialOption<E>>,
+    mixin::Resettable<TrivialOption<E>>
+
+{
+    using Self = TrivialOption<E>;
+
+    using Underlying = std::underlying_type_t<E>;
+
+    constexpr TrivialOption(NoneType) noexcept :
+        _value{none_value} {}
+
+    constexpr TrivialOption() noexcept :
+        _value{none_value} {}
+
+    constexpr TrivialOption(E value) noexcept :
+        _value{static_cast<Underlying>(value)} {}
+
+    [[nodiscard]] E unwrap() const noexcept {
+        if (this->isNone()) { abort(); }
+        return static_cast<E>(_value);
+    }
+
+    [[nodiscard]] E unwrapOr(E default_value) const noexcept {
+        return this->isSome() ? static_cast<E>(_value) : default_value;
+    }
+
+private:
+    static constexpr auto none_value{static_cast<Underlying>(-1)};
+
+    Underlying _value;
+
+    KF_IMPL_INVARIANT(Self);
+    constexpr bool isSomeImpl() const noexcept {
+        return _value != none_value;
+    }
+
+    KF_IMPL_RESETTABLE(Self);
+    constexpr void resetImpl() noexcept {
+        _value = none_value;
+    }
+};
+
 template<> struct TrivialOption<usize> :
 
     OptionTag,
@@ -174,7 +150,6 @@ template<> struct TrivialOption<usize> :
     mixin::Resettable<TrivialOption<usize>>
 
 {
-    friend struct internal::TrivialSomeCreator;
 
     using Self = TrivialOption<usize>;
 
@@ -228,19 +203,58 @@ private:
     }
 };
 
-template<> struct TrivialOption<float> final : internal::RealValueOption<float> {
-    friend struct internal::TrivialSomeCreator;
-    using internal::RealValueOption<float>::RealValueOption;
+template<float_type T> struct TrivialOption<T> :
+
+    OptionTag,
+    mixin::Invariant<TrivialOption<T>>,
+    mixin::Resettable<TrivialOption<T>>
+
+{
+    using Self = TrivialOption<T>;
+
+    constexpr TrivialOption(NoneType) noexcept :
+        _value{nan} {}
+
+    constexpr TrivialOption() noexcept :
+        _value{nan} {}
+
+    constexpr TrivialOption(T value) noexcept :
+        _value{value} {}
+
+    [[nodiscard]] T &unwrap() noexcept {
+        if (this->isNone()) { abort(); }
+        return _value;
+    }
+
+    [[nodiscard]] T const &unwrap() const noexcept {
+        return const_cast<TrivialOption *>(this)->unwrap();
+    }
+
+    [[nodiscard]] T unwrapOr(T default_value) const noexcept {
+        return this->isSome() ? _value : default_value;
+    }
+
+private:
+    static constexpr auto nan{std::numeric_limits<T>::quiet_NaN()};
+
+    T _value;
+
+    KF_IMPL_INVARIANT(Self);
+    bool isSomeImpl() const noexcept {
+        return not std::isnan(_value);
+    }
+
+    KF_IMPL_RESETTABLE(Self);
+    constexpr void resetImpl() noexcept {
+        _value = nan;
+    }
 };
 
-template<> struct TrivialOption<double> final : internal::RealValueOption<double> {
-    friend struct internal::TrivialSomeCreator;
-    using internal::RealValueOption<double>::RealValueOption;
-};
-
-template<> struct TrivialOption<long double> final : internal::RealValueOption<long double> {
-    friend struct internal::TrivialSomeCreator;
-    using internal::RealValueOption<long double>::RealValueOption;
-};
+/// @brief Create TrivialOption containing a value
+/// @param value The value to store (copied)
+/// @return `TrivialOption<T>`
+[[nodiscard]] constexpr auto someTrivial(trivial auto const &value) noexcept {
+    return TrivialOption<std::remove_cvref_t<decltype(value)>>(value);
+}
 
 }// namespace kf
