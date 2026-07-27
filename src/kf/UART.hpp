@@ -32,7 +32,7 @@ enum class UartError {
 };
 
 struct UartConfig {
-    u16 baudrate;
+    u32 baudrate;
 };
 
 using UartWriteResult = Result<void, UartError>;
@@ -72,7 +72,7 @@ struct UART : internal::UartBase<UART> {
     using Error = internal::UartError;
     using Config = internal::UartConfig;
 
-    explicit UART(Config const &config, usize uart_num) noexcept :
+    explicit UART(Config const &config, u8 uart_num) noexcept :
         internal::UartBase<UART>{config}, _serial{uart_num} {}
 
 private:
@@ -192,7 +192,7 @@ struct UART : internal::UartBase<UART> {
     using Error = internal::UartError;
     using Config = internal::UartConfig;
 
-    explicit UART(Config const &config, usize uart_num) noexcept :
+    explicit UART(Config const &config, u8 uart_num) noexcept :
         internal::UartBase<UART>{config} {
         (void) uart_num;
     }
