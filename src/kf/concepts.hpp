@@ -17,4 +17,10 @@ concept arithmetic = std::is_arithmetic_v<T>;
 template<typename T>
 concept trivial = std::is_trivially_copyable_v<T>;
 
+template<typename E>
+concept enum_type = std::is_enum_v<E>;
+
+template<typename T>
+concept float_type = std::is_floating_point_v<T>;
+
 }// namespace kf
