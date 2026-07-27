@@ -24,7 +24,7 @@ template<typename T> struct TestOptionalRealNumber {
     }
 
     static void unwrap() noexcept {
-        TrivialOption<T> const option = kf::someTrivial(value);
+        TrivialOption<T> const option = value;
 
         TEST_ASSERT_TRUE(option.unwrap() == value);
     }

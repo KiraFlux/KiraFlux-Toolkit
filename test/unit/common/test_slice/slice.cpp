@@ -114,7 +114,7 @@ namespace sub_slice {
 void sub() {
     int data[] = {1, 2, 3, 4, 5, 6};
     Slice<int> s{data, 6};
-    auto sub = s.sub(2, kf::someTrivial<kf::usize>(3));
+    auto sub = s.sub(2, 3);
     TEST_ASSERT_EQUAL_PTR(data + 2, sub.data());
     TEST_ASSERT_EQUAL(3, sub.length());
     TEST_ASSERT_EQUAL(3, sub[0]);
@@ -198,7 +198,7 @@ void empty() {
     TEST_ASSERT_NULL(s2.data());
     TEST_ASSERT_EQUAL(0, s2.length());
 
-    auto sub = s.sub(0, kf::someTrivial<kf::usize>(0));
+    auto sub = s.sub(0, 0);
     TEST_ASSERT_NULL(sub.data());
     TEST_ASSERT_EQUAL(0, sub.length());
 }

@@ -178,19 +178,19 @@ namespace sub {
 
 void sub() {
     StringView sv{"hello world"};
-    auto s{sv.sub(6, kf::someTrivial<kf::usize>(5))};
+    auto s{sv.sub(6, 5)};
 
     assertStringViewEqual(s, "world", 5);
 
-    s = sv.sub(6, kf::someTrivial<kf::usize>(100));
+    s = sv.sub(6, 100);
 
     assertStringViewEqual(s, "world", 5);
 
-    s = sv.sub(20, kf::someTrivial<kf::usize>(5));
+    s = sv.sub(20, 5);
 
     TEST_ASSERT_TRUE(s.empty());
 
-    s = sv.sub(3, kf::someTrivial<kf::usize>(0));
+    s = sv.sub(3, 0);
 
     TEST_ASSERT_TRUE(s.empty());
 }

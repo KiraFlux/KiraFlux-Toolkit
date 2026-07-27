@@ -52,7 +52,7 @@ private:
         goto ret;
 
     set:
-        _filtered = someTrivial(x);
+        _filtered = x;
     ret:
         return _filtered.unwrap();
     }

@@ -141,12 +141,14 @@ void kf::main(kf::Init &init) {
     // PID controllers, or any high-frequency processing).
 
     TrivialOption<float> tr_float = someTrivial(3.14f);
+    TrivialOption<float> tr_float_implicit = 3.14f;
     TrivialOption<float> tr_float_empty = none;
 
     init.logger.info("tr_float: {}, tr_float_empty: {}", tr_float.unwrapOr(0.0f), tr_float_empty.unwrapOr(0.0f));
 
     // TrivialOption<usize> also works – uses (usize)-1 as the sentinel.
     TrivialOption<usize> tr_usize = someTrivial(usize{100});
+    TrivialOption<usize> tr_usize_implicit = 100;
     TrivialOption<usize> tr_usize_empty = none;
 
     init.logger.info("tr_usize: {}, tr_usize_empty: {}", tr_usize.unwrapOr(0), tr_usize_empty.unwrapOr(0));

@@ -104,7 +104,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
     [[nodiscard]] constexpr auto indexOf(char c) const noexcept -> TrivialOption<usize> {
         for (usize i = 0; i < this->length(); i += 1) {
             if ((*this)[i] == c) {
-                return someTrivial(i);
+                return i;
             }
         }
 
@@ -114,7 +114,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
     [[nodiscard]] constexpr auto lastIndexOf(char c) const noexcept -> TrivialOption<usize> {
         for (usize i = this->length(); i > 0; i -= 1) {
             if ((*this)[i - 1] == c) {
-                return someTrivial(i - 1);
+                return i - 1;
             }
         }
 
@@ -136,7 +136,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
                 }
 
             if (ok) {
-                return someTrivial(i);
+                return i;
             }
         }
 
@@ -158,7 +158,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
                 }
 
             if (ok) {
-                return someTrivial(i);
+                return i;
             }
         }
 

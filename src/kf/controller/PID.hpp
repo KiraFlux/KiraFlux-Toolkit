@@ -75,7 +75,7 @@ struct PID final :
         } else {
             _current_derivative = 0.0f;
         }
-        _last_error = someTrivial(error);
+        _last_error = error;
 
         return this->config().calc(error, _current_integral, _current_derivative);
     }

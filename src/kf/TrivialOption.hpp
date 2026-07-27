@@ -49,6 +49,9 @@ template<trivial T> struct RealValueOption :
     constexpr RealValueOption() noexcept :
         _value{nan} {}
 
+    constexpr RealValueOption(T value) noexcept :
+        _value{value} {}
+
     [[nodiscard]] T &unwrap() noexcept {
         if (this->isNone()) { abort(); }
         return _value;
@@ -67,8 +70,6 @@ private:
 
     T _value;
 
-    constexpr RealValueOption(T value) noexcept : _value{value} {}
-
     KF_IMPL_INVARIANT(Self);
     bool isSomeImpl() const noexcept {
         return not std::isnan(_value);
@@ -85,7 +86,6 @@ private:
 /// @brief Create TrivialOption containing a value
 /// @param value The value to store (copied)
 /// @return `TrivialOption<T>`
-/// @note This is the only way to create a non‑empty TrivialOption
 [[nodiscard]] constexpr auto someTrivial(trivial auto const &value) noexcept {
     return internal::TrivialSomeCreator::create(value);
 }
@@ -114,6 +114,10 @@ template<trivial T> struct TrivialOption final :
     /// @note Intended for containers
     constexpr TrivialOption() noexcept :
         _dummy{}, _is_some{false} {}
+
+    /// @brief Create Option with value (Some)
+    constexpr TrivialOption(T const &value) noexcept :
+        _value{value}, _is_some{true} {}
 
     /// @brief Unwrap the stored value (lvalue Option)
     /// @return Mutable reference to stored value
@@ -152,9 +156,6 @@ private:
     };
     bool _is_some;
 
-    explicit constexpr TrivialOption(T const &value) noexcept :
-        _value{value}, _is_some{true} {}
-
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
         return _is_some;
@@ -186,6 +187,9 @@ template<> struct TrivialOption<usize> :
     constexpr TrivialOption() noexcept :
         _value{is_none_mark} {}
 
+    constexpr TrivialOption(usize value) noexcept :
+        _value{value} {}
+
     /// @brief Unwrap the stored value
     /// @return Mutable reference to stored value
     /// @note Aborts if None
@@ -212,9 +216,6 @@ private:
     static constexpr auto is_none_mark{static_cast<usize>(-1)};
 
     usize _value;
-
-    explicit constexpr TrivialOption(usize value) noexcept :
-        _value{value} {}
 
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {

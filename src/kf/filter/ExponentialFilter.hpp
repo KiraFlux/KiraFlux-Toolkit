@@ -42,7 +42,7 @@ private:
 
     ValueType calcImpl(ValueType const &value) noexcept {
         if (_filtered.isNone()) {
-            _filtered = someTrivial(value);
+            _filtered = value;
         } else {
             _filtered.unwrap() += (value - _filtered.unwrap()) * this->config().factor;
         }

@@ -1,10 +1,10 @@
 // Demo: setup UI with colored textual render system into hardware display
 
 // App
+#include <kf/Logger.hpp>
 #include <kf/main.hpp>
 #include <kf/rtos/Clock.hpp>
 #include <kf/rtos/Task.hpp>
-#include <kf/Logger.hpp>
 
 // Algorithm
 #include <kf/Array.hpp>
@@ -65,7 +65,7 @@ struct MainPage : MyUI::Page {
 
     using MyValueType = kf::TrivialOption<int>;
 
-    MyValueType my_value{kf::someTrivial(12345)};
+    MyValueType my_value{12345};
 
     MyUI::Button click_button{
         "Button",// button label
@@ -203,7 +203,7 @@ struct MainPage : MyUI::Page {
             if (my_value.isSome()) {
                 my_value = kf::none;
             } else {
-                my_value = kf::someTrivial(12345);
+                my_value = 12345;
             }
 
             value_display.value(my_value);
@@ -241,7 +241,6 @@ struct MainPage : MyUI::Page {
 protected:
     // behavior on UI polling
     void onPoll(kf::units::Milliseconds now) noexcept override {}
-
 };
 
 struct SettingsPage : MyUI::Page {
@@ -310,7 +309,6 @@ struct SettingsPage : MyUI::Page {
     WidgetsView build() noexcept override {
         return widgets_storage.slice();
     }
-
 };
 
 // Simple function for conversion from char to event

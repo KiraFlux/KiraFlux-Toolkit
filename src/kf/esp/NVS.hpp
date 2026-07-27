@@ -160,7 +160,7 @@ private:
             return Error::fromEsp(e);
         }
 
-        _handle = someTrivial(handle);
+        _handle = handle;
         return ok();
     }
 

@@ -45,10 +45,10 @@ template<arithmetic T> struct ComplementaryFilter final :
     /// @return Filtered value combining prediction and measurement
     [[nodiscard]] ValueType const &calc(ValueType x, ValueType dx, Seconds dt) noexcept {
         if (_filtered.isNone()) {
-            _filtered = someTrivial(x);
+            _filtered = x;
         } else {
             auto const prediction = _filtered + dx * dt;
-            _filtered = someTrivial(this->config().factor * prediction + (1.0f - this->config().factor) * x);
+            _filtered = this->config().factor * prediction + (1.0f - this->config().factor) * x;
         }
 
         return _filtered.unwrap();
