@@ -16,7 +16,7 @@ inline namespace buildin_constants {
 
 constexpr f64 pi{M_PI};
 
-constexpr f64 half_pi{half_pi};
+constexpr f64 half_pi{M_PI_2};
 
 constexpr f64 euler{M_E};
 
