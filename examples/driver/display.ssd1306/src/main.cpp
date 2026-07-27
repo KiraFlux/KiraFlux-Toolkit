@@ -73,7 +73,7 @@ void kf::main(kf::Init &init) {
         .gpio_num_sda = 0xFF,
         .gpio_num_scl = 0xFF,
         .buffer_size = 0,
-        .clock_hz = 400'000,// 400 kHz (typical for I2C)
+        .clock_hz = 100'000,
         .timeout = 0,
     };
 
