@@ -10,6 +10,7 @@
 #include <utility>// std::move std::forward
 
 #include "kf/NoneType.hpp"
+#include "kf/Slice.hpp"
 #include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
 
@@ -97,6 +98,8 @@ template<float_type T> struct can_use_sentinel<T> : std::true_type {};
 
 template<enum_type T> struct can_use_sentinel<T> : std::true_type {};
 
+template<typename T> struct can_use_sentinel<Slice<T>> : std::true_type {};
+
 // usefull constants
 
 constexpr auto usize_sentinel{static_cast<usize>(-1)};
@@ -109,15 +112,23 @@ constexpr bool is_sentinel(usize value) noexcept {
     return value == usize_sentinel;
 }
 
-template<enum_type T> constexpr bool is_sentinel(T value) noexcept {
-    return static_cast<std::underlying_type_t<T>>(value) == enum_sentinel<T>;
-}
-
 template<float_type T> constexpr bool is_sentinel(T value) noexcept {
     return std::isnan(value);
 }
 
+template<enum_type T> constexpr bool is_sentinel(T value) noexcept {
+    return static_cast<std::underlying_type_t<T>>(value) == enum_sentinel<T>;
+}
+
+template<typename T> constexpr bool is_sentinel(Slice<T> const &value) noexcept {
+    return value.length() == usize_sentinel;
+}
+
 // set sentinel
+
+constexpr void set_sentinel(usize &value) noexcept {
+    value = usize_sentinel;
+}
 
 template<enum_type T> constexpr void set_sentinel(T &value) noexcept {
     value = static_cast<T>(enum_sentinel<T>);
@@ -127,8 +138,8 @@ template<float_type T> constexpr void set_sentinel(T &value) noexcept {
     value = std::numeric_limits<T>::quiet_NaN();
 }
 
-constexpr void set_sentinel(usize &value) noexcept {
-    value = usize_sentinel;
+template<typename T> constexpr void set_sentinel(Slice<T> &value) noexcept {
+    value = Slice<T>{nullptr, usize_sentinel};
 }
 
 // storage implementations
@@ -136,7 +147,9 @@ constexpr void set_sentinel(usize &value) noexcept {
 template<typename T> struct SentinelStorage : StorageBase<SentinelStorage<T>> {
 
     constexpr SentinelStorage() noexcept :
-        _value{} {}
+        _value{} {
+        set_sentinel(_value);
+    }
 
     constexpr SentinelStorage(T const &value) noexcept :
         _value{value} {}
