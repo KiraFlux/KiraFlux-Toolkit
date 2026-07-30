@@ -15,6 +15,12 @@ namespace kf {
 
 template<typename> struct Option;// optional function forward declaration
 
+namespace internal {
+
+struct OptionHelper;
+
+}
+
 template<typename> struct Function;
 
 /// @brief Type‑erased callable with small buffer optimisation (4 words)
@@ -23,6 +29,7 @@ template<typename> struct Function;
 /// @tparam Args Argument types
 template<typename R, typename... Args> struct Function<R(Args...)> : mixin::NonCopyable {
     friend struct Option<Function<R(Args...)>>;
+    friend struct ::kf::internal::OptionHelper;
 
     using ReturnType = R;
 
@@ -101,8 +108,8 @@ private:
         return static_cast<bool>(_storage[buffer_size - 1]);
     }
 
-    void isSome(bool is_isSome) noexcept {
-        _storage[buffer_size - 1] = static_cast<u8>(is_isSome);
+    void isSome(bool is_some) noexcept {
+        _storage[buffer_size - 1] = static_cast<u8>(is_some);
     }
 
     [[nodiscard]] Base &func() noexcept {

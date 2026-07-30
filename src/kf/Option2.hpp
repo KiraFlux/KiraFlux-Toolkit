@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <utility>// std::move std::forward
 
+#include "kf/Function.hpp"
 #include "kf/NoneType.hpp"
 #include "kf/Slice.hpp"
 #include "kf/concepts.hpp"
@@ -33,7 +34,12 @@ template<typename Impl> struct StorageBase :
 
 {};
 
-struct SomeCreator2 {};
+struct OptionHelper {
+
+    template<typename R, typename... Args> static constexpr bool function_is_some(Function<R(Args...)> const &value) noexcept {
+        return value.isSome();
+    }
+};
 
 }// namespace internal
 
@@ -53,7 +59,7 @@ template<> struct Option2<void> :
         _is_some{false} {}
 
     /// @brief Some
-    explicit constexpr Option2(internal::SomeCreator2) noexcept :
+    explicit constexpr Option2(internal::OptionHelper) noexcept :
         _is_some{true} {}
 
 private:
@@ -77,7 +83,7 @@ template<typename T> [[nodiscard]] constexpr auto some2(T &&value) noexcept {
 }
 
 [[nodiscard]] constexpr auto some2() noexcept {
-    return Option2<void>{internal::SomeCreator2{}};
+    return Option2<void>{internal::OptionHelper{}};
 }
 
 template<typename T> [[nodiscard]] constexpr auto someRef2(T &ref) noexcept {
@@ -99,6 +105,8 @@ template<float_type T> struct can_use_sentinel<T> : std::true_type {};
 template<enum_type T> struct can_use_sentinel<T> : std::true_type {};
 
 template<typename T> struct can_use_sentinel<Slice<T>> : std::true_type {};
+
+template<typename R, typename... Args> struct can_use_sentinel<Function<R(Args...)>> : std::true_type {};
 
 // usefull constants
 
@@ -124,6 +132,10 @@ template<typename T> constexpr bool is_sentinel(Slice<T> const &value) noexcept 
     return value.length() == usize_sentinel;
 }
 
+template<typename R, typename... Args> constexpr bool is_sentinel(Function<R(Args...)> const &value) noexcept {
+    return not OptionHelper::function_is_some(value);
+}
+
 // set sentinel
 
 constexpr void set_sentinel(usize &value) noexcept {
@@ -140,6 +152,10 @@ template<float_type T> constexpr void set_sentinel(T &value) noexcept {
 
 template<typename T> constexpr void set_sentinel(Slice<T> &value) noexcept {
     value = Slice<T>{nullptr, usize_sentinel};
+}
+
+template<typename R, typename... Args> constexpr bool set_sentinel(Function<R(Args...)> &value) noexcept {
+    value.reset();
 }
 
 // storage implementations
