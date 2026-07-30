@@ -36,8 +36,12 @@ template<typename Impl> struct StorageBase :
 
 struct OptionHelper {
 
-    template<typename R, typename... Args> static constexpr bool function_is_some(Function<R(Args...)> const &value) noexcept {
-        return value.isSome();
+    template<typename R, typename... Args> static constexpr bool function_is_some(Function<R(Args...)> const &f) noexcept {
+        return f.isSome();
+    }
+
+    template<typename R, typename... Args> static constexpr void function_reset(Function<R(Args...)> &f) noexcept {
+        f = std::move(Function<R(Args...)>{});
     }
 };
 
@@ -154,8 +158,8 @@ template<typename T> constexpr void set_sentinel(Slice<T> &value) noexcept {
     value = Slice<T>{nullptr, usize_sentinel};
 }
 
-template<typename R, typename... Args> constexpr bool set_sentinel(Function<R(Args...)> &value) noexcept {
-    value.reset();
+template<typename R, typename... Args> constexpr void set_sentinel(Function<R(Args...)> &value) noexcept {
+    OptionHelper::function_reset(value);
 }
 
 // storage implementations
