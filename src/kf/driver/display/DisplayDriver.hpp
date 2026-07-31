@@ -5,7 +5,8 @@
 
 #include "kf/concepts.hpp"
 #include "kf/image/Image.hpp"
-#include "kf/meta/CRTP.hpp"
+
+#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
@@ -22,7 +23,7 @@ struct DisplayDriverTag {};
 template<typename Impl, implements<image::ImageTag> ImageImpl, typename ResultType> struct DisplayDriver :
 
     DisplayDriverTag,
-    meta::CRTP<Impl>,
+    mixin::CRTP<Impl>,
     mixin::NonCopyable,
     mixin::Initable<Impl, ResultType()>,
     mixin::Resettable<Impl>

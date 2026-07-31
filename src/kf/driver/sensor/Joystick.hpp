@@ -6,8 +6,9 @@
 #include "kf/concepts.hpp"
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
-#include "kf/meta/CRTP.hpp"
 #include "kf/tuner/Tuner.hpp"
+
+#include "kf/mixin/CRTP.hpp"
 
 #include "kf/driver/sensor/SensorDriver.hpp"
 

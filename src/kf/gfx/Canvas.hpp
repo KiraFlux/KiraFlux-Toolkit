@@ -13,7 +13,6 @@
 #include "kf/image/DynamicImage.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/math.hpp"
-#include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
 #include "kf/units.hpp"
 

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/meta/CRTP.hpp"
+#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
@@ -18,7 +18,7 @@ struct SensorDriverTag {};
 template<typename Impl, typename Measurement, typename InitSignature> struct SensorDriver :
 
     SensorDriverTag,
-    meta::CRTP<Impl>,
+    mixin::CRTP<Impl>,
     mixin::NonCopyable,
     mixin::Initable<Impl, InitSignature>
 

@@ -4,7 +4,8 @@
 #pragma once
 
 #include "kf/concepts.hpp"
-#include "kf/meta/CRTP.hpp"
+
+#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
@@ -20,7 +21,7 @@ template<typename Impl, arithmetic T> struct Filter :
     FilterTag,
     mixin::NonCopyable,
     mixin::Resettable<Impl>,
-    meta::CRTP<Impl>
+    mixin::CRTP<Impl>
 
 {
 

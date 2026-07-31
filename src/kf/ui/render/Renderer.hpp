@@ -8,10 +8,11 @@
 #include "kf/Option.hpp"
 #include "kf/Range.hpp"
 #include "kf/StringView.hpp"
-#include "kf/meta/CRTP.hpp"
+#include "kf/primitives.hpp"
+
+#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Representable.hpp"
-#include "kf/primitives.hpp"
 
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
@@ -28,7 +29,7 @@ struct RenderTag {};
 template<typename Impl> struct Renderer :
 
     RenderTag,
-    meta::CRTP<Impl>,
+    mixin::CRTP<Impl>,
     mixin::NonCopyable
 
 {

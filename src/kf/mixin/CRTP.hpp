@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace kf::meta {
+namespace kf::mixin {
 
 /// @brief CRTP base class providing static downcasting to derived type
 /// @tparam Impl The derived class type
@@ -21,4 +21,4 @@ template<typename Impl> struct CRTP {
     }
 };
 
-}// namespace kf::meta
+}// namespace kf::mixin

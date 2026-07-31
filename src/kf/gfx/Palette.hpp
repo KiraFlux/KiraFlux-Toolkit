@@ -4,8 +4,9 @@
 #pragma once
 
 #include "kf/concepts.hpp"
-#include "kf/meta/CRTP.hpp"
 #include "kf/pixel/Pixel.hpp"
+
+#include "kf/mixin/CRTP.hpp"
 
 namespace kf::gfx {
 

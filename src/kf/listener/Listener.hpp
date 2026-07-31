@@ -6,7 +6,8 @@
 #include <utility>
 
 #include <kf/Option.hpp>
-#include <kf/meta/CRTP.hpp>
+
+#include <kf/mixin/CRTP.hpp>
 #include <kf/mixin/Callbacked.hpp>
 #include <kf/mixin/NonCopyable.hpp>
 #include <kf/mixin/Resettable.hpp>
@@ -19,7 +20,7 @@ struct ListenerTag {};
 template<typename Impl, typename InputType, typename CallbackSignature> struct Listener :
 
     ListenerTag,
-    meta::CRTP<Impl>,
+    mixin::CRTP<Impl>,
     mixin::NonCopyable,
     mixin::Resettable<Impl>,
     mixin::TimedPollable<Impl>,

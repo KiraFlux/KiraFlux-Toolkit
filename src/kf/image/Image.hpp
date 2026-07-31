@@ -5,9 +5,11 @@
 
 #include "kf/Slice.hpp"
 #include "kf/concepts.hpp"
-#include "kf/meta/CRTP.hpp"
-#include "kf/pixel/Pixel.hpp"
 #include "kf/units.hpp"
+
+#include "kf/mixin/CRTP.hpp"
+
+#include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
 
@@ -19,7 +21,7 @@ struct ImageTag {};
 template<typename Impl, implements<pixel::PixelTag> P> struct Image :
 
     ImageTag,
-    meta::CRTP<Impl>
+    mixin::CRTP<Impl>
 
 {
 
