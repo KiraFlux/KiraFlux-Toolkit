@@ -63,7 +63,7 @@ using Style = kf::ui::Style;
 
 struct MainPage : MyUI::Page {
 
-    using MyValueType = kf::TrivialOption<int>;
+    using MyValueType = kf::Option<int>;
 
     MyValueType my_value{12345};
 
@@ -203,7 +203,7 @@ struct MainPage : MyUI::Page {
             if (my_value.isSome()) {
                 my_value = kf::none;
             } else {
-                my_value = 12345;
+                my_value = kf::some(12345);
             }
 
             value_display.value(my_value);

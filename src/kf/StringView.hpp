@@ -101,27 +101,27 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
 
     // Search
 
-    [[nodiscard]] constexpr auto indexOf(char c) const noexcept -> TrivialOption<usize> {
+    [[nodiscard]] constexpr auto indexOf(char c) const noexcept -> Option<usize> {
         for (usize i = 0; i < this->length(); i += 1) {
             if ((*this)[i] == c) {
-                return i;
+                return some(i);
             }
         }
 
         return none;
     }
 
-    [[nodiscard]] constexpr auto lastIndexOf(char c) const noexcept -> TrivialOption<usize> {
+    [[nodiscard]] constexpr auto lastIndexOf(char c) const noexcept -> Option<usize> {
         for (usize i = this->length(); i > 0; i -= 1) {
             if ((*this)[i - 1] == c) {
-                return i - 1;
+                return some(i - 1);
             }
         }
 
         return none;
     }
 
-    [[nodiscard]] constexpr auto indexOf(StringView sub) const noexcept -> TrivialOption<usize> {
+    [[nodiscard]] constexpr auto indexOf(StringView sub) const noexcept -> Option<usize> {
         if (sub.empty() or sub.length() > this->length()) {
             return none;
         }
@@ -136,14 +136,14 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
                 }
 
             if (ok) {
-                return i;
+                return some(i);
             }
         }
 
         return none;
     }
 
-    [[nodiscard]] constexpr auto lastIndexOf(StringView sub) const noexcept -> TrivialOption<usize> {
+    [[nodiscard]] constexpr auto lastIndexOf(StringView sub) const noexcept -> Option<usize> {
         if (sub.empty() or sub.length() > this->length()) {
             return none;
         }
@@ -158,7 +158,7 @@ struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
                 }
 
             if (ok) {
-                return i;
+                return some(i);
             }
         }
 

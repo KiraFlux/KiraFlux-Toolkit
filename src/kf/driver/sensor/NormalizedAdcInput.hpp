@@ -68,7 +68,7 @@ struct NormalizedAdcInput final :
 
         KF_IMPL_SAMPLE_COLLECTING_TUNER(Tuner, Config);
 
-        constexpr void resetImpl() noexcept {
+        void resetImpl() noexcept {
             _max_sample = 0;
             _min_sample = gpio::AdcInput::maxValue();
             _sum = 0;

@@ -8,23 +8,22 @@
 void kf::main(kf::Init &init) {
     init.logger.info("KiraFlux-Toolkit Example: core/option");
 
-    // --- Option<T> for nullable values ---
+    // --- Basics: Some and None ---
 
-    // Option<T> is used throughout the library to represent values that may be absent.
-    // It is a safer alternative to null pointers or sentinel values.
-    // Use some(value) to create an Option containing a value, and none for empty.
+    // Option<T> represents an optional value – either Some(T) or None.
+    // Use some(value) to create an Option with a value, and none for empty.
+    // This is a safer alternative to null pointers or sentinel values.
 
     Option<int> opt_int = some(42);
     Option<int> opt_empty = none;
 
-    init.logger.info("opt_int isSome: {}, isNone: {}", opt_int.isSome(), opt_int.isNone());
-    init.logger.info("opt_empty isSome: {}, isNone: {}", opt_empty.isSome(), opt_empty.isNone());
+    init.logger.info("opt_int: isSome={}, isNone={}", opt_int.isSome(), opt_int.isNone());
+    init.logger.info("opt_empty: isSome={}, isNone={}", opt_empty.isSome(), opt_empty.isNone());
 
     // --- Safe extraction with unwrapOr() ---
 
-    // unwrapOr() returns the contained value if Some, otherwise a default.
-    // This is the preferred way to extract a value when a fallback is acceptable.
-    // Use it when the absence of a value has a sensible default.
+    // unwrapOr() returns the contained value if Some, otherwise the provided default.
+    // It is the preferred way to extract a value when a fallback is acceptable.
 
     int value1 = opt_int.unwrapOr(0);
     int value2 = opt_empty.unwrapOr(100);
@@ -35,8 +34,8 @@ void kf::main(kf::Init &init) {
     // --- Checked extraction with isSome() ---
 
     // unwrap() aborts if the Option is None – use it only when you are certain
-    // the value exists. Always check isSome() first in user code.
-    // Many library internals use unwrap() after internal validation.
+    // the value exists, or after an isSome() check.
+    // Library internals often use unwrap() after internal validation.
 
     if (opt_int.isSome()) {
         init.logger.info("opt_int.unwrap() = {}", opt_int.unwrap());
@@ -62,8 +61,7 @@ void kf::main(kf::Init &init) {
 
     // When the mapping function returns void, map() produces Option<void>.
     // This is useful for side-effects that should only run when a value is present.
-    // Option<void> is not meant to be used as a flag – it exists for completeness
-    // of the map() API to support functions that return void.
+    // Option<void> exists for completeness of the map() API; it is not meant as a flag.
 
     auto void_mapped = opt_int.map([&](int x) {
         init.logger.debug("processing value: {}", x);
@@ -78,34 +76,12 @@ void kf::main(kf::Init &init) {
 
     init.logger.info("mapped_empty isSome: {}", mapped_empty.isSome());
 
-    // --- Option<Slice<T>> for optional buffers ---
-
-    // Option<Slice<T>> is used when a function may or may not return a buffer view.
-    // For example, a parser might return a Slice pointing into the input if a token
-    // is found, or None if not. This avoids returning empty slices that are ambiguous.
-
-    int data[] = {10, 20, 30};
-    Slice<int> slice{data};
-
-    Option<Slice<int>> opt_slice = some(slice);
-    Option<Slice<int>> opt_slice_empty = none;
-
-    if (opt_slice.isSome()) {
-        auto s = opt_slice.unwrap();
-        init.logger.info("slice length: {}", s.length());
-        for (int v: s) {
-            init.logger.debug("  {}", v);
-        }
-    }
-
-    // opt_slice_empty is None – safe to handle with isSome().
-
     // --- Option<Function<...>> for optional callbacks ---
 
     // kf::Function is a type-erased callable that is never empty.
     // To represent an optional callback (e.g., an event handler that may not be set),
     // wrap it in Option<Function<...>>. Use some() to set a callback, none to clear it.
-    // Many UI widgets and listeners use this pattern.
+    // This pattern is common in UI widgets and listeners.
 
     Function<int(int)> add_one = [](int x) { return x + 1; };
     Option<Function<int(int)>> opt_func = some(std::move(add_one));
@@ -133,25 +109,54 @@ void kf::main(kf::Init &init) {
         init.logger.info("answer changed via ref: {}", answer);
     }
 
-    // --- TrivialOption for performance-critical paths ---
+    // --- Sentinel optimisation for trivial types ---
 
-    // TrivialOption<T> is a memory-optimized version for trivially copyable types.
-    // It uses a sentinel value (e.g., NaN for floats, max value for usize) to indicate None.
-    // Use it in hot paths where Option<T> would add overhead (e.g., in math filters,
-    // PID controllers, or any high-frequency processing).
+    // For trivially copyable types that have a dedicated sentinel value, Option<T>
+    // uses SentinelStorage which eliminates the separate boolean flag.
+    // The following types use sentinel values:
 
-    TrivialOption<float> tr_float = someTrivial(3.14f);
-    TrivialOption<float> tr_float_implicit = 3.14f;
-    TrivialOption<float> tr_float_empty = none;
+    // 1) usize: uses (usize)-1 as None.
+    Option<usize> opt_usize = some(usize{100});
+    Option<usize> opt_usize_empty = none;
+    init.logger.info("usize: {}, empty: {}", opt_usize.unwrapOr(0), opt_usize_empty.unwrapOr(0));
 
-    init.logger.info("tr_float: {}, tr_float_empty: {}", tr_float.unwrapOr(0.0f), tr_float_empty.unwrapOr(0.0f));
+    // 2) float: uses quiet_NaN as None.
+    Option<float> opt_float = some(3.14f);
+    Option<float> opt_float_empty = none;
+    init.logger.info("float: {}, empty: {}", opt_float.unwrapOr(0.0f), opt_float_empty.unwrapOr(0.0f));
 
-    // TrivialOption<usize> also works – uses (usize)-1 as the sentinel.
-    TrivialOption<usize> tr_usize = someTrivial(usize{100});
-    TrivialOption<usize> tr_usize_implicit = 100;
-    TrivialOption<usize> tr_usize_empty = none;
+    // 3) enum: uses static_cast<Underlying>(-1) as None.
+    enum class Color {
+        Red,
+        Green,
+        Blue,
+    };
 
-    init.logger.info("tr_usize: {}, tr_usize_empty: {}", tr_usize.unwrapOr(0), tr_usize_empty.unwrapOr(0));
+    Option<Color> opt_color = some(Color::Green);
+    Option<Color> opt_color_empty = none;
+    init.logger.info("enum: {}, empty: {}",
+                     static_cast<int>(opt_color.unwrapOr(Color::Red)),
+                     static_cast<int>(opt_color_empty.unwrapOr(Color::Red)));
+
+    // 4) Function: uses an empty Function (isSome() == false) as None.
+    // Already shown above.
+
+    // 5) References: uses nullptr as None.
+    // Already shown above.
+
+    // --- Trivial capability ---
+
+    // Since SentinelStorage and TrivialStorage store only the value (or value + bool)
+    // and are trivially copyable, Option<T> is trivially copyable for T that are
+    // trivially copyable. This allows usage in tight loops and embedded contexts.
+
+    static_assert(std::is_trivially_copyable_v<Option<int>>);
+    static_assert(std::is_trivially_copyable_v<Option<float>>);
+    static_assert(std::is_trivially_copyable_v<Option<Color>>);
+    static_assert(std::is_trivially_copyable_v<Option<usize>>);
+    // Option<Function<...>> is not trivially copyable because Function is not.
+
+    init.logger.info("All static_asserts passed.");
 
     // --- Resetting an Option ---
 

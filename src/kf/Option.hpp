@@ -3,68 +3,72 @@
 
 #pragma once
 
-#include <cstdlib>
-#include <new>
+#include <cmath>  // std::isnan
+#include <cstdlib>// abort
+#include <limits>
 #include <type_traits>
-#include <utility>
+#include <utility>// std::move std::forward
 
 #include "kf/Function.hpp"
 #include "kf/NoneType.hpp"
-#include "kf/Slice.hpp"
-#include "kf/TrivialOption.hpp"
+#include "kf/concepts.hpp"
+#include "kf/primitives.hpp"
+
+#include "kf/meta/CRTP.hpp"
 #include "kf/mixin/Invariant.hpp"
 #include "kf/mixin/Resettable.hpp"
 
 namespace kf {
 
-template<typename> struct Option;
+struct OptionTag {};
+
+template<typename T> struct Option;
 
 namespace internal {
 
-/// @brief Helper for constructing Option with a value
-/// @note Provides a static method `create` that bypasses the private constructor.
-struct SomeCreator final {
+template<typename Impl> struct StorageBase :
 
-    [[nodiscard]] static constexpr auto create(auto &&value) noexcept {
-        return Option<std::decay_t<decltype(value)>>{std::forward<decltype(value)>(value)};
+    mixin::Resettable<Impl>,
+    mixin::Invariant<Impl>
+
+{};
+
+struct OptionHelper {
+
+    template<typename R, typename... Args> static constexpr bool function_is_some(Function<R(Args...)> const &f) noexcept {
+        return f.isSome();
     }
 
-    [[nodiscard]] static constexpr auto createRef(auto &ref) noexcept {
-        return Option<decltype(ref) &>{ref};
+    template<typename R, typename... Args> static constexpr void function_reset(Function<R(Args...)> &f) noexcept {
+        f = std::move(Function<R(Args...)>{});
     }
 };
 
 }// namespace internal
 
-/// @brief Specialization for void - represents optional unit (Some/None)
-/// @note Has no value to unwrap; only isSome()/isNone() and reset()
-/// @see kf::some() (no arguments) to create Some<void>
-template<> struct Option<void> final :
+template<> struct Option<void> :
 
     OptionTag,
-    mixin::Invariant<Option<void>>,
-    mixin::Resettable<Option<void>>
+    internal::StorageBase<Option<void>>
 
 {
-    friend struct internal::SomeCreator;
 
-    using Self = Option<void>;
-
-    /// @brief Construct an empty Option (None)
-    constexpr Option(NoneType) noexcept :
-        _is_some{false} {}
-
-    /// @brief Default constructor - empty Option (None)
-    /// @note Intended for containers
+    /// @brief None
     constexpr Option() noexcept :
         _is_some{false} {}
 
-    /// @brief Construct Option<void> (called by `kf::some()`)
-    explicit constexpr Option(internal::SomeCreator) noexcept :
+    /// @brief None
+    constexpr Option(NoneType) noexcept :
+        _is_some{false} {}
+
+    /// @brief Some
+    explicit constexpr Option(internal::OptionHelper) noexcept :
         _is_some{true} {}
 
 private:
     bool _is_some;
+
+    using Self = Option<void>;
 
     KF_IMPL_INVARIANT(Self);
     constexpr bool isSomeImpl() const noexcept {
@@ -73,89 +77,243 @@ private:
 
     KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
-        if (this->isSome()) {
-            _is_some = false;
-        }
+        _is_some = false;
     }
 };
 
-/// @brief Create Option containing a value
-/// @param value The value to store (copied or moved)
-/// @return `Option<std::decay_t<T>>`
-/// @note This is the only way to create a non‑empty Option for value types
-[[nodiscard]] constexpr auto some(auto &&value) noexcept {
-    return internal::SomeCreator::create(std::forward<decltype(value)>(value));
+template<typename T> [[nodiscard]] constexpr auto some(T &&value) noexcept {
+    return Option<std::decay_t<T>>{std::forward<T>(value)};
 }
 
-/// @brief Create `Option<void>`
-/// @return `Option<void>`
 [[nodiscard]] constexpr auto some() noexcept {
-    return Option<void>{internal::SomeCreator{}};
+    return Option<void>{internal::OptionHelper{}};
 }
 
-/// @brief Create Option containing a reference
-/// @tparam T Referenced type
-/// @param ref Reference to store
-/// @return `Option<T&>`
-/// @note The reference must remain valid throughout Option lifetime
-[[nodiscard]] constexpr auto someRef(auto &ref) noexcept {
-    return internal::SomeCreator::createRef(ref);
+template<typename T> [[nodiscard]] constexpr auto someRef(T &ref) noexcept {
+    return Option<T &>{ref};
 }
 
-/// @brief Optional container for any value type
-/// @tparam T Stored type
-/// @note Created via `kf::some()` or `kf::none`
-/// @note Always check `isSome()` before `unwrap()`, otherwise `abort()`
-template<typename T> struct Option final :
+namespace internal {
 
-    OptionTag,
-    mixin::Invariant<Option<T>>,
-    mixin::Resettable<Option<T>>
+// sentinel: can use
 
-{
-    friend struct internal::SomeCreator;
+template<typename> struct can_use_sentinel : std::false_type {};
 
-    using Self = Option<T>;
+template<> struct can_use_sentinel<usize> : std::true_type {};
 
-    /// @brief Construct an empty Option (None)
-    constexpr Option(NoneType) noexcept :
+template<typename T> struct can_use_sentinel<T &> : std::true_type {};
+
+template<float_type T> struct can_use_sentinel<T> : std::true_type {};
+
+template<enum_type T> struct can_use_sentinel<T> : std::true_type {};
+
+// template<typename T> struct can_use_sentinel<Slice<T>> : std::true_type {};
+
+template<typename R, typename... Args> struct can_use_sentinel<Function<R(Args...)>> : std::true_type {};
+
+// usefull constants
+
+constexpr auto usize_sentinel{static_cast<usize>(-1)};
+
+template<enum_type T> constexpr auto enum_sentinel{static_cast<std::underlying_type_t<T>>(-1)};
+
+// is sentinel
+
+constexpr bool is_sentinel(usize value) noexcept {
+    return value == usize_sentinel;
+}
+
+template<float_type T> constexpr bool is_sentinel(T value) noexcept {
+    return std::isnan(value);
+}
+
+template<enum_type T> constexpr bool is_sentinel(T value) noexcept {
+    return static_cast<std::underlying_type_t<T>>(value) == enum_sentinel<T>;
+}
+
+template<typename R, typename... Args> constexpr bool is_sentinel(Function<R(Args...)> const &value) noexcept {
+    return not OptionHelper::function_is_some(value);
+}
+
+// set sentinel
+
+constexpr void set_sentinel(usize &value) noexcept {
+    value = usize_sentinel;
+}
+
+template<enum_type T> constexpr void set_sentinel(T &value) noexcept {
+    value = static_cast<T>(enum_sentinel<T>);
+}
+
+template<float_type T> constexpr void set_sentinel(T &value) noexcept {
+    value = std::numeric_limits<T>::quiet_NaN();
+}
+
+template<typename R, typename... Args> constexpr void set_sentinel(Function<R(Args...)> &value) noexcept {
+    OptionHelper::function_reset(value);
+}
+
+// storage implementations
+
+template<typename T> struct SentinelStorage : StorageBase<SentinelStorage<T>> {
+
+    constexpr SentinelStorage() noexcept :
+        _value{} {
+        set_sentinel(_value);
+    }
+
+    constexpr SentinelStorage(T const &value) noexcept :
+        _value{value} {}
+
+    constexpr SentinelStorage(T &&value) noexcept :
+        _value{std::move(value)} {}
+
+protected:
+    [[nodiscard]] constexpr T &get() & noexcept {
+        return _value;
+    }
+
+    [[nodiscard]] constexpr T const &get() const & noexcept {
+        return _value;
+    }
+
+    [[nodiscard]] constexpr T &&get() && noexcept {
+        return std::move(_value);
+    }
+
+private:
+    T _value;
+
+    using Self = SentinelStorage<T>;
+
+    KF_IMPL_INVARIANT(Self);
+    constexpr bool isSomeImpl() const noexcept {
+        return not is_sentinel(_value);
+    }
+
+    KF_IMPL_RESETTABLE(Self);
+    constexpr void resetImpl() noexcept {
+        set_sentinel(_value);
+    }
+};
+
+template<typename T> struct SentinelStorage<T &> : StorageBase<SentinelStorage<T &>> {
+
+    constexpr SentinelStorage() noexcept :
+        _ptr{nullptr} {}
+
+    constexpr SentinelStorage(T &value) noexcept :
+        _ptr{&value} {}
+
+protected:
+    [[nodiscard]] constexpr T &get() noexcept {
+        return *_ptr;
+    }
+
+    [[nodiscard]] constexpr T const &get() const noexcept {
+        return *_ptr;
+    }
+
+private:
+    T *_ptr;
+
+    using Self = SentinelStorage<T &>;
+
+    KF_IMPL_INVARIANT(Self);
+    constexpr bool isSomeImpl() const noexcept {
+        return _ptr != nullptr;
+    }
+
+    KF_IMPL_RESETTABLE(Self);
+    constexpr void resetImpl() noexcept {
+        _ptr = nullptr;
+    }
+};
+
+template<typename T> struct TrivialStorage : StorageBase<TrivialStorage<T>> {
+
+    constexpr TrivialStorage() noexcept :
+        _dummy{}, _is_some{false} {}
+
+    constexpr TrivialStorage(T const &value) noexcept :
+        _value{value}, _is_some{true} {}
+
+protected:
+    [[nodiscard]] constexpr T &get() noexcept {
+        return _value;
+    }
+
+    [[nodiscard]] constexpr T const &get() const noexcept {
+        return _value;
+    }
+
+private:
+    union {
+        T _value;
+        char _dummy;
+    };
+    bool _is_some;
+
+    using Self = TrivialStorage<T>;
+
+    KF_IMPL_INVARIANT(Self);
+    constexpr bool isSomeImpl() const noexcept {
+        return _is_some;
+    }
+
+    KF_IMPL_RESETTABLE(Self);
+    constexpr void resetImpl() noexcept {
+        _is_some = false;
+    }
+};
+
+template<typename T> struct BufferedStorage : StorageBase<BufferedStorage<T>> {
+
+private:
+    using Self = BufferedStorage<T>;
+
+public:
+    // constructors
+
+    /// @brief Construct None
+    constexpr BufferedStorage() noexcept :
         _is_some{false} {}
 
-    /// @brief Default constructor - empty Option (None)
-    /// @note Intended for containers
-    constexpr Option() noexcept :
-        _is_some{false} {}
+    /// @brief Construct Some
+    explicit constexpr BufferedStorage(auto &&value) noexcept
+        requires(not std::is_same_v<Self, std::decay_t<decltype(value)>>)
+    {
+        construct(std::forward<decltype(value)>(value));
+    }
 
-    /// @brief Copy constructor
-    /// @param other Source Option
-    /// @note Copies stored value if any
-    Option(Option const &other) noexcept : _is_some{other._is_some} {
+    /// @brief Copy
+    BufferedStorage(Self const &other) noexcept : _is_some{other._is_some} {
         if (this->isSome()) {
-            construct(other.value());
+            construct(other.get());
         }
     }
 
-    /// @brief Move constructor
-    /// @param other Source Option
-    /// @note Moves stored value; source becomes None
-    Option(Option &&other) noexcept : _is_some{other._is_some} {
-        if (other.isSome()) {
-            construct(std::move(other.value()));
+    /// @brief Move
+    BufferedStorage(Self &&other) noexcept : _is_some{other._is_some} {
+        if (this->isSome()) {
+            construct(std::move(other.get()));
             other.reset();
         }
-    };
+    }
+
+    // assignment
 
     /// @brief Copy assignment
     /// @param other Source Option
     /// @return Reference to this
     /// @note Copies stored value if any
-    Option &operator=(Option const &other) noexcept {
+    BufferedStorage &operator=(Self const &other) noexcept {
         if (this != &other) {
             if (other.isSome()) {
                 if (this->isSome()) {
-                    this->value() = other.value();
+                    this->get() = other.get();
                 } else {
-                    construct(other.value());
+                    construct(other.get());
                 }
             } else {
                 this->reset();
@@ -169,12 +327,12 @@ template<typename T> struct Option final :
     /// @param other Source Option
     /// @return Reference to this
     /// @note Moves stored value; source becomes None
-    Option &operator=(Option &&other) noexcept {
+    BufferedStorage &operator=(Self &&other) noexcept {
         if (this != &other) {
             this->reset();
 
             if (other.isSome()) {
-                construct(std::move(other.value()));
+                construct(std::move(other.get()));
                 other.reset();
             }
         }
@@ -182,100 +340,33 @@ template<typename T> struct Option final :
         return *this;
     }
 
-    /// @brief Destructor - destroys stored value if any
-    ~Option() noexcept {
+    // destructor
+
+    /// @brief Destroy if some
+    ~BufferedStorage() noexcept {
         this->reset();
     }
 
-    /// @brief Unwrap the stored value (lvalue Option)
-    /// @return Mutable reference to stored value
-    /// @note Aborts if None
-    [[nodiscard]] T &unwrap() & noexcept {
-        if (this->isSome()) { return value(); }
-        abort();
+protected:
+    [[nodiscard]] constexpr T &get() & noexcept {
+        return *reinterpret_cast<T *>(_buffer);
     }
 
-    /// @brief Unwrap the stored value (const lvalue Option)
-    /// @return Const reference to stored value
-    /// @note Aborts if None
-    [[nodiscard]] T const &unwrap() const & noexcept {
-        return const_cast<Option *>(this)->unwrap();
+    [[nodiscard]] constexpr T const &get() const & noexcept {
+        return *reinterpret_cast<T const *>(_buffer);
     }
 
-    /// @brief Unwrap the stored value (rvalue Option)
-    /// @return Rvalue reference to stored value (allows moving out)
-    /// @note Aborts if None
-    [[nodiscard]] T &&unwrap() && noexcept {
-        if (this->isSome()) { return std::move(value()); }
-        abort();
-    }
-
-    /// @brief Get stored value or a default (lvalue Option)
-    /// @param default_value Value to return if None
-    /// @return Stored value (copy) if Some, otherwise default_value (copied or moved)
-    [[nodiscard]] T unwrapOr(auto &&default_value) const & noexcept {
-        return this->isSome() ? value() : std::forward<decltype(default_value)>(default_value);
-    }
-
-    /// @brief Get stored value or a default (rvalue Option - moves stored value)
-    /// @param default_value Value to return if None
-    /// @return Stored value (moved) if Some, otherwise default_value (copied or moved)
-    [[nodiscard]] T unwrapOr(auto &&default_value) && noexcept {
-        return this->isSome() ? std::move(value()) : std::forward<decltype(default_value)>(default_value);
-    }
-
-    /// @brief Transform stored value using a function (lvalue Option)
-    /// @param f Mapping function: `T -> U`
-    /// @return `Option<U>` containing mapped value if Some, otherwise None
-    /// @note If `f` returns `void`, the result is `Option<void>`
-    [[nodiscard]] auto map(auto &&f) const & noexcept -> Option<decltype(f(std::declval<T>()))> {
-        if (this->isNone()) { return none; }
-
-        if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
-            f(value());
-            return some();
-        } else {
-            return some(f(value()));
-        }
-    }
-
-    /// @brief Transform stored value using a function (rvalue Option - moves value)
-    /// @param f Mapping function: `T -> U`
-    /// @return `Option<U>` containing mapped value if Some, otherwise None
-    /// @note If `f` returns `void`, the result is `Option<void>`
-    [[nodiscard]] auto map(auto &&f) && noexcept -> Option<decltype(f(std::declval<T>()))> {
-        if (this->isNone()) { return none; }
-
-        if constexpr (std::is_void_v<decltype(f(std::declval<T>()))>) {
-            f(std::move(value()));
-            return some();
-        } else {
-            return some(f(std::move(value())));
-        }
+    [[nodiscard]] constexpr T &&get() && noexcept {
+        return std::move(*reinterpret_cast<T *>(_buffer));
     }
 
 private:
-    alignas(T) u8 _storage[sizeof(T)]{};///< Storage for value when engaged
-    bool _is_some{};                    ///< Flag indicating whether value is present
-
-    /// @brief Private constructor for a value (called by some())
-    explicit constexpr Option(auto &&value) noexcept
-        requires(not std::is_base_of_v<OptionTag, std::decay_t<decltype(value)>>)
-    {
-        construct(std::forward<decltype(value)>(value));
-    }
+    alignas(T) u8 _buffer[sizeof(T)]{};
+    bool _is_some{};
 
     void construct(auto &&value) noexcept {
-        new (static_cast<void *>(_storage)) T(std::forward<decltype(value)>(value));
+        new (static_cast<void *>(_buffer)) T(std::forward<decltype(value)>(value));
         _is_some = true;
-    }
-
-    [[nodiscard]] T &value() noexcept {
-        return *reinterpret_cast<T *>(_storage);
-    }
-
-    [[nodiscard]] T const &value() const noexcept {
-        return const_cast<Option *>(this)->value();
     }
 
     KF_IMPL_INVARIANT(Self);
@@ -284,220 +375,116 @@ private:
     }
 
     KF_IMPL_RESETTABLE(Self);
-    void resetImpl() noexcept {
-        if (this->isSome()) {
-            value().~T();
+    constexpr void resetImpl() noexcept {
+        if (_is_some) {
+            reinterpret_cast<T *>(_buffer)->~T();
             _is_some = false;
         }
     }
 };
 
-/// @brief Optional reference container
-/// @tparam T Referenced type (may be const)
-/// @note Stores a pointer internally, cannot hold rvalue references
-/// @note Created only via `kf::someRef()`
-template<typename T> struct Option<T &> final :
+template<typename T> using Storage = std::conditional_t<
+
+    can_use_sentinel<T>::value,
+    SentinelStorage<T>,
+    std::conditional_t<trivial<T>, TrivialStorage<T>, BufferedStorage<T>>
+
+    >;
+
+}// namespace internal
+
+template<typename T> struct Option :
 
     OptionTag,
-    mixin::Invariant<Option<T &>>,
-    mixin::Resettable<Option<T &>>
+    internal::Storage<T>
 
 {
-    friend struct internal::SomeCreator;
-
-    using Self = Option<T &>;
-
-    /// @brief Construct an empty Option (None)
-    constexpr Option(NoneType) noexcept :
-        _ptr{nullptr} {}
-
-    /// @brief Default constructor - empty Option (None)
-    /// @note Intended for containers
-    constexpr Option() noexcept :
-        _ptr{nullptr} {}
-
-    /// @brief Deleted constructor for rvalue references - cannot store temporaries
-    Option(T &&) = delete;
-
-    /// @brief Unwrap the stored reference (lvalue Option)
-    /// @return Reference to stored object
-    /// @note Aborts if None
-    [[nodiscard]] T &unwrap() noexcept {
-        if (this->isNone()) { abort(); }
-        return *_ptr;
-    }
-
-    /// @brief Unwrap the stored reference (const lvalue Option)
-    /// @return Const reference to stored object
-    /// @note Aborts if None
-    [[nodiscard]] T const &unwrap() const noexcept {
-        return const_cast<Option *>(this)->unwrap();
-    }
-
-    /// @brief Get stored reference or a default
-    /// @param default_ref Reference to return if Option is empty
-    /// @return Reference to the stored object or default_ref
-    [[nodiscard]] constexpr T &unwrapOr(T &default_ref) const noexcept {
-        return this->isSome() ? *_ptr : default_ref;
-    }
-
 private:
-    T *_ptr;
+    using Base = internal::Storage<T>;
 
-    /// @note called by someRef()
-    explicit constexpr Option(T &ref) noexcept :
-        _ptr{&ref} {}
+public:
+    // constructors
 
-    KF_IMPL_INVARIANT(Self);
-    constexpr bool isSomeImpl() const noexcept {
-        return _ptr != nullptr;
-    }
+    /// @brief Construct None implicitly
+    constexpr Option() noexcept = default;
 
-    KF_IMPL_RESETTABLE(Self);
-    constexpr void resetImpl() noexcept {
-        _ptr = nullptr;
-    }
-};
-
-/// @brief Optional slice container
-/// @tparam T Slice element type
-template<typename T> struct Option<Slice<T>> final :
-
-    OptionTag,
-    mixin::Invariant<Option<Slice<T>>>,
-    mixin::Resettable<Option<Slice<T>>>
-
-{
-    friend struct internal::SomeCreator;
-
-    using Self = Option<Slice<T>>;
-
-    /// @brief Construct an empty Option (None)
+    /// @brief Construct from `none`
     constexpr Option(NoneType) noexcept :
-        _ptr{nullptr}, _length{is_none_mark} {}
+        Base{} {}
 
-    /// @brief Default constructor
-    /// @note Intended for containers
-    constexpr Option() noexcept :
-        _ptr{nullptr}, _length{is_none_mark} {}
+    /// @brief Construct from value
+    template<typename U> explicit constexpr Option(U &&value) noexcept
+        requires(not std::is_same_v<std::decay_t<U>, Option>)
+        : Base(std::forward<U>(value)) {}
 
-    /// @brief Unwrap the stored slice
-    /// @return `Slice<T>` (by value)
-    /// @note Aborts if None
-    [[nodiscard]] Slice<T> unwrap() const noexcept {
-        if (this->isSome()) { return {_ptr, _length}; }
-        abort();
+    // unwrap
+
+    [[nodiscard]] constexpr decltype(auto) unwrap() & noexcept {
+        check();
+        return this->get();
     }
 
-    /// @brief Get stored slice or a default
-    /// @param default_slice Slice to return if Option is empty
-    /// @return The stored slice if Some, otherwise default_slice
-    [[nodiscard]] constexpr Slice<T> unwrapOr(Slice<T> default_slice) const noexcept {
-        return this->isSome() ? Slice<T>{_ptr, _length} : default_slice;
+    [[nodiscard]] constexpr decltype(auto) unwrap() const & noexcept {
+        check();
+        return this->get();
     }
 
-private:
-    static constexpr auto is_none_mark{static_cast<usize>(-1)};
-
-    T *_ptr;
-    usize _length;
-
-    /// @note called by some()
-    explicit constexpr Option(Slice<T> slice) noexcept :
-        _ptr{slice.data()}, _length{slice.length()} {}
-
-    KF_IMPL_INVARIANT(Self);
-    constexpr bool isSomeImpl() const noexcept {
-        return _length != is_none_mark;
+    [[nodiscard]] constexpr decltype(auto) unwrap() && noexcept {
+        check();
+        return std::move(this->get());
     }
 
-    KF_IMPL_RESETTABLE(Self);
-    constexpr void resetImpl() noexcept {
-        _length = is_none_mark;
-        _ptr = nullptr;
-    }
-};
+    // unwrap with default
 
-/// @brief Optional function container (move‑only)
-/// @tparam R Function return type
-/// @tparam Args Function argument types
-/// @note Function is move‑only; copy is disabled
-template<typename R, typename... Args> struct Option<Function<R(Args...)>> final :
-
-    OptionTag,
-    mixin::Invariant<Option<Function<R(Args...)>>>,
-    mixin::Resettable<Option<Function<R(Args...)>>>
-
-{
-    friend struct internal::SomeCreator;
-
-    using FunctionType = Function<R(Args...)>;
-
-    using Self = Option<FunctionType>;
-
-    /// @brief Construct an empty Option (None)
-    constexpr Option(NoneType) noexcept :
-        _function{} {}
-
-    /// @brief Default constructor
-    /// @note Intended for containers
-    constexpr Option() noexcept :
-        _function{} {}
-
-    /// @brief Move constructor
-    /// @param other Source Option (becomes None after move)
-    Option(Option &&other) noexcept :
-        _function{std::move(other._function)} {}
-
-    /// @brief Destructor - destroys stored function if present
-    ~Option() noexcept {
-        this->reset();
+    [[nodiscard]] constexpr decltype(auto) unwrapOr(auto &&default_value) const & noexcept {
+        return this->isSome() ? this->get() : std::forward<decltype(default_value)>(default_value);
     }
 
-    /// @brief Move assignment operator
-    /// @param other Source Option (becomes None after move)
-    /// @return Reference to this
-    Option &operator=(Option &&other) noexcept {
-        if (this != &other) {
-            _function = std::move(other._function);
+    [[nodiscard]] constexpr decltype(auto) unwrapOr(auto &&default_value) && noexcept {
+        return this->isSome() ? std::move(this->get()) : std::forward<decltype(default_value)>(default_value);
+    }
+
+    // mapping
+
+    template<typename F, typename U> using MappedOption = Option<std::invoke_result_t<F, U>>;
+
+    // map (lvalue)
+    template<typename F> [[nodiscard]] constexpr auto map(F &&f) & noexcept -> MappedOption<F, T &> {
+        if (this->isNone()) {
+            return none;
         }
-        return *this;
+
+        if constexpr (std::is_void_v<std::invoke_result_t<F, T &>>) {
+            f(this->get());
+            return some();
+        } else {
+            return some(f(this->get()));
+        }
     }
 
-    /// @brief Get stored function (const lvalue reference)
-    /// @return Const reference to stored function
-    /// @note Aborts if None
-    [[nodiscard]] FunctionType const &unwrap() const & noexcept {
-        if (this->isNone()) { abort(); }
-        return _function;
+    // map (const lvalue)
+    template<typename F> [[nodiscard]] constexpr auto map(F &&f) const & noexcept -> MappedOption<F, T const &> {
+        return const_cast<Option *>(this)->map(f);
     }
 
-    /// @brief Extract stored function (rvalue)
-    /// @return Function object (moved out)
-    /// @note Aborts if None
-    [[nodiscard]] FunctionType unwrap() && noexcept {
-        if (this->isNone()) { abort(); }
-        auto ret = std::move(_function);
-        this->reset();
-        return ret;
+    // map (rvalue)
+    template<typename F> [[nodiscard]] constexpr auto map(F &&f) && noexcept -> MappedOption<F, T &&> {
+        if (this->isNone()) {
+            return none;
+        }
+
+        if constexpr (std::is_void_v<std::invoke_result_t<F, T &&>>) {
+            f(std::move(this->get()));
+            return some();
+        } else {
+            return some(f(std::move(this->get())));
+        }
     }
 
 private:
-    FunctionType _function;
-
-    /// @brief Private constructor for Some (called by kf::some)
-    explicit Option(auto &&function) noexcept :
-        _function{std::forward<decltype(function)>(function)} {}
-
-    KF_IMPL_INVARIANT(Self);
-    constexpr bool isSomeImpl() const noexcept {
-        return _function.isSome();
-    }
-
-    KF_IMPL_RESETTABLE(Self);
-    void resetImpl() noexcept {
-        if (this->isSome()) {
-            _function = std::move(FunctionType{});
+    constexpr void check() const noexcept {
+        if (this->isNone()) {
+            abort();
         }
     }
 };

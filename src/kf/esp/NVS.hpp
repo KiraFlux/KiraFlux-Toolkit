@@ -120,7 +120,7 @@ struct NVS final :
 
 private:
     char const *_namespace;
-    TrivialOption<nvs_handle_t> _handle{none};
+    Option<nvs_handle_t> _handle{none};
 
     [[nodiscard]] static ResultType wrap(esp_err_t e) noexcept {
         if (ESP_OK == e) {
@@ -160,7 +160,7 @@ private:
             return Error::fromEsp(e);
         }
 
-        _handle = handle;
+        _handle = some(handle);
         return ok();
     }
 

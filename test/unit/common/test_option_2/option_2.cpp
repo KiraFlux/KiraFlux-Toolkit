@@ -1,65 +1,69 @@
 #include "structures.hpp"
-#include <kf/Option2.hpp>
+
+#include <kf/Option.hpp>
+#include <kf/Slice.hpp>
+
 #include <runner.hpp>
 
-using kf::Option2;
+using kf::Option;
+using kf::Slice;
 
-template<typename T> struct TestOption2Trivial {
+template<typename T> struct TestOptionTrivial {
     static constexpr T value = T{12345};
     static constexpr T default_value = T{0};
 
     static void some() {
-        auto opt = kf::some2(value);
+        auto opt = kf::some(value);
         TEST_ASSERT_TRUE(opt.isSome());
     }
 
     static void none() {
-        Option2<T> opt = kf::none;
+        Option<T> opt = kf::none;
         TEST_ASSERT_TRUE(opt.isNone());
     }
 
     static void unwrap() {
-        auto opt = kf::some2(value);
+        auto opt = kf::some(value);
         TEST_ASSERT_TRUE(opt.unwrap() == value);
     }
 
     static void unwrap_or_some() {
-        auto opt = kf::some2(value);
+        auto opt = kf::some(value);
         TEST_ASSERT_TRUE(opt.unwrapOr(default_value) == value);
     }
 
     static void unwrap_or_none() {
-        Option2<T> opt = kf::none;
+        Option<T> opt = kf::none;
         TEST_ASSERT_TRUE(opt.unwrapOr(default_value) == default_value);
     }
 
     static void reset() {
-        auto opt = kf::some2(value);
+        auto opt = kf::some(value);
         opt.reset();
         TEST_ASSERT_TRUE(opt.isNone());
     }
 
     static void map_some() {
-        auto opt = kf::some2(value).map([](T v) { return static_cast<float>(v) + 0.5f; });
+        auto opt = kf::some(value).map([](T v) { return static_cast<float>(v) + 0.5f; });
         TEST_ASSERT_TRUE(opt.isSome());
         TEST_ASSERT_TRUE(opt.unwrap() == static_cast<float>(value) + 0.5f);
     }
 
     static void void_map_some() {
         bool called = false;
-        auto opt = kf::some2(value).map([&](T) { called = true; });
+        auto opt = kf::some(value).map([&](T) { called = true; });
         TEST_ASSERT_TRUE(opt.isSome());
         TEST_ASSERT_TRUE(called);
     }
 
     static void map_none() {
-        auto opt = Option2<T>{kf::none}.map([](T v) { return v; });
+        auto opt = Option<T>{kf::none}.map([](T v) { return v; });
         TEST_ASSERT_TRUE(opt.isNone());
     }
 
     static void copy() {
         if constexpr (std::is_copy_constructible_v<T>) {
-            auto original = kf::some2(value);
+            auto original = kf::some(value);
             auto copy = original;
             TEST_ASSERT_TRUE(copy.isSome());
             TEST_ASSERT_TRUE(copy.unwrap() == original.unwrap());
@@ -68,8 +72,8 @@ template<typename T> struct TestOption2Trivial {
 
     static void copy_assignment() {
         if constexpr (std::is_copy_assignable_v<T>) {
-            auto original = kf::some2(value);
-            Option2<T> copy = kf::none;
+            auto original = kf::some(value);
+            Option<T> copy = kf::none;
             copy = original;
             TEST_ASSERT_TRUE(copy.isSome());
             TEST_ASSERT_TRUE(copy.unwrap() == original.unwrap());
@@ -78,7 +82,7 @@ template<typename T> struct TestOption2Trivial {
 
     static void move() {
         if constexpr (std::is_move_constructible_v<T>) {
-            auto original = kf::some2(value);
+            auto original = kf::some(value);
             auto moved = std::move(original);
             TEST_ASSERT_TRUE(moved.isSome());
             TEST_ASSERT_TRUE(moved.unwrap() == value);
@@ -88,8 +92,8 @@ template<typename T> struct TestOption2Trivial {
 
     static void move_assignment() {
         if constexpr (std::is_move_assignable_v<T>) {
-            auto original = kf::some2(value);
-            Option2<T> moved = kf::none;
+            auto original = kf::some(value);
+            Option<T> moved = kf::none;
             moved = std::move(original);
             TEST_ASSERT_TRUE(moved.isSome());
             TEST_ASSERT_TRUE(moved.unwrap() == value);
@@ -98,101 +102,101 @@ template<typename T> struct TestOption2Trivial {
     }
 };
 
-#define RUN_OPTION2_TRIVIAL_TESTS(__type__)                  \
-    RUN_TEST(TestOption2Trivial<__type__>::some);            \
-    RUN_TEST(TestOption2Trivial<__type__>::none);            \
-    RUN_TEST(TestOption2Trivial<__type__>::unwrap);          \
-    RUN_TEST(TestOption2Trivial<__type__>::unwrap_or_some);  \
-    RUN_TEST(TestOption2Trivial<__type__>::unwrap_or_none);  \
-    RUN_TEST(TestOption2Trivial<__type__>::reset);           \
-    RUN_TEST(TestOption2Trivial<__type__>::map_some);        \
-    RUN_TEST(TestOption2Trivial<__type__>::void_map_some);   \
-    RUN_TEST(TestOption2Trivial<__type__>::map_none);        \
-    RUN_TEST(TestOption2Trivial<__type__>::copy);            \
-    RUN_TEST(TestOption2Trivial<__type__>::copy_assignment); \
-    RUN_TEST(TestOption2Trivial<__type__>::move);            \
-    RUN_TEST(TestOption2Trivial<__type__>::move_assignment)
+#define RUN_OPTION2_TRIVIAL_TESTS(__type__)                 \
+    RUN_TEST(TestOptionTrivial<__type__>::some);            \
+    RUN_TEST(TestOptionTrivial<__type__>::none);            \
+    RUN_TEST(TestOptionTrivial<__type__>::unwrap);          \
+    RUN_TEST(TestOptionTrivial<__type__>::unwrap_or_some);  \
+    RUN_TEST(TestOptionTrivial<__type__>::unwrap_or_none);  \
+    RUN_TEST(TestOptionTrivial<__type__>::reset);           \
+    RUN_TEST(TestOptionTrivial<__type__>::map_some);        \
+    RUN_TEST(TestOptionTrivial<__type__>::void_map_some);   \
+    RUN_TEST(TestOptionTrivial<__type__>::map_none);        \
+    RUN_TEST(TestOptionTrivial<__type__>::copy);            \
+    RUN_TEST(TestOptionTrivial<__type__>::copy_assignment); \
+    RUN_TEST(TestOptionTrivial<__type__>::move);            \
+    RUN_TEST(TestOptionTrivial<__type__>::move_assignment)
 
-struct TestOption2Void {
+struct TestOptionVoid {
     static void some() {
-        auto opt = kf::some2();
+        auto opt = kf::some();
         TEST_ASSERT_TRUE(opt.isSome());
     }
 
     static void none() {
-        Option2<void> opt = kf::none;
+        Option<void> opt = kf::none;
         TEST_ASSERT_TRUE(opt.isNone());
     }
 
     static void reset() {
-        auto opt = kf::some2();
+        auto opt = kf::some();
         opt.reset();
         TEST_ASSERT_TRUE(opt.isNone());
     }
 };
 
-template<typename T> struct TestOption2Ref {
+template<typename T> struct TestOptionRef {
     inline static T value{};
 
     static void some() {
-        auto opt = kf::someRef2(value);
+        auto opt = kf::someRef(value);
         TEST_ASSERT_TRUE(opt.isSome());
         TEST_ASSERT_TRUE(&opt.unwrap() == &value);
     }
 
     static void none() {
-        Option2<T &> opt = kf::none;
+        Option<T &> opt = kf::none;
         TEST_ASSERT_TRUE(opt.isNone());
     }
 
     static void copy() {
-        auto original = kf::someRef2(value);
+        auto original = kf::someRef(value);
         auto copy = original;
         TEST_ASSERT_TRUE(copy.isSome());
         TEST_ASSERT_TRUE(&copy.unwrap() == &value);
     }
 
     static void copy_assignment() {
-        auto original = kf::someRef2(value);
-        Option2<T &> copy = kf::none;
+        auto original = kf::someRef(value);
+        Option<T &> copy = kf::none;
         copy = original;
         TEST_ASSERT_TRUE(copy.isSome());
         TEST_ASSERT_TRUE(&copy.unwrap() == &value);
     }
 
     static void move() {
-        auto original = kf::someRef2(value);
+        auto original = kf::someRef(value);
         auto moved = std::move(original);
         TEST_ASSERT_TRUE(moved.isSome());
         TEST_ASSERT_TRUE(&moved.unwrap() == &value);
     }
 
     static void move_assignment() {
-        auto original = kf::someRef2(value);
-        Option2<T &> moved = kf::none;
+        auto original = kf::someRef(value);
+        Option<T &> moved = kf::none;
         moved = std::move(original);
         TEST_ASSERT_TRUE(moved.isSome());
         TEST_ASSERT_TRUE(&moved.unwrap() == &value);
     }
 
     static void reset() {
-        auto opt = kf::someRef2(value);
+        auto opt = kf::someRef(value);
         opt.reset();
         TEST_ASSERT_TRUE(opt.isNone());
     }
 };
 
-#define RUN_OPTION2_REF_TESTS(__type__, __value__)       \
-    TestOption2Ref<__type__>::value = __value__;         \
-    RUN_TEST(TestOption2Ref<__type__>::some);            \
-    RUN_TEST(TestOption2Ref<__type__>::none);            \
-    RUN_TEST(TestOption2Ref<__type__>::copy);            \
-    RUN_TEST(TestOption2Ref<__type__>::copy_assignment); \
-    RUN_TEST(TestOption2Ref<__type__>::move);            \
-    RUN_TEST(TestOption2Ref<__type__>::move_assignment); \
-    RUN_TEST(TestOption2Ref<__type__>::reset)
+#define RUN_OPTION2_REF_TESTS(__type__, __value__)      \
+    TestOptionRef<__type__>::value = __value__;         \
+    RUN_TEST(TestOptionRef<__type__>::some);            \
+    RUN_TEST(TestOptionRef<__type__>::none);            \
+    RUN_TEST(TestOptionRef<__type__>::copy);            \
+    RUN_TEST(TestOptionRef<__type__>::copy_assignment); \
+    RUN_TEST(TestOptionRef<__type__>::move);            \
+    RUN_TEST(TestOptionRef<__type__>::move_assignment); \
+    RUN_TEST(TestOptionRef<__type__>::reset)
 
-template<typename T> struct TestOption2Slice {
+template<typename T> struct TestOptionSlice {
     static constexpr auto data_a_size = 10u, data_b_size = 20u;
     inline static T data_a[data_a_size]{};
     inline static T data_b[data_b_size]{};
@@ -200,7 +204,7 @@ template<typename T> struct TestOption2Slice {
     inline static kf::Slice<T> slice_b{data_b, data_b_size};
 
     static void some() {
-        auto opt = kf::some2(slice_a);
+        auto opt = kf::some(slice_a);
         TEST_ASSERT_TRUE(opt.isSome());
         auto s = opt.unwrap();
         TEST_ASSERT_EQUAL_PTR(data_a, s.data());
@@ -208,7 +212,7 @@ template<typename T> struct TestOption2Slice {
     }
 
     static void none() {
-        Option2<kf::Slice<T>> opt = kf::none;
+        Option<kf::Slice<T>> opt = kf::none;
         TEST_ASSERT_TRUE(opt.isNone());
         auto s = opt.unwrapOr(slice_b);
         TEST_ASSERT_EQUAL_PTR(data_b, s.data());
@@ -216,7 +220,7 @@ template<typename T> struct TestOption2Slice {
     }
 
     static void copy() {
-        auto const original = kf::some2(slice_a);
+        auto const original = kf::some(slice_a);
         auto const copy = original;
         TEST_ASSERT_TRUE(copy.isSome());
         auto s = copy.unwrap();
@@ -224,8 +228,8 @@ template<typename T> struct TestOption2Slice {
     }
 
     static void copy_assignment() {
-        auto original = kf::some2(slice_a);
-        Option2<kf::Slice<T>> copy = kf::none;
+        auto original = kf::some(slice_a);
+        Option<kf::Slice<T>> copy = kf::none;
         copy = original;
         TEST_ASSERT_TRUE(copy.isSome());
         auto s = copy.unwrap();
@@ -233,7 +237,7 @@ template<typename T> struct TestOption2Slice {
     }
 
     static void move() {
-        auto original = kf::some2(slice_a);
+        auto original = kf::some(slice_a);
         auto moved = std::move(original);
         TEST_ASSERT_TRUE(moved.isSome());
         auto s = moved.unwrap();
@@ -241,8 +245,8 @@ template<typename T> struct TestOption2Slice {
     }
 
     static void move_assignment() {
-        auto original = kf::some2(slice_a);
-        Option2<kf::Slice<T>> moved = kf::none;
+        auto original = kf::some(slice_a);
+        Option<kf::Slice<T>> moved = kf::none;
         moved = std::move(original);
         TEST_ASSERT_TRUE(moved.isSome());
         auto s = moved.unwrap();
@@ -250,20 +254,20 @@ template<typename T> struct TestOption2Slice {
     }
 
     static void reset() {
-        auto opt = kf::some2(slice_a);
+        auto opt = kf::some(slice_a);
         opt.reset();
         TEST_ASSERT_TRUE(opt.isNone());
     }
 };
 
-#define RUN_OPTION2_SLICE_TESTS(__type__)                  \
-    RUN_TEST(TestOption2Slice<__type__>::some);            \
-    RUN_TEST(TestOption2Slice<__type__>::none);            \
-    RUN_TEST(TestOption2Slice<__type__>::copy);            \
-    RUN_TEST(TestOption2Slice<__type__>::copy_assignment); \
-    RUN_TEST(TestOption2Slice<__type__>::move);            \
-    RUN_TEST(TestOption2Slice<__type__>::move_assignment); \
-    RUN_TEST(TestOption2Slice<__type__>::reset)
+#define RUN_OPTION2_SLICE_TESTS(__type__)                 \
+    RUN_TEST(TestOptionSlice<__type__>::some);            \
+    RUN_TEST(TestOptionSlice<__type__>::none);            \
+    RUN_TEST(TestOptionSlice<__type__>::copy);            \
+    RUN_TEST(TestOptionSlice<__type__>::copy_assignment); \
+    RUN_TEST(TestOptionSlice<__type__>::move);            \
+    RUN_TEST(TestOptionSlice<__type__>::move_assignment); \
+    RUN_TEST(TestOptionSlice<__type__>::reset)
 
 void run_tests() {
     using namespace kf::test;
@@ -272,9 +276,9 @@ void run_tests() {
     RUN_OPTION2_TRIVIAL_TESTS(float);
     RUN_OPTION2_TRIVIAL_TESTS(kf::usize);
 
-    RUN_TEST(TestOption2Void::some);
-    RUN_TEST(TestOption2Void::none);
-    RUN_TEST(TestOption2Void::reset);
+    RUN_TEST(TestOptionVoid::some);
+    RUN_TEST(TestOptionVoid::none);
+    RUN_TEST(TestOptionVoid::reset);
 
     RUN_OPTION2_REF_TESTS(int, 12345);
 

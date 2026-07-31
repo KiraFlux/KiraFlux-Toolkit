@@ -37,7 +37,7 @@ template<arithmetic T> struct LowFrequencyFilter :
     using mixin::Configured<Config>::Configured;
 
 private:
-    TrivialOption<ValueType> _filtered{none};
+    Option<ValueType> _filtered{none};
 
     KF_IMPL_FILTER(LowFrequencyFilter<ValueType>, ValueType);
 

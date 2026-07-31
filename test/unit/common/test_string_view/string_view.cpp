@@ -1,9 +1,9 @@
 #include <kf/StringView.hpp>
 #include <runner.hpp>
 
+using kf::Option;
 using kf::Slice;
 using kf::StringView;
-using kf::TrivialOption;
 
 static void assertStringViewEqual(StringView actual, char const *expected, size_t len) {
     TEST_ASSERT_EQUAL_UINT32(len, actual.length());
@@ -178,19 +178,19 @@ namespace sub {
 
 void sub() {
     StringView sv{"hello world"};
-    auto s{sv.sub(6, 5)};
+    auto s{sv.sub(6, kf::some<kf::usize>(5))};
 
     assertStringViewEqual(s, "world", 5);
 
-    s = sv.sub(6, 100);
+    s = sv.sub(6, kf::some<kf::usize>(100));
 
     assertStringViewEqual(s, "world", 5);
 
-    s = sv.sub(20, 5);
+    s = sv.sub(20, kf::some<kf::usize>(5));
 
     TEST_ASSERT_TRUE(s.empty());
 
-    s = sv.sub(3, 0);
+    s = sv.sub(3, kf::some<kf::usize>(0));
 
     TEST_ASSERT_TRUE(s.empty());
 }

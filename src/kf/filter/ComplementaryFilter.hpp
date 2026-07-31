@@ -45,17 +45,17 @@ template<arithmetic T> struct ComplementaryFilter final :
     /// @return Filtered value combining prediction and measurement
     [[nodiscard]] ValueType const &calc(ValueType x, ValueType dx, Seconds dt) noexcept {
         if (_filtered.isNone()) {
-            _filtered = x;
+            _filtered = some(x);
         } else {
             auto const prediction = _filtered + dx * dt;
-            _filtered = this->config().factor * prediction + (1.0f - this->config().factor) * x;
+            _filtered.unwrap() = this->config().factor * prediction + (1.0f - this->config().factor) * x;
         }
 
         return _filtered.unwrap();
     }
 
 private:
-    TrivialOption<ValueType> _filtered{none};
+    Option<ValueType> _filtered{none};
 
     KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {

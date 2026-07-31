@@ -13,13 +13,12 @@
 
 namespace kf {
 
-template<typename> struct Option;// optional function forward declaration
-
 namespace internal {
 
 struct OptionHelper;
+template<typename> struct SentinelStorage;
 
-}
+}// namespace internal
 
 template<typename> struct Function;
 
@@ -28,8 +27,8 @@ template<typename> struct Function;
 /// @tparam R Return type
 /// @tparam Args Argument types
 template<typename R, typename... Args> struct Function<R(Args...)> : mixin::NonCopyable {
-    friend struct Option<Function<R(Args...)>>;
     friend struct ::kf::internal::OptionHelper;
+    friend struct ::kf::internal::SentinelStorage<Function<R(Args...)>>;
 
     using ReturnType = R;
 
@@ -99,7 +98,7 @@ private:
 
     alignas(alignment) u8 _storage[buffer_size]{};
 
-    // access to default constructor only for Option
+    // access to default constructor only for SentinelStorage
     constexpr Function() noexcept {
         isSome(false);
     }

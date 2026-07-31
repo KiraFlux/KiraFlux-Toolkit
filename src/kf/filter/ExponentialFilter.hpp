@@ -36,13 +36,13 @@ template<arithmetic T> struct ExponentialFilter :
     using mixin::Configured<Config>::Configured;
 
 private:
-    TrivialOption<ValueType> _filtered{none};
+    Option<ValueType> _filtered{none};
 
     KF_IMPL_FILTER(ExponentialFilter<ValueType>, ValueType);
 
     ValueType calcImpl(ValueType const &value) noexcept {
         if (_filtered.isNone()) {
-            _filtered = value;
+            _filtered = some(value);
         } else {
             _filtered.unwrap() += (value - _filtered.unwrap()) * this->config().factor;
         }

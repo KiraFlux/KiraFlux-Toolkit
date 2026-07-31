@@ -5,7 +5,7 @@
 
 #include <cmath>
 
-#include "kf/TrivialOption.hpp"
+#include "kf/Option.hpp"
 #include "kf/concepts.hpp"
 #include "kf/mixin/Length.hpp"
 #include "kf/primitives.hpp"
@@ -128,7 +128,7 @@ template<arithmetic T> struct Vector2 :
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
-    /// @return TrivialOption containing divided vector or empty if divisor is zero
+    /// @return Option containing divided vector or empty if divisor is zero
     [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept;
 
     /// @brief Scalar division
@@ -158,7 +158,7 @@ template<arithmetic T> struct Vector2 :
     }
 
     /// @brief Get normalized (unit) vector
-    /// @return TrivialOption containing unit vector or empty if vector is zero-length
+    /// @return Option containing unit vector or empty if vector is zero-length
     [[nodiscard]] constexpr auto normalized() const noexcept;
 
     /// @brief Calculate dot product with another vector
@@ -182,7 +182,7 @@ private:
 };
 
 template<arithmetic T> constexpr auto Vector2<T>::divChecked(Scalar scalar) const noexcept {
-    return (scalar == 0) ? TrivialOption<Self>{none} : someTrivial((*this) / scalar);
+    return (scalar == 0) ? Option<Self>{none} : some((*this) / scalar);
 }
 
 template<arithmetic T> constexpr auto Vector2<T>::normalized() const noexcept {
@@ -245,7 +245,7 @@ template<arithmetic T> struct Vector3 :
 
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
-    /// @return TrivialOption containing divided vector or empty if divisor is zero
+    /// @return Option containing divided vector or empty if divisor is zero
     [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept;
 
     /// @brief Scalar division
@@ -277,7 +277,7 @@ template<arithmetic T> struct Vector3 :
     }
 
     /// @brief Get normalized (unit) vector
-    /// @return TrivialOption containing unit vector or empty if vector is zero-length
+    /// @return Option containing unit vector or empty if vector is zero-length
     [[nodiscard]] constexpr auto normalized() const noexcept;
 
     /// @brief Calculate dot product with another vector
@@ -311,7 +311,7 @@ private:
 };
 
 template<arithmetic T> constexpr auto Vector3<T>::divChecked(Scalar scalar) const noexcept {
-    return (scalar == 0) ? TrivialOption<Self>{none} : someTrivial((*this) / scalar);
+    return (scalar == 0) ? Option<Self>{none} : some((*this) / scalar);
 }
 
 template<arithmetic T> constexpr auto Vector3<T>::normalized() const noexcept {
@@ -438,11 +438,11 @@ template<arithmetic T> struct Quaternion :
     }
 
     /// @brief Get normalized (unit) quaternion
-    /// @return TrivialOption containing unit quaternion, or empty if zero length
+    /// @return Option containing unit quaternion, or empty if zero length
     [[nodiscard]] constexpr auto normalized() const noexcept;
 
     /// @brief Inverse of the quaternion
-    /// @return TrivialOption containing inverse, or empty if zero length (non‑invertible)
+    /// @return Option containing inverse, or empty if zero length (non‑invertible)
     [[nodiscard]] constexpr auto inverse() const noexcept;
 
     /// @brief Rotate a 3D vector by this quaternion (assumes unit quaternion)
@@ -491,19 +491,19 @@ private:
 template<arithmetic T> constexpr auto Quaternion<T>::normalized() const noexcept {
     auto const n = this->length();
 
-    if (n == 0) { return TrivialOption<Self>{none}; }
+    if (n == 0) { return Option<Self>{none}; }
 
-    return someTrivial(Self::create(x / n, y / n, z / n, w / n));
+    return some(Self::create(x / n, y / n, z / n, w / n));
 }
 
 template<arithmetic T> constexpr auto Quaternion<T>::inverse() const noexcept {
     auto const n2 = lengthSquared();
 
-    if (n2 == 0) { return TrivialOption<Self>{none}; }
+    if (n2 == 0) { return Option<Self>{none}; }
 
     auto const c = conjugate();
 
-    return someTrivial(Self::create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
+    return some(Self::create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
 }
 
 using Quaternionf = Quaternion<f32>;

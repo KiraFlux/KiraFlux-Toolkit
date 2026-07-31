@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "kf/Option.hpp"
 #include "kf/Sequence.hpp"
-#include "kf/TrivialOption.hpp"
 #include "kf/primitives.hpp"
 
 namespace kf {
@@ -32,7 +32,7 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
     /// @param offset Starting position
     /// @param count Number of elements
     /// @return Slice covering specified range
-    [[nodiscard]] constexpr Slice sub(usize offset, TrivialOption<usize> count = none) const noexcept {
+    [[nodiscard]] constexpr Slice sub(usize offset, Option<usize> count = none) const noexcept {
         if (offset > _length) {
             return {};
         }
@@ -55,7 +55,7 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
     /// @return Slice containing first n elements
     /// @note No bounds checking - caller must ensure n <= length()
     [[nodiscard]] constexpr Slice first(usize n) const noexcept {
-        return sub(0, n);
+        return sub(0, some(n));
     }
 
     /// @brief Get last N elements of slice
@@ -63,7 +63,7 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
     /// @return Slice containing last n elements
     /// @note No bounds checking - caller must ensure n <= length()
     [[nodiscard]] constexpr Slice last(usize n) const noexcept {
-        return sub(_length - n, n);
+        return sub(_length - n, some(n));
     }
 
     /// @brief Get slice starting from offset to end
@@ -71,7 +71,7 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
     /// @return Slice from offset to end of original slice
     /// @note No bounds checking - caller must ensure offset <= length()
     [[nodiscard]] constexpr Slice fromOffset(usize offset) const noexcept {
-        return sub(offset, _length - offset);
+        return sub(offset, some(_length - offset));
     }
 
     constexpr operator Slice<T const>() const noexcept {
