@@ -4,8 +4,8 @@
 #pragma once
 
 #include "kf/math.hpp"
-#include "kf/meta/BitTraits.hpp"
 #include "kf/primitives.hpp"
+#include "kf/type_traits.hpp"
 
 namespace kf::ui {
 
@@ -18,9 +18,9 @@ template<usize N> struct Event : EventTag {
     static constexpr auto value_bits{N};
     static constexpr auto total_bits{static_cast<usize>(type_bits + value_bits)};
 
-    using Value = typename meta::BitTraits<value_bits>::min_signed;
-    using Storage = typename meta::BitTraits<total_bits>::min_unsigned;
-    using UnsignedValue = typename meta::BitTraits<value_bits>::min_unsigned;
+    using Value = signed_integer_by_bits_t<value_bits>;
+    using Storage = unsigned_integer_by_bits_t<total_bits>;
+    using UnsignedValue = unsigned_integer_by_bits_t<value_bits>;
 
     static constexpr auto storage_bits{static_cast<usize>(sizeof(Storage) * 8)};
     static constexpr auto value_max{static_cast<Value>((UnsignedValue{1u} << (value_bits - 1)) - 1)};
