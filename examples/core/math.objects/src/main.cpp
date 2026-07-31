@@ -31,7 +31,7 @@ void kf::main(kf::Init &init) {
         init.logger.info("scaled by 2: ({}, {})", scaled.x, scaled.y);
         init.logger.info("divided by 2: ({}, {})", divided.x, divided.y);
 
-        // Safe division (returns TrivialOption)
+        // Safe division (returns Option)
         auto div_ok = a1.divChecked(2.0f);
         auto div_zero = a1.divChecked(0.0f);
 
@@ -118,7 +118,7 @@ void kf::main(kf::Init &init) {
         auto conj = q2.conjugate();
         init.logger.info("conjugate: ({}, {}, {}, {})", conj.x, conj.y, conj.z, conj.w);
 
-        // Inverse (returns TrivialOption)
+        // Inverse (returns Option)
         auto inv = q2.inverse();
         if (inv.isSome()) {
             auto q_inv = inv.unwrap();

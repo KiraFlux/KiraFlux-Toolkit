@@ -1,7 +1,7 @@
 // KiraFlux-Toolkit Example 'gpio/pwm-output'
 
 // Demonstrates PWM output generation using the kf::gpio::PwmOutput class.
-// The example generates a sawtooth waveform by linearly ramping the duty cycle from 0 to maximum and back, 
+// The example generates a sawtooth waveform by linearly ramping the duty cycle from 0 to maximum and back,
 // and also shows how to set pulse width in microseconds (useful for servo control).
 
 #include <kf/gpio.hpp>

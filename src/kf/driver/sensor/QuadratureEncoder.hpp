@@ -33,8 +33,8 @@ template<typename T> struct QuadratureEncoderConfig final {
         CCW = +1///< Counter-clockwise increments
     };
 
-    UnitType units_per_tick;     ///< Conversion factor: physical units per encoder tick
-    Direction positive_direction;///< Desired positive rotation direction
+    UnitType units_per_tick;      ///< Conversion factor: physical units per encoder tick
+    Direction positive_direction; ///< Desired positive rotation direction
     gpio::DigitalInput::Pull pull;///< Phase Pull type
 
     /// @brief Converts ticks to physical units

@@ -38,7 +38,7 @@ void kf::main(kf::Init &init) {
         init.logger.error("Servo init failed");
         return;
     }
-    
+
     init.logger.info("Servo initialized");
 
     // Small delay to stabilize hardware
