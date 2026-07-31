@@ -71,6 +71,8 @@ private:
     }
 };
 
+using IicWriteResult = Result<void, IicError>;
+
 struct IicNodeConfig final {
 
     /// @brief 7‑bit I2C device address (usually 0x08–0x77)
@@ -138,8 +140,6 @@ private:
 
     KF_IMPL_BUS_NODE(Self, Error);
 
-    using WriteResult = Result<void, Error>;
-
     auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
         usize const received = request(buffer.length());
 
@@ -175,19 +175,19 @@ private:
         }
     }
 
-    WriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
+    IicWriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
         beginTransmission();
         usize const written = writeBytes(buffer.data(), buffer.length());
         return endTransmission(written, buffer.length());
     }
 
-    WriteResult writePacketImpl(trivial auto const &packet) noexcept {
+    IicWriteResult writePacketImpl(trivial auto const &packet) noexcept {
         beginTransmission();
         usize const written = writePacketUnchecked(packet);
         return endTransmission(written, sizeof(decltype(packet)));
     }
 
-    WriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
+    IicWriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
         beginTransmission();
         usize const header_written = writePacketUnchecked(header);
         usize const buffer_written = writeBytes(buffer.data(), buffer.length());
@@ -232,7 +232,7 @@ private:
     /// @param to_write Total number of bytes that were intended to be written
     /// @return Success or specific I2C error
     /// @note Possible errors: AddressNack, DataNack, Timeout, BufferTooLong, Unknown
-    [[nodiscard]] WriteResult endTransmission(usize written, usize to_write) noexcept {
+    [[nodiscard]] IicWriteResult endTransmission(usize written, usize to_write) noexcept {
         u8 const code = _wire.endTransmission();
 
         if (written != to_write) { return Error::create(Error::BufferTooLong); }
