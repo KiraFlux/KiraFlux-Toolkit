@@ -12,7 +12,7 @@
 
 namespace kf::math {
 
-inline namespace buildin_constants {
+inline namespace builtin_constants {
 
 constexpr f64 pi{M_PI};
 
@@ -20,7 +20,7 @@ constexpr f64 half_pi{M_PI_2};
 
 constexpr f64 euler{M_E};
 
-}// namespace buildin_constants
+}// namespace builtin_constants
 
 inline namespace builtin_functions {
 
@@ -129,7 +129,9 @@ template<arithmetic T> struct Vector2 :
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept;
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept {
+        return (scalar == 0) ? Option<Self>{none} : some((*this) / scalar);
+    }
 
     /// @brief Scalar division
     /// @param scalar Division factor
@@ -159,7 +161,9 @@ template<arithmetic T> struct Vector2 :
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] constexpr auto normalized() const noexcept;
+    [[nodiscard]] constexpr auto normalized() const noexcept {
+        return divChecked(this->length());
+    }
 
     /// @brief Calculate dot product with another vector
     /// @param other Second vector
@@ -180,14 +184,6 @@ private:
         return static_cast<Scalar>(math::hypot(x, y));
     }
 };
-
-template<arithmetic T> constexpr auto Vector2<T>::divChecked(Scalar scalar) const noexcept {
-    return (scalar == 0) ? Option<Self>{none} : some((*this) / scalar);
-}
-
-template<arithmetic T> constexpr auto Vector2<T>::normalized() const noexcept {
-    return divChecked(this->length());
-}
 
 using Vector2f = Vector2<f32>;///< Float precision 2D vector
 using Vector2i = Vector2<i32>;///< Integer precision 2D vector
@@ -246,7 +242,9 @@ template<arithmetic T> struct Vector3 :
     /// @brief Safe scalar division with zero-check
     /// @param scalar Division factor
     /// @return Option containing divided vector or empty if divisor is zero
-    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept;
+    [[nodiscard]] constexpr auto divChecked(Scalar scalar) const noexcept {
+        return (scalar == 0) ? Option<Self>{none} : some((*this) / scalar);
+    }
 
     /// @brief Scalar division
     /// @param scalar Division factor
@@ -278,7 +276,9 @@ template<arithmetic T> struct Vector3 :
 
     /// @brief Get normalized (unit) vector
     /// @return Option containing unit vector or empty if vector is zero-length
-    [[nodiscard]] constexpr auto normalized() const noexcept;
+    [[nodiscard]] constexpr auto normalized() const noexcept {
+        return divChecked(this->length());
+    }
 
     /// @brief Calculate dot product with another vector
     /// @param other Second vector
@@ -309,14 +309,6 @@ private:
         return static_cast<Scalar>(math::sqrt(x * x + y * y + z * z));
     }
 };
-
-template<arithmetic T> constexpr auto Vector3<T>::divChecked(Scalar scalar) const noexcept {
-    return (scalar == 0) ? Option<Self>{none} : some((*this) / scalar);
-}
-
-template<arithmetic T> constexpr auto Vector3<T>::normalized() const noexcept {
-    return divChecked(this->length());
-}
 
 using Vector3f = Vector3<f32>;///< Float precision 3D vector
 using Vector3i = Vector3<i32>;///< Integer precision 3D vector
@@ -439,11 +431,25 @@ template<arithmetic T> struct Quaternion :
 
     /// @brief Get normalized (unit) quaternion
     /// @return Option containing unit quaternion, or empty if zero length
-    [[nodiscard]] constexpr auto normalized() const noexcept;
+    [[nodiscard]] constexpr auto normalized() const noexcept {
+        auto const n = this->length();
+
+        if (n == 0) { return Option<Self>{none}; }
+
+        return some(Self::create(x / n, y / n, z / n, w / n));
+    }
 
     /// @brief Inverse of the quaternion
     /// @return Option containing inverse, or empty if zero length (non‑invertible)
-    [[nodiscard]] constexpr auto inverse() const noexcept;
+    [[nodiscard]] constexpr auto inverse() const noexcept {
+        auto const n2 = lengthSquared();
+
+        if (n2 == 0) { return Option<Self>{none}; }
+
+        auto const c = conjugate();
+
+        return some(Self::create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
+    }
 
     /// @brief Rotate a 3D vector by this quaternion (assumes unit quaternion)
     /// @param v Vector to rotate
@@ -487,24 +493,6 @@ private:
         return static_cast<Scalar>(math::sqrt(lengthSquared()));
     }
 };
-
-template<arithmetic T> constexpr auto Quaternion<T>::normalized() const noexcept {
-    auto const n = this->length();
-
-    if (n == 0) { return Option<Self>{none}; }
-
-    return some(Self::create(x / n, y / n, z / n, w / n));
-}
-
-template<arithmetic T> constexpr auto Quaternion<T>::inverse() const noexcept {
-    auto const n2 = lengthSquared();
-
-    if (n2 == 0) { return Option<Self>{none}; }
-
-    auto const c = conjugate();
-
-    return some(Self::create(c.x / n2, c.y / n2, c.z / n2, c.w / n2));
-}
 
 using Quaternionf = Quaternion<f32>;
 
