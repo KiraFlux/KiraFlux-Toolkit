@@ -92,12 +92,15 @@ void kf::main(kf::Init &init) {
 
     // --- Display configuration ---
 
-    static bus::I2C::Node::Config node_config{
-        .address = 0x3C,// default SSD1306 address
+    static SSD1306::Config display_config{
+        .i2c_node = {
+            .address = SSD1306::Config::default_address,// = 0x3C
+        },
+        .chunk_size = SSD1306::Config::default_chunk_size,// = 64
     };
 
     // Create the display driver instance (static to outlive the function)
-    static SSD1306 display{std::move(i2c_bus.createNode(node_config))};
+    static SSD1306 display{i2c_bus, display_config};
 
     // Initialize the display
     auto display_init = display.init();

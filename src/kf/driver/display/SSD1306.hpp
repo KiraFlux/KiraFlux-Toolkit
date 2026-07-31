@@ -10,6 +10,8 @@
 #include "kf/pixel/MonochromePixel.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/mixin/Configured.hpp"
+
 #include "kf/driver/display/DisplayDriver.hpp"
 #include "kf/driver/display/Orientation.hpp"
 
@@ -17,15 +19,26 @@ namespace kf::internal {
 
 using SSD1306Image = image::StaticImage<pixel::MonochromePixel, 128, 64>;
 
-}
+struct SSD1306Config {
+    static constexpr u8 default_address{0x3C}, default_chunk_size{64};
+
+    bus::I2C::Node::Config i2c_node;
+    u8 chunk_size;
+};
+
+}// namespace kf::internal
 
 namespace kf::driver::display {
 
 /// @brief SSD1306 OLED display driver for 128x64 monochrome panels
-struct SSD1306 : DisplayDriver<SSD1306, internal::SSD1306Image, Result<void, bus::I2C::Error>> {
+struct SSD1306 :
 
+    DisplayDriver<SSD1306, internal::SSD1306Image, internal::IicWriteResult>,
+    mixin::Configured<internal::SSD1306Config>
+
+{
     using PixelImpl = typename internal::SSD1306Image::PixelImpl;
-    using IicOperationResult = Result<void, bus::I2C::Error>;
+    using Config = internal::SSD1306Config;
 
     /// @brief SSD1306 command set
     enum Command : u8 {
@@ -58,24 +71,23 @@ struct SSD1306 : DisplayDriver<SSD1306, internal::SSD1306Image, Result<void, bus
         InvertDisplay = 0xA7 ///< Inverted pixel color (white on black)
     };
 
-    static constexpr u8 default_address = {0x3C};
-
     /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(bus::I2C::Node &&i2c_node) noexcept : _i2c_node{std::move(i2c_node)} {}
+    explicit SSD1306(bus::I2C &i2c_bus, Config const &config) noexcept :
+        mixin::Configured<Config>{config}, _i2c_node{i2c_bus.createNode(config.i2c_node)} {}
 
     /// @brief Set display contrast level (0..255)
-    [[nodiscard]] IicOperationResult contrast(u8 value) noexcept {
+    [[nodiscard]] auto contrast(u8 value) noexcept -> internal::IicWriteResult {
         u8 const packet[]{CommandMode, Contrast, value};
         return _i2c_node.writePacket(packet);
     }
 
     /// @brief Enable or disable display power
-    [[nodiscard]] IicOperationResult power(bool on) noexcept {
+    [[nodiscard]] auto power(bool on) noexcept -> internal::IicWriteResult {
         return sendCommand(on ? DisplayOn : DisplayOff);
     }
 
     /// @brief Invert display colors
-    [[nodiscard]] IicOperationResult invert(bool invert) noexcept {
+    [[nodiscard]] auto invert(bool invert) noexcept -> internal::IicWriteResult {
         return sendCommand(invert ? InvertDisplay : NormalDisplay);
     }
 
@@ -87,16 +99,20 @@ private:
     bus::I2C::Node _i2c_node;
 
     /// @brief Send single command to display
-    [[nodiscard]] IicOperationResult sendCommand(Command c) noexcept {
-        u8 const packet[]{OneCommandMode, static_cast<u8>(c)};
-        return _i2c_node.writePacket(packet);
+    [[nodiscard]] auto sendCommand(Command c) noexcept -> internal::IicWriteResult {
+        u8 const packet[]{
+            OneCommandMode,
+            static_cast<u8>(c),
+        };
+
+        return _i2c_node.writeBuffer({packet});
     }
 
-    KF_IMPL_DISPLAY_DRIVER(SSD1306, internal::SSD1306Image, IicOperationResult);
+    KF_IMPL_DISPLAY_DRIVER(SSD1306, internal::SSD1306Image, internal::IicWriteResult);
 
     /// @brief Initialize display hardware via I2C
-    IicOperationResult initImpl() noexcept {
-        static constexpr u8 init_commands[] = {
+    auto initImpl() noexcept -> internal::IicWriteResult {
+        static constexpr u8 init_commands[]{
             CommandMode,
 
             // Turn off for safe configuration
@@ -138,34 +154,32 @@ private:
             0x3F,
         };
 
-        return _i2c_node.writePacket(init_commands);
+        return _i2c_node.writeBuffer({init_commands});
     }
 
     constexpr void resetImpl() const noexcept {}
 
-    IicOperationResult sendImpl() noexcept {
+    auto sendImpl() noexcept -> internal::IicWriteResult {
         // Transfer software buffer to display via I2C
-
-        static constexpr auto packet_size = 64u;// Optimal for ESP32 performance // TODO: move to config, rename to chunk_size
 
         static constexpr u8 set_area_commands[]{
             CommandMode,
             // Set full display window
             ColumnAddr,
             0,
-            127,
+            internal::SSD1306Image::comptime_width,
             PageAddr,
             0,
-            PixelImpl::template pages<64> - 1,
+            PixelImpl::pages(internal::SSD1306Image::comptime_height) - 1,
         };
 
-        KF_TRY(_i2c_node.writePacket(set_area_commands));
+        KF_TRY(_i2c_node.writeBuffer({set_area_commands}));
 
         auto p = this->image().buffer().data();
         auto remaining = this->image().buffer().length();
 
         while (remaining > 0) {
-            auto const chunk = math::min(packet_size, remaining);
+            auto const chunk = math::min(this->config().chunk_size, remaining);
 
             KF_TRY(_i2c_node.writeMixed(Command::DataMode, {p, chunk}));
 
@@ -176,7 +190,7 @@ private:
         return ok();
     }
 
-    IicOperationResult setOrientationImpl(Orientation orientation) noexcept {
+    auto setOrientationImpl(Orientation orientation) noexcept -> internal::IicWriteResult {
         if (not supportOrientation(orientation)) {
             return ok();
         }
