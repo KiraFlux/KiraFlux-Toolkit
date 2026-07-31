@@ -27,6 +27,8 @@ template<implements<pixel::PixelTag> P, units::Pixels W, units::Pixels H> struct
 
     using BufferStorage = Array<BufferType, PixelImpl::bufferSize(W, H)>;
 
+    static constexpr usize comptime_width{W}, comptime_height{H};
+
     constexpr StaticImage() noexcept :
         _buffer{} {}
 
