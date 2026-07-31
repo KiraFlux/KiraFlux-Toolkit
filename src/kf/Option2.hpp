@@ -428,37 +428,37 @@ public:
 
     // unwrap
 
-    [[nodiscard]] constexpr T &unwrap() & noexcept {
+    [[nodiscard]] constexpr decltype(auto) unwrap() & noexcept {
         check();
         return this->get();
     }
 
-    [[nodiscard]] constexpr T const &unwrap() const & noexcept {
+    [[nodiscard]] constexpr decltype(auto) unwrap() const & noexcept {
         check();
         return this->get();
     }
 
-    [[nodiscard]] constexpr T &&unwrap() && noexcept {
+    [[nodiscard]] constexpr decltype(auto) unwrap() && noexcept {
         check();
         return std::move(this->get());
     }
 
     // unwrap with default
 
-    [[nodiscard]] constexpr T unwrapOr(auto &&default_value) const & noexcept {
+    [[nodiscard]] constexpr decltype(auto) unwrapOr(auto &&default_value) const & noexcept {
         return this->isSome() ? this->get() : std::forward<decltype(default_value)>(default_value);
     }
 
-    [[nodiscard]] constexpr T unwrapOr(auto &&default_value) && noexcept {
+    [[nodiscard]] constexpr decltype(auto) unwrapOr(auto &&default_value) && noexcept {
         return this->isSome() ? std::move(this->get()) : std::forward<decltype(default_value)>(default_value);
     }
 
     // mapping
 
-    template<typename F, typename U> using MapResult = Option2<std::invoke_result_t<F, U>>;
+    template<typename F, typename U> using MappedOption = Option2<std::invoke_result_t<F, U>>;
 
     // map (lvalue)
-    template<typename F> [[nodiscard]] constexpr auto map(F &&f) & noexcept -> MapResult<F, T &> {
+    template<typename F> [[nodiscard]] constexpr auto map(F &&f) & noexcept -> MappedOption<F, T &> {
         if (this->isNone()) {
             return none;
         }
@@ -472,12 +472,12 @@ public:
     }
 
     // map (const lvalue)
-    template<typename F> [[nodiscard]] constexpr auto map(F &&f) const & noexcept -> MapResult<F, T const &> {
+    template<typename F> [[nodiscard]] constexpr auto map(F &&f) const & noexcept -> MappedOption<F, T const &> {
         return const_cast<Option2 *>(this)->map(f);
     }
 
     // map (rvalue)
-    template<typename F> [[nodiscard]] constexpr auto map(F &&f) && noexcept -> MapResult<F, T &&> {
+    template<typename F> [[nodiscard]] constexpr auto map(F &&f) && noexcept -> MappedOption<F, T &&> {
         if (this->isNone()) {
             return none;
         }
