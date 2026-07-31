@@ -11,10 +11,6 @@
 
 #include "kf/driver/sensor/SensorDriver.hpp"
 
-#ifndef IRAM_ATTR
-#define IRAM_ATTR
-#endif
-
 namespace kf::internal {
 
 /// @brief Configuration for a QuadratureEncoder
@@ -96,7 +92,7 @@ private:
     typename Config::PhaseStateType volatile _last_state{0};///< Previous AB phase state
 
     /// @brief ISR triggered on any edge of either phase
-    static void IRAM_ATTR onAnyPhaseChange(void *arg) noexcept {
+    static void KF_PLACE_IRAM onAnyPhaseChange(void *arg) noexcept {
         auto &self = *static_cast<Self *>(arg);
         auto const positive_step = static_cast<typename Config::StepType>(self.config().positive_direction);
 

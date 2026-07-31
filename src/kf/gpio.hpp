@@ -14,6 +14,12 @@
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
+#ifdef IRAM_ATTR
+#define KF_PLACE_IRAM IRAM_ATTR
+#else
+#define KF_PLACE_IRAM
+#endif
+
 namespace kf::internal {
 
 struct PwmOutputConfig final {
