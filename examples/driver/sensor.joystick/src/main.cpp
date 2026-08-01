@@ -100,12 +100,12 @@ void kf::main(kf::Init &init) {
 
     // Timer for periodic logging of raw values (debug only).
     Timer log_timer{Timer::Config{.value = 500}};
-    log_timer.start(millis());
+    log_timer.start(rtos::Clock::now());
 
     // --- Main loop ---
 
     while (true) {
-        auto now = millis();
+        auto now = rtos::Clock::now();
 
         // Read normalized values (filtered and calibrated).
         float x_norm = joystick.axis_x.read();

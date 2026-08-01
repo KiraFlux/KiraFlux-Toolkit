@@ -9,6 +9,7 @@
 #include <kf/gpio.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/main.hpp>
+#include <kf/rtos/Task.hpp>
 
 using kf::driver::display::Orientation;
 using kf::driver::display::ST7735;
@@ -37,17 +38,17 @@ void runDemo(kf::Init &init, ST7735 &display, char const *orientation_name) {
     canvas.background(red);
     canvas.fill();
     (void) display.send();
-    delay(step_time_ms);
+    kf::rtos::Task::sleep(step_time_ms);
 
     canvas.background(green);
     canvas.fill();
     (void) display.send();
-    delay(step_time_ms);
+    kf::rtos::Task::sleep(step_time_ms);
 
     canvas.background(blue);
     canvas.fill();
     (void) display.send();
-    delay(step_time_ms);
+    kf::rtos::Task::sleep(step_time_ms);
 
     // Draw diagonal lines on white background
     canvas.background(white);
@@ -59,7 +60,7 @@ void runDemo(kf::Init &init, ST7735 &display, char const *orientation_name) {
         canvas.line(canvas.maxX(), 0, canvas.maxX() - i, canvas.maxY());
     }
     (void) display.send();
-    delay(2 * step_time_ms);
+    kf::rtos::Task::sleep(2 * step_time_ms);
 
     // Show orientation name on black background
     canvas.background(black);
@@ -67,7 +68,7 @@ void runDemo(kf::Init &init, ST7735 &display, char const *orientation_name) {
     canvas.foreground(white);
     canvas.text(10, 10, orientation_name);
     (void) display.send();
-    delay(2 * step_time_ms);
+    kf::rtos::Task::sleep(2 * step_time_ms);
 
     init.logger.info("Demo for {} completed", orientation_name);
 }
@@ -79,11 +80,11 @@ void kf::main(kf::Init &init) {
 
     // --- SPI bus configuration ---
 
-    // Use default SPI pins (GPIO_NUM_NC means "use hardware defaults")
+    // Use default SPI pins (none means "use defaults")
     static bus::SPI::Config spi_bus_config{
-        .gpio_num_mosi = static_cast<u8>(GPIO_NUM_NC),
-        .gpio_num_miso = static_cast<u8>(GPIO_NUM_NC),
-        .gpio_num_sck = static_cast<u8>(GPIO_NUM_NC),
+        .gpio_num_mosi = none,
+        .gpio_num_miso = none,
+        .gpio_num_sck = none,
     };
 
     bus::SPI spi_bus{spi_bus_config};
@@ -103,7 +104,7 @@ void kf::main(kf::Init &init) {
         // Node configuration
         .spi_node = {
             .clock_hz = 27'000'000,
-            .gpio_num_cs = static_cast<u8>(GPIO_NUM_5),
+            .gpio_num_cs = gpio::G5,
             .bit_order = bus::SPI::Node::Config::BitOrder::MostSignificant,
             .clock_bits = bus::SPI::Node::Config::ClockBits::None,
         },

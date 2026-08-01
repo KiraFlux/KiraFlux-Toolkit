@@ -1,29 +1,27 @@
 // KiraFlux-Toolkit Example 'bus/iic-scanner'
 
 #include <kf/bus/I2C.hpp>
+#include <kf/gpio.hpp>
 #include <kf/main.hpp>
 #include <kf/rtos/Task.hpp>
 
-using kf::bus::I2C;
-
-// --- Bus configuration ---
-
-// Configuration for the IIC bus (uses default Wire).
-// GPIO_NUM_NC or -1 means "use Wire's default pins".
-// A value of 0 for clock, timeout, or buffer size also means "use Wire's default".
-I2C::Config bus_config{
-    .gpio_num_sda = static_cast<kf::u8>(21),
-    .gpio_num_scl = static_cast<kf::u8>(22),
-    .buffer_size = 0,
-    .clock_hz = 0,
-    .timeout = 0,
-};
-
-// Bus instance (must outlive any nodes created from it).
-I2C i2c_bus{bus_config, 0};
-
 void kf::main(kf::Init &init) {
     init.logger.info("KiraFlux-Toolkit Example: bus/iic-scanner");
+
+    // --- Bus configuration ---
+
+    // Configuration for the IIC bus (uses default Wire).
+    // none means "use Wire's default".
+    bus::I2C::Config const bus_config{
+        .gpio_num_sda = some(gpio::G21),
+        .gpio_num_scl = some(gpio::G22),
+        .clock_hz = some<usize>(100'000),
+        .buffer_size = none,
+        .timeout_ms = none,
+    };
+
+    // Bus instance (must outlive any nodes created from it).
+    bus::I2C i2c_bus{bus_config, 0};
 
     // --- Initialize the bus ---
 
@@ -41,7 +39,7 @@ void kf::main(kf::Init &init) {
 
     for (kf::u8 address = 1; address < 0x80; address += 1) {
         // Create a node for this address.
-        I2C::Node::Config node_config{
+        bus::I2C::Node::Config node_config{
             .address = address,
         };
         auto node = i2c_bus.createNode(node_config);

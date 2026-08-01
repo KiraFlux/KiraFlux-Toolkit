@@ -1,6 +1,7 @@
 // KiraFlux-Toolkit Example 'tuner/custom'
 
 #include <kf/main.hpp>
+#include <kf/rtos/Task.hpp>
 #include <kf/tuner/Tuner.hpp>
 
 // --- Forward declaration ---
@@ -24,15 +25,17 @@ struct MyConfig {
 // --- Simulated sensor reading ---
 
 int mySensorReadRaw() noexcept {
-    return random(0, MyConfig::value_limit);
+    static int a = 0x12'34'56'78;
+    a = (a << 5) * (a + 1);
+    return (a >> 16);
 }
 
 // --- Tuner implementation ---
 // Inherits from kf::tuner::Tuner<MyTuner> and implements reset, poll, running.
 
 struct MyTuner : kf::tuner::Tuner<MyTuner> {
-    explicit MyTuner(MyConfig &config, int samples) noexcept
-        : _config{config}, _samples_total{samples} {}
+    explicit MyTuner(MyConfig &config, int samples) noexcept :
+        _config{config}, _samples_total{samples} {}
 
 private:
     MyConfig &_config;       // reference to config (modified after calculation)
@@ -128,7 +131,7 @@ void kf::main(kf::Init &init) {
         tuner_1.poll();
         tuner_2.poll();
         tuner_3.poll();
-        delay(1);
+        rtos::Task::sleep(1);
     }
 
     // --- Results ---

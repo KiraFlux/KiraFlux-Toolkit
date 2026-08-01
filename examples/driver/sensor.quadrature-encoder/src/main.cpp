@@ -3,6 +3,7 @@
 #include <kf/driver/sensor/QuadratureEncoder.hpp>
 #include <kf/gpio.hpp>
 #include <kf/main.hpp>
+#include <kf/rtos/Task.hpp>
 
 using kf::driver::sensor::QuadratureEncoder;
 
@@ -39,7 +40,7 @@ void kf::main(kf::Init &init) {
     init.logger.info("Encoder initialized");
 
     // Small delay to let hardware stabilize.
-    delay(100);
+    rtos::Task::sleep(100);
 
     // --- Show initial position ---
 
@@ -59,12 +60,12 @@ void kf::main(kf::Init &init) {
         init.logger.debug("Position: {} ticks, {} units", ticks, units);
 
         // Wait a bit before next read.
-        delay(200);
+        rtos::Task::sleep(200);
 
         // Optional: demonstrate resetting position.
         // Uncomment to reset position to zero after some time.
         // static bool reset_done = false;
-        // if (not reset_done && ticks > 1000) {
+        // if (not reset_done and ticks > 1000) {
         //     encoder.reset();                        // reset ticks to 0
         //     init.logger.info("Encoder reset");
         //     reset_done = true;

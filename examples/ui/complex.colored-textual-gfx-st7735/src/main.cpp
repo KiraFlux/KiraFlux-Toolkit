@@ -347,11 +347,11 @@ void kf::main(kf::Init &init) {
     static MainPage main_page{my_ui};
     static SettingsPage settings_page{my_ui};
 
-    static bus::SPI::Config spi_bus_config{
+    static bus::SPI::Config const spi_bus_config{
         // use defaults
-        .gpio_num_mosi = static_cast<kf::u8>(GPIO_NUM_NC),
-        .gpio_num_miso = static_cast<kf::u8>(GPIO_NUM_NC),
-        .gpio_num_sck = static_cast<kf::u8>(GPIO_NUM_NC),
+        .gpio_num_mosi = none,
+        .gpio_num_miso = none,
+        .gpio_num_sck = none,
     };
 
     static bus::SPI spi_bus{spi_bus_config};
@@ -361,7 +361,7 @@ void kf::main(kf::Init &init) {
         // Node configuration
         .spi_node = {
             .clock_hz = 27'000'000,
-            .gpio_num_cs = static_cast<u8>(GPIO_NUM_5),
+            .gpio_num_cs = gpio::G5,
             .bit_order = bus::SPI::Node::Config::BitOrder::MostSignificant,
             .clock_bits = bus::SPI::Node::Config::ClockBits::None,
         },

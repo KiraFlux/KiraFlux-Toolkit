@@ -2,6 +2,8 @@
 
 #include <kf/Timer.hpp>
 #include <kf/main.hpp>
+#include <kf/rtos/Clock.hpp>
+#include <kf/rtos/Task.hpp>
 
 void kf::main(kf::Init &init) {
     init.logger.info("KiraFlux-Toolkit Example: core/timer");
@@ -18,7 +20,7 @@ void kf::main(kf::Init &init) {
 
     // --- Start all timers ---
 
-    auto now = millis();
+    auto now = rtos::Clock::now();
     one_shot.start(now);
     periodic.start(now);
     stopwatch.start(now);
@@ -28,7 +30,7 @@ void kf::main(kf::Init &init) {
     // --- Main loop (100 iterations, 100 ms each = 10 seconds total) ---
 
     for (auto i = 0u; i < 100u; i += 1) {
-        now = millis();
+        now = rtos::Clock::now();
 
         // One-shot timer: show remaining time
         init.logger.debug("One-shot remaining: {} ms", one_shot.remaining(now));
@@ -49,7 +51,7 @@ void kf::main(kf::Init &init) {
         init.logger.debug("Stopwatch: {} ms", stopwatch.elapsed(now));
 
         // Small delay to avoid flooding the log
-        delay(100);
+        rtos::Task::sleep(100);
     }
 
     init.logger.info("Timer demo finished");

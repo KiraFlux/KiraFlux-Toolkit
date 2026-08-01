@@ -4,6 +4,8 @@
 #include <kf/Slice.hpp>
 #include <kf/main.hpp>
 #include <kf/primitives.hpp>
+#include <kf/rtos/Clock.hpp>
+#include <kf/rtos/Task.hpp>
 
 #include <WiFi.h>// ESP-NOW requires STA mode – set explicitly
 #include <kf/MacAddress.hpp>
@@ -99,7 +101,7 @@ void kf::main(kf::Init &init) {
             }
         }
 
-        delay(5000);
-        init.logger.debug("Tick: {}", millis());
+        rtos::Task::sleep(5000);
+        init.logger.debug("Tick: {}", rtos::Clock::now());
     }
 }

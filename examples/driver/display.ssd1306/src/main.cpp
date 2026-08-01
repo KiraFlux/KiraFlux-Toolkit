@@ -6,6 +6,7 @@
 #include <kf/gfx/fonts/gyver_5x7.hpp>
 #include <kf/image/DynamicImage.hpp>
 #include <kf/main.hpp>
+#include <kf/rtos/Task.hpp>
 
 using kf::driver::display::Orientation;
 using kf::driver::display::SSD1306;
@@ -30,13 +31,13 @@ void runDemo(kf::Init &init, SSD1306 &display, char const *orientation_name) {
     canvas.background(ON);
     canvas.fill();
     (void) display.send();
-    delay(step_time_ms);
+    kf::rtos::Task::sleep(step_time_ms);
 
     // Fill screen with OFF (clear)
     canvas.background(OFF);
     canvas.fill();
     (void) display.send();
-    delay(step_time_ms);
+    kf::rtos::Task::sleep(step_time_ms);
 
     // Draw diagonal lines
     canvas.background(OFF);
@@ -47,7 +48,7 @@ void runDemo(kf::Init &init, SSD1306 &display, char const *orientation_name) {
         canvas.line(canvas.maxX(), 0, canvas.maxX() - i, canvas.maxY());
     }
     (void) display.send();
-    delay(2 * step_time_ms);
+    kf::rtos::Task::sleep(2 * step_time_ms);
 
     // Show orientation name
     canvas.background(OFF);
@@ -55,7 +56,7 @@ void runDemo(kf::Init &init, SSD1306 &display, char const *orientation_name) {
     canvas.foreground(ON);
     canvas.text(10, 10, orientation_name);
     (void) display.send();
-    delay(2 * step_time_ms);
+    kf::rtos::Task::sleep(2 * step_time_ms);
 
     init.logger.info("Demo for {} completed", orientation_name);
 }
@@ -67,14 +68,13 @@ void kf::main(kf::Init &init) {
 
     // --- I2C bus configuration ---
 
-    // 0xFF (-1) means "use Wire's default GPIOs".
-    // 0 means "use Wire's default value" for clock, timeout, buffer size.
+    // none means "use Wire's default".
     static bus::I2C::Config bus_config{
-        .gpio_num_sda = 0xFF,
-        .gpio_num_scl = 0xFF,
-        .buffer_size = 0,
-        .clock_hz = 100'000,
-        .timeout = 0,
+        .gpio_num_sda = none,
+        .gpio_num_scl = none,
+        .clock_hz = some<usize>(100'000),
+        .buffer_size = none,
+        .timeout_ms = none,
     };
 
     bus::I2C i2c_bus{

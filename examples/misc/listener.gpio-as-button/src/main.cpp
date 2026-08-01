@@ -3,6 +3,7 @@
 #include <kf/gpio.hpp>
 #include <kf/listener/LogicalLevelListener.hpp>
 #include <kf/main.hpp>
+#include <kf/rtos/Clock.hpp>
 #include <kf/rtos/Task.hpp>
 
 using kf::listener::LogicalLevelListener;
@@ -50,7 +51,7 @@ void kf::main(kf::Init &init) {
         button_listener.set(level);
 
         // Poll the listener to detect stable transitions and invoke callbacks.
-        button_listener.poll(millis());
+        button_listener.poll(rtos::Clock::now());
 
         // Small delay to avoid busy-loop.
         rtos::Task::sleep(10);

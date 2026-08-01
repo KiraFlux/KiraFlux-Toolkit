@@ -17,7 +17,7 @@ struct MonochromePixel final : Pixel<MonochromePixel, u8, bool, 1> {
     /// @brief Calculate number of memory pages for given height
     /// @return Number of 8-pixel memory pages
     static constexpr usize pages(usize height) {
-        return (height + 7) / 8; 
+        return (height + 7) / 8;
     }
 
     // PixelFormat implementation
