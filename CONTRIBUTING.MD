@@ -103,8 +103,7 @@ Use designated initialisers or aggregate initialisation with one field per line,
 PwmOutput::Config pwm_config{
     .frequency_hz = 30'000,
     .resolution_bits = 10,
-    .pin = static_cast<kf::u8>(GPIO_NUM_26),
-    .channel = 0,
+    .pin = gpio::G26,
 };
 ```
 

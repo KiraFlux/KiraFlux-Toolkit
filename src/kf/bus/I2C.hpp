@@ -7,9 +7,11 @@
 #include <Wire.h>
 #endif
 
+#include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/StringView.hpp"
 #include "kf/concepts.hpp"
+#include "kf/gpio.hpp"
 #include "kf/primitives.hpp"
 #include "kf/units.hpp"
 
@@ -33,7 +35,6 @@ struct IicError : mixin::Representable<IicError, StringView> {
 
         ClockConfigFailed,     ///< Setting I2C clock frequency failed (Wire.setClock() returned false)
         BufferSizeConfigFailed,///< Setting the internal buffer size failed (Wire.setBufferSize() returned different value)
-        PinConfigFailed,       ///< Setting SDA/SCL pins failed (Wire.setPins() returned false)
         BeginFailed,           ///< Wire.begin() failed (returned false)
 
         // Node errors
@@ -57,7 +58,6 @@ private:
         switch (kind) {
             CASE_RETURN(IicError::ClockConfigFailed);
             CASE_RETURN(IicError::BufferSizeConfigFailed);
-            CASE_RETURN(IicError::PinConfigFailed);
             CASE_RETURN(IicError::BeginFailed);
             CASE_RETURN(IicError::AddressNack);
             CASE_RETURN(IicError::DataNack);
@@ -81,22 +81,8 @@ struct IicNodeConfig final {
 };
 
 struct IicBusConfig final {
-
-    u8 gpio_num_sda, gpio_num_scl;
-    u16 buffer_size;
-    u32 clock_hz;
-    units::Milliseconds timeout;
-
-    constexpr bool hasDefaultPins() const noexcept {
-        constexpr auto gpio_num_nc{static_cast<u8>(-1)};
-        return gpio_num_sda == gpio_num_nc and gpio_num_scl == gpio_num_nc;
-    }
-
-    constexpr bool hasDefaultClock() const noexcept { return clock_hz == 0; }
-
-    constexpr bool hasDefaultTimeout() const noexcept { return timeout == 0; }
-
-    constexpr bool hasDefaultBufferSize() const noexcept { return buffer_size == 0; }
+    Option<gpio::GpioNumber> gpio_num_sda, gpio_num_scl;
+    Option<usize> clock_hz, buffer_size, timeout_ms;
 };
 
 template<typename Impl> struct IicNodeBase :
@@ -274,31 +260,34 @@ struct IicBusImpl : IicBusBase<IicBusImpl> {
 private:
     TwoWire _wire;
 
+    [[nodiscard]] static constexpr int uncast(Option<gpio::GpioNumber> g) noexcept {
+        if (g.isNone()) {
+            return -1;
+        } else {
+            return static_cast<int>(g.unwrap());
+        }
+    }
+
     KF_IMPL_BUS(Self, Error);
 
     auto initImpl() noexcept -> Result<void, Error> {
-        if (not this->config().hasDefaultPins()) {
-            if (not _wire.setPins(static_cast<int>(this->config().gpio_num_sda), static_cast<int>(this->config().gpio_num_scl))) {
-                return Error::create(Error::PinConfigFailed);
-            }
-        }
 
-        if (not _wire.begin()) {
+        if (not _wire.begin(uncast(this->config().gpio_num_sda), uncast(this->config().gpio_num_scl))) {
             return Error::create(Error::BeginFailed);
         }
 
-        if (not this->config().hasDefaultClock()) {
-            if (not _wire.setClock(this->config().clock_hz)) {
+        if (not this->config().clock_hz.isSome()) {
+            if (not _wire.setClock(this->config().clock_hz.unwrap())) {
                 return Error::create(Error::ClockConfigFailed);
             }
         }
 
-        if (not this->config().hasDefaultTimeout()) {
-            _wire.setTimeOut(static_cast<u16>(this->config().timeout));// TwoWire::setTimeout
+        if (not this->config().timeout_ms.isSome()) {
+            _wire.setTimeOut(static_cast<u16>(this->config().timeout_ms.unwrap()));// TwoWire::setTimeout
         }
 
-        if (not this->config().hasDefaultBufferSize()) {
-            if (_wire.setBufferSize(this->config().buffer_size) != this->config().buffer_size) {
+        if (not this->config().buffer_size.isSome()) {
+            if (_wire.setBufferSize(this->config().buffer_size.unwrap()) != this->config().buffer_size.unwrap()) {
                 return Error::create(Error::BufferSizeConfigFailed);
             }
         }
@@ -313,7 +302,7 @@ private:
 
 #else
 
-template<typename B> struct IicNodeImpl : IicNodeBase<IicNodeImpl> {
+template<typename B> struct IicNodeImpl : IicNodeBase<IicNodeImpl<B>> {
     using Self = IicNodeImpl<B>;
 
     using Error = IicError;

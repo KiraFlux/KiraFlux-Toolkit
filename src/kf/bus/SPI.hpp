@@ -8,8 +8,10 @@
 #include <SPI.h>
 #endif
 
+#include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/concepts.hpp"
+#include "kf/gpio.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/mixin/Configured.hpp"
@@ -64,20 +66,14 @@ struct SpiNodeConfig final {
         PolarityBit = 0b10,
     };
 
-    u32 clock_hz;  // desired SPI clock frequency
-    u8 gpio_num_cs;// software CS pin
+    u32 clock_hz;                // desired SPI clock frequency
+    gpio::GpioNumber gpio_num_cs;// software CS pin
     BitOrder bit_order;
     ClockBits clock_bits;
 };
 
 struct SpiBusConfig final {
-    u8 gpio_num_mosi, gpio_num_miso, gpio_num_sck;
-
-    [[nodiscard]] constexpr bool hasDefaultPins() const noexcept {
-        constexpr auto gpio_num_nc{static_cast<u8>(-1)};
-
-        return gpio_num_mosi == gpio_num_nc and gpio_num_miso == gpio_num_nc and gpio_num_sck == gpio_num_nc;
-    }
+    Option<gpio::GpioNumber> gpio_num_mosi, gpio_num_miso, gpio_num_sck;
 };
 
 template<typename Impl> struct SpiNodeBase :
@@ -262,12 +258,17 @@ private:
 
     KF_IMPL_BUS(Self, Error);
 
-    auto initImpl() noexcept -> Result<void, Error> {
-        if (this->config().hasDefaultPins()) {
-            _spi.begin();
+    [[nodiscard]] static constexpr i8 uncast(Option<gpio::GpioNumber> g) noexcept {
+        if (g.isNone()) {
+            return -1;
         } else {
-            _spi.begin(this->config().gpio_num_sck, this->config().gpio_num_miso, this->config().gpio_num_mosi);
+            return static_cast<i8>(g.unwrap());
         }
+    }
+
+    auto initImpl() noexcept -> Result<void, Error> {
+        _spi.begin(uncast(this->config().gpio_num_sck), uncast(this->config().gpio_num_miso), uncast(this->config().gpio_num_mosi));
+
         return ok();
     }
 
@@ -285,7 +286,7 @@ template<typename B> struct SpiNodeImpl : SpiNodeBase<SpiNodeImpl<B>> {
     using Config = SpiNodeConfig;
 
     explicit SpiNodeImpl(B &bus, Config const &config) noexcept :
-        mixin::Configured<Config>{config} {}
+        SpiNodeBase<Self>{config} {}
 
 private:
     KF_IMPL_INITABLE(Self, void());
