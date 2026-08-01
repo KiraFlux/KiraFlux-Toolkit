@@ -16,4 +16,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-platformio
       - name: Build all examples
-        run: python3 build-examples.py
+        run: python3 kf.py build --all
