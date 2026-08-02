@@ -3,9 +3,15 @@
 
 #pragma once
 
+#include "kf/Arena.hpp"
 #include "kf/Logger.hpp"
+#include "kf/primitives.hpp"
 
 // autoconfig
+
+#ifndef KF_CONFIG_MAIN_ARENA_BUFFER_LENGTH
+#define KF_CONFIG_MAIN_ARENA_BUFFER_LENGTH (1024 * 16)
+#endif
 
 #ifndef KF_CONFIG_MAIN_LOGGER_KEY
 #define KF_CONFIG_MAIN_LOGGER_KEY "main"
@@ -27,7 +33,7 @@
 
 namespace kf {
 
-/// @brief App Context
+/// @brief Application Context
 struct Init;
 
 /// @brief KiraFlux Toolkit application entry point
@@ -37,6 +43,11 @@ namespace internal {
 
 struct InitBase {
 
+    /// @brief Application Arena allocator
+    Arena arena{
+        {_main_arena_buffer},
+    };
+
     /// @brief Application Logger
     Logger logger{
         (KF_CONFIG_MAIN_LOGGER_KEY),
@@ -44,6 +55,7 @@ struct InitBase {
     };
 
 private:
+    u8 _main_arena_buffer[(KF_CONFIG_MAIN_ARENA_BUFFER_LENGTH)]{};
     char _main_logger_buffer[(KF_CONFIG_MAIN_LOGGER_BUFFER_LENGTH)]{};
 };
 
@@ -298,6 +310,7 @@ KF_PLATFORM_APP_FUNCTION_DECLARATION {
 #undef KF_PLATFORM_APP_FUNCTION_DECLARATION
 #undef KF_PLATFORM_APP_QUIT
 
+#undef KF_CONFIG_MAIN_ARENA_BUFFER_LENGTH
 #undef KF_CONFIG_MAIN_LOGGER_KEY
 #undef KF_CONFIG_MAIN_LOGGER_BUFFER_LENGTH
 #undef KF_CONFIG_MAIN_UART_BAUDRATE
