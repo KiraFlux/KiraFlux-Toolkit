@@ -15,7 +15,7 @@ template<typename T>
 concept arithmetic = std::is_arithmetic_v<T>;
 
 template<typename T>
-concept trivial = std::is_trivially_copyable_v<T>;
+concept trivial = std::is_trivially_copyable_v<T> and std::is_trivially_destructible_v<T>;
 
 template<typename E>
 concept enum_type = std::is_enum_v<E>;
