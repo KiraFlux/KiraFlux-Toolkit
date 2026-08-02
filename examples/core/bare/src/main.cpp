@@ -12,8 +12,9 @@ void kf::main(kf::Init &init) {
     // The framework initializes the environment and passes an Init context.
 
     // Init provides:
-    //   - logger: a Logger instance for formatted output (info, debug, warn, error)
-    //   - io: a platform-agnostic binary I/O interface (read/write bytes, buffers)
+    //   - logger: a Logger instance for formatted output
+    //   - io: a platform-agnostic binary I/O interface
+    //   - arena: a linear allocator for temporary allocations
 
     // This example demonstrates the minimal structure of a KiraFlux application.
 
@@ -24,6 +25,17 @@ void kf::main(kf::Init &init) {
     // Use {} as placeholder for arguments.
 
     init.logger.info("Hello from {}! ", "KiraFlux Toolkit");
+
+    // --- Using the arena ---
+
+    // Arena provides fast, deterministic memory allocation.
+    // Allocations are discarded on reset().
+    auto ints = init.arena.allocate<int>(5);
+    if (not ints.empty()) {
+        ints[0] = 42;
+        ints[4] = 99;
+        init.logger.info("Allocated 5 ints via arena: [0]={}, [4]={}", ints[0], ints[4]);
+    }
 
     // --- Using the I/O interface ---
 
@@ -56,8 +68,7 @@ void kf::main(kf::Init &init) {
             if (read.isOk()) {
                 u8 byte = read.ok();
 
-                // Log the byte (only for non‑control characters)
-                if (byte >= 0x20 && byte < 0x7F) {
+                if (byte >= 0x20 and byte < 0x7F) {
                     init.logger.debug("Echoed: '{}'", static_cast<char>(byte));
                 }
 
@@ -69,7 +80,6 @@ void kf::main(kf::Init &init) {
 
     // --- Performance note ---
 
-    // This minimal application uses no dynamic memory allocation.
-    // It is suitable for resource‑constrained devices.
-    // The framework handles startup and platform specifics transparently.
+    // All memory is statically allocated. No dynamic allocations.
+    // Arena provides temporary storage without heap fragmentation.
 }

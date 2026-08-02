@@ -25,11 +25,10 @@ void kf::main(kf::Init &init) {
 
     // Buffered logging reduces the number of writer calls by accumulating data in a fixed-size buffer
     // The buffer is flushed automatically when full or at the end of each log message
-    char buffer[64];
 
     Logger buffered_logger{
         "buffered",
-        {buffer},// Implicitly constructs Slice<char> from the array
+        init.arena.allocate<char>(64),
     };
 
     // --- Performance comparison: unbuffered vs buffered ---

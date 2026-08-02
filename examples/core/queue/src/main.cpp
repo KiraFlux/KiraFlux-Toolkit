@@ -16,7 +16,7 @@ void kf::main(kf::Init &init) {
     // Queue provides front() and back() for direct element access.
 
     constexpr usize n = 8;
-    int buffer[n];// Storage - must outlive the Queue instance
+    auto buffer = init.arena.allocate<int>(n);
 
     // Construct an empty queue using the entire buffer.
     // Optionally, you can specify an initial length if the buffer already contains data.

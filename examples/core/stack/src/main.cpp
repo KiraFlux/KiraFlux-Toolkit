@@ -15,7 +15,7 @@ void kf::main(kf::Init &init) {
     // Memory must be provided by the user (e.g., a local array or kf::Array).
 
     constexpr usize n = 8;
-    int buffer[n];// Storage - must outlive the Stack instance
+    auto buffer = init.arena.allocate<int>(n);
 
     // Construct an empty stack using the entire buffer.
     // Optionally, you can specify an initial length if the buffer already contains data.

@@ -12,8 +12,7 @@ void kf::main(kf::Init &init) {
 
     // --- String-specific features ---
 
-    char buffer[256];
-    kf::String str{buffer};// Construct from Slice<char> (Array decays to Slice)
+    kf::String str{init.arena.allocate<char>(256)};// Construct from Slice<char>
 
     // String provides compile-time format string validation via `mixin::Writable<Impl, char>`
     // Use `{}` as anchor, `{{` or `}}` to display literal braces

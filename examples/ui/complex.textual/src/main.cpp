@@ -204,9 +204,6 @@ MyEvent eventFromChar(char c) {
 }
 
 void kf::main(kf::Init &init) {
-    // allocate memory for buffers
-    static char my_renderer_buffer[256]{};
-    static char my_event_buffer[64 * sizeof(MyUI::Traits::EventImpl)];
 
     MyUI::Traits::RendererImpl::Config my_renderer_config{
         .row_max_length = 50,// console width = 50 chars
@@ -218,11 +215,11 @@ void kf::main(kf::Init &init) {
 
     MyUI::Traits::RendererImpl my_renderer{
         my_renderer_config,// by ref
-        {my_renderer_buffer},
+        init.arena.allocate<char>(256),
     };
 
     MyUI my_ui{
-        {reinterpret_cast<MyUI::Traits::EventImpl *>(my_event_buffer), sizeof(my_event_buffer)},
+        init.arena.allocate<MyUI::Traits::EventImpl>(64),
         my_renderer,// by ref
     };
 
