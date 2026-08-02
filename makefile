@@ -1,4 +1,4 @@
-.PHONY: all monitor test build-examples be snapshot s lint new-example ne new-test nt diff
+.PHONY: all monitor test lint new-example ne new-test nt diff
 
 name ?= unnamed # target example/test name
 group ?= common # target example/test group
@@ -10,16 +10,6 @@ monitor:
 
 test:
 	pio test -e native
-
-build-examples:
-	./build-examples.py
-
-be: build-examples
-
-snapshot:
-	python snapshot.py
-
-s: snapshot
 
 format:
 	./clang-format-all.sh

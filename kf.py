@@ -5,6 +5,7 @@
 
 from abc import ABC, abstractmethod
 import argparse
+from datetime import datetime
 import enum
 import os
 import sys
@@ -12,7 +13,8 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 import time
-from typing import Final, Self, Sequence, Optional, final
+from itertools import chain
+from typing import Final, Iterable, Self, Sequence, Optional, TextIO, final
 
 
 class Environment(enum.StrEnum):
@@ -50,6 +52,8 @@ def print_table_row(padding: int, name: str, status: str, elapsed: str) -> None:
 
 class Job(ABC):
     repo_dir: Final = Path(__file__).parent.resolve()
+
+    platformio_ini_file = "platformio.ini"
 
     registry: Final = list[Self]()
 
@@ -102,7 +106,7 @@ class BuildJob(Job):
 
     examples_dir_name = "examples"
     examples_dir = Job.repo_dir / examples_dir_name
-    examples_glob = f"{examples_dir_name}/*/*/platformio.ini"
+    examples_glob = f"{examples_dir_name}/*/*/{Job.platformio_ini_file}"
 
     @dataclass(kw_only=True)
     class ExampleBuildResult:
@@ -196,7 +200,6 @@ class BuildJob(Job):
         return bool(failed_examples)
 
     def _find_all_example_dirs(self) -> Sequence[Path]:
-        """Return list of Path objects for directories containing platformio.ini."""
         return sorted(p.parent for p in self.repo_dir.glob(self.examples_glob))
 
     def _read_failed_list(self) -> Sequence[Path]:
@@ -309,13 +312,115 @@ class MonitorJob(Job):
 
 
 class SnapshotJob(Job):
+
+    snapshot_file: Final = Job.repo_dir / "snapshot.txt"
+
+    target_ext: Final = (
+        "h", "hpp", "cpp", "ino", 
+        "md", "MD",
+        "yml", "json", 
+        "py", "sh", 
+    )
+
+    target_dirs: Final = (
+        "examples", "src", "test", ".github",
+    )
+
+    bypass_filenames: Final = (
+        "platformio.ini",
+    )
+
+    ignored_filenames: Final = (
+        "compile_commands.json",
+        "CHANGELOG.MD"
+    )
+
     def register(self, subparsers):
         p = subparsers.add_parser("snapshot", aliases=["s"])
         p.set_defaults(job=self)
 
     def run(self, args):
-        print("Snapshot command (stub)")
-        return 0
+        print(Color.BOLD.apply("Making Snapshot..."))
+
+        snapshot_files = tuple(self._determine_snapshot_file_paths())
+
+        print(Color.CYAN.apply(f"where are {len(snapshot_files)} files to write"))
+
+        fact_writes = 0;
+
+        with self.snapshot_file.open("wt") as f:
+            f.write(f"KiraFlux Toolkit repository snapshot ({datetime.now()})\n\n")
+
+            for i, p in enumerate(snapshot_files):
+                print(f"* {i:>3} {(p.relative_to(self.repo_dir))}")
+                
+                fact_writes += self._write_content(f, p)
+
+        is_success = (len(snapshot_files) == fact_writes) 
+
+        print(f"file: {Color.CYAN.apply(str(self.snapshot_file))}")
+
+        s_str = (Color.GREEN.apply("SUCCESS") if is_success else Color.RED.apply("FAILED"))
+
+        print_bordered(s_str)
+
+        return is_success
+
+    def _write_content(self, io: TextIO, path: Path) -> bool:
+        next_line = "\n"
+        backticks = "```"
+
+        try:
+            file_text = path.read_text()
+        except Exception as e:
+            print(Color.RED.apply(f"failed to read '{path}' error: {e}"))
+            return False
+
+        header = str(path.relative_to(self.repo_dir))
+
+        io.write(header + next_line + backticks + path.suffix + next_line)
+        io.write(file_text)
+        io.write(backticks + next_line * 3)
+
+        return True
+
+    def _patterns_from_ext(self, extensions: Sequence[str]) -> Iterable[str]:
+        return (
+            f"*.{e}"
+            for e in extensions
+        )
+
+    def _get_files_by_patterns(self, _dir: Path, patterns: Sequence[str], *, recursive = False) -> Iterable[Path]:
+        def _glob_flat(d: Path, p: str) -> Iterable[Path]:
+            return d.glob(p)
+
+        def _glob_recursive(d: Path, p: str) -> Iterable[Path]:
+            return d.rglob(p)
+
+        glob_method = _glob_recursive if recursive else _glob_flat
+
+        return chain(*(
+            glob_method(_dir, p)
+            for p in patterns
+        ))
+
+    def _determine_snapshot_file_paths(self) -> Iterable[Path]:
+        patterns = tuple(self._patterns_from_ext(self.target_ext))
+
+        root_files = self._get_files_by_patterns(self.repo_dir, patterns + self.bypass_filenames)
+
+        dirs_files = (
+            self._get_files_by_patterns(self.repo_dir / dir_name, patterns, recursive=True)
+            for dir_name in self.target_dirs
+        )
+
+        return filter(
+            (lambda p: p.name not in self.ignored_filenames),
+            chain(
+                root_files,
+                *dirs_files
+            )
+        )
 
 
 class DiffJob(Job):
