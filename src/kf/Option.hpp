@@ -17,7 +17,6 @@
 #include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/Invariant.hpp"
 #include "kf/mixin/Resettable.hpp"
 

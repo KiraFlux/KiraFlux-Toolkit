@@ -13,7 +13,6 @@
 #include "kf/StringView.hpp"
 #include "kf/primitives.hpp"
 
-#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Representable.hpp"
 
@@ -32,7 +31,6 @@ struct RenderTag {};
 template<typename Impl> struct Renderer :
 
     RenderTag,
-    mixin::CRTP<Impl>,
     mixin::NonCopyable
 
 {
@@ -52,12 +50,12 @@ template<typename Impl> struct Renderer :
 
     /// @brief Prepare render buffer for new frame
     void beginFrame() noexcept {
-        this->impl().beginFrameImpl();
+        static_cast<Impl *>(this)->beginFrameImpl();
     }
 
     /// @brief Finalize frame after rendering
     void endFrame() noexcept {
-        this->impl().endFrameImpl();
+        static_cast<Impl *>(this)->endFrameImpl();
         _render_requested = false;
     }
 
@@ -66,12 +64,12 @@ template<typename Impl> struct Renderer :
     /// @param layout Page layout hint
     /// @return Number of widgets that can still be rendered in current frame
     [[nodiscard]] usize beginPage(StringView title, Layout layout) noexcept {
-        return this->impl().beginPageImpl(title, layout);
+        return static_cast<Impl *>(this)->beginPageImpl(title, layout);
     }
 
     /// @brief Finish rendering page
     void endPage() noexcept {
-        this->impl().endPageImpl();
+        static_cast<Impl *>(this)->endPageImpl();
     }
 
     /// @brief Begin rendering specific widget
@@ -79,22 +77,22 @@ template<typename Impl> struct Renderer :
     /// @param is_focused contrasting text region (higher visibility)
     /// @param offset Widget offset
     void beginWidget(usize index, bool is_focused, usize offset) noexcept {
-        this->impl().beginWidgetImpl(index, is_focused, offset);
+        static_cast<Impl *>(this)->beginWidgetImpl(index, is_focused, offset);
     }
 
     /// @brief Finish rendering current widget
     void endWidget() noexcept {
-        this->impl().endWidgetImpl();
+        static_cast<Impl *>(this)->endWidgetImpl();
     }
 
     /// @brief Begin content block
     void beginBlock(Block block_type = Block::Standard) noexcept {
-        this->impl().beginBlockImpl(block_type);
+        static_cast<Impl *>(this)->beginBlockImpl(block_type);
     }
 
     /// @brief End content block
     void endBlock(Block block_type = Block::Standard) noexcept {
-        this->impl().endBlockImpl(block_type);
+        static_cast<Impl *>(this)->endBlockImpl(block_type);
     }
 
     // Value rendering
@@ -103,18 +101,18 @@ template<typename Impl> struct Renderer :
     /// @param decoration The type of decoration to render
     /// @note Decorations are lightweight markers that help users interpret the UI.
     void decoration(Decoration decoration) noexcept {
-        this->impl().decorationImpl(decoration);
+        static_cast<Impl *>(this)->decorationImpl(decoration);
     }
 
     /// @brief Render checkbox
     void checkbox(bool enabled) noexcept {
-        this->impl().checkboxImpl(enabled);
+        static_cast<Impl *>(this)->checkboxImpl(enabled);
     }
 
     /// @brief Render slider
     /// @brief fill slider fill value [0..1]
     void slider(f32 fill) noexcept {
-        this->impl().sliderImpl(fill);
+        static_cast<Impl *>(this)->sliderImpl(fill);
     }
 
     /// @brief Render value
@@ -128,11 +126,11 @@ template<typename Impl> struct Renderer :
             if (v.isSome()) {
                 this->value(v.unwrap());
             } else {
-                this->impl().valueImpl(none);
+                static_cast<Impl *>(this)->valueImpl(none);
             }
 
         } else {
-            this->impl().valueImpl(v);
+            static_cast<Impl *>(this)->valueImpl(v);
         }
     }
 
@@ -140,19 +138,19 @@ template<typename Impl> struct Renderer :
 
     /// @brief Set foreground Semantic color
     void foreground(Color color) noexcept {
-        this->impl().setForegroundImpl(color);
+        static_cast<Impl *>(this)->setForegroundImpl(color);
     }
 
     /// @brief Set background Semantic color
     void background(Color color) noexcept {
-        this->impl().setBackgroundImpl(color);
+        static_cast<Impl *>(this)->setBackgroundImpl(color);
     }
 
     // Properties
 
     /// @brief Get Current Layout
     [[nodiscard]] constexpr Layout layout() const noexcept {
-        return this->impl().getLayoutImpl();
+        return static_cast<Impl const *>(this)->getLayoutImpl();
     }
 
 private:

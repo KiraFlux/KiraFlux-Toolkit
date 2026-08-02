@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
@@ -20,17 +19,16 @@ struct ActuatorDriverTag {};
 template<typename Impl, typename Unit, typename InitSignature> struct ActuatorDriver :
 
     ActuatorDriverTag,
-    mixin::CRTP<Impl>,
     mixin::NonCopyable,
     mixin::Initable<Impl, InitSignature>
 
 {
     void set(Unit value) noexcept {
-        this->impl().setImpl(value);
+        static_cast<Impl *>(this)->setImpl(value);
     }
 
     void stop() noexcept {
-        this->impl().stopImpl();
+        static_cast<Impl *>(this)->stopImpl();
     }
 };
 

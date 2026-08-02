@@ -9,8 +9,6 @@
 #include "kf/concepts.hpp"
 #include "kf/pixel/Pixel.hpp"
 
-#include "kf/mixin/CRTP.hpp"
-
 namespace kf::gfx {
 
 /// @brief Predefined colour palette for a given pixel format.

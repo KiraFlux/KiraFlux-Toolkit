@@ -9,7 +9,6 @@
 #include "kf/concepts.hpp"
 #include "kf/image/Image.hpp"
 
-#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
@@ -26,7 +25,6 @@ struct DisplayDriverTag {};
 template<typename Impl, implements<image::ImageTag> ImageImpl, typename ResultType> struct DisplayDriver :
 
     DisplayDriverTag,
-    mixin::CRTP<Impl>,
     mixin::NonCopyable,
     mixin::Initable<Impl, ResultType()>,
     mixin::Resettable<Impl>
@@ -45,13 +43,13 @@ template<typename Impl, implements<image::ImageTag> ImageImpl, typename ResultTy
 
     /// @brief Transfer software buffer to display hardware
     [[nodiscard]] ResultType send() noexcept {
-        return this->impl().sendImpl();
+        return static_cast<Impl *>(this)->sendImpl();
     }
 
     /// @brief Set display orientation.
     /// @param new_orientation New orientation value.
     [[nodiscard]] ResultType orientation(Orientation new_orientation) noexcept {
-        return this->impl().setOrientationImpl(new_orientation);
+        return static_cast<Impl *>(this)->setOrientationImpl(new_orientation);
     }
 
 private:

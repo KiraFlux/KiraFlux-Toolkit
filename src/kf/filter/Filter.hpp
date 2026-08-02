@@ -8,7 +8,6 @@
 
 #include "kf/concepts.hpp"
 
-#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
@@ -23,8 +22,7 @@ template<typename Impl, arithmetic T> struct Filter :
 
     FilterTag,
     mixin::NonCopyable,
-    mixin::Resettable<Impl>,
-    mixin::CRTP<Impl>
+    mixin::Resettable<Impl>
 
 {
 
@@ -32,7 +30,7 @@ template<typename Impl, arithmetic T> struct Filter :
     /// @param value The new input value.
     /// @return The filtered value after the update.
     [[nodiscard]] T calc(T const &value) noexcept {
-        return this->impl().calcImpl(value);
+        return static_cast<Impl *>(this)->calcImpl(value);
     }
 };
 

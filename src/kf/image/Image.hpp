@@ -10,8 +10,6 @@
 #include "kf/concepts.hpp"
 #include "kf/units.hpp"
 
-#include "kf/mixin/CRTP.hpp"
-
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::image {
@@ -23,8 +21,7 @@ struct ImageTag {};
 /// @tparam P Pixel implementation
 template<typename Impl, implements<pixel::PixelTag> P> struct Image :
 
-    ImageTag,
-    mixin::CRTP<Impl>
+    ImageTag
 
 {
 
@@ -34,22 +31,22 @@ template<typename Impl, implements<pixel::PixelTag> P> struct Image :
 
     /// @brief Get current width in pixels (may differ from physical width due to orientation)
     [[nodiscard]] units::Pixels width() const noexcept {
-        return this->impl().getWidthImpl();
+        return static_cast<Impl const *>(this)->getWidthImpl();
     }
 
     /// @brief Get current height in pixels (may differ from physical width due to orientation)
     [[nodiscard]] units::Pixels height() const noexcept {
-        return this->impl().getHeightImpl();
+        return static_cast<Impl const *>(this)->getHeightImpl();
     }
 
     /// @brief Get current full width in pixels (may differ from physical width due to orientation)
     [[nodiscard]] units::Pixels stride() const noexcept {
-        return this->impl().getStrideImpl();
+        return static_cast<Impl const *>(this)->getStrideImpl();
     }
 
     /// @brief Get writable frame buffer
     [[nodiscard]] Slice<BufferType> buffer() noexcept {
-        return this->impl().getBufferImpl();
+        return static_cast<Impl *>(this)->getBufferImpl();
     }
 
     /// @brief Get readonly frame buffer

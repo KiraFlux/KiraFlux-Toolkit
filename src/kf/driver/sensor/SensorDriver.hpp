@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "kf/mixin/CRTP.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
@@ -21,14 +20,13 @@ struct SensorDriverTag {};
 template<typename Impl, typename Measurement, typename InitSignature> struct SensorDriver :
 
     SensorDriverTag,
-    mixin::CRTP<Impl>,
     mixin::NonCopyable,
     mixin::Initable<Impl, InitSignature>
 
 {
 
     [[nodiscard]] Measurement read() noexcept {
-        return this->impl().readImpl();
+        return static_cast<Impl *>(this)->readImpl();
     }
 };
 

@@ -8,13 +8,12 @@
 
 #include <utility>
 
-#include <kf/Option.hpp>
+#include "kf/Option.hpp"
 
-#include <kf/mixin/CRTP.hpp>
-#include <kf/mixin/Callbacked.hpp>
-#include <kf/mixin/NonCopyable.hpp>
-#include <kf/mixin/Resettable.hpp>
-#include <kf/mixin/TimedPollable.hpp>
+#include "kf/mixin/Callbacked.hpp"
+#include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Resettable.hpp"
+#include "kf/mixin/TimedPollable.hpp"
 
 namespace kf::listener {
 
@@ -23,7 +22,6 @@ struct ListenerTag {};
 template<typename Impl, typename InputType, typename CallbackSignature> struct Listener :
 
     ListenerTag,
-    mixin::CRTP<Impl>,
     mixin::NonCopyable,
     mixin::Resettable<Impl>,
     mixin::TimedPollable<Impl>,

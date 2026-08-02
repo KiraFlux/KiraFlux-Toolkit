@@ -11,8 +11,6 @@
 #include "kf/math.hpp"
 #include "kf/tuner/Tuner.hpp"
 
-#include "kf/mixin/CRTP.hpp"
-
 #include "kf/driver/sensor/SensorDriver.hpp"
 
 namespace kf::internal {

@@ -9,8 +9,6 @@
 #include "kf/concepts.hpp"
 #include "kf/math.hpp"
 
-#include "kf/mixin/CRTP.hpp"
-
 #include "kf/ui/widget/Widget.hpp"
 
 namespace kf::internal {
