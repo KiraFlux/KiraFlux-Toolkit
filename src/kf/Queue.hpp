@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Queue.hpp
+
 #pragma once
 
 #include <new>    // placement new
@@ -21,7 +23,7 @@ namespace kf {
 
 struct QueueTag {};
 
-/// @brief FIFO container on fixed‑size ring buffer (non‑owning)
+/// @brief  FIFO queue on a fixed‑size ring buffer with front/back access and reset.
 /// @tparam T Element type
 template<typename T> struct Queue :
 

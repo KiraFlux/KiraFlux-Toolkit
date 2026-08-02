@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/display/ST7735.hpp
+/// @brief   ST7735 TFT driver (128×160, SPI, RGB565).
+
 #pragma once
 
 #include "kf/Result.hpp"

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/widget/CheckBox.hpp
+/// @brief   Boolean checkbox with callback on change.
+
 #pragma once
 
 #include "kf/concepts.hpp"

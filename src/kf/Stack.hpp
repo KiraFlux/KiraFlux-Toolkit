@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Stack.hpp
+
 #pragma once
 
 #include <new>    // placement new
@@ -22,7 +24,7 @@ namespace kf {
 
 struct StackTag {};
 
-/// @brief LIFO container on fixed‑size buffer (non‑owning)
+/// @brief   LIFO container (stack) on a fixed‑size buffer with read/write and reset capabilities.
 /// @tparam T Element type
 template<typename T> struct Stack :
 

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    gfx/Canvas.hpp
+/// @brief   Drawing context with lines, rectangles, circles, and text rendering.
+
 #pragma once
 
 #include "kf/Array.hpp"

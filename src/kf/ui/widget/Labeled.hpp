@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/widget/Labeled.hpp
+/// @brief   Wrapper that adds a label to another widget.
+
 #pragma once
 
 #include "kf/StringView.hpp"

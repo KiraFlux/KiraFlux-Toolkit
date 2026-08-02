@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    esp/Espnow.hpp
+/// @brief   ESP‑NOW peer‑to‑peer communication wrapper with callback and peer management.
+
 #pragma once
 
 // std

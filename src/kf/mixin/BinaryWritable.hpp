@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/BinaryWritable.hpp
+/// @brief   Adds writeByte/writeBuffer/writePacket for binary streams.
+
 #pragma once
 
 #include "kf/Slice.hpp"

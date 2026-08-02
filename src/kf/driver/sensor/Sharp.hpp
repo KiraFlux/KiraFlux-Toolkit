@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/sensor/Sharp.hpp
+/// @brief   Sharp IR distance sensor (analog output, mm).
+
 #pragma once
 
 #include "kf/gpio.hpp"

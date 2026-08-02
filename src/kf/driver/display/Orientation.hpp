@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/display/Orientation.hpp
+/// @brief   Enum for display orientation (normal, mirror, rotate).
+
 #pragma once
 
 namespace kf::driver::display {

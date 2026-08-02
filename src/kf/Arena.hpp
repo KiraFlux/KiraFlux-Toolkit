@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Arena.hpp
+/// @brief   Linear allocator with O(1) reset for fast, deterministic memory allocation.
+
 #pragma once
 
 #include <new>    // placement new

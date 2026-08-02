@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/WriteAvailable.hpp
+/// @brief   Adds availableForWrite() to query free space.
+
 #pragma once
 
 #include "kf/primitives.hpp"

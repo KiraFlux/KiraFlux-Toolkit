@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    type_traits.hpp
+/// @brief   Compile‑time type utilities.
+
 #pragma once
 
 #include "kf/primitives.hpp"

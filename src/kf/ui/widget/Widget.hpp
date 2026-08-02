@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/widget/Widget.hpp
+/// @brief   Base widget class with render, click, and value event handling.
+
 #pragma once
 
 #include "kf/Option.hpp"

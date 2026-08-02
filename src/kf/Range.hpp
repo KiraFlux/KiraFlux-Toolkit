@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Range.hpp
+
 #pragma once
 
 #include "kf/math.hpp"
@@ -8,7 +10,7 @@
 
 namespace kf {
 
-/// @brief Closed interval [start, end]
+/// @brief   Closed interval [start, end] with clamping and length calculation.
 /// @tparam T Numeric type (must support comparison and arithmetic)
 /// @note The range is valid when `start <= end`
 template<typename T> struct Range final : mixin::Length<Range<T>, T> {

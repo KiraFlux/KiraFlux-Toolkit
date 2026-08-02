@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    gfx/Font.hpp
+/// @brief   Monospaced bitmap font descriptor (glyph data, width, height).
+
 #pragma once
 
 #include "kf/primitives.hpp"

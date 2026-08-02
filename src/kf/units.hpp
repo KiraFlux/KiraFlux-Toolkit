@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    units.hpp
+/// @brief   Defines common physical units (degrees, pixels, milliseconds, etc.) used across the library.
+
 #pragma once
 
 #include "kf/primitives.hpp"

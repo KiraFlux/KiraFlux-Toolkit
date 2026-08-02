@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/Style.hpp
+/// @brief   Widget style with foreground and background semantic colors.
+
 #pragma once
 
 #include "kf/ui/Color.hpp"

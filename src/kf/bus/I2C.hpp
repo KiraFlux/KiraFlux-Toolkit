@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    bus/I2C.hpp
+/// @brief   I2C bus and node abstraction
+
 #pragma once
 
 #ifdef ARDUINO

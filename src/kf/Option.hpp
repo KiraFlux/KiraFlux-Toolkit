@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Option.hpp
+/// @brief   Provides Option<T> for safe optional values, replacing nullable pointers.
+
 #pragma once
 
 #include <cmath>  // std::isnan

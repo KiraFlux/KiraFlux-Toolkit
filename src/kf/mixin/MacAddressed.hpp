@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/MacAddressed.hpp
+/// @brief   Adds a MAC address member with read‑only access.
+
 #pragma once
 
 #include "kf/MacAddress.hpp"

@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    MacAddress.hpp
+
 #pragma once
 
 #include "kf/Array.hpp"
@@ -18,7 +20,7 @@ using MacAddressStringType = Array<char, 14u>;
 
 namespace kf {
 
-/// @brief MAC address (6 bytes)
+/// @brief   Represents a 6‑byte MAC address with human‑readable string conversion.
 /// @note Trivially copyable, safe for serialization
 /// @note Provides conversion to human‑readable string "aabb-ccdd-eeff"
 struct MacAddress :

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/sensor/Joystick.hpp
+/// @brief   Two‑axis joystick with calibration and unit‑circle output.
+
 #pragma once
 
 #include "kf/concepts.hpp"

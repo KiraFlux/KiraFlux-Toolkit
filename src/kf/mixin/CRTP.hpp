@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/CRTP.hpp
+/// @brief   CRTP helper providing impl() downcast.
+
 #pragma once
 
 namespace kf::mixin {

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Singleton.hpp
+/// @brief   Thread‑safe Meyer's singleton via CRTP.
+
 #pragma once
 
 #include "kf/mixin/NonCopyable.hpp"

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/actuator/DRV8871.hpp
+/// @brief   DRV8871 motor driver (H‑bridge) with dead‑zone compensation.
+
 #pragma once
 
 #include "kf/gpio.hpp"

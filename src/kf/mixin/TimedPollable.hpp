@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/TimedPollable.hpp
+/// @brief   Adds poll(now) with a timestamp argument.
+
 #pragma once
 
 #include "kf/units.hpp"

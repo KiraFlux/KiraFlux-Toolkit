@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Readable.hpp
+/// @brief   Adds read() -> Option<T> for consuming items.
+
 #pragma once
 
 #include <utility>

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    pixel/Rgb565Pixel.hpp
+/// @brief   16‑bit RGB565 pixel format (5‑6‑5 bits).
+
 #pragma once
 
 #include "kf/math.hpp"

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Quitable.hpp
+/// @brief   Adds quit() for resource release.
+
 #pragma once
 
 namespace kf::mixin {

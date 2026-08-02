@@ -3,6 +3,9 @@
 
 #pragma once
 
+/// @file    mixin/Configured.hpp
+/// @brief   Stores a const reference to a configuration object.
+
 namespace kf::mixin {
 
 struct ConfiguredTag {};

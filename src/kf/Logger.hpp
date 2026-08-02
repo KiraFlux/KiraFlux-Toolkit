@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Logger.hpp
+
 #pragma once
 
 #include "kf/Slice.hpp"
@@ -13,7 +15,7 @@
 
 namespace kf {
 
-/// @brief Logging system for embedded applications
+/// @brief   Logging system with formatted output and buffered writer.
 struct Logger :
 
     mixin::NonCopyable,

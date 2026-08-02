@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/Event.hpp
+/// @brief   Packed UI event (kind + value) for page cursor, click, and value changes.
+
 #pragma once
 
 #include "kf/math.hpp"

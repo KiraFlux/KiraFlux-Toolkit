@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    listener/JoystickListener.hpp
+/// @brief   Listener for joystick direction (with repeat and delay timers).
+
 #pragma once
 
 #include "kf/Timer.hpp"

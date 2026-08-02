@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Array.hpp
+
 #pragma once
 
 #include "kf/Sequence.hpp"
@@ -11,7 +13,7 @@ namespace kf {
 
 struct ArrayTag {};
 
-/// @brief Array. Owns items
+/// @brief    Fixed‑size owning array with sequence interface and fill/equality operations.
 /// @tparam T Item type
 /// @tparam N Items total
 template<typename T, usize N> struct Array :

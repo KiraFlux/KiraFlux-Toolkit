@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Pollable.hpp
+/// @brief   Adds poll() for periodic tasks.
+
 #pragma once
 
 namespace kf::mixin {

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    gfx/fonts/gyver_5x7.hpp
+/// @brief   Gyver 5×7 English font for OLED displays.
+
 #include "kf/gfx/Font.hpp"
 #include "kf/primitives.hpp"
 

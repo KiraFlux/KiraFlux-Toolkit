@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    listener/LogicalLevelListener.hpp
+/// @brief   Listener for button press detection with debounce.
+
 #pragma once
 
 #include "kf/listener/Listener.hpp"

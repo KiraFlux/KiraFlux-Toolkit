@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    filter/Filter.hpp
+/// @brief   CRTP base for single‑sample filters (calc()).
+
 #pragma once
 
 #include "kf/concepts.hpp"

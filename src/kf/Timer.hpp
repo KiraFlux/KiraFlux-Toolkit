@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Timer.hpp
+
 #pragma once
 
 #include "kf/mixin/Configured.hpp"
@@ -19,6 +21,7 @@ struct TimerConfig final {
 
 namespace kf {
 
+/// @brief   Simple timer for measuring elapsed time and checking expiration.
 struct Timer final :
 
     mixin::NonCopyable,

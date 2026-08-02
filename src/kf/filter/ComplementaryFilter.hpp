@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    filter/ComplementaryFilter.hpp
+/// @brief   Complementary filter for sensor fusion (prediction + measurement).
+
 #pragma once
 
 #include "kf/Option.hpp"

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/NonCopyable.hpp
+/// @brief   Deleted copy constructor and assignment.
+
 #pragma once
 
 namespace kf::mixin {

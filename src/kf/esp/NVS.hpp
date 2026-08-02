@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    esp/NVS.hpp
+/// @brief   Non‑volatile storage (NVS) wrapper for reading/writing blobs.
+
 #pragma once
 
 #include <nvs.h>

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/widget/Slider.hpp
+/// @brief   Numeric slider with range, step, and value display toggle.
+
 #pragma once
 
 #include "kf/Range.hpp"

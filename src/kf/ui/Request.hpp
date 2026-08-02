@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/Request.hpp
+/// @brief   Enum for widget action requests (Nothing, Redraw, Rebuild).
+
 #pragma once
 
 namespace kf::ui {

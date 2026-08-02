@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Labeled.hpp
+/// @brief   Adds a label (StringView) to an object.
+
 #pragma once
 
 #include "kf/StringView.hpp"

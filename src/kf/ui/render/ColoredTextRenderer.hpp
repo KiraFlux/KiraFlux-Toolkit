@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/render/ColoredTextRenderer.hpp
+/// @brief   Text renderer with semantic colours (gfx::Canvas codes).
+
 #pragma once
 
 #include "kf/Slice.hpp"

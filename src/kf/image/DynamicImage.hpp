@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    image/DynamicImage.hpp
+/// @brief   Image with runtime dimensions and sub‑region support.
+
 #pragma once
 
 #include <utility>

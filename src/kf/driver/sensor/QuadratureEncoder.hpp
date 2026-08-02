@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/sensor/QuadratureEncoder.hpp
+/// @brief   Quadrature encoder with 4X decoding and units conversion.
+
 #pragma once
 
 #include "kf/gpio.hpp"

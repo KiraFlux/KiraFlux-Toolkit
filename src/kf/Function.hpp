@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Function.hpp
+
 #pragma once
 
 #include <cstdlib>

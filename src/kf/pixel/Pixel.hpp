@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    pixel/Pixel.hpp
+/// @brief   CRTP base for pixel formats with buffer size, set/fill/copy.
+
 #pragma once
 
 #include "kf/Slice.hpp"

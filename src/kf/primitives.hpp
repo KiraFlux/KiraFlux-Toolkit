@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    primitives.hpp
+/// @brief   Type aliases for standard integer and floating‑point types.
+
 #pragma once
 
 #include <cstddef>

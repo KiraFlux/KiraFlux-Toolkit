@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Indexable.hpp
+/// @brief   Adds operator[] to a class via CRTP.
+
 #pragma once
 
 #include "kf/primitives.hpp"

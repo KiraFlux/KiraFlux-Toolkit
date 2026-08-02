@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    String.hpp
+
 #pragma once
 
 #include "kf/Array.hpp"
@@ -10,6 +12,7 @@
 
 namespace kf {
 
+/// @brief Dynamic string builder (Stack<char>) with formatting and C‑string conversion.
 struct String : Stack<char> {
 
     using Stack<char>::Stack;

@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Iterator.hpp
+
 #pragma once
 
 #include "kf/mixin/Equatable.hpp"
@@ -9,7 +11,7 @@ namespace kf {
 
 struct IteratorTag {};
 
-/// @brief CRTP base for custom iterators
+/// @brief   CRTP base for custom iterators with next() and value().
 /// @tparam Impl Implementation class
 /// @tparam T   Element type (value or reference)
 template<typename Impl, typename T> struct Iterator : IteratorTag, mixin::Equatable<Impl> {

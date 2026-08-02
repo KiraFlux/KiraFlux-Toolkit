@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/widget/Button.hpp
+/// @brief   Clickable button with callback.
+
 #pragma once
 
 #include "kf/StringView.hpp"

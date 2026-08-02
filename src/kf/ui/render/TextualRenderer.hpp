@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/render/TextualRenderer.hpp
+/// @brief   Plain‑text UI renderer for terminals/consoles.
+
 #pragma once
 
 #include "kf/Function.hpp"

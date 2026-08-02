@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Styled.hpp
+/// @brief   Adds foreground/background colors and a Style object.
+
 #pragma once
 
 #include "kf/ui/Color.hpp"

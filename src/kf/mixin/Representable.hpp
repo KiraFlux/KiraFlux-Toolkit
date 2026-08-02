@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Representable.hpp
+/// @brief   Adds repr() method for string representation.
+
 #pragma once
 
 namespace kf::mixin {

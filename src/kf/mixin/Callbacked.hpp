@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Callbacked.hpp
+/// @brief   Adds an optional callback (Function) with invoke().
+
 #pragma once
 
 #include <type_traits>

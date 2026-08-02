@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/render/Renderer.hpp
+/// @brief   CRTP base for UI renderers with begin/end page, widget, and value rendering.
+
 #pragma once
 
 #include <type_traits>

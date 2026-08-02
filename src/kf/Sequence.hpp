@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Sequence.hpp
+
 #pragma once
 
 #include "kf/mixin/Indexable.hpp"
@@ -13,7 +15,7 @@ template<typename> struct Slice;// forward declaration
 
 struct SequenceTag {};
 
-/// @brief Sequence
+/// @brief   CRTP base for sequence containers providing iteration, indexing, and slicing.
 /// @tparam Impl Sequence Implementation class with `lengthImpl` and `getDataImpl` methods
 /// @tparam T Item type
 template<typename Impl, typename T> struct Sequence :

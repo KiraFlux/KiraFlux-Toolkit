@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    controller/PID.hpp
+/// @brief   PID controller with derivative filtering and integral anti‑windup.
+
 #pragma once
 
 #include "kf/Option.hpp"

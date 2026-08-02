@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Slice.hpp
+
 #pragma once
 
 #include "kf/Option.hpp"
@@ -9,7 +11,7 @@
 
 namespace kf {
 
-/// @brief Non-owning view of a contiguous memory region
+/// @brief   Non‑owning view of a contiguous memory region with slicing and iteration.
 /// @tparam T Element type
 template<typename T> struct Slice : Sequence<Slice<T>, T> {
 

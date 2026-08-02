@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/Layout.hpp
+/// @brief   Enum for UI layout hints (vertical, horizontal, grid).
+
 #pragma once
 
 namespace kf::ui {

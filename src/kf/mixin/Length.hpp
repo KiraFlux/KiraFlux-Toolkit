@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Length.hpp
+/// @brief   Adds length() method to a class via CRTP.
+
 #pragma once
 
 namespace kf::mixin {

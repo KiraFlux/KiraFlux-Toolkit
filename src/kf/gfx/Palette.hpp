@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    gfx/Palette.hpp
+/// @brief   Predefined colour palette (ANSI 16 colours) for a given pixel format.
+
 #pragma once
 
 #include "kf/concepts.hpp"

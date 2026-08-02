@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Invariant.hpp
+/// @brief   Adds isSome()/isNone() for optional‑like types.
+
 #pragma once
 
 namespace kf::mixin {

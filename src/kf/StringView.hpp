@@ -1,6 +1,8 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    StringView.hpp
+
 #pragma once
 
 #include "kf/Option.hpp"
@@ -16,7 +18,7 @@ using StringViewBase = Slice<char const>;
 
 }
 
-/// @brief Non‑owning view of a constant string
+/// @brief   Non‑owning view of a constant string with trimming, searching, and splitting.
 /// @note Inherits `Slice<const char>` and adds string‑specific operations
 struct StringView : internal::StringViewBase, mixin::Equatable<StringView> {
 

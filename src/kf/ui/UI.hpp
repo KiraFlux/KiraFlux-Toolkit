@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/UI.hpp
+/// @brief   Main UI framework: manages pages, widgets, events, and rendering.
+
 #pragma once
 
 #include "kf/Option.hpp"

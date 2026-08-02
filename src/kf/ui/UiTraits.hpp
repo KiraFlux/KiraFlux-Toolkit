@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/UiTraits.hpp
+/// @brief   UI traits defining Widget, Renderer, Event, and adjusters.
+
 #pragma once
 
 #include "kf/concepts.hpp"

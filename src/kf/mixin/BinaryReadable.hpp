@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/BinaryReadable.hpp
+/// @brief   Adds readByte/readBuffer/readPacket for binary streams.
+
 #pragma once
 
 #include "kf/Result.hpp"

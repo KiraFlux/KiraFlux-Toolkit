@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/actuator/PwmPositionServo.hpp
+/// @brief   PWM‑controlled servo with angle‑to‑pulse mapping and safe range.
+
 #pragma once
 
 #include "kf/Range.hpp"

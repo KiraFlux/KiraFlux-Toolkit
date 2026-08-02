@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/sensor/NormalizedAdcInput.hpp
+/// @brief   Single analog axis with filtering, dead‑zone, and calibration tuner.
+
 #pragma once
 
 #include "kf/filter/ExponentialFilter.hpp"

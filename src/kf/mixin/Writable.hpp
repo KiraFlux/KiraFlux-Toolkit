@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Writable.hpp
+/// @brief   Adds write() and format() for appending data.
+
 #pragma once
 
 #include <tuple>

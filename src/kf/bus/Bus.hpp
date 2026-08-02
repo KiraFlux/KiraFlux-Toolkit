@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    bus/Bus.hpp
+/// @brief   CRTP base for bus implementations and node creation.
+
 #pragma once
 
 #include "kf/Result.hpp"

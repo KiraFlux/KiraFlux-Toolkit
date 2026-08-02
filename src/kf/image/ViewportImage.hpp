@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    image/ViewportImage.hpp
+/// @brief   Image with optional transpose (swap width/height).
+
 #pragma once
 
 #include "kf/concepts.hpp"

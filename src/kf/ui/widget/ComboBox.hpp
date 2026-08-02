@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/widget/ComboBox.hpp
+/// @brief   Selection from a fixed list of options with value callback.
+
 #pragma once
 
 #include "kf/Slice.hpp"

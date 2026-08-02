@@ -1,6 +1,9 @@
 ﻿// Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/display/SSD1306.hpp
+/// @brief   SSD1306 OLED driver (128×64, I2C, monochrome).
+
 #pragma once
 
 #include "kf/Result.hpp"

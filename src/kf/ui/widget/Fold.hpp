@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/widget/Fold.hpp
+/// @brief   Collapsible section that shows/hides child widgets on click.
+
 #pragma once
 
 #include "kf/Slice.hpp"

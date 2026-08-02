@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    filter/LowFrequencyFilter.hpp
+/// @brief   First‑order low‑pass filter (exponential smoothing).
+
 #pragma once
 
 #include "kf/Option.hpp"

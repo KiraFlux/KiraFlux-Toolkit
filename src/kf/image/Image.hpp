@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    image/Image.hpp
+/// @brief   CRTP base for image buffers with width/height/buffer access.
+
 #pragma once
 
 #include "kf/Slice.hpp"

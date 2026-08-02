@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    filter/ExponentialFilter.hpp
+/// @brief   Exponential moving average (EMA) filter.
+
 #pragma once
 
 #include "kf/Option.hpp"

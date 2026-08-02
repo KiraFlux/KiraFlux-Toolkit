@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/ReadAvailable.hpp
+/// @brief   Adds availableForRead() to query available data.
+
 #pragma once
 
 #include "kf/primitives.hpp"

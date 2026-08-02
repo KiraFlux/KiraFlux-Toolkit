@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Initable.hpp
+/// @brief   Adds init() forwarding to initImpl().
+
 #pragma once
 
 #include <utility>// std::forward

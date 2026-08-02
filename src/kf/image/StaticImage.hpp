@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    image/StaticImage.hpp
+/// @brief   Image with compile‑time dimensions (fixed buffer).
+
 #pragma once
 
 #include "kf/Array.hpp"

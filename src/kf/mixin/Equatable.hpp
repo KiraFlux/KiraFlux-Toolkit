@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Equatable.hpp
+/// @brief   Adds == and != operators via CRTP.
+
 #pragma once
 
 namespace kf::mixin {

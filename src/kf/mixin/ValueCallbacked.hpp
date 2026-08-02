@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/ValueCallbacked.hpp
+/// @brief   Stores a value and invokes a callback on change.
+
 #pragma once
 
 #include "kf/mixin/Callbacked.hpp"

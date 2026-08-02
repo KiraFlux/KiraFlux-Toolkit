@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/widget/Display.hpp
+/// @brief   Read‑only display of a value.
+
 #pragma once
 
 #include "kf/concepts.hpp"

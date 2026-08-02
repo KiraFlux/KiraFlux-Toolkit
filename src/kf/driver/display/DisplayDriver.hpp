@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/display/DisplayDriver.hpp
+/// @brief   CRTP base for display drivers (framebuffer, send, orientation).
+
 #pragma once
 
 #include "kf/concepts.hpp"

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    rtos/Clock.hpp
+/// @brief   Provides monotonic time in milliseconds.
+
 #pragma once
 
 #include "kf/units.hpp"

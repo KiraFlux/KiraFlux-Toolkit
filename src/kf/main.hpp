@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    main.hpp
+/// @brief   Defines the application entry point and the Init context (logger, arena, I/O).
+
 #pragma once
 
 #include "kf/Arena.hpp"

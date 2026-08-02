@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    pixel/MonochromePixel.hpp
+/// @brief   1‑bit monochrome pixel format (8 pixels per byte).
+
 #pragma once
 
 #include "kf/Slice.hpp"

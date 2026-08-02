@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/widget/SpinBox.hpp
+/// @brief   Numeric spin box with adjustable step and mode toggle.
+
 #pragma once
 
 #include "kf/concepts.hpp"

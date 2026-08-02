@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    gpio.hpp
+/// @brief   GPIO abstractions for digital/analog I/O, PWM, and interrupts.
+
 #pragma once
 
 #ifdef ARDUINO

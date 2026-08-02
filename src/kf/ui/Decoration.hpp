@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/Decoration.hpp
+/// @brief   Semantic decoration elements (arrows, colon, space).
+
 #pragma once
 
 namespace kf::ui {

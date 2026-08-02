@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Resettable.hpp
+/// @brief   Adds reset() method to reset object state.
+
 #pragma once
 
 namespace kf::mixin {

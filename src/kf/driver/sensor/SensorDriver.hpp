@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/sensor/SensorDriver.hpp
+/// @brief   CRTP base for sensors (read, init).
+
 #pragma once
 
 #include "kf/mixin/CRTP.hpp"

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    driver/actuator/ActuatorDriver.hpp
+/// @brief   CRTP base for actuators (set, stop, init).
+
 #pragma once
 
 #include "kf/mixin/CRTP.hpp"

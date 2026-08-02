@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    bus/SPI.hpp
+/// @brief   SPI bus and node abstraction
+
 #pragma once
 
 #ifdef ARDUINO
