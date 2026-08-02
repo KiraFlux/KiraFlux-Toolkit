@@ -51,7 +51,7 @@ template<typename Impl, implements<pixel::PixelTag> P> struct Image :
 
     /// @brief Get readonly frame buffer
     [[nodiscard]] Slice<BufferType const> buffer() const noexcept {
-        return const_cast<Image *>(this)->impl().getBufferImpl();
+        return const_cast<Image *>(this)->buffer();
     }
 
     // properties

@@ -39,14 +39,14 @@ template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWrita
     /// @param buffer Source data
     /// @return Result indicating success or error
     [[nodiscard]] ResultType writeBuffer(Slice<u8 const> buffer) noexcept {
-        return impl().writeBufferImpl(buffer);
+        return static_cast<Impl *>(this)->writeBufferImpl(buffer);
     }
 
     /// @brief Write fixed‑size packet
     /// @param packet Value to write
     /// @return Result indicating success or error
     [[nodiscard]] ResultType writePacket(trivial auto const &packet) noexcept {
-        return impl().writePacketImpl(packet);
+        return static_cast<Impl *>(this)->writePacketImpl(packet);
     }
 
     /// @brief Write mixed packet: fixed-size header and dynamic-sized buffer
@@ -54,12 +54,8 @@ template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWrita
     /// @param buffer Source buffer
     /// @return Result indicating success or error
     [[nodiscard]] ResultType writeMixed(trivial auto const &header, Slice<u8 const> buffer) noexcept {
-        return impl().writeMixedImpl(header, buffer);
+        return static_cast<Impl *>(this)->writeMixedImpl(header, buffer);
     }
-
-private:
-    Impl &impl() noexcept { return *static_cast<Impl *>(this); }
-    Impl const &impl() const noexcept { return *static_cast<Impl const *>(this); }
 };
 
 }// namespace kf::mixin
