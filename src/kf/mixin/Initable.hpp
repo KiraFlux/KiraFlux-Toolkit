@@ -21,7 +21,7 @@ template<typename Impl, typename... Args> struct Initable<Impl, void(Args...)> :
 
     /// @brief Initializes the object with given arguments
     /// @param args Arguments forwarded to `initImpl`
-    template<typename... InitArgs> void init(InitArgs... &&args) noexcept {
+    template<typename... InitArgs> void init(InitArgs &&...args) noexcept {
         static_cast<Impl *>(this)->initImpl(std::forward<InitArgs>(args)...);
     }
 };
@@ -31,7 +31,7 @@ template<typename Impl, typename R, typename... Args> struct Initable<Impl, R(Ar
     /// @brief Initializes the object with given arguments
     /// @param args Arguments forwarded to `initImpl`
     /// @return Value returned by `initImpl`
-    template<typename... InitArgs> [[nodiscard]] R init(InitArgs... &&args) noexcept {
+    template<typename... InitArgs> [[nodiscard]] R init(InitArgs &&...args) noexcept {
         return static_cast<Impl *>(this)->initImpl(std::forward<InitArgs>(args)...);
     }
 };
