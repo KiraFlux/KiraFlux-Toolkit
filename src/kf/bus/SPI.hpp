@@ -120,7 +120,7 @@ private:
     /// @brief Control the chip select line (active low)
     /// @param selected true to pull CS low (select device), false to release
     void chipSelected(bool selected) noexcept {
-        digitalWrite(this->config().gpio_num_cs, selected ? LOW : HIGH);
+        digitalWrite(static_cast<u8>(this->config().gpio_num_cs), selected ? LOW : HIGH);
     }
 
     /// @brief Begin an SPI transaction: pull CS low and apply the stored SPI settings
@@ -189,8 +189,9 @@ private:
 
     KF_IMPL_INITABLE(Self, void());
     void initImpl() noexcept {
-        pinMode(this->config().gpio_num_cs, OUTPUT);
-        digitalWrite(this->config().gpio_num_cs, HIGH);
+        auto const pin = static_cast<u8>(this->config().gpio_num_cs);
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, HIGH);
     }
 
     KF_IMPL_BUS_NODE(Self, Error);
