@@ -1,7 +1,7 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
-/// @file    controller/PID.hpp
+/// @file    PID.hpp
 /// @brief   PID controller with derivative filtering and integral anti‑windup.
 
 #pragma once
@@ -9,15 +9,17 @@
 #include "kf/Option.hpp"
 #include "kf/filter/LowFrequencyFilter.hpp"
 #include "kf/math.hpp"
+#include "kf/primitives.hpp"
+
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf::internal {
 
 using PidFilterImpl = filter::LowFrequencyFilter<f32>;
 
+/// @brief PID controller tuning parameters
 struct PidConfig final {
     f32 proportional_gain;///< Proportional gain coefficient
     f32 integral_gain;    ///< Integral gain coefficient
@@ -35,7 +37,7 @@ struct PidConfig final {
 
 }// namespace kf::internal
 
-namespace kf::controller {
+namespace kf {
 
 /// @brief PID controller implementation
 /// @note Includes derivative filtering and integral anti-windup
@@ -46,15 +48,8 @@ struct PID final :
     mixin::Configured<internal::PidConfig>
 
 {
-
-    using FilterImpl = internal::PidFilterImpl;
-
-    /// @brief PID controller tuning parameters
     using Config = internal::PidConfig;
 
-    /// @brief Construct PID controller instance
-    /// @param PID tuning parameters
-    /// @param dx_filter_alpha Derivative filter smoothing factor (default: 1.0 = no filtering)
     explicit PID(Config const &config) noexcept :
         mixin::Configured<Config>{config}, _derivative_filter{config.derivative_filter} {}
 
@@ -62,7 +57,7 @@ struct PID final :
     /// @param error Current control error (setpoint - measurement)
     /// @param dt Time step in seconds since last calculation
     /// @return Controller output (saturated to output_limit)
-    /// @note Skips calculation for invalid dt values (<= 0 or >0.1s)
+    /// @note Skips calculation for invalid dt values (<= 0 or > `max_dt`)
     [[nodiscard]] f32 calc(f32 error, f32 dt) noexcept {
         if (dt <= 0.0f or dt > this->config().max_dt) {
             return 0.0f;
@@ -84,10 +79,10 @@ struct PID final :
     }
 
 private:
-    FilterImpl _derivative_filter;///< Low-pass filter for derivative term
-    f32 _current_derivative{0};   ///< Current derivative value
-    f32 _current_integral{0};     ///< Current integral value
-    Option<f32> _last_error{none};///< Previous error value
+    internal::PidFilterImpl _derivative_filter;///< Low-pass filter for derivative term
+    f32 _current_derivative{0};                ///< Current derivative value
+    f32 _current_integral{0};                  ///< Current integral value
+    Option<f32> _last_error{none};             ///< Previous error value
 
     KF_IMPL_RESETTABLE(PID);
     constexpr void resetImpl() noexcept {
@@ -97,4 +92,4 @@ private:
     }
 };
 
-}// namespace kf::controller
+}// namespace kf
