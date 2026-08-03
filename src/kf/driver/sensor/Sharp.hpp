@@ -15,7 +15,7 @@ namespace kf::driver::sensor {
 
 /// @brief Sharp infrared distance sensor driver
 /// @note Provides distance measurements in millimeters using analog voltage output
-struct Sharp final : SensorDriver<Sharp, units::Millimeters, void()> {
+struct Sharp final : SensorDriver<Sharp, units::Millimeters, void> {
     using Self = Sharp;
 
     explicit Sharp(gpio::GpioNumber gpio_num) noexcept :
@@ -24,7 +24,7 @@ struct Sharp final : SensorDriver<Sharp, units::Millimeters, void()> {
 private:
     gpio::AdcInput _adc_input;
 
-    KF_IMPL_SENSOR_DRIVER(Self, units::Millimeters, void());
+    KF_IMPL_SENSOR_DRIVER(Self, units::Millimeters, void);
 
     void initImpl() noexcept {
         _adc_input.init();

@@ -9,8 +9,9 @@
 #include "kf/Range.hpp"
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
-#include "kf/mixin/Configured.hpp"
 #include "kf/units.hpp"
+
+#include "kf/mixin/Configured.hpp"
 
 #include "kf/driver/actuator/ActuatorDriver.hpp"
 
@@ -40,7 +41,7 @@ namespace kf::driver::actuator {
 /// @note Converts angular positions to PWM pulse widths for standard RC servos
 struct PwmPositionServo final :
 
-    ActuatorDriver<PwmPositionServo, units::Degrees, bool()>,
+    ActuatorDriver<PwmPositionServo, units::Degrees, bool>,
     mixin::Configured<internal::PwmPositionServoConfig>
 
 {
@@ -66,7 +67,7 @@ private:
     Config::AngleRange _angle_safe_range;///< Safe operating angle range (clamped before mapping)
     gpio::PwmOutput _pwm_output;         ///< PWM output gpio
 
-    KF_IMPL_ACTUATOR_DRIVER(PwmPositionServo, units::Degrees, bool());
+    KF_IMPL_ACTUATOR_DRIVER(PwmPositionServo, units::Degrees, bool);
 
     bool initImpl() noexcept {
         return _pwm_output.init();

@@ -42,7 +42,7 @@ namespace kf::driver::sensor {
 /// @brief Single analog joystick axis with filtering and dead-zone compensation
 struct NormalizedAdcInput final :
 
-    SensorDriver<NormalizedAdcInput, f32, void()>,
+    SensorDriver<NormalizedAdcInput, f32, void>,
     mixin::Configured<internal::NormalizedAdcInputConfig>
 
 {
@@ -106,7 +106,7 @@ private:
     FilterImpl _filter;
     gpio::AdcInput _adc_input;
 
-    KF_IMPL_SENSOR_DRIVER(Self, f32, void());
+    KF_IMPL_SENSOR_DRIVER(Self, f32, void);
 
     void initImpl() noexcept {
         _adc_input.init();

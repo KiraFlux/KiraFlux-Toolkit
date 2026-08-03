@@ -13,6 +13,7 @@
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
+#include "kf/driver/Driver.hpp"
 #include "kf/driver/display/Orientation.hpp"
 
 namespace kf::driver::display {
@@ -22,11 +23,10 @@ struct DisplayDriverTag {};
 /// @brief CRTP base class for display driver implementations
 /// @tparam Impl Concrete driver implementation type
 /// @tparam ImageImpl Image buffer type
-template<typename Impl, implements<image::ImageTag> ImageImpl, typename ResultType> struct DisplayDriver :
+template<typename Impl, implements<image::ImageTag> ImageImpl, typename OperationResult> struct DisplayDriver :
 
     DisplayDriverTag,
-    mixin::NonCopyable,
-    mixin::Initable<Impl, ResultType()>,
+    Driver<Impl, OperationResult>,
     mixin::Resettable<Impl>
 
 {
@@ -42,13 +42,13 @@ template<typename Impl, implements<image::ImageTag> ImageImpl, typename ResultTy
     }
 
     /// @brief Transfer software buffer to display hardware
-    [[nodiscard]] ResultType send() noexcept {
+    [[nodiscard]] OperationResult send() noexcept {
         return static_cast<Impl *>(this)->sendImpl();
     }
 
     /// @brief Set display orientation.
     /// @param new_orientation New orientation value.
-    [[nodiscard]] ResultType orientation(Orientation new_orientation) noexcept {
+    [[nodiscard]] OperationResult orientation(Orientation new_orientation) noexcept {
         return static_cast<Impl *>(this)->setOrientationImpl(new_orientation);
     }
 
@@ -60,5 +60,5 @@ private:
 
 #define KF_IMPL_DISPLAY_DRIVER(__impl__, __image_impl__, ...)                                  \
     friend struct ::kf::driver::display::DisplayDriver<__impl__, __image_impl__, __VA_ARGS__>; \
-    KF_IMPL_INITABLE(__impl__, __VA_ARGS__());                                                 \
+    KF_IMPL_DRIVER(__impl__, __VA_ARGS__);                                                     \
     KF_IMPL_RESETTABLE(__impl__)

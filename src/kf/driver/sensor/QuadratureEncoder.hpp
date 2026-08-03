@@ -57,7 +57,7 @@ namespace kf::driver::sensor {
 /// @tparam T Physical linear unit
 template<typename T> struct QuadratureEncoder final :
 
-    driver::sensor::SensorDriver<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void()>,
+    driver::sensor::SensorDriver<QuadratureEncoder<T>, typename internal::QuadratureEncoderConfig<T>::PhaseStateType, void>,
     mixin::Resettable<QuadratureEncoder<T>>,
     mixin::Configured<internal::QuadratureEncoderConfig<T>>
 
@@ -122,7 +122,7 @@ private:
         self._last_state = current_state;
     }
 
-    KF_IMPL_SENSOR_DRIVER(Self, typename Config::PhaseStateType, void());
+    KF_IMPL_SENSOR_DRIVER(Self, typename Config::PhaseStateType, void);
 
     void initImpl() noexcept {
         _gpio_phase_a.init();

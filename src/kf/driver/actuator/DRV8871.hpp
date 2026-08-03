@@ -8,6 +8,7 @@
 
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
+
 #include "kf/mixin/Configured.hpp"
 
 #include "kf/driver/actuator/ActuatorDriver.hpp"
@@ -36,7 +37,7 @@ namespace kf::driver::actuator {
 /// @brief DRV8871 H-bridge motor driver abstraction
 struct DRV8871 final :
 
-    driver::actuator::ActuatorDriver<DRV8871, internal::DRV8871Config::InputType, bool()>,
+    driver::actuator::ActuatorDriver<DRV8871, internal::DRV8871Config::InputType, bool>,
     mixin::Configured<internal::DRV8871Config>
 
 {
@@ -53,7 +54,7 @@ struct DRV8871 final :
 private:
     gpio::PwmOutput _pwm_gpio_forward, _pwm_gpio_backward;
 
-    KF_IMPL_ACTUATOR_DRIVER(DRV8871, Config::InputType, bool());
+    KF_IMPL_ACTUATOR_DRIVER(DRV8871, Config::InputType, bool);
 
     bool initImpl() noexcept {
         if (not _pwm_gpio_forward.init()) { return false; }

@@ -27,7 +27,7 @@ namespace kf::driver::sensor {
 
 /// @brief Two-axis joystick with calibration support
 /// @note Uses filtered analog inputs and includes dead-zone compensation
-template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joystick<I>, internal::JoystickValue, void()> {
+template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joystick<I>, internal::JoystickValue, void> {
     using Self = Joystick<I>;
     using InputImpl = I;
 
@@ -75,7 +75,7 @@ template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joy
         axis_y{config.y, config.filter, gpio_num_axis_y} {}
 
 private:
-    KF_IMPL_SENSOR_DRIVER(Self, Value, void());
+    KF_IMPL_SENSOR_DRIVER(Self, Value, void);
 
     void initImpl() noexcept {
         axis_x.init();

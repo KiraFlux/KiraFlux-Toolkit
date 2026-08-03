@@ -9,24 +9,28 @@
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 
+#include "kf/driver/Driver.hpp"
+
 namespace kf::driver::actuator {
 
 struct ActuatorDriverTag {};
 
 /// @brief Actuator Driver CRTP interface
 /// @tparam Impl Actuator Driver implementation
-/// @tparam InitSignature `init()`
-template<typename Impl, typename Unit, typename InitSignature> struct ActuatorDriver :
+/// @tparam InitResult `init()`
+template<typename Impl, typename Unit, typename InitResult> struct ActuatorDriver :
 
     ActuatorDriverTag,
-    mixin::NonCopyable,
-    mixin::Initable<Impl, InitSignature>
+    Driver<Impl, InitResult>
 
 {
+
+    /// @brief Set Control value
     void set(Unit value) noexcept {
         static_cast<Impl *>(this)->setImpl(value);
     }
 
+    /// @brief Release actuator (disable output)
     void stop() noexcept {
         static_cast<Impl *>(this)->stopImpl();
     }
@@ -36,4 +40,4 @@ template<typename Impl, typename Unit, typename InitSignature> struct ActuatorDr
 
 #define KF_IMPL_ACTUATOR_DRIVER(__impl__, __unit_type__, ...)                                   \
     friend struct ::kf::driver::actuator::ActuatorDriver<__impl__, __unit_type__, __VA_ARGS__>; \
-    KF_IMPL_INITABLE(__impl__, __VA_ARGS__)
+    KF_IMPL_DRIVER(__impl__, __VA_ARGS__)

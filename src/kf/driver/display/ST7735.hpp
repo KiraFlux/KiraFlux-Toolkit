@@ -11,11 +11,12 @@
 #include "kf/concepts.hpp"
 #include "kf/gpio.hpp"
 #include "kf/image/ViewportImage.hpp"
-#include "kf/mixin/Configured.hpp"
-#include "kf/mixin/NonCopyable.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
 #include "kf/primitives.hpp"
 #include "kf/rtos/Task.hpp"
+
+#include "kf/mixin/Configured.hpp"
+#include "kf/mixin/NonCopyable.hpp"
 
 #include "kf/driver/display/DisplayDriver.hpp"
 #include "kf/driver/display/Orientation.hpp"
@@ -24,6 +25,7 @@ namespace kf::internal {
 
 using ST7735Image = image::ViewportImage<pixel::Rgb565Pixel, 128, 160>;
 
+/// @brief Hardware configuration for ST7735
 struct ST7735Config final {
     bus::SPI::Node::Config spi_node;
     driver::display::Orientation init_orientation;
@@ -36,17 +38,12 @@ namespace kf::driver::display {
 /// @brief ST7735 TFT display driver for 128x160 RGB565 panels
 struct ST7735 final :
 
-    DisplayDriver<ST7735, internal::ST7735Image, Result<void, bus::SPI::Error>>,
+    DisplayDriver<ST7735, internal::ST7735Image, internal::SpiWriteResult>,
     mixin::Configured<internal::ST7735Config>
 
 {
-
-    using PixelImpl = internal::ST7735Image::PixelImpl;
-    using SpiOperationResult = Result<void, bus::SPI::Error>;
-
     using Self = ST7735;
-
-    /// @brief Hardware configuration for ST7735
+    using PixelImpl = internal::ST7735Image::PixelImpl;
     using Config = internal::ST7735Config;
 
     /// @brief Memory Access Control (MADCTL) register bits
@@ -93,24 +90,24 @@ private:
 
     // Low-level communication
 
-    SpiOperationResult sendBuffer(Slice<u8 const> buffer) noexcept {
+    auto sendBuffer(Slice<u8 const> buffer) noexcept -> internal::SpiWriteResult {
         _gpio_data_command.level(true);
         return _spi_node.writeBuffer(buffer);
     }
 
-    SpiOperationResult sendPacket(trivial auto const &packet) noexcept {
+    auto sendPacket(trivial auto const &packet) noexcept -> internal::SpiWriteResult {
         _gpio_data_command.level(true);
         return _spi_node.writePacket(packet);
     }
 
-    SpiOperationResult sendCommand(Command c) noexcept {
+    auto sendCommand(Command c) noexcept -> internal::SpiWriteResult {
         _gpio_data_command.level(false);
         return _spi_node.writeByte(static_cast<u8>(c));
     }
 
-    KF_IMPL_DISPLAY_DRIVER(Self, internal::ST7735Image, SpiOperationResult);
+    KF_IMPL_DISPLAY_DRIVER(Self, internal::ST7735Image, internal::SpiWriteResult);
 
-    SpiOperationResult initImpl() noexcept {
+    auto initImpl() noexcept -> internal::SpiWriteResult {
         _spi_node.init();
         _gpio_data_command.init();
         _gpio_hardware_reset.init();
@@ -144,12 +141,12 @@ private:
         rtos::Task::sleep(120);
     }
 
-    SpiOperationResult sendImpl() noexcept {
+    auto sendImpl() noexcept -> internal::SpiWriteResult {
         KF_TRY(sendCommand(Command::RAMWR));
         return sendBuffer({reinterpret_cast<u8 const *>(this->image().buffer().data()), this->image().size()});
     }
 
-    SpiOperationResult setOrientationImpl(Orientation orientation) noexcept {
+    auto setOrientationImpl(Orientation orientation) noexcept -> internal::SpiWriteResult {
         // full 6-way support
         constexpr u8 orient_to_transform[]{
             0,                                        // Orientation::Normal

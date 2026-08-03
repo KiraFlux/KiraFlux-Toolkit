@@ -27,6 +27,8 @@ namespace kf::internal {
 /// Dummy. Arduino SPI cannot provide information about errors
 struct SpiError {};
 
+using SpiWriteResult = Result<void, SpiError>;
+
 struct SpiNodeConfig final {
 
     /// @brief Bit order for SPI transfers
@@ -221,23 +223,21 @@ private:
         return ok(value);
     }
 
-    using WriteResult = Result<void, Error>;
-
-    WriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
+    SpiWriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
         beginTransaction();
         writeBytes(buffer.data(), buffer.length());
         endTransaction();
         return ok();
     }
 
-    WriteResult writePacketImpl(trivial auto const &packet) noexcept {
+    SpiWriteResult writePacketImpl(trivial auto const &packet) noexcept {
         beginTransaction();
         writePacketUnchecked(packet);
         endTransaction();
         return ok();
     }
 
-    WriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
+    SpiWriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
         beginTransaction();
         writePacketUnchecked(header);
         writeBytes(buffer.data(), buffer.length());
@@ -306,17 +306,15 @@ private:
         return error(Error{});
     }
 
-    using WriteResult = Result<void, Error>;
-
-    WriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
+    SpiWriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
         return ok();
     }
 
-    WriteResult writePacketImpl(trivial auto const &packet) noexcept {
+    SpiWriteResult writePacketImpl(trivial auto const &packet) noexcept {
         return ok();
     }
 
-    WriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
+    SpiWriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
         return ok();
     }
 };
