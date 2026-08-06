@@ -54,30 +54,7 @@ void kf::main(kf::Init &init) {
 }
 """
 
-EXAMPLE_MAKEFILE = """all: build_esp32
-
-build_native:
-	pio run -e native
-
-run_native: build_native
-	./.pio/build/native/program	
-
-n: run_native
-
-build_esp32:
-	pio run -e esp32dev
-
-b: build_esp32
-
-upload:
-	pio run -e esp32dev --target upload
-
-u: upload
-
-monitor:
-	pio device monitor
-
-m: monitor"""
+EXAMPLE_MAKEFILE = """include ../../common.mak"""
 
 def _create_new_test(group_name: str, test_name: str) -> int:
     print(f"New test: {group_name=} {test_name=}")
