@@ -11,11 +11,6 @@ monitor:
 test:
 	pio test -e native
 
-format:
-	./clang-format-all.sh
-
-f: format
-
 lint:
 	./lint.sh
 

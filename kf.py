@@ -390,15 +390,40 @@ class NewJob(Job):
         return 0
 
 
-class FormatJob(Job):
+class FormatJob(BulkPathsJob):
+
+    def __init__(self):
+        super().__init__()
+        self._failed_results = list[self.CmdResult]()
+
+    def on_path(self, path: Path, args) -> None:
+        result = self.run_cmd(("clang-format", "-i", str(path)))
+
+        if not result.is_success:
+            self._failed_results.append(result)
+            print(Color.RED.apply(f"Formatting failed: {result.stderr}"))
+
+    def on_begin(self, args) -> bool:
+        return True
+
+    def on_end(self, args) -> bool:
+        is_success = not bool(self._failed_results) 
+        print_footer(
+            is_success,
+            error_message=f"FAILED: {len(self._failed_results)} failed to format"
+        )
+        return is_success
+
+    def determine_paths(self, args) -> Iterable[Path]:
+        if args.all:
+            return self.get_all_source_files()
+        else:
+            return self.get_changed_source_files()
+
     def register(self, subparsers):
         p = subparsers.add_parser("format", aliases=["f"])
         p.add_argument("--all", action="store_true")
         p.set_defaults(job=self)
-
-    def run(self, args):
-        print("Format command (stub)")
-        return 0
 
 
 class LintJob(Job):
