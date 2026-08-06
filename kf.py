@@ -47,8 +47,8 @@ def make_bordered(message: str, *, thick=False) -> str:
     return f"{' ' + message + ' ':{char}^{terminal_width()}}"
 
 
-def print_footer(is_success: bool, *, success_message: str = "SUCCESS") -> None:
-    message, color = ((success_message, Color.GREEN) if is_success else ("FAILED", Color.RED))
+def print_footer(is_success: bool, *, success_message: str = "SUCCESS", error_message = "FAILED") -> None:
+    message, color = ((success_message, Color.GREEN) if is_success else (error_message, Color.RED))
     print(color.apply(make_bordered(message, thick=True)))
 
 
@@ -132,6 +132,10 @@ class Job(ABC):
         )
 
     @final
+    def cmd_output(self, args: Sequence[str], cwd=repo_dir) -> str:
+        return subprocess.check_output(args, cwd=cwd, text=True)
+
+    @final
     def patterns_from_ext(self, extensions: Sequence[str]) -> Iterable[str]:
         return (
             f"*.{e}"
@@ -152,6 +156,39 @@ class Job(ABC):
             glob_method(_dir, p)
             for p in patterns
         ))
+
+    @final
+    def get_all_source_files(self) -> Iterable[Path]:
+        patterns = tuple(self.patterns_from_ext(self.source_extensions))
+        return chain(*(
+            self.get_files_by_patterns(self.repo_dir / d, patterns, recursive=True)
+            for d in self.source_dirs
+        ))
+
+    @final
+    def get_changed_source_files(self) -> Iterable[Path]:
+        try:
+            diff = self.cmd_output(("git", "diff", "--name-only", "HEAD"))
+            untracked = self.cmd_output(("git", "ls-files", "--others", "--exclude-standard"))
+            all_files = (diff + untracked).splitlines()
+
+        except subprocess.CalledProcessError as e:
+            print(e)
+            return ()
+
+        allowed_ext = set(self.source_extensions)
+        allowed_dirs = set(self.source_dirs)
+
+        for rel_path in all_files:
+            if not rel_path:
+                continue
+
+            p = self.repo_dir / rel_path
+
+            if p.is_file() and p.suffix[1:] in allowed_ext:
+                parts = p.relative_to(self.repo_dir).parts
+                if parts and parts[0] in allowed_dirs:
+                    yield p
 
 
 class BulkPathsJob(Job, ABC):
@@ -449,7 +486,6 @@ class SnapshotJob(BulkPathsJob):
 
     def determine_paths(self, args) -> Iterable[Path]:
         patterns = tuple(self.patterns_from_ext(chain(
-            self.source_extensions,
             self.script_extensions,
             self.config_extensions,
             self.docs_extensions,
@@ -457,16 +493,17 @@ class SnapshotJob(BulkPathsJob):
 
         root_files = self.get_files_by_patterns(self.repo_dir, chain(patterns, self.bypass_filenames))
 
-        dirs_files = (
+        misc_files = (
             self.get_files_by_patterns(self.repo_dir / dir_name, patterns, recursive=True)
-            for dir_name in chain(self.source_dirs, self.misc_dirs)
+            for dir_name in self.misc_dirs
         )
 
         return filter(
             (lambda p: p.name not in self.ignored_filenames),
             chain(
                 root_files,
-                *dirs_files
+                *misc_files,
+                self.get_all_source_files(),
             )
         )
 
