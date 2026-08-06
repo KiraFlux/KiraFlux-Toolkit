@@ -42,8 +42,14 @@ def terminal_width() -> int:
         return 80
 
 
-def print_bordered(message: str) -> None:
-    print(f"{' ' + message + ' ':=^{terminal_width()}}", flush=True)
+def make_bordered(message: str, *, thick=False) -> str:
+    char = "=" if thick else "-"
+    return f"{' ' + message + ' ':{char}^{terminal_width()}}"
+
+
+def print_footer(is_success: bool, *, success_message: str = "SUCCESS") -> None:
+    message, color = ((success_message, Color.GREEN) if is_success else ("FAILED", Color.RED))
+    print(color.apply(make_bordered(message, thick=True)))
 
 
 def print_table_row(padding: int, name: str, status: str, elapsed: str) -> None:
@@ -51,9 +57,36 @@ def print_table_row(padding: int, name: str, status: str, elapsed: str) -> None:
 
 
 class Job(ABC):
-    repo_dir: Final = Path(__file__).parent.resolve()
+
+    examples_dir_name = "examples"
 
     platformio_ini_file = "platformio.ini"
+
+    source_extensions: Final = (
+        "h", "hpp", "cpp",
+    )
+
+    docs_extensions: Final = (
+        "md",
+    )
+
+    config_extensions: Final = (
+        "yml", "json",
+    )
+
+    script_extensions: Final = (
+        "py", "sh", "mak",
+    )
+
+    source_dirs: Final = (
+        examples_dir_name, "src", "test",
+    )
+
+    misc_dirs: Final = (
+        ".github",
+    )
+
+    repo_dir: Final = Path(__file__).parent.resolve()
 
     registry: Final = list[Self]()
 
@@ -66,7 +99,7 @@ class Job(ABC):
         pass
 
     @abstractmethod
-    def run(self, args):
+    def run(self, args) -> int:
         raise NotImplementedError
 
     @dataclass(frozen=True, kw_only=True)
@@ -79,17 +112,16 @@ class Job(ABC):
         def status(self) -> str:
             return (Color.GREEN.apply("SUCCESS") if self.is_success else Color.RED.apply("FAILED"))
 
-
     @final
     def run_cmd(self, args: Sequence[str]) -> CmdResult:
         start = time.perf_counter()
-                
+
         proc = subprocess.run(
             args,
             capture_output=True,
             text=True
         )
-        
+
         duration = time.perf_counter() - start
 
         return self.CmdResult(
@@ -99,52 +131,149 @@ class Job(ABC):
             stderr=proc.stderr,
         )
 
+    @final
+    def patterns_from_ext(self, extensions: Sequence[str]) -> Iterable[str]:
+        return (
+            f"*.{e}"
+            for e in extensions
+        )
 
-class BuildJob(Job):
+    @final
+    def get_files_by_patterns(self, _dir: Path, patterns: Sequence[str], *, recursive=False) -> Iterable[Path]:
+        def _glob_flat(d: Path, p: str) -> Iterable[Path]:
+            return d.glob(p)
+
+        def _glob_recursive(d: Path, p: str) -> Iterable[Path]:
+            return d.rglob(p)
+
+        glob_method = _glob_recursive if recursive else _glob_flat
+
+        return chain(*(
+            glob_method(_dir, p)
+            for p in patterns
+        ))
+
+
+class BulkPathsJob(Job, ABC):
+
+    def __init__(self):
+        super().__init__()
+        self.paths: Sequence[Path] = ()
+
+    @abstractmethod
+    def on_path(self, path: Path, args) -> None:
+        """Action on each path"""
+
+    @abstractmethod
+    def on_begin(self, args) -> bool:
+        """Action on beginning of processing"""
+
+    @abstractmethod
+    def on_end(self, args) -> bool:
+        """Action on end of processing"""
+
+    @abstractmethod
+    def determine_paths(self, args) -> Iterable[Path]:
+        "Get paths processed by Job"
+
+    @final
+    def run(self, args) -> int:
+        self.paths = sorted(self.determine_paths(args))
+        path_count = len(self.paths)
+
+        print(Color.BOLD.apply(f"Running '{self.__class__.__name__}'"))
+
+        if path_count == 0:
+            print("Nothing to process.")
+            return 0
+
+        print(Color.CYAN.apply(f"Find {path_count} paths to process"))
+
+        if not self.on_begin(args):
+            return 1
+
+        for i, path in enumerate(self.paths):
+            print(f"[{i + 1}/{path_count}]  \t{Color.CYAN.apply(str(path.relative_to(self.repo_dir)))}", flush=True)
+
+            self.on_path(path, args)
+
+        return self.on_end(args)
+
+
+class BuildJob(BulkPathsJob):
 
     failed_examples_list_file = Job.repo_dir / "failed_examples.txt"
 
-    examples_dir_name = "examples"
-    examples_dir = Job.repo_dir / examples_dir_name
-    examples_glob = f"{examples_dir_name}/*/*/{Job.platformio_ini_file}"
+    examples_dir = Job.repo_dir / Job.examples_dir_name
+    examples_glob = f"{Job.examples_dir_name}/*/*/{Job.platformio_ini_file}"
 
-    @dataclass(kw_only=True)
-    class ExampleBuildResult:
-        cmd: Job.CmdResult
+    @dataclass(frozen=True, kw_only=True)
+    class ExampleBuildResult(Job.CmdResult):
         example_dir: Path
 
         def name(self) -> str:
             return str(self.example_dir.relative_to(BuildJob.examples_dir))
 
-    class ExamplesBuildSummary:
+    def __init__(self):
+        super().__init__()
+        self._results: Final = list[self.ExampleBuildResult]()
 
-        def __init__(self):
-            self._results: Final = list[BuildJob.ExampleBuildResult]()
+        self._example_env: Optional[Environment] = None
 
-        def add(self, result: BuildJob.ExampleBuildResult) -> None:
-            self._results.append(result)
-        
-        def all(self) -> Sequence[BuildJob.ExampleBuildResult]:
-            return self._results
+    def on_path(self, path: Path, args) -> None:
+        cmd_result = self.run_cmd((
+            "pio", "run", "--silent", "-e", self._example_env, "-d", str(path)
+        ))
 
-        def max_example_name(self) -> int:
-            return max(
-                len(r.name())
-                for r in self._results
-            )
+        build_result = self.ExampleBuildResult(
+            is_success=cmd_result.is_success,
+            duration=cmd_result.duration,
+            stdout=cmd_result.stdout,
+            stderr=cmd_result.stderr,
+            example_dir=path,
+        )
 
-        def total_time(self) -> float:
-            return sum(
-                r.cmd.duration
-                for r in self._results
-            )
-        
-        def failed_examples_paths(self) -> Sequence[Path]:
-            return tuple(
-                r.example_dir
-                for r in self._results
-                if not r.cmd.is_success
-            )
+        self._results.append(build_result)
+
+        if not build_result.is_success:
+            print(build_result.stdout)
+            print(Color.RED.apply(build_result.stderr))
+
+        print(make_bordered(f"[{build_result.status()}] Took {build_result.duration:.2f} seconds"))
+
+    def on_begin(self, args) -> bool:
+        try:
+            self._example_env = Environment(args.env)
+            return True
+
+        except ValueError as e:
+            print(Color.RED.apply(e))
+            return False
+
+    def on_end(self, args) -> bool:
+        print_footer(True, success_message="SUMMARY")
+
+        padding = self._max_example_name()
+
+        print_table_row(padding, "Example", "Status", "Duration")
+
+        for r in self._results:
+            print_table_row(padding, r.name(), r.status(), f"{r.duration:.3f} s")
+
+        failed_examples = tuple(self._failed_examples_paths())
+
+        print(make_bordered(f"{len(failed_examples)} failed, {len(self._results) - len(failed_examples)} succeeded in {self._total_time():.2f} seconds"))
+
+        self._write_failed_list(failed_examples)
+        return bool(failed_examples)
+
+    def determine_paths(self, args) -> Iterable[Path]:
+        failed_example_paths = self._read_failed_list()
+
+        if args.all or not failed_example_paths:
+            return self._find_all_example_dirs()
+
+        return failed_example_paths
 
     def register(self, subparsers):
         p = subparsers.add_parser("build", aliases=["b"])
@@ -152,62 +281,37 @@ class BuildJob(Job):
         p.add_argument("--all", action="store_true")
         p.set_defaults(job=self)
 
-    def run(self, args):
-        print("Build command")
+    def _max_example_name(self) -> int:
+        return max(
+            len(r.name())
+            for r in self._results
+        )
 
-        try:
-            example_env = Environment(args.env)
-        except ValueError as e:
-            print(e)
-            return 1
+    def _total_time(self) -> float:
+        return sum(
+            r.duration
+            for r in self._results
+        )
 
-        example_dirs = self._determine_examples(args.all)
+    def _failed_examples_paths(self) -> Iterable[Path]:
+        return (
+            r.example_dir
+            for r in self._results
+            if not r.is_success
+        )
 
-        if not example_dirs:
-            print("Nothing to build")
-            return 0
-
-        total_examples = len(example_dirs)
-        print(f"Total examples to build: {total_examples}")
-        
-        summary = self.ExamplesBuildSummary()
-
-        for i, d in enumerate(example_dirs):
-            print(f"Building ({i + 1}/{total_examples}) {d}", flush=True)
-            
-            result = self._build_example(d, example_env)
-            summary.add(result)
-            
-            if not result.cmd.is_success:
-                print(result.cmd.stdout)
-                print(Color.RED.apply(result.cmd.stderr))
-
-            print_bordered(f"[{result.cmd.status()}] Took {result.cmd.duration:.2f} seconds")
-
-        print_bordered(Color.GREEN.apply("SUMMARY"))
-
-        padding = summary.max_example_name()
-
-        print_table_row(padding, "Example", "Status", "Duration")
-        for r in summary.all():
-            print_table_row(padding, r.name(), r.cmd.status(), f"{r.cmd.duration:.3f} s")
-
-        failed_examples = summary.failed_examples_paths()
-        
-        print_bordered(f"{len(failed_examples)} failed, {total_examples - len(failed_examples)} succeeded in {summary.total_time():.2f} seconds")
-        
-        self._write_failed_list(failed_examples)
-        return bool(failed_examples)
-
-    def _find_all_example_dirs(self) -> Sequence[Path]:
-        return sorted(p.parent for p in self.repo_dir.glob(self.examples_glob))
+    def _find_all_example_dirs(self) -> Iterable[Path]:
+        return (
+            p.parent
+            for p in self.repo_dir.glob(self.examples_glob)
+        )
 
     def _read_failed_list(self) -> Sequence[Path]:
         """Read list of relative paths from failed file."""
 
         if not self.failed_examples_list_file.exists() or (self.failed_examples_list_file.stat().st_size == 0):
             return ()
-        
+
         with open(self.failed_examples_list_file, "r") as f:
             lines = filter(
                 (lambda l: bool(l)),
@@ -220,31 +324,12 @@ class BuildJob(Job):
             paths = filter(
                 (lambda l: l.exists()),
                 map(
-                    (lambda l: self.repo_dir / l), 
+                    (lambda l: self.repo_dir / l),
                     lines
                 )
             )
 
             return tuple(paths)
-
-    def _determine_examples(self, force_all: bool) -> Sequence[Path]:
-        failed_example_paths = self._read_failed_list()
-
-        if force_all or not failed_example_paths: 
-            return self._find_all_example_dirs()
-
-        return failed_example_paths
-        
-
-    def _build_example(self, example_dir: Path, env: Environment) -> ExampleBuildResult:
-        """Build a single example"""
-        
-        return self.ExampleBuildResult(
-            cmd=self.run_cmd((
-                "pio", "run", "--silent", "-e", env, "-d", str(example_dir)
-            )),
-            example_dir = example_dir,
-        )
 
     def _write_failed_list(self, failed_paths: Sequence[Path]) -> None:
         """Write relative paths of failed examples."""
@@ -311,62 +396,25 @@ class MonitorJob(Job):
         return 0
 
 
-class SnapshotJob(Job):
+class SnapshotJob(BulkPathsJob):
 
     snapshot_file: Final = Job.repo_dir / "snapshot.txt"
 
-    target_ext: Final = (
-        "h", "hpp", "cpp", "ino", 
-        "md", "MD",
-        "yml", "json", 
-        "py", "sh", 
-    )
-
-    target_dirs: Final = (
-        "examples", "src", "test", ".github",
-    )
-
     bypass_filenames: Final = (
-        "platformio.ini",
+        Job.platformio_ini_file,
     )
 
     ignored_filenames: Final = (
         "compile_commands.json",
-        "CHANGELOG.MD"
+        "CHANGELOG.md"
     )
 
-    def register(self, subparsers):
-        p = subparsers.add_parser("snapshot", aliases=["s"])
-        p.set_defaults(job=self)
+    def __init__(self):
+        super().__init__()
+        self._fact_writes = 0
+        self._io: Optional[TextIO] = None
 
-    def run(self, args):
-        print(Color.BOLD.apply("Making Snapshot..."))
-
-        snapshot_files = tuple(self._determine_snapshot_file_paths())
-
-        print(Color.CYAN.apply(f"where are {len(snapshot_files)} files to write"))
-
-        fact_writes = 0;
-
-        with self.snapshot_file.open("wt") as f:
-            f.write(f"KiraFlux Toolkit repository snapshot ({datetime.now()})\n\n")
-
-            for i, p in enumerate(snapshot_files):
-                print(f"* {i:>3} {(p.relative_to(self.repo_dir))}")
-                
-                fact_writes += self._write_content(f, p)
-
-        is_success = (len(snapshot_files) == fact_writes) 
-
-        print(f"file: {Color.CYAN.apply(str(self.snapshot_file))}")
-
-        s_str = (Color.GREEN.apply("SUCCESS") if is_success else Color.RED.apply("FAILED"))
-
-        print_bordered(s_str)
-
-        return is_success
-
-    def _write_content(self, io: TextIO, path: Path) -> bool:
+    def on_path(self, path: Path, args) -> None:
         next_line = "\n"
         backticks = "```"
 
@@ -374,44 +422,44 @@ class SnapshotJob(Job):
             file_text = path.read_text()
         except Exception as e:
             print(Color.RED.apply(f"failed to read '{path}' error: {e}"))
-            return False
+            return
 
         header = str(path.relative_to(self.repo_dir))
 
-        io.write(header + next_line + backticks + path.suffix + next_line)
-        io.write(file_text)
-        io.write(backticks + next_line * 3)
+        self._io.write(header + next_line + backticks + path.suffix + next_line)
+        self._io.write(file_text)
+        self._io.write(backticks + next_line * 3)
 
+        self._fact_writes += 1
+
+    def on_begin(self, args) -> bool:
+        self._io = self.snapshot_file.open("wt")
+        self._io.write(f"KiraFlux Toolkit repository snapshot ({datetime.now()})\n\n")
         return True
 
-    def _patterns_from_ext(self, extensions: Sequence[str]) -> Iterable[str]:
-        return (
-            f"*.{e}"
-            for e in extensions
-        )
+    def on_end(self, args) -> bool:
+        self._io.close()
 
-    def _get_files_by_patterns(self, _dir: Path, patterns: Sequence[str], *, recursive = False) -> Iterable[Path]:
-        def _glob_flat(d: Path, p: str) -> Iterable[Path]:
-            return d.glob(p)
+        is_success = (len(self.paths) == self._fact_writes)
 
-        def _glob_recursive(d: Path, p: str) -> Iterable[Path]:
-            return d.rglob(p)
+        print(f"\n{Color.BOLD}Snapshot file:{Color.RESET}\n\t{Color.BLUE.apply(str(self.snapshot_file))}")
+        print_footer(is_success)
 
-        glob_method = _glob_recursive if recursive else _glob_flat
+        return is_success
 
-        return chain(*(
-            glob_method(_dir, p)
-            for p in patterns
-        ))
+    def determine_paths(self, args) -> Iterable[Path]:
+        patterns = tuple(self.patterns_from_ext(chain(
+            self.source_extensions,
+            self.script_extensions,
+            self.config_extensions,
+            self.docs_extensions,
+        )))
 
-    def _determine_snapshot_file_paths(self) -> Iterable[Path]:
-        patterns = tuple(self._patterns_from_ext(self.target_ext))
-
-        root_files = self._get_files_by_patterns(self.repo_dir, patterns + self.bypass_filenames)
+        root_files = self.get_files_by_patterns(self.repo_dir, chain(patterns, self.bypass_filenames))
 
         dirs_files = (
-            self._get_files_by_patterns(self.repo_dir / dir_name, patterns, recursive=True)
-            for dir_name in self.target_dirs
+            self.get_files_by_patterns(self.repo_dir / dir_name, patterns, recursive=True)
+            for dir_name in chain(self.source_dirs, self.misc_dirs)
         )
 
         return filter(
@@ -421,6 +469,10 @@ class SnapshotJob(Job):
                 *dirs_files
             )
         )
+
+    def register(self, subparsers):
+        p = subparsers.add_parser("snapshot", aliases=["s"])
+        p.set_defaults(job=self)
 
 
 class DiffJob(Job):
