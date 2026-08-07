@@ -35,8 +35,8 @@ r: run
 $(PROG_NATIVE):
 	pio run -e $(ENV_NATIVE)
 
-upload:
-	pio run -e $(ENV_ESP32) --target upload --port $(PORT)
+upload: 
+	pio run -e $(ENV_ESP32) --target upload --upload-port $(PORT) 
 
 u: upload
 
