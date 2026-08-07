@@ -5,6 +5,7 @@
 
 from abc import ABC, abstractmethod
 import argparse
+import hashlib
 from datetime import datetime
 import enum
 import os
@@ -13,6 +14,8 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 import time
+import json
+import multiprocessing
 from itertools import chain
 from typing import Final, Iterable, Self, Sequence, Optional, TextIO, final
 
@@ -47,7 +50,7 @@ def make_bordered(message: str, *, thick=False) -> str:
     return f"{' ' + message + ' ':{char}^{terminal_width()}}"
 
 
-def print_footer(is_success: bool, *, success_message: str = "SUCCESS", error_message = "FAILED") -> None:
+def print_footer(is_success: bool, *, success_message: str = "SUCCESS", error_message="FAILED") -> None:
     message, color = ((success_message, Color.GREEN) if is_success else (error_message, Color.RED))
     print(color.apply(make_bordered(message, thick=True)))
 
@@ -189,6 +192,83 @@ class Job(ABC):
                 parts = p.relative_to(self.repo_dir).parts
                 if parts and parts[0] in allowed_dirs:
                     yield p
+
+    @final
+    def compute_source_hash(self) -> str:
+        hasher = hashlib.sha256()
+        pio_ini = self.repo_dir / self.platformio_ini_file
+
+        if pio_ini.exists():
+            hasher.update(pio_ini.read_bytes())
+
+        for src in sorted(self.get_all_source_files()):
+            hasher.update(src.read_bytes())
+
+        return hasher.hexdigest()
+
+    @final
+    def generate_compile_commands(self, env: Environment, force: bool = False) -> Path:
+        build_dir = self.repo_dir / ".pio" / "build" / str(env)
+        build_dir.mkdir(parents=True, exist_ok=True)
+        hash_file = build_dir / "compile_hash"
+        cmd_file = build_dir / "compile_commands.json"
+
+        current_hash = self.compute_source_hash()
+        if not force and hash_file.exists() and hash_file.read_text().strip() == current_hash and cmd_file.exists():
+            return cmd_file
+
+        result = self.run_cmd(("pio", "run", "--target", "compiledb", "-e", str(env)))
+        if not result.is_success:
+            print(Color.RED.apply(f"Failed to generate compile_commands.json: {result.stderr}"))
+            raise RuntimeError("compiledb generation failed")
+
+        default_cmd = self.repo_dir / "compile_commands.json"
+        if default_cmd.exists():
+            default_cmd.rename(cmd_file)
+        else:
+            raise RuntimeError("compile_commands.json not found after generation")
+
+        hash_file.write_text(current_hash)
+        return cmd_file
+
+    @final
+    def clean_compile_commands(self, original: Path) -> Path:
+        clean_path = original.parent / "compile_commands_clean.json"
+
+        with open(original, "r") as f:
+            data = json.load(f)
+
+        replacements = {
+            "-mlongcalls": "-mlong-calls",
+        }
+
+        remove_flags = {
+            "-fno-tree-switch-conversion",
+            "-fstrict-volatile-bitfields",
+            "-Wno-unknown-warning-option",
+        }
+
+        command_key = "command"
+
+        for entry in data:
+            command = entry.get(command_key, "")
+            args = command.split()
+            new_args = list[str]()
+
+            for arg in args:
+                if arg in remove_flags:
+                    continue
+                if arg in replacements:
+                    new_args.append(replacements[arg])
+                else:
+                    new_args.append(arg)
+
+            entry[command_key] = " ".join(new_args)
+
+        with open(clean_path, "w") as f:
+            json.dump(data, f, indent=2)
+
+        return clean_path
 
 
 class BulkPathsJob(Job, ABC):
@@ -407,7 +487,7 @@ class FormatJob(BulkPathsJob):
         return True
 
     def on_end(self, args) -> bool:
-        is_success = not bool(self._failed_results) 
+        is_success = not bool(self._failed_results)
         print_footer(
             is_success,
             error_message=f"FAILED: {len(self._failed_results)} failed to format"
@@ -429,12 +509,71 @@ class FormatJob(BulkPathsJob):
 class LintJob(Job):
     def register(self, subparsers):
         p = subparsers.add_parser("lint", aliases=["l"])
-        p.add_argument("--all", action="store_true")
+        p.add_argument("--all", action="store_true", help="Lint all source files, not just changed")
+        p.add_argument("--env", default=Environment.ESP32_DEV, help="PlatformIO environment")
         p.set_defaults(job=self)
 
-    def run(self, args):
-        print("Lint command (stub)")
-        return 0
+    def run(self, args) -> int:
+        files = tuple(self.get_all_source_files() if args.all else self.get_changed_source_files())
+        if not files:
+            print("No source files to lint.")
+            return 0
+
+        print(Color.CYAN.apply(f"Find {len(files)} to lint."))
+
+        try:
+            cmd_file = self.generate_compile_commands(args.env)
+            clean_cmd_file = self.clean_compile_commands(cmd_file)
+        except Exception as e:
+            print(Color.RED.apply(f"Failed to prepare compile_commands: {e}"))
+            return 1
+
+        result = self.run_cmd(tuple(chain(
+            (
+                "run-clang-tidy",
+                "-p", str(clean_cmd_file.parent),
+                "-header-filter", "src/.*",
+                "-checks=-*,readability-identifier-naming",
+                "-warnings-as-errors=readability-identifier-naming",
+                "-j", str(multiprocessing.cpu_count())
+            ),
+            *map(str, files)
+        )))
+
+        output = result.stdout + result.stderr
+        error_lines = [line for line in output.splitlines() if "error:" in line and "readability-identifier-naming" in line]
+
+        if not error_lines:
+            print(Color.GREEN.apply("No style errors found."))
+            return 0
+
+        errors_by_file = {}
+        for line in error_lines:
+            parts = line.split(':', 1)
+            if len(parts) > 1:
+                file_path = parts[0].strip()
+                try:
+                    rel = Path(file_path).relative_to(self.repo_dir)
+                    if rel.parts and rel.parts[0] in self.source_dirs:
+                        errors_by_file.setdefault(str(rel), []).append(line)
+                except ValueError:
+                    continue
+
+        if not errors_by_file:
+            print(Color.YELLOW.apply("Errors found but not in source directories?"))
+            for line in error_lines:
+                print(line)
+
+            return 1
+
+        print(Color.RED.apply(f"Found {sum(len(v) for v in errors_by_file.values())} error(s) in {len(errors_by_file)} file(s):"))
+        for file, lines in sorted(errors_by_file.items()):
+            print(f"{Color.YELLOW}{file}{Color.RESET}")
+            for line in lines:
+                msg = line.split(':', 1)[-1].strip()
+                print(f"  {msg}")
+        
+        return 1
 
 
 class TestJob(Job):

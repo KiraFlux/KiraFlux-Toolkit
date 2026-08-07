@@ -1,4 +1,4 @@
-.PHONY: all monitor test lint new-example ne new-test nt diff
+.PHONY: all monitor test new-example ne new-test nt diff
 
 name ?= unnamed # target example/test name
 group ?= common # target example/test group
@@ -10,9 +10,6 @@ monitor:
 
 test:
 	pio test -e native
-
-lint:
-	./lint.sh
 
 new-example:
 	python new-template.py example $(group) $(name)
