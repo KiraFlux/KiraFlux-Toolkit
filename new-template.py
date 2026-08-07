@@ -5,10 +5,22 @@ from typing import Sequence
 
 REPO_DIR = Path(".").resolve()
 
-PLATFORMIO_INI = """[platformio]
+PLATFORMIO_INI = """# Copyright (c) 2026 KiraFlux
+# SPDX-License-Identifier: MIT
+#
+# KiraFlux Toolkit - Example Project Configuration
+#
+# PlatformIO configuration for ESP32 and native builds.
+# All examples share common build flags and library paths.
+# Repository: https://github.com/KiraFlux/KiraFlux-Toolkit
+
+[platformio]
 build_cache_dir = .pio/build_cache
 
-[env:example]
+default_envs = esp32dev
+
+
+[env]
 lib_extra_dirs = ../../..
 
 monitor_speed = 115200
@@ -17,18 +29,16 @@ build_flags =
     -std=gnu++20
     -D NO_GLOBAL_INSTANCES
 
-build_unflags = 
-    -std=gnu++11
 
 [env:esp32dev]
-extends = env:example
 platform = https://github.com/pioarduino/platform-espressif32/releases/download/stable/platform-espressif32.zip
 board = esp32dev
 framework = arduino
 
+
 [env:native]
-extends = env:example
-platform = native"""
+platform = native
+"""
 
 TEST_CPP = """
 #include <runner.hpp>
