@@ -87,9 +87,8 @@ private:
     typename Config::PhaseStateType volatile _last_state{0};///< Previous AB phase state
 
     /// @brief ISR triggered on any edge of either phase
-    /// @note This function is placed in IRAM. 
     /// @note Avoid `switch` because it may generate a jump table in flash, unreachable from IRAM due to `l32r` range limits.
-    static void KF_PLACE_IRAM onAnyPhaseChange(void *arg) noexcept {
+    static void onAnyPhaseChange(void *arg) noexcept {
         auto &self = *static_cast<Self *>(arg);
 
         auto const current_state = self.read();
