@@ -22,18 +22,9 @@ template<typename T> struct QuadratureEncoderConfig final {
 
     using TickType = kf::isize;    ///< Integral tick counter type
     using UnitType = T;            ///< Physical unit type
-    using StepType = kf::i8;       ///< Direction step type
     using PhaseStateType = kf::u32;///< Packed two-bit phase state (AB)
 
-    /// @brief Rotation direction that increments the tick counter
-    /// @note Follows the right-hand grip rule
-    enum class Direction : StepType {
-        CW = -1,///< Clockwise decrements (negative increment)
-        CCW = +1///< Counter-clockwise increments
-    };
-
     UnitType units_per_tick;      ///< Conversion factor: physical units per encoder tick
-    Direction positive_direction; ///< Desired positive rotation direction
     gpio::DigitalInput::Pull pull;///< Phase Pull type
 
     /// @brief Converts ticks to physical units
@@ -53,7 +44,8 @@ template<typename T> struct QuadratureEncoderConfig final {
 namespace kf::driver::sensor {
 
 /// @brief Quadrature encoder sensor with 4X decoding
-/// @note Arduino-Only
+/// @note Positive rotation direction is determined by the order of phase A and B pins.
+///       Swapping A and B reverses the count direction.
 /// @tparam T Physical linear unit
 template<typename T> struct QuadratureEncoder final :
 
@@ -95,30 +87,34 @@ private:
     typename Config::PhaseStateType volatile _last_state{0};///< Previous AB phase state
 
     /// @brief ISR triggered on any edge of either phase
+    /// @note This function is placed in IRAM. 
+    /// @note Avoid `switch` because it may generate a jump table in flash, unreachable from IRAM due to `l32r` range limits.
     static void KF_PLACE_IRAM onAnyPhaseChange(void *arg) noexcept {
         auto &self = *static_cast<Self *>(arg);
-        auto const positive_step = static_cast<typename Config::StepType>(self.config().positive_direction);
 
         auto const current_state = self.read();
 
         // Index formed by concatenating last and current states (4 bits)
         // 4X decoding lookup table (index = (last_A << 3 | last_B << 2 | cur_A << 1 | cur_B))
-        switch ((self._last_state << 2) | current_state) {
-            case 0b00'01:
-            case 0b01'11:
-            case 0b10'00:
-            case 0b11'10:
-                self._position_ticks += positive_step;
-                break;
-
-            case 0b00'10:
-            case 0b01'00:
-            case 0b10'11:
-            case 0b11'01:
-                self._position_ticks -= positive_step;
-                break;
+        auto const index = (self._last_state << 2) | current_state;
+        
+        // cannot use switch case where cuz lookup table is forbidden in IRAM ISR handler 
+        if (
+            (index == 0b00'01) or
+            (index == 0b01'11) or
+            (index == 0b10'00) or
+            (index == 0b11'10) 
+        ) {
+            self._position_ticks += 1;
+        } else if (
+            (index == 0b00'10) or
+            (index == 0b01'00) or
+            (index == 0b10'11) or
+            (index == 0b11'01) 
+        ) {
+            self._position_ticks -= 1;
         }
-
+        
         self._last_state = current_state;
     }
 

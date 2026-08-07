@@ -21,7 +21,6 @@ void kf::main(kf::Init &init) {
     // Encoder config: 100 units (degrees) per full tick.
     Encoder::Config encoder_config{
         .units_per_tick = 100,// 100 degrees per tick
-        .positive_direction = Encoder::Config::Direction::CW,
         .pull = gpio::DigitalInput::Pull::External,
     };
 
@@ -29,6 +28,7 @@ void kf::main(kf::Init &init) {
 
     // Config is passed by const reference (must stay alive).
     // GPIO pins are constructed into the encoder.
+    // Swapping A and B reverses the count direction.
     Encoder encoder{
         encoder_config,// by const reference
         gpio::G25,     // gpio number phase A
