@@ -3,6 +3,9 @@
 #include <kf/Slice.hpp>
 #include <kf/main.hpp>
 
+#include <kf/Bytes.hpp>    // Adds alias for Slice<u8>
+#include <kf/BytesView.hpp>// Adds alias for Slice<u8 const>
+
 void kf::main(kf::Init &init) {
     init.logger.info("KiraFlux-Toolkit Example: core/slice");
 

@@ -9,6 +9,7 @@
 #include <new>    // placement new
 #include <utility>// std::forward
 
+#include "kf/Bytes.hpp"
 #include "kf/Option.hpp"
 #include "kf/Slice.hpp"
 #include "kf/concepts.hpp"
@@ -25,7 +26,7 @@ struct Arena : mixin::NonCopyable, mixin::Resettable<Arena> {
     using Self = Arena;
 
     /// @param buffer Raw memory for the arena
-    explicit constexpr Arena(Slice<u8> buffer) noexcept :
+    explicit constexpr Arena(Bytes buffer) noexcept :
         _buffer{buffer} {}
 
     /// @return Remaining free bytes
@@ -40,7 +41,7 @@ struct Arena : mixin::NonCopyable, mixin::Resettable<Arena> {
 
     /// @brief Allocate raw bytes
     /// @return Slice or empty on failure
-    [[nodiscard]] constexpr auto allocate(usize size, usize alignment = alignof(std::max_align_t)) noexcept -> Slice<u8> {
+    [[nodiscard]] constexpr auto allocate(usize size, usize alignment = alignof(std::max_align_t)) noexcept -> Bytes {
         usize const aligned = (_used + alignment - 1) & ~(alignment - 1);
 
         if (aligned > _buffer.length() - size) {
@@ -73,7 +74,7 @@ struct Arena : mixin::NonCopyable, mixin::Resettable<Arena> {
     }
 
 private:
-    Slice<u8> _buffer{};
+    Bytes _buffer{};
     usize _used{0};
 
     KF_IMPL_RESETTABLE(Self);

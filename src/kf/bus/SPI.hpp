@@ -11,6 +11,8 @@
 #include <SPI.h>
 #endif
 
+#include "kf/Bytes.hpp"
+#include "kf/BytesView.hpp"
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/concepts.hpp"
@@ -198,11 +200,11 @@ private:
 
     KF_IMPL_BUS_NODE(Self, Error);
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
+    auto readBufferImpl(Bytes buffer) noexcept -> Result<BytesView, Error> {
         beginTransaction();
         readBytes(buffer.data(), buffer.length());
         endTransaction();
-        return ok<Slice<u8 const>>(buffer);
+        return ok<BytesView>(buffer);
     }
 
     template<trivial T> auto readPacketImpl() noexcept -> Result<T, Error> {
@@ -223,7 +225,7 @@ private:
         return ok(value);
     }
 
-    SpiWriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
+    SpiWriteResult writeBufferImpl(BytesView buffer) noexcept {
         beginTransaction();
         writeBytes(buffer.data(), buffer.length());
         endTransaction();
@@ -237,7 +239,7 @@ private:
         return ok();
     }
 
-    SpiWriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
+    SpiWriteResult writeMixedImpl(trivial auto const &header, BytesView buffer) noexcept {
         beginTransaction();
         writePacketUnchecked(header);
         writeBytes(buffer.data(), buffer.length());
@@ -298,7 +300,7 @@ private:
 
     KF_IMPL_BUS_NODE(Self, Error);
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
+    auto readBufferImpl(Bytes buffer) noexcept -> Result<BytesView, Error> {
         return error(Error{});
     }
 
@@ -306,7 +308,7 @@ private:
         return error(Error{});
     }
 
-    SpiWriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
+    SpiWriteResult writeBufferImpl(BytesView buffer) noexcept {
         return ok();
     }
 
@@ -314,7 +316,7 @@ private:
         return ok();
     }
 
-    SpiWriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
+    SpiWriteResult writeMixedImpl(trivial auto const &header, BytesView buffer) noexcept {
         return ok();
     }
 };

@@ -9,15 +9,17 @@
 #include <nvs.h>
 #include <nvs_flash.h>
 
+#include "kf/Bytes.hpp"
+#include "kf/BytesView.hpp"
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
-#include "kf/Slice.hpp"
 #include "kf/StringView.hpp"
+#include "kf/primitives.hpp"
+
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Representable.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf::internal {
 
@@ -98,7 +100,7 @@ struct NVS final :
     /// @brief Get blob value
     /// @param key blob entry key
     /// @param buffer blob destination buffer
-    [[nodiscard]] ResultType getBlob(char const *key, Slice<u8> buffer) noexcept {
+    [[nodiscard]] ResultType getBlob(char const *key, Bytes buffer) noexcept {
         auto len = buffer.length();
         auto const result = wrap(nvs_get_blob(_handle.unwrap(), key, static_cast<void *>(buffer.data()), &len));
 
@@ -112,7 +114,7 @@ struct NVS final :
     /// @brief Set blob value
     /// @param key blob entry key
     /// @param buffer blob source buffer
-    [[nodiscard]] ResultType setBlob(char const *key, Slice<u8 const> buffer) noexcept {
+    [[nodiscard]] ResultType setBlob(char const *key, BytesView buffer) noexcept {
         return wrap(nvs_set_blob(_handle.unwrap(), key, buffer.data(), buffer.length()));
     }
 

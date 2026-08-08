@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "kf/Slice.hpp"
+#include "kf/BytesView.hpp"
 #include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
 
@@ -19,13 +19,13 @@ struct BinaryWritableTag {};
 /// @tparam ErrorImpl Error type used by the implementation
 /// @note Derived classes must implement:
 ///
-///       - `ResultType writeBufferImpl(Slice<const u8> buffer) noexcept`
+///       - `ResultType writeBufferImpl(BytesView buffer) noexcept`
 ///         Write a contiguous buffer of bytes
 ///
 ///       - `ResultType writePacketImpl(trivial auto const &packet) noexcept`
 ///         Write a trivially copyable object
 ///
-///       - `ResultType writeMixedImpl(trivial auto const &header, Slice<const u8> buffer) noexcept`
+///       - `ResultType writeMixedImpl(trivial auto const &header, BytesView buffer) noexcept`
 ///         Write a small header followed by a buffer (e.g. command + data) in one transaction
 template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWritableTag {
 
@@ -38,7 +38,7 @@ template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWrita
     /// @brief Write arbitrary data from buffer
     /// @param buffer Source data
     /// @return Result indicating success or error
-    [[nodiscard]] ResultType writeBuffer(Slice<u8 const> buffer) noexcept {
+    [[nodiscard]] ResultType writeBuffer(BytesView buffer) noexcept {
         return static_cast<Impl *>(this)->writeBufferImpl(buffer);
     }
 
@@ -53,7 +53,7 @@ template<typename Impl, typename ResultType> struct BinaryWritable : BinaryWrita
     /// @param header Header to write
     /// @param buffer Source buffer
     /// @return Result indicating success or error
-    [[nodiscard]] ResultType writeMixed(trivial auto const &header, Slice<u8 const> buffer) noexcept {
+    [[nodiscard]] ResultType writeMixed(trivial auto const &header, BytesView buffer) noexcept {
         return static_cast<Impl *>(this)->writeMixedImpl(header, buffer);
     }
 };

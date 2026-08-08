@@ -9,8 +9,9 @@
 #include <HardwareSerial.h>
 #endif
 
+#include "kf/Bytes.hpp"
+#include "kf/BytesView.hpp"
 #include "kf/Result.hpp"
-#include "kf/Slice.hpp"
 #include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
 
@@ -92,9 +93,9 @@ private:
 
     KF_IMPL_BINARY_READABLE(Self, Error);
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
+    auto readBufferImpl(Bytes buffer) noexcept -> Result<BytesView, Error> {
         if (buffer.empty()) {
-            return ok(Slice<u8 const>{});
+            return ok(BytesView{});
         }
 
         auto const bytes_read = _serial.readBytes(buffer.data(), buffer.length());
@@ -103,7 +104,7 @@ private:
             return error(Error::ReadFailed);
         }
 
-        return ok(Slice<u8 const>{buffer.data(), bytes_read});
+        return ok(BytesView{buffer.data(), bytes_read});
     }
 
     template<typename T> auto readPacketImpl() noexcept -> Result<T, Error> {
@@ -138,7 +139,7 @@ private:
 
     KF_IMPL_BINARY_WRITABLE(Self, internal::UartWriteResult);
 
-    auto writeBufferImpl(Slice<u8 const> buffer) noexcept -> internal::UartWriteResult {
+    auto writeBufferImpl(BytesView buffer) noexcept -> internal::UartWriteResult {
         if (not buffer.empty()) {
             auto const to_write = buffer.length();
 
@@ -168,7 +169,7 @@ private:
         }
     }
 
-    auto writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept -> internal::UartWriteResult {
+    auto writeMixedImpl(trivial auto const &header, BytesView buffer) noexcept -> internal::UartWriteResult {
         KF_TRY(this->writePacket(header));
         return this->writeBuffer(buffer);
     }
@@ -208,7 +209,7 @@ private:
 
     KF_IMPL_BINARY_READABLE(Self, Error);
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
+    auto readBufferImpl(Bytes buffer) noexcept -> Result<BytesView, Error> {
         (void) buffer;
 
         return error(Error::ReadFailed);
@@ -225,7 +226,7 @@ private:
 
     KF_IMPL_BINARY_WRITABLE(Self, internal::UartWriteResult);
 
-    auto writeBufferImpl(Slice<u8 const> buffer) noexcept -> internal::UartWriteResult {
+    auto writeBufferImpl(BytesView buffer) noexcept -> internal::UartWriteResult {
         (void) buffer;
 
         return ok();
@@ -237,7 +238,7 @@ private:
         return ok();
     }
 
-    auto writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept -> internal::UartWriteResult {
+    auto writeMixedImpl(trivial auto const &header, BytesView buffer) noexcept -> internal::UartWriteResult {
         (void) header;
         (void) buffer;
 

@@ -7,7 +7,8 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/Slice.hpp"
+#include "kf/Bytes.hpp"
+#include "kf/BytesView.hpp"
 #include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
 
@@ -20,7 +21,7 @@ struct BinaryReadableTag {};
 /// @tparam ErrorImpl Error type used by the implementation
 /// @note Derived classes must implement:
 ///
-///       - `auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error>`
+///       - `auto readBufferImpl(Bytes buffer) noexcept -> Result<BytesView, Error>`
 ///         Read up to buffer.size() bytes into the given buffer. Returns a slice of actually read data
 ///
 ///       - `template<typename T> auto readPacketImpl() noexcept -> Result<T, Error>`
@@ -36,7 +37,7 @@ template<typename Impl, typename ErrorImpl> struct BinaryReadable : BinaryReadab
     /// @brief Read arbitrary number of bytes into buffer
     /// @param buffer Destination buffer
     /// @return Slice containing actually read data, or error
-    [[nodiscard]] auto readBuffer(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, ErrorImpl> {
+    [[nodiscard]] auto readBuffer(Bytes buffer) noexcept -> Result<BytesView, ErrorImpl> {
         return static_cast<Impl *>(this)->readBufferImpl(buffer);
     }
 

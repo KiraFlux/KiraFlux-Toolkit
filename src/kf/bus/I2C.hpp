@@ -10,6 +10,8 @@
 #include <Wire.h>
 #endif
 
+#include "kf/Bytes.hpp"
+#include "kf/BytesView.hpp"
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/StringView.hpp"
@@ -129,7 +131,7 @@ private:
 
     KF_IMPL_BUS_NODE(Self, Error);
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
+    auto readBufferImpl(Bytes buffer) noexcept -> Result<BytesView, Error> {
         usize const received = request(buffer.length());
 
         if (received == 0) {
@@ -138,7 +140,7 @@ private:
 
         readBytesUnchecked(buffer.data(), received);
 
-        return ok(Slice<u8 const>{buffer.data(), received});
+        return ok(BytesView{buffer.data(), received});
     }
 
     template<trivial T> auto readPacketImpl() noexcept -> Result<T, Error> {
@@ -164,7 +166,7 @@ private:
         }
     }
 
-    IicWriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
+    IicWriteResult writeBufferImpl(BytesView buffer) noexcept {
         beginTransmission();
         usize const written = writeBytes(buffer.data(), buffer.length());
         return endTransmission(written, buffer.length());
@@ -176,7 +178,7 @@ private:
         return endTransmission(written, sizeof(decltype(packet)));
     }
 
-    IicWriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
+    IicWriteResult writeMixedImpl(trivial auto const &header, BytesView buffer) noexcept {
         beginTransmission();
         usize const header_written = writePacketUnchecked(header);
         usize const buffer_written = writeBytes(buffer.data(), buffer.length());
@@ -317,7 +319,7 @@ template<typename B> struct IicNodeImpl : IicNodeBase<IicNodeImpl<B>> {
 private:
     KF_IMPL_BUS_NODE(Self, Error);
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
+    auto readBufferImpl(Bytes buffer) noexcept -> Result<BytesView, Error> {
         return Error::create(Error::Unknown);
     }
 
@@ -325,7 +327,7 @@ private:
         return Error::create(Error::Unknown);
     }
 
-    auto writeBufferImpl(Slice<u8 const> buffer) noexcept -> Result<void, Error> {
+    auto writeBufferImpl(BytesView buffer) noexcept -> Result<void, Error> {
         return ok();
     }
 
@@ -333,7 +335,7 @@ private:
         return ok();
     }
 
-    auto writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept -> Result<void, Error> {
+    auto writeMixedImpl(trivial auto const &header, BytesView buffer) noexcept -> Result<void, Error> {
         return ok();
     }
 };

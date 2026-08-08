@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "kf/BytesView.hpp"
 #include "kf/Result.hpp"
 #include "kf/bus/SPI.hpp"
 #include "kf/concepts.hpp"
@@ -90,7 +91,7 @@ private:
 
     // Low-level communication
 
-    auto sendBuffer(Slice<u8 const> buffer) noexcept -> internal::SpiWriteResult {
+    auto sendBuffer(BytesView buffer) noexcept -> internal::SpiWriteResult {
         _gpio_data_command.level(true);
         return _spi_node.writeBuffer(buffer);
     }

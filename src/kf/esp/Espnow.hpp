@@ -15,10 +15,12 @@
 #include <esp_now.h>
 
 // lib
+#include "kf/BytesView.hpp"
 #include "kf/MacAddress.hpp"
 #include "kf/Result.hpp"
-#include "kf/Slice.hpp"
 #include "kf/StringView.hpp"
+#include "kf/primitives.hpp"
+
 #include "kf/mixin/BinaryWritable.hpp"
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Initable.hpp"
@@ -27,7 +29,6 @@
 #include "kf/mixin/Quitable.hpp"
 #include "kf/mixin/Representable.hpp"
 #include "kf/mixin/Singleton.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf::internal {
 
@@ -94,7 +95,7 @@ struct Espnow final :
     mixin::MacAddressed,
     mixin::Initable<Espnow, Result<void, internal::EspnowError>()>,
     mixin::Quitable<Espnow>,
-    mixin::Callbacked<void(MacAddress const &, Slice<u8 const>)>
+    mixin::Callbacked<void(MacAddress const &, BytesView)>
 
 {
     /// @brief ESP-NOW operation error type
@@ -195,7 +196,7 @@ struct Espnow final :
 
         KF_IMPL_BINARY_WRITABLE(Peer, VoidResult);
 
-        VoidResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
+        VoidResult writeBufferImpl(BytesView buffer) noexcept {
             if (buffer.length() > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }
             return send(buffer.data(), buffer.length());
         }
@@ -205,7 +206,7 @@ struct Espnow final :
             return send(reinterpret_cast<u8 const *>(&packet), sizeof(decltype(packet)));
         }
 
-        VoidResult writeMixedImpl(auto const &header, Slice<u8 const> buffer) noexcept {
+        VoidResult writeMixedImpl(auto const &header, BytesView buffer) noexcept {
             auto const mixed_size = sizeof(decltype(header)) + buffer.length();
             if (mixed_size > ESP_NOW_MAX_DATA_LEN) { return Error::create(Error::TooBigMessage); }
             u8 mixed[mixed_size];
@@ -229,7 +230,7 @@ private:
         MacAddress source_mac_address;
         std::copy(info->src_addr, info->src_addr + ESP_NOW_ETH_ALEN, source_mac_address.begin());
 
-        Espnow::instance().invoke(source_mac_address, Slice<u8 const>{data, static_cast<usize>(size)});
+        Espnow::instance().invoke(source_mac_address, BytesView{data, static_cast<usize>(size)});
     }
 
     KF_IMPL_INITABLE(Espnow, VoidResult());

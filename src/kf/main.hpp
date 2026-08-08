@@ -102,8 +102,9 @@ void loop() {}// not used
 #include <termios.h>
 #include <unistd.h>
 
+#include "kf/Bytes.hpp"
+#include "kf/BytesView.hpp"
 #include "kf/Result.hpp"
-#include "kf/Slice.hpp"
 #include "kf/concepts.hpp"
 
 #include "kf/mixin/BinaryReadable.hpp"
@@ -183,9 +184,9 @@ private:
 
     KF_IMPL_BINARY_READABLE(Self, Error);
 
-    auto readBufferImpl(Slice<u8> buffer) noexcept -> Result<Slice<u8 const>, Error> {
+    auto readBufferImpl(Bytes buffer) noexcept -> Result<BytesView, Error> {
         if (buffer.empty()) {
-            return ok(Slice<u8 const>{});
+            return ok(BytesView{});
         }
 
         auto const to_read = buffer.length();
@@ -197,7 +198,7 @@ private:
             return error(Error::ReadFailed);
         }
 
-        return ok(Slice<u8 const>{buffer.data(), bytes_read});
+        return ok(BytesView{buffer.data(), bytes_read});
     }
 
     template<trivial T> auto readPacketImpl() -> Result<T, Error> {
@@ -232,7 +233,7 @@ private:
 
     KF_IMPL_BINARY_WRITABLE(Self, AppIoWriteResult);
 
-    AppIoWriteResult writeBufferImpl(Slice<u8 const> buffer) noexcept {
+    AppIoWriteResult writeBufferImpl(BytesView buffer) noexcept {
         if (not buffer.empty()) {
             auto const to_write = buffer.length();
 
@@ -260,7 +261,7 @@ private:
         }
     }
 
-    AppIoWriteResult writeMixedImpl(trivial auto const &header, Slice<u8 const> buffer) noexcept {
+    AppIoWriteResult writeMixedImpl(trivial auto const &header, BytesView buffer) noexcept {
         KF_TRY(this->writePacket(header));
         return this->writeBuffer(buffer);
     }

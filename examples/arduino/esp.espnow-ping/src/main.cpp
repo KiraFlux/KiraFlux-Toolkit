@@ -5,6 +5,7 @@
 #include <kf/main.hpp>
 #include <kf/primitives.hpp>
 #include <kf/rtos/Clock.hpp>
+#include <kf/BytesView.hpp>
 #include <kf/rtos/Task.hpp>
 
 #include <WiFi.h>// ESP-NOW requires STA mode – set explicitly
@@ -73,7 +74,7 @@ void kf::main(kf::Init &init) {
 
     // --- Callback registration ---
 
-    Espnow::instance().callback([&](MacAddress const &mac, Slice<u8 const> data) {
+    Espnow::instance().callback([&](MacAddress const &mac, BytesView data) {
         onReceive(init, mac, data);
     });
 
