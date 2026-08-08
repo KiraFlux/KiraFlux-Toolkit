@@ -311,7 +311,7 @@ template<typename B> struct IicNodeImpl : IicNodeBase<IicNodeImpl<B>> {
     using Error = IicError;
     using Config = IicNodeConfig;
 
-    explicit IicNodeImpl(B &bus, Config const &config) noexcept :
+    explicit constexpr IicNodeImpl(B &bus, Config const &config) noexcept :
         IicNodeBase<Self>{config} {}
 
 private:

@@ -61,7 +61,7 @@ struct NormalizedAdcInput final :
     ///       - on calculate: compute dead zone and ranges based on collected data.
     struct Tuner final : tuner::SampleCollectingTuner<Tuner, Config> {
 
-        explicit Tuner(Config &config, NormalizedAdcInput &normalized_input, usize samples) :
+        explicit constexpr Tuner(Config &config, NormalizedAdcInput &normalized_input, usize samples) :
             tuner::SampleCollectingTuner<Tuner, Config>{config, samples}, _normalized_input{normalized_input} {}
 
     private:

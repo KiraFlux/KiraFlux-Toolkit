@@ -75,7 +75,7 @@ struct SSD1306 :
     };
 
     /// @brief Construct SSD1306 driver instance
-    explicit SSD1306(bus::I2C &i2c_bus, Config const &config) noexcept :
+    explicit constexpr SSD1306(bus::I2C &i2c_bus, Config const &config) noexcept :
         mixin::Configured<Config>{config}, _i2c_node{i2c_bus.createNode(config.i2c_node)} {}
 
     /// @brief Set display contrast level (0..255)

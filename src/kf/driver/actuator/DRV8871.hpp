@@ -46,7 +46,7 @@ struct DRV8871 final :
     /// @param config Driver configuration (dead zones, max input)
     /// @param gpio_num_forward PWM gpio output for forward rotation
     /// @param gpio_num_backward PWM gpio output for backward rotation
-    explicit DRV8871(Config const &config, gpio::GpioNumber gpio_num_forward, gpio::GpioNumber gpio_num_backward) noexcept :
+    explicit constexpr DRV8871(Config const &config, gpio::GpioNumber gpio_num_forward, gpio::GpioNumber gpio_num_backward) noexcept :
         mixin::Configured<Config>(config),
         _pwm_gpio_forward{config.pwm, gpio_num_forward},
         _pwm_gpio_backward{config.pwm, gpio_num_backward} {}

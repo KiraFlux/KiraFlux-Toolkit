@@ -44,7 +44,7 @@ template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joy
     ///       After reset(), call poll() repeatedly until running() returns false.
     ///       The tuner reads raw values from the joystick axes internally.
     struct Tuner : tuner::Tuner<Tuner> {
-        explicit Tuner(Config &config, Joystick &joystick, usize samples) noexcept :
+        explicit constexpr Tuner(Config &config, Joystick &joystick, usize samples) noexcept :
             _tuner_x{config.x, joystick.axis_x, samples},
             _tuner_y{config.y, joystick.axis_y, samples} {}
 
@@ -70,7 +70,7 @@ template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joy
 
     InputImpl axis_x, axis_y;
 
-    explicit Joystick(Config const &config, gpio::GpioNumber gpio_num_axis_x, gpio::GpioNumber gpio_num_axis_y) noexcept :
+    explicit constexpr Joystick(Config const &config, gpio::GpioNumber gpio_num_axis_x, gpio::GpioNumber gpio_num_axis_y) noexcept :
         axis_x{config.x, config.filter, gpio_num_axis_x},
         axis_y{config.y, config.filter, gpio_num_axis_y} {}
 

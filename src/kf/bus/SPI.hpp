@@ -289,7 +289,7 @@ template<typename B> struct SpiNodeImpl : SpiNodeBase<SpiNodeImpl<B>> {
     using Error = SpiError;
     using Config = SpiNodeConfig;
 
-    explicit SpiNodeImpl(B &bus, Config const &config) noexcept :
+    explicit constexpr SpiNodeImpl(B &bus, Config const &config) noexcept :
         SpiNodeBase<Self>{config} {}
 
 private:

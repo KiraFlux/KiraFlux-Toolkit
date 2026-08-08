@@ -18,7 +18,7 @@ namespace kf::driver::sensor {
 struct Sharp final : SensorDriver<Sharp, units::Millimeters, void> {
     using Self = Sharp;
 
-    explicit Sharp(gpio::GpioNumber gpio_num) noexcept :
+    explicit constexpr Sharp(gpio::GpioNumber gpio_num) noexcept :
         _adc_input{gpio_num} {}
 
 private:
