@@ -5,6 +5,7 @@
 
 #include <cmath>
 
+#include "kf/BytesView.hpp"
 #include "kf/Option.hpp"
 #include "kf/concepts.hpp"
 #include "kf/mixin/Length.hpp"
@@ -70,6 +71,27 @@ inline namespace custom_functions {
     auto const &in_low, auto const &in_high,
     auto const &out_low, auto const &out_high) noexcept {
     return (value - in_low) * (out_high - out_low) / (in_high - in_low) + out_low;
+}
+
+/// @brief CRC-32 (IEEE 802.3) checksum
+[[nodiscard]] u32 crc32(BytesView data) {
+    constexpr u32 reflected_polynomial{0xEDB88320};
+
+    auto crc = static_cast<u32>(-1);
+
+    for (auto byte: data) {
+        crc ^= byte;
+
+        for (auto j = 0u; j < 8; j += 1) {
+            if (crc & 1) {
+                crc = (crc >> 1) ^ reflected_polynomial;
+            } else {
+                crc >>= 1;
+            }
+        }
+    }
+
+    return ~crc;
 }
 
 }// namespace custom_functions
