@@ -39,7 +39,7 @@ template<typename T> struct Slice : Sequence<Slice<T>, T> {
             return {};
         }
 
-        usize len = count.isNone() ? (_length - offset) : count.unwrap();
+        usize len = count.unwrapOr(_length - offset);
 
         if (len > _length - offset) {
             len = _length - offset;
