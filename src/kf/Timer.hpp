@@ -39,17 +39,17 @@ struct Timer final :
 
     /// @brief Expired check
     /// @note Do not automatically reset
-    [[nodiscard]] constexpr bool expired(units::Milliseconds now) noexcept {
+    [[nodiscard]] constexpr bool expired(units::Milliseconds now) const noexcept {
         return elapsed(now) >= this->config().value;
     }
 
     /// @brief Get Time since last start()
-    [[nodiscard]] constexpr units::Milliseconds elapsed(units::Milliseconds now) noexcept {
+    [[nodiscard]] constexpr units::Milliseconds elapsed(units::Milliseconds now) const noexcept {
         return now - _last;
     }
 
     /// @brief Get Time before Timer expire
-    [[nodiscard]] constexpr units::Milliseconds remaining(units::Milliseconds now) noexcept {
+    [[nodiscard]] constexpr units::Milliseconds remaining(units::Milliseconds now) const noexcept {
         auto const e = elapsed(now);
         if (e < this->config().value) {// because of unsigned arithmetic
             return this->config().value - e;
