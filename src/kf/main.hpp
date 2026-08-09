@@ -97,6 +97,7 @@ void loop() {}// not used
 
 #else
 
+#include <errno.h>
 #include <fcntl.h>
 #include <iostream>
 #include <termios.h>
@@ -189,41 +190,40 @@ private:
             return ok(BytesView{});
         }
 
-        auto const to_read = buffer.length();
+        auto const n = ::read(STDIN_FILENO, buffer.data(), buffer.length());
 
-        std::cin.read(reinterpret_cast<char *>(buffer.data()), to_read);
-        auto const bytes_read = static_cast<usize>(std::cin.gcount());
-
-        if (bytes_read == 0) {
+        if (n < 0) {
+            if (errno == EAGAIN or errno == EWOULDBLOCK) {
+                return ok(BytesView{});
+            }
             return error(Error::ReadFailed);
         }
 
-        return ok(BytesView{buffer.data(), bytes_read});
+        // EOF
+        if (n == 0) {
+            return error(Error::ReadFailed);
+        }
+
+        return ok(BytesView{buffer.data(), static_cast<usize>(n)});
     }
 
     template<trivial T> auto readPacketImpl() -> Result<T, Error> {
-        constexpr auto to_read = sizeof(T);
+        T packet;
 
-        if constexpr (to_read == sizeof(u8)) {
-            int const c = std::cin.get();
+        auto result = this->readBuffer(Bytes{
+            reinterpret_cast<u8 *>(&packet),
+            sizeof(T),
+        });
 
-            if (EOF == c) {
-                return error(Error::ReadFailed);
-            } else {
-                return ok(static_cast<T>(c));
-            }
-        } else {
-            T packet;
-
-            std::cin.read(reinterpret_cast<char *>(&packet), to_read);
-            auto const bytes_read = static_cast<usize>(std::cin.gcount());
-
-            if (to_read == bytes_read) {
-                return ok(packet);
-            } else {
-                return error(Error::ReadFailed);
-            }
+        if (result.isError()) {
+            return error(result.error());
         }
+
+        if (result.ok().length() != sizeof(T)) {
+            return error(Error::ReadFailed);
+        }
+
+        return ok(packet);
     }
 
     KF_IMPL_READ_AVAILABLE(Self);
