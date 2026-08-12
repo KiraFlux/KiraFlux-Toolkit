@@ -12,7 +12,6 @@
 #include "kf/Bytes.hpp"
 #include "kf/Option.hpp"
 #include "kf/Slice.hpp"
-#include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
 
 #include "kf/mixin/NonCopyable.hpp"
@@ -21,7 +20,9 @@
 namespace kf {
 
 /// @brief Linear allocator with O(1) reset
-/// @note Supports only trivial types. Memory is not freed individually
+/// @note The caller is responsible for calling destructors for all allocated objects
+///       before resetting the arena or discarding the memory.
+///       Use with container types (like Stack, Queue,  etc..) that manage lifetime automatically.
 struct Arena : mixin::NonCopyable, mixin::Resettable<Arena> {
     using Self = Arena;
 
@@ -52,8 +53,9 @@ struct Arena : mixin::NonCopyable, mixin::Resettable<Arena> {
         return {_buffer.data() + aligned, size};
     }
 
-    /// @brief Allocate uninitialized storage for trivial objects
-    template<trivial T> [[nodiscard]] constexpr auto allocate(usize count) noexcept -> Slice<T> {
+    /// @brief Allocate uninitialized storage for objects
+    /// @note Caller must call destructor for all active instances (like Stack's reset() do)
+    template<typename T> [[nodiscard]] constexpr auto allocate(usize count) noexcept -> Slice<T> {
         auto bytes = allocate(count * sizeof(T), alignof(T));
 
         return {
@@ -62,8 +64,9 @@ struct Arena : mixin::NonCopyable, mixin::Resettable<Arena> {
         };
     }
 
-    /// @brief Allocate and construct a trivial object
-    template<trivial T, typename... Args> auto create(Args &&...args) noexcept -> Option<T &> {
+    /// @brief Allocate and construct an object
+    /// @note Caller must call destructor manually
+    template<typename T, typename... Args> auto create(Args &&...args) noexcept -> Option<T &> {
         auto mem = allocate(sizeof(T), alignof(T));
 
         if (mem.empty()) {
