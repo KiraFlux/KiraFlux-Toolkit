@@ -240,13 +240,20 @@ template<typename T> struct TrivialStorage : StorageBase<TrivialStorage<T>> {
     constexpr TrivialStorage(T const &value) noexcept :
         _value{value}, _is_some{true} {}
 
+    constexpr TrivialStorage(T &&value) noexcept :
+        _value{std::move(value)}, _is_some{true} {}
+
 protected:
-    [[nodiscard]] constexpr T &get() noexcept {
+    [[nodiscard]] constexpr T &get() & noexcept {
         return _value;
     }
 
-    [[nodiscard]] constexpr T const &get() const noexcept {
+    [[nodiscard]] constexpr T const &get() const & noexcept {
         return _value;
+    }
+
+    [[nodiscard]] constexpr T &&get() && noexcept {
+        return std::move(_value);
     }
 
 private:
