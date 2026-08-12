@@ -97,6 +97,7 @@ void loop() {}// not used
 
 #else
 
+#include <csignal>
 #include <errno.h>
 #include <fcntl.h>
 #include <iostream>
@@ -152,35 +153,78 @@ struct AppIO :
     constexpr AppIO() noexcept = default;
 
 private:
-    termios kf_original_tty;
+    inline static struct termios _orig_tty{};
+    inline static bool _is_raw{false}, _restored{false};
+
+    static void restoreTerminal() noexcept {
+        if (not _is_raw or _restored) { return; }
+        _restored = true;
+
+        // Restore original terminal settings
+        (void) ::tcsetattr(STDIN_FILENO, TCSANOW, &_orig_tty);
+
+        // Clear O_NONBLOCK flag
+        int flags = ::fcntl(STDIN_FILENO, F_GETFL, 0);
+        if (flags != -1) {
+            (void) ::fcntl(STDIN_FILENO, F_SETFL, flags & ~O_NONBLOCK);
+        }
+
+        _is_raw = false;
+    }
+
+    static void signalHandler(int sig) noexcept {
+        (void) sig;
+        restoreTerminal();
+        ::_exit(0);
+    }
+
+    static void setupSignalHandlers() noexcept {
+        struct sigaction sa{};
+        sa.sa_handler = signalHandler;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = SA_RESTART;
+
+        (void) ::sigaction(SIGINT, &sa, nullptr);
+        (void) ::sigaction(SIGTERM, &sa, nullptr);
+        (void) ::sigaction(SIGQUIT, &sa, nullptr);
+    }
 
     KF_IMPL_INITABLE(Self, void());
     void initImpl() noexcept {
         if (::isatty(STDIN_FILENO)) {
+            // Save original terminal settings
+            ::tcgetattr(STDIN_FILENO, &_orig_tty);
 
-            /* 1. enable raw mode (like arduino UART) */
-            ::tcgetattr(STDIN_FILENO, &kf_original_tty);
-            termios raw = kf_original_tty;
+            // Set raw mode (like Arduino UART)
+            struct termios raw = _orig_tty;
             raw.c_lflag &= ~(ICANON | ECHO);
-            raw.c_cc[VMIN] = 0;  /* 0 - nonblocking is no bytes */
-            raw.c_cc[VTIME] = 0; /* no timeouts */
+            raw.c_cc[VMIN] = 0;
+            raw.c_cc[VTIME] = 0;
             ::tcsetattr(STDIN_FILENO, TCSANOW, &raw);
 
-            /* 2. change stdin handler to async mode */
+            // Set stdin to non-blocking mode
             int flags = ::fcntl(STDIN_FILENO, F_GETFL, 0);
-            ::fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+            if (flags != -1) {
+                (void) ::fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+            }
+
+            _is_raw = true;
+            _restored = false;
+
+            // Register terminal restoration on normal exit
+            ::atexit(restoreTerminal);
+
+            // Install signal handlers
+            setupSignalHandlers();
         }
 
-        /* Disable sync iostream with C functions for correct std::cin.get() work in raw mode */
+        // Disable sync with C I/O (for raw mode)
         std::ios_base::sync_with_stdio(false);
     }
 
     KF_IMPL_QUITABLE(Self);
     void quitImpl() noexcept {
-        if (::isatty(STDIN_FILENO)) {
-            ::fcntl(STDIN_FILENO, F_SETFL, ::fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
-            ::tcsetattr(STDIN_FILENO, TCSANOW, &kf_original_tty);
-        }
+        restoreTerminal();
     }
 
     KF_IMPL_BINARY_READABLE(Self, Error);
