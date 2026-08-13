@@ -5,9 +5,13 @@
 
 #pragma once
 
+#include "kf/NoneType.hpp"
+#include "kf/Option.hpp"
+#include "kf/concepts.hpp"
+#include "kf/primitives.hpp"
+
 #include "kf/mixin/Indexable.hpp"
 #include "kf/mixin/Length.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf {
 
@@ -69,6 +73,24 @@ template<typename Impl, typename T> struct Sequence :
             this->data(),
             this->length(),
         };
+    }
+
+    [[nodiscard]] constexpr auto firstWhere(callable<bool(T &)> auto &&f) -> Option<T &> {
+        for (auto &item: *this) {
+            if (f(item)) {
+                return someRef(item);
+            }
+        }
+        return none;
+    }
+
+    [[nodiscard]] constexpr auto firstWhere(callable<bool(T const &)> auto &&f) -> Option<T const &> {
+        for (auto const &item: *this) {
+            if (f(item)) {
+                return someRef(item);
+            }
+        }
+        return none;
     }
 
 private:
