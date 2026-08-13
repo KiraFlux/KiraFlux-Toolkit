@@ -11,7 +11,7 @@
 
 #include <kf/Arena.hpp>
 #include <kf/main.hpp>
-
+#include <kf/Registry.hpp>
 #include <kf/String.hpp>
 #include <kf/StringView.hpp>
 
@@ -28,7 +28,7 @@ struct Player : kf::mixin::ExtraAllocationLength<Player> {
         name{arena.allocate<char>(max_name_length + s)}, score{s} {
         name.append(n);
     }
-
+    
 private:
     KF_IMPL_EXTRA_ALLOCATION_LENGTH(Player);
     static constexpr auto getExtraAllocationLengthImpl(auto, int score, auto const &...) noexcept {
@@ -38,6 +38,18 @@ private:
 
 void kf::main(kf::Init &init) {
     init.logger.info("KiraFlux-Toolkit Example: core/arena");
+
+    Registry<Player> player_registry{init.arena, 32};
+
+    (void) player_registry.add(init.arena, "bob", 10); // returns optional reference to created player
+    (void) player_registry.add(init.arena, "kek", 12);
+    (void) player_registry.add(init.arena, "bob", 13);
+
+    for (auto p: player_registry.items()) {
+        init.logger.debug("{} {}", p->name, p->score);
+    }
+
+    player_registry.reset();
 
     // --- 1. Create arena with a static buffer ---
     static u8 memory[2048];
