@@ -27,13 +27,10 @@ build:
 
 b: build
 
-run: $(PROG_NATIVE)
-	./$(PROG_NATIVE)
+run:
+	pio run -e $(ENV_NATIVE) --target upload
 
 r: run
-
-$(PROG_NATIVE):
-	pio run -e $(ENV_NATIVE)
 
 upload: 
 	pio run -e $(ENV_ESP32) --target upload --upload-port $(PORT) 
@@ -41,7 +38,7 @@ upload:
 u: upload
 
 monitor:
-	pio device monitor --port $(PORT)
+	pio device monitor --port $(PORT) --no-reconnect
 
 m: monitor
 
