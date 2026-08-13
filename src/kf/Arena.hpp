@@ -12,8 +12,10 @@
 #include "kf/Bytes.hpp"
 #include "kf/Option.hpp"
 #include "kf/Slice.hpp"
+#include "kf/concepts.hpp"
 #include "kf/primitives.hpp"
 
+#include "kf/mixin/ExtraAllocationLength.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
 
@@ -67,13 +69,23 @@ struct Arena : mixin::NonCopyable, mixin::Resettable<Arena> {
     /// @brief Allocate and construct an object
     /// @note Caller must call destructor manually
     template<typename T, typename... Args> auto create(Args &&...args) noexcept -> Option<T &> {
-        auto mem = allocate(sizeof(T), alignof(T));
+        usize total_size = sizeof(T);
 
-        if (mem.empty()) {
-            return none;
+        if constexpr (implements<T, mixin::ExtraAllocationLengthTag>) {
+            total_size += T::extraAllocationLength(args...);
         }
 
-        return someRef(*(new (static_cast<void *>(mem.data())) T{std::forward<Args>(args)...}));
+        if (available() < total_size) { return none; }
+
+        auto ptr = static_cast<void *>(allocate(sizeof(T), alignof(T)).data());
+
+        if constexpr (implements<T, mixin::ExtraAllocationLengthTag>) {
+            new (ptr) T{*this, std::forward<Args>(args)...};
+        } else {
+            new (ptr) T{std::forward<Args>(args)...};
+        }
+
+        return someRef(*static_cast<T *>(ptr));
     }
 
 private:

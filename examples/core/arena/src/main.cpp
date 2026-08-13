@@ -12,17 +12,27 @@
 #include <kf/Arena.hpp>
 #include <kf/main.hpp>
 
-struct Player {
-    char name[16];
+#include <kf/String.hpp>
+#include <kf/StringView.hpp>
+
+#include <kf/mixin/ExtraAllocationLength.hpp>
+
+struct Player : kf::mixin::ExtraAllocationLength<Player> {
+    static constexpr kf::usize max_name_length{32};
+
+    kf::String name;
     int score;
-    bool active;
 
     // Constructor for create<T>().
-    Player(char const *n, int s, bool a) : score{s}, active{a} {
-        for (auto i = 0; i < sizeof(name) and n[i] != '\0'; i += 1) {
-            name[i] = n[i];
-        }
-        name[sizeof(name) - 1] = '\0';
+    explicit constexpr Player(kf::Arena &arena, kf::StringView n, int s) noexcept :
+        name{arena.allocate<char>(max_name_length + s)}, score{s} {
+        name.append(n);
+    }
+
+private:
+    KF_IMPL_EXTRA_ALLOCATION_LENGTH(Player);
+    static constexpr auto getExtraAllocationLengthImpl(auto, int score, auto const &...) noexcept {
+        return max_name_length + score;
     }
 };
 
@@ -55,27 +65,27 @@ void kf::main(kf::Init &init) {
     }
 
     // --- 4. Object construction with constructor (create<T>()) ---
-    auto player_opt = arena.create<Player>("Alice", 100, true);
+    auto player_opt = arena.create<Player>("Alice", 100);
     if (player_opt.isSome()) {
         auto &p = player_opt.unwrap();
-        init.logger.info("Created player: '{}', score={}, active={}",
-                         p.name, p.score, p.active);
+        init.logger.info("Created player: '{}' (name capacity={}), score={}",
+                         p.name, p.name.capacity(), p.score);
     }
 
-    auto player2_opt = arena.create<Player>("Bob", 200, false);
+    auto player2_opt = arena.create<Player>("Bob", 200);
     if (player2_opt.isSome()) {
         auto &p = player2_opt.unwrap();
-        init.logger.info("Created player: '{}', score={}, active={}",
-                         p.name, p.score, p.active);
+        init.logger.info("Created player: '{}' (name capacity={}), score={}",
+                         p.name, p.name.capacity(), p.score);
     }
 
     // --- 5. Array of structures ---
     auto players = arena.allocate<Player>(3);
     if (not players.empty()) {
         init.logger.info("Allocated 3 players");
-        players[0] = Player("Charlie", 50, true);
-        players[1] = Player("Dave", 75, false);
-        players[2] = Player("Eve", 120, true);
+        players[0] = Player(arena, "Charlie", 50);
+        players[1] = Player(arena, "Dave", 75);
+        players[2] = Player(arena, "Eve", 120);
         init.logger.debug("players[0].name = {}", players[0].name);
     }
 
