@@ -86,7 +86,9 @@ void kf::main(kf::Init &init) {
     tuner.reset();
 
     while (tuner.running()) {
-        tuner.poll();        // reads X and Y raw values, feeds the tuners
+        auto now = rtos::Clock::now();
+
+        tuner.poll(now);     // reads X and Y raw values, feeds the tuners
         rtos::Task::sleep(1);// small delay to avoid busy-loop
     }
 

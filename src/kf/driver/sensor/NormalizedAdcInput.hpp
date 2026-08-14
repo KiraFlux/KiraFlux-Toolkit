@@ -11,6 +11,7 @@
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
 #include "kf/tuner/SampleCollectingTuner.hpp"
+#include "kf/units.hpp"
 
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Initable.hpp"
@@ -77,7 +78,8 @@ struct NormalizedAdcInput final :
             _sum = 0;
         }
 
-        void pollImpl() noexcept {
+        void pollImpl(units::Milliseconds now) noexcept {
+            (void) now;
             auto const sample = Config::AdcSignedValue(_normalized_input.readRaw());
             _max_sample = math::max(_max_sample, sample);
             _min_sample = math::min(_min_sample, sample);

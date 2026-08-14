@@ -1,6 +1,7 @@
 // KiraFlux-Toolkit Example 'tuner/custom'
 
 #include <kf/main.hpp>
+#include <kf/rtos/Clock.hpp>
 #include <kf/rtos/Task.hpp>
 #include <kf/tuner/Tuner.hpp>
 
@@ -57,8 +58,8 @@ private:
     }
 
     // --- CRTP implementation ---
+    KF_IMPL_TUNER(MyTuner);
 
-    KF_IMPL_RESETTABLE(MyTuner);
     void resetImpl() noexcept {
         _samples_collected = 0;
         _min = MyConfig::value_limit;
@@ -67,8 +68,8 @@ private:
         _state = State::Collecting;
     }
 
-    KF_IMPL_POLLABLE(MyTuner);
-    void pollImpl() noexcept {
+    void pollImpl(kf::units::Milliseconds now) noexcept {
+        (void) now;// this tuner is not time-aware
         switch (_state) {
             case State::Idle:
                 return;
@@ -92,7 +93,6 @@ private:
         }
     }
 
-    KF_IMPL_TUNER(MyTuner);
     bool runningImpl() const noexcept {
         return _state != State::Idle;
     }
@@ -128,9 +128,11 @@ void kf::main(kf::Init &init) {
 
     // Poll all tuners until all are done.
     while (tuner_1.running() or tuner_2.running() or tuner_3.running()) {
-        tuner_1.poll();
-        tuner_2.poll();
-        tuner_3.poll();
+        auto now = rtos::Clock::now();
+
+        tuner_1.poll(now);
+        tuner_2.poll(now);
+        tuner_3.poll(now);
         rtos::Task::sleep(1);
     }
 

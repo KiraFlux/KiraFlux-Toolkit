@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kf/core.hpp"
+#include "kf/units.hpp"
 
 #include "kf/tuner/Tuner.hpp"
 
@@ -16,7 +17,7 @@ namespace kf::tuner {
 ///
 ///       - `void resetImpl() noexcept`   – called when collection begins.
 ///
-///       - `void pollImpl() noexcept`    – called for each sample; should process the current sample (e.g., update min/max/sum).
+///       - `void pollImpl(kf::units::Milliseconds now) noexcept`    – called for each sample; should process the current sample (e.g., update min/max/sum).
 ///
 ///       - `void calculateImpl(T&) noexcept` – called after all samples are collected; updates the configuration.
 ///
@@ -53,13 +54,13 @@ private:
         impl().resetImpl();
     }
 
-    void pollImpl() noexcept {
+    void pollImpl(kf::units::Milliseconds now) noexcept {
         switch (_state) {
             case State::Idle://
                 return;
 
             case State::Running: {
-                impl().pollImpl();
+                impl().pollImpl(now);
                 _samples_processed += 1;
 
                 if (_samples_processed >= samples_total) {
@@ -95,4 +96,4 @@ private:
 #define KF_IMPL_SAMPLE_COLLECTING_TUNER(__impl__, ...)                       \
     friend struct ::kf::tuner::SampleCollectingTuner<__impl__, __VA_ARGS__>; \
     KF_IMPL_RESETTABLE(__impl__);                                            \
-    KF_IMPL_POLLABLE(__impl__)
+    KF_IMPL_TIMED_POLLABLE(__impl__)

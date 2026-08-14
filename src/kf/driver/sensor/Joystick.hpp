@@ -10,6 +10,7 @@
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
 #include "kf/tuner/Tuner.hpp"
+#include "kf/units.hpp"
 
 #include "kf/driver/sensor/SensorDriver.hpp"
 
@@ -58,9 +59,9 @@ template<implements<SensorDriverTag> I> struct Joystick final : SensorDriver<Joy
             _tuner_y.reset();
         }
 
-        void pollImpl() noexcept {
-            _tuner_x.poll();
-            _tuner_y.poll();
+        void pollImpl(units::Milliseconds now) noexcept {
+            _tuner_x.poll(now);
+            _tuner_y.poll(now);
         }
 
         bool runningImpl() const noexcept {
