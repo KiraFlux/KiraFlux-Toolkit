@@ -79,7 +79,7 @@ template<implements<mixin::MatchTag> T> struct Registry<T> : internal::RegistryB
     auto get(typename T::MatchingType value) const noexcept -> Option<T const &> {
         auto ptr_opt = this->items().firstWhere([value](auto const &item) { return item->match(value); });
         if (ptr_opt.isSome()) {
-            return someRef(*ptr_opt.unwrap());
+            return someRef<T const &>(*ptr_opt.unwrap());
         }
         return none;
     }
