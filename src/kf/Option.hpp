@@ -13,7 +13,6 @@
 #include <utility>// std::move std::forward
 
 #include "kf/Function.hpp"
-#include "kf/NoneType.hpp"
 #include "kf/core.hpp"
 
 #include "kf/mixin/Invariant.hpp"

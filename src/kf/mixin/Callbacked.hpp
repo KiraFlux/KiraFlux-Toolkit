@@ -10,8 +10,8 @@
 #include <utility>
 
 #include "kf/Function.hpp"
-#include "kf/NoneType.hpp"
 #include "kf/Option.hpp"
+#include "kf/core.hpp"
 
 namespace kf::mixin {
 

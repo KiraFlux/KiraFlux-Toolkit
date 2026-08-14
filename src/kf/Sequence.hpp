@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "kf/NoneType.hpp"
 #include "kf/Option.hpp"
 #include "kf/core.hpp"
 
