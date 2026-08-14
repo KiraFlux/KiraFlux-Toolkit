@@ -16,13 +16,17 @@
 
 namespace kf::mixin {
 
-struct WritableTag {};
+template<typename T> struct WritableTag {
+    struct WriteTraits {
+        using Type = T;
+    };
+};
 
 }// namespace kf::mixin
 
 namespace kf::internal {
 
-template<typename Impl, typename T> struct WritableBase : mixin::WritableTag {
+template<typename Impl, typename T> struct WritableBase : mixin::WritableTag<T> {
 
     /// @brief Write Value
     /// @param value Value to write (perfect-forwarded)
