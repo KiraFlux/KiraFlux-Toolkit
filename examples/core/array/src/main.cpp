@@ -33,19 +33,13 @@ void kf::main(kf::Init &init) {
     arr2[1] = 200;
 
     // Iteration (range-based for, inherited from Sequence).
-    init.logger.debug("arr2 elements:");
-    for (auto v: arr2) {
-        init.logger.debug("  {}", v);
-    }
+    init.logger.debug("arr2 elements: {}", arr2);
 
     // --- Fill ---
 
     // fill() sets all elements to a given value.
     arr3.fill(42);
-    init.logger.debug("arr3 after fill(42):");
-    for (auto v: arr3) {
-        init.logger.debug("  {}", v);
-    }
+    init.logger.debug("arr3 after fill(42): {}", arr3);
 
     // --- Slice and data access ---
 

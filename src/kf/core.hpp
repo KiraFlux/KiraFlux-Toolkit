@@ -109,16 +109,31 @@ template<typename T>
 concept trivial = std::is_trivially_copyable_v<T> and std::is_trivially_destructible_v<T>;
 
 template<typename T>
-concept enum_type = std::is_enum_v<T>;
+concept c_string = (
 
-template<typename T>
-concept float_type = std::is_floating_point_v<T>;
+    std::is_same_v<T, char *> or
+    std::is_same_v<T, char const *> or
+    (std::is_array_v<T> and std::is_same_v<std::remove_extent_t<T>, char>)
+
+);
 
 /// @brief Concept for callable objects with a specific signature.
 /// @tparam F    The callable type.
 /// @tparam Signature Function type.
 template<typename F, typename Signature>
 concept callable = is_callable<F, Signature>::value;
+
+template<typename T, typename U>
+concept type_like = std::is_same_v<std::remove_cv_t<T>, U>;
+
+template<typename T>
+concept enum_type = std::is_enum_v<T>;
+
+template<typename T>
+concept integer_type = std::is_integral_v<T>;
+
+template<typename T>
+concept float_type = std::is_floating_point_v<T>;
 
 }// namespace concepts
 

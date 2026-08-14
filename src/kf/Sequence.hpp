@@ -10,20 +10,26 @@
 
 #include "kf/mixin/Indexable.hpp"
 #include "kf/mixin/Length.hpp"
+#include "kf/mixin/ReprTo.hpp"
 
 namespace kf {
 
 template<typename> struct Slice;// forward declaration
 
-struct SequenceTag {};
+template<typename T> struct SequenceTag {
+    struct SequenceTraits {
+        using Type = T;
+    };
+};
 
 /// @brief   CRTP base for sequence containers providing iteration, indexing, and slicing.
 /// @tparam Impl Sequence Implementation class with `lengthImpl` and `getDataImpl` methods
 /// @tparam T Item type
 template<typename Impl, typename T> struct Sequence :
 
-    SequenceTag,
+    SequenceTag<T>,
     mixin::Indexable<Sequence<Impl, T>, T>,
+    mixin::ReprTo<Sequence<Impl, T>>,
     mixin::Length<Impl, usize>
 
 {
@@ -93,9 +99,30 @@ template<typename Impl, typename T> struct Sequence :
 
 private:
     KF_IMPL_INDEXABLE(Self, T);
-
     constexpr T &getItemImpl(usize index) noexcept {
         return data()[index];
+    }
+
+    KF_IMPL_REPR_TO(Self);
+    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+        if constexpr (type_like<T, char>) {
+            for (auto const c: *this) {
+                if (c == '\0') { break; }
+                (void) char_writable.write(static_cast<char>(c));
+            }
+        } else {
+            (void) char_writable.write('{');
+            bool f = false;
+            for (auto const &v: *this) {
+                if (f) {
+                    (void) char_writable.write(',');
+                    (void) char_writable.write(' ');
+                }
+                f = true;
+                char_writable.append(v);
+            }
+            (void) char_writable.write('}');
+        }
     }
 };
 

@@ -11,7 +11,10 @@
 #include <utility>
 
 #include "kf/StringView.hpp"
+#include "kf/core.hpp"
 #include "kf/math.hpp"
+
+#include "kf/mixin/ReprTo.hpp"
 #include "kf/mixin/Representable.hpp"
 
 namespace kf::mixin {
@@ -178,47 +181,32 @@ template<typename Impl, typename T> struct Writable : internal::WritableBase<Imp
 
 template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Impl, char> {
 
-    /// @brief Append string representation of value
-    /// @param value Value to represent
-    /// @param precision Precision for float-point number
-    constexpr void append(auto const &value, usize precision = 3) noexcept {
-        using T = std::decay_t<decltype(value)>;
+    constexpr void append(char value) noexcept {
+        (void) this->write(value);
+    }
 
-        if constexpr (std::is_same_v<T, char>) {
+    constexpr void append(bool value) noexcept {
+        appendNullTerminatedString(value ? "true" : "false");
+    }
 
-            (void) this->write(value);
+    constexpr void append(c_string auto const &value) noexcept {
+        appendNullTerminatedString(static_cast<char const *>(value));
+    }
 
-        } else if constexpr (std::is_same_v<T, bool>) {
+    constexpr void append(integer_type auto value) noexcept {
+        appendInteger(value);
+    }
 
-            appendNullTerminatedString(value ? "true" : "false");
+    constexpr void append(float_type auto value, usize precision = 3) noexcept {
+        appendReal(value, precision);
+    }
 
-        } else if constexpr (internal::is_c_string_v<T>) {
+    constexpr void append(implements<RepresentableTag> auto const &value) noexcept {
+        append(value.repr());
+    }
 
-            appendNullTerminatedString(static_cast<char const *>(value));
-
-        } else if constexpr (std::is_base_of_v<SequenceTag, T>) {
-
-            for (auto c: value) {
-                if (not this->write(c)) {
-                    break;
-                }
-            }
-
-        } else if constexpr (std::is_base_of_v<mixin::RepresentableTag, T>) {
-
-            append(value.repr());
-
-        } else if constexpr (std::is_integral_v<T>) {
-
-            appendInteger(value);
-
-        } else if constexpr (std::is_floating_point_v<T>) {
-
-            appendReal(value, precision);
-
-        } else {
-            static_assert(not sizeof(T), "Unsupported type for append");
-        }
+    constexpr void append(implements<ReprToTag> auto const &value) noexcept {
+        value.reprTo(*this);
     }
 
     /// @brief Format into string
