@@ -19,8 +19,6 @@
 
 namespace kf {
 
-template<typename T> struct Registry;
-
 namespace internal {
 
 template<typename T> struct RegistryBase : mixin::Resettable<RegistryBase<T>> {
@@ -66,7 +64,7 @@ template<typename T> struct Registry : internal::RegistryBase<T> {
     using internal::RegistryBase<T>::RegistryBase;
 };
 
-template<implements<mixin::MatchTag> T> struct NamedRegistryBase : internal::RegistryBase<T> {
+template<implements<mixin::MatchTag> T> struct Registry<T> : internal::RegistryBase<T> {
 
     using internal::RegistryBase<T>::RegistryBase;
 
