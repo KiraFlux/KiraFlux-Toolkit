@@ -19,7 +19,7 @@ template<typename Impl, typename T> struct Match : MatchTag {
     /// @brief Compare the object against the provided value.
     /// @param value The value to match against.
     /// @return `true` if the object matches, `false` otherwise.
-    [[nodiscard]] bool match(MatchingType value) noexcept {
+    [[nodiscard]] bool match(MatchingType value) const noexcept {
         return static_cast<Impl *>(this)->matchImpl(value);
     }
 };
