@@ -1,7 +1,7 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
-/// @file    mixin/TimedPollable.hpp
+/// @file    mixin/Poll.hpp
 /// @brief   Adds poll(now) with a timestamp argument.
 
 #pragma once
@@ -10,11 +10,11 @@
 
 namespace kf::mixin {
 
-struct TimedPollableTag {};
+struct PollTag {};
 
 /// @brief CRTP mixin poll (Periodic polling)
 /// @tparam Impl The derived class that must implement `pollImpl(units::Milliseconds)`.
-template<typename Impl> struct TimedPollable : TimedPollableTag {
+template<typename Impl> struct Poll : PollTag {
 
     /// @brief Performs time‑aware polling.
     /// @param now Current timestamp (milliseconds).
@@ -25,4 +25,4 @@ template<typename Impl> struct TimedPollable : TimedPollableTag {
 
 }// namespace kf::mixin
 
-#define KF_IMPL_TIMED_POLLABLE(...) friend struct ::kf::mixin::TimedPollable<__VA_ARGS__>
+#define KF_IMPL_POLL(...) friend struct ::kf::mixin::Poll<__VA_ARGS__>

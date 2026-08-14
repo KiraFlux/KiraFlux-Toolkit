@@ -96,4 +96,4 @@ private:
 #define KF_IMPL_SAMPLE_COLLECTING_TUNER(__impl__, ...)                       \
     friend struct ::kf::tuner::SampleCollectingTuner<__impl__, __VA_ARGS__>; \
     KF_IMPL_RESETTABLE(__impl__);                                            \
-    KF_IMPL_TIMED_POLLABLE(__impl__)
+    KF_IMPL_POLL(__impl__)

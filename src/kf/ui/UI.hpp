@@ -15,7 +15,7 @@
 
 #include "kf/mixin/Labeled.hpp"
 #include "kf/mixin/NonCopyable.hpp"
-#include "kf/mixin/TimedPollable.hpp"
+#include "kf/mixin/Poll.hpp"
 
 #include "kf/ui/Decoration.hpp"
 #include "kf/ui/Layout.hpp"
@@ -38,7 +38,7 @@ namespace kf::ui {
 template<implements<UiTraitsTag> U> struct UI :
 
     mixin::NonCopyable,
-    mixin::TimedPollable<UI<U>>
+    mixin::Poll<UI<U>>
 
 {
     using Self = UI<U>;
@@ -146,7 +146,7 @@ public:
 
         mixin::NonCopyable,
         mixin::Labeled,
-        mixin::TimedPollable<Page>
+        mixin::Poll<Page>
 
     {
         friend struct PageSetter;
@@ -284,7 +284,7 @@ public:
             }
         }
 
-        KF_IMPL_TIMED_POLLABLE(Page);
+        KF_IMPL_POLL(Page);
         void pollImpl(units::Milliseconds now) noexcept {
             onPoll(now);
 
@@ -315,7 +315,7 @@ private:
     typename Traits::RendererImpl &_renderer; ///< Renderer system implementation
     Option<Page &> _active_page{none};        ///< Currently active page for rendering
 
-    KF_IMPL_TIMED_POLLABLE(Self);
+    KF_IMPL_POLL(Self);
     void pollImpl(units::Milliseconds now) noexcept {
         if (_active_page.isNone()) { return; }
 
