@@ -16,6 +16,7 @@
 #include "kf/core.hpp"
 
 #include "kf/mixin/Invariant.hpp"
+#include "kf/mixin/ReprTo.hpp"
 #include "kf/mixin/Resettable.hpp"
 
 namespace kf {
@@ -49,7 +50,8 @@ struct OptionHelper {
 template<> struct Option<void> :
 
     OptionTag,
-    internal::StorageBase<Option<void>>
+    internal::StorageBase<Option<void>>,
+    mixin::ReprTo<Option<void>>
 
 {
 
@@ -78,6 +80,11 @@ private:
     KF_IMPL_RESETTABLE(Self);
     constexpr void resetImpl() noexcept {
         _is_some = false;
+    }
+
+    KF_IMPL_REPR_TO(Self);
+    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+        char_writable.append(_is_some ? "some()" : "none");
     }
 };
 
@@ -403,7 +410,8 @@ template<typename T> using Storage = std::conditional_t<
 template<typename T> struct Option :
 
     OptionTag,
-    internal::Storage<T>
+    internal::Storage<T>,
+    mixin::ReprTo<Option<T>>
 
 {
 private:
@@ -492,6 +500,17 @@ private:
     constexpr void check() const noexcept {
         if (this->isNone()) {
             abort();
+        }
+    }
+
+    KF_IMPL_REPR_TO(Option<T>);
+    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+        if (this->isSome()) {
+            char_writable.append("some(");
+            char_writable.append(this->get());
+            char_writable.append(')');
+        } else {
+            char_writable.append("none");
         }
     }
 };

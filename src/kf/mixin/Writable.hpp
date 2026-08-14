@@ -201,6 +201,12 @@ template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Imp
         appendReal(value, precision);
     }
 
+    constexpr void append(enum_type auto value) noexcept {
+        appendNullTerminatedString("enum(");
+        appendInteger(static_cast<usize>(value));
+        append(')');
+    }
+
     constexpr void append(implements<RepresentableTag> auto const &value) noexcept {
         append(value.repr());
     }

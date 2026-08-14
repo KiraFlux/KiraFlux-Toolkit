@@ -10,6 +10,7 @@
 #include "kf/core.hpp"
 
 #include "kf/mixin/Length.hpp"
+#include "kf/mixin/ReprTo.hpp"
 
 namespace kf::math {
 
@@ -105,7 +106,8 @@ struct RangeTag {};
 template<arithmetic T> struct Range final :
 
     RangeTag,
-    mixin::Length<Range<T>, T>
+    mixin::Length<Range<T>, T>,
+    mixin::ReprTo<Range<T>>
 
 {
 
@@ -134,6 +136,16 @@ private:
     constexpr Scalar lengthImpl() const noexcept {
         return end - start;
     }
+
+    KF_IMPL_REPR_TO(Self);
+    constexpr void reprToImpl(auto &char_writable) const noexcept {
+        char_writable.append('[');
+        char_writable.append(start);
+        char_writable.append('.');
+        char_writable.append('.');
+        char_writable.append(end);
+        char_writable.append(']');
+    }
 };
 
 struct Vector2Tag {};
@@ -142,7 +154,8 @@ struct Vector2Tag {};
 template<arithmetic T> struct Vector2 :
 
     Vector2Tag,
-    mixin::Length<Vector2<T>, T>
+    mixin::Length<Vector2<T>, T>,
+    mixin::ReprTo<Vector2<T>>
 
 {
 
@@ -243,6 +256,16 @@ private:
     constexpr Scalar lengthImpl() const noexcept {
         return static_cast<Scalar>(math::hypot(x, y));
     }
+
+    KF_IMPL_REPR_TO(Self);
+    constexpr void reprToImpl(auto &char_writable) const noexcept {
+        char_writable.append('(');
+        char_writable.append(x);
+        char_writable.append(',');
+        char_writable.append(' ');
+        char_writable.append(y);
+        char_writable.append(')');
+    }
 };
 
 using Vector2f = Vector2<f32>;///< Float precision 2D vector
@@ -254,7 +277,8 @@ struct Vector3Tag {};
 template<arithmetic T> struct Vector3 :
 
     Vector3Tag,
-    mixin::Length<Vector3<T>, T>
+    mixin::Length<Vector3<T>, T>,
+    mixin::ReprTo<Vector3<T>>
 
 {
 
@@ -368,6 +392,19 @@ private:
     constexpr Scalar lengthImpl() const noexcept {
         return static_cast<Scalar>(math::sqrt(x * x + y * y + z * z));
     }
+
+    KF_IMPL_REPR_TO(Self);
+    constexpr void reprToImpl(auto &char_writable) const noexcept {
+        char_writable.append('(');
+        char_writable.append(x);
+        char_writable.append(',');
+        char_writable.append(' ');
+        char_writable.append(y);
+        char_writable.append(',');
+        char_writable.append(' ');
+        char_writable.append(z);
+        char_writable.append(')');
+    }
 };
 
 using Vector3f = Vector3<f32>;///< Float precision 3D vector
@@ -380,7 +417,8 @@ struct QuaternionTag {};
 template<arithmetic T> struct Quaternion :
 
     QuaternionTag,
-    mixin::Length<Quaternion<T>, T>
+    mixin::Length<Quaternion<T>, T>,
+    mixin::ReprTo<Quaternion<T>>
 
 {
 
@@ -551,6 +589,21 @@ private:
     KF_IMPL_LENGTH(Self, Scalar);
     constexpr Scalar lengthImpl() const noexcept {
         return static_cast<Scalar>(math::sqrt(lengthSquared()));
+    }
+
+    KF_IMPL_REPR_TO(Self);
+    constexpr void reprToImpl(auto &char_writable) const noexcept {
+        char_writable.append('(');
+        bool f = false;
+        for (auto const i: {x, y, z, w}) {
+            if (f) {
+                char_writable.append(',');
+                char_writable.append(' ');
+            }
+            f = true;
+            char_writable.append(i);
+        }
+        char_writable.append(')');
     }
 };
 

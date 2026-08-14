@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "kf/core.hpp"
+#include "kf/mixin/ReprTo.hpp"
 
 namespace kf {
 
@@ -143,6 +144,18 @@ private:
     [[nodiscard]] E const &getErrorImpl() const noexcept {
         return _error;
     }
+
+    KF_IMPL_REPR_TO(Result<void, E>);
+    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+        if (this->isError()) {
+            char_writable.append("error(");
+            char_writable.append(_error);
+        } else {
+            char_writable.append("ok(");
+            char_writable.append(_ok);
+        }
+        char_writable.append(')');
+    }
 };
 
 /// @brief Specialization of Result for void success value
@@ -150,7 +163,8 @@ private:
 template<typename E> struct Result<void, E> final :
 
     ResultTag,
-    internal::ResultErrorController<Result<void, E>, E>
+    internal::ResultErrorController<Result<void, E>, E>,
+    mixin::ReprTo<Result<void, E>>
 
 {
     using ValueType = void;
@@ -202,6 +216,17 @@ private:
 
     [[nodiscard]] E const &getErrorImpl() const noexcept {
         return _error;
+    }
+
+    KF_IMPL_REPR_TO(Result<void, E>);
+    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+        if (this->isError()) {
+            char_writable.append("error(");
+            char_writable.append(_error);
+            char_writable.append(')');
+        } else {
+            char_writable.append("ok()");
+        }
     }
 };
 
