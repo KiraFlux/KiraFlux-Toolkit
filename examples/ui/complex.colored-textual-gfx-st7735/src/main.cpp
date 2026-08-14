@@ -327,7 +327,11 @@ Event eventFromChar(char c) {
 // display
 
 void kf::main(kf::Init &init) {
-    static Render::Config my_renderer_config{};// will set in setup
+    static Render::Config my_renderer_config{
+        .textual{
+            .offset_size = 1,
+        },
+    };
 
     static Render my_renderer{
         my_renderer_config,// by ref
@@ -412,8 +416,8 @@ void kf::main(kf::Init &init) {
         // }
     });
 
-    // render config setup
-    my_renderer_config.reset();// to defaults
+    // render config reset to defaults
+    my_renderer_config.reset();
 
     // override
     my_renderer_config.textual.float_places = 3;                         // float rendering like:  1234.567

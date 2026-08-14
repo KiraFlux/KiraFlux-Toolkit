@@ -15,7 +15,7 @@
 
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configured.hpp"
-#include "kf/mixin/Resettable.hpp"
+#include "kf/mixin/DefaultResettable.hpp"
 
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
@@ -26,24 +26,13 @@ namespace kf::internal {
 
 using Glyph = u8;///< Text interface measurement unit in glyphs
 
-struct TextualRendererConfig : mixin::Resettable<TextualRendererConfig> {
-    Glyph row_max_length;///< Maximum characters per row
-    Glyph rows_total;    ///< Total available rows in display
-    Glyph float_places;  ///< Decimal places for float
-    Glyph double_places; ///< Decimal places for double
-    Glyph offset_size;   ///< Spaces per one offset value
-    bool title_centered; ///< Render Title centered
-
-private:
-    KF_IMPL_RESETTABLE(TextualRendererConfig);
-    constexpr void resetImpl() noexcept {
-        row_max_length = 16;
-        rows_total = 4;
-        float_places = 2;
-        double_places = 4;
-        offset_size = 2;
-        title_centered = true;
-    }
+struct TextualRendererConfig : mixin::DefaultResettable<TextualRendererConfig> {
+    Glyph row_max_length{16}; ///< Maximum characters per row
+    Glyph rows_total{4};      ///< Total available rows in display
+    Glyph float_places{2};    ///< Decimal places for float
+    Glyph double_places{4};   ///< Decimal places for double
+    Glyph offset_size{2};     ///< Spaces per one offset value
+    bool title_centered{true};///< Render Title centered
 };
 
 /// @brief Cursor state for tracking rendering position

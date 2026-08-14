@@ -8,7 +8,7 @@
 
 #include "kf/Slice.hpp"
 #include "kf/mixin/Configured.hpp"
-#include "kf/mixin/Resettable.hpp"
+#include "kf/mixin/DefaultResettable.hpp"
 
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Layout.hpp"
@@ -17,7 +17,7 @@
 
 namespace kf::internal {
 
-struct ColoredTextRendererConfig : mixin::Resettable<ColoredTextRendererConfig> {
+struct ColoredTextRendererConfig : mixin::DefaultResettable<ColoredTextRendererConfig> {
 
     struct Palette final {
 
@@ -59,15 +59,10 @@ struct ColoredTextRendererConfig : mixin::Resettable<ColoredTextRendererConfig> 
         }
     };
 
-    ui::render::TextualRenderer::Config textual;
-    Palette normal_foreground_palette, focused_foreground_palette, normal_background_palette, focused_background_palette;
+    ui::render::TextualRenderer::Config textual{};
 
-    KF_IMPL_RESETTABLE(TextualRendererConfig);
-    constexpr void resetImpl() noexcept {
-
-        textual.reset();
-
-        normal_foreground_palette = {
+    Palette
+        normal_foreground_palette{
             .normal = Palette::White,
             .primary = Palette::LightBlue,
             .secondary = Palette::LightGray,
@@ -77,9 +72,8 @@ struct ColoredTextRendererConfig : mixin::Resettable<ColoredTextRendererConfig> 
             .info = Palette::LightCyan,
             .disabled = Palette::DarkGray,
             .highlight = Palette::LightPurple,
-        };
-
-        focused_foreground_palette = {
+        },
+        focused_foreground_palette{
             .normal = Palette::Black,
             .primary = Palette::Black,
             .secondary = Palette::Black,
@@ -89,9 +83,8 @@ struct ColoredTextRendererConfig : mixin::Resettable<ColoredTextRendererConfig> 
             .info = Palette::Black,
             .disabled = Palette::LightGray,
             .highlight = Palette::DarkPurple,
-        };
-
-        normal_background_palette = {
+        },
+        normal_background_palette{
             .normal = Palette::Black,
             .primary = Palette::DarkBlue,
             .secondary = Palette::DarkGray,
@@ -101,9 +94,8 @@ struct ColoredTextRendererConfig : mixin::Resettable<ColoredTextRendererConfig> 
             .info = Palette::DarkCyan,
             .disabled = Palette::DarkGray,
             .highlight = Palette::DarkPurple,
-        };
-
-        focused_background_palette = {
+        },
+        focused_background_palette{
             .normal = Palette::White,
             .primary = Palette::LightBlue,
             .secondary = Palette::LightGray,
@@ -114,7 +106,6 @@ struct ColoredTextRendererConfig : mixin::Resettable<ColoredTextRendererConfig> 
             .disabled = Palette::LightGray,
             .highlight = Palette::LightPurple,
         };
-    }
 };
 
 };// namespace kf::internal
