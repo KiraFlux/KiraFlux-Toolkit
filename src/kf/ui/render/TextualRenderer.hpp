@@ -10,11 +10,12 @@
 #include "kf/Slice.hpp"
 #include "kf/String.hpp"
 #include "kf/StringView.hpp"
+#include "kf/core.hpp"
 #include "kf/math.hpp"
+
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Resettable.hpp"
-#include "kf/primitives.hpp"
 
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"

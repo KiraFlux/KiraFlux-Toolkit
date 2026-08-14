@@ -14,7 +14,7 @@
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/StringView.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"

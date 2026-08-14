@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "kf/Result.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/pixel/Pixel.hpp"
 #include "kf/units.hpp"

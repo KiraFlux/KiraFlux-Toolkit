@@ -7,9 +7,9 @@
 #pragma once
 
 #include "kf/Option.hpp"
+#include "kf/core.hpp"
 #include "kf/filter/LowFrequencyFilter.hpp"
 #include "kf/math.hpp"
-#include "kf/primitives.hpp"
 
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"

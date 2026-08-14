@@ -10,7 +10,7 @@
 #include "kf/Option.hpp"
 #include "kf/Slice.hpp"
 #include "kf/Stack.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
 
 #include "kf/mixin/Match.hpp"
 #include "kf/mixin/Resettable.hpp"

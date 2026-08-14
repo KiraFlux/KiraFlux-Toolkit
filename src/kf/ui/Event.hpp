@@ -6,9 +6,8 @@
 
 #pragma once
 
+#include "kf/core.hpp"
 #include "kf/math.hpp"
-#include "kf/primitives.hpp"
-#include "kf/type_traits.hpp"
 
 namespace kf::ui {
 

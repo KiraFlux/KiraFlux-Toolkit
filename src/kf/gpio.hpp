@@ -10,7 +10,7 @@
 #include <Arduino.h>
 #endif
 
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 #include "kf/units.hpp"
 
 #include "kf/mixin/Configured.hpp"

@@ -7,8 +7,8 @@
 
 #include "kf/Array.hpp"
 #include "kf/String.hpp"
+#include "kf/core.hpp"
 #include "kf/mixin/Representable.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf::internal {
 

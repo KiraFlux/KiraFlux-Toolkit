@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <kf/primitives.hpp>// For kf::usize
+#include <kf/core.hpp>// For kf::usize
 
 namespace kf::mixin {
 

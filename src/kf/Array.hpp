@@ -6,8 +6,9 @@
 #pragma once
 
 #include "kf/Sequence.hpp"
+#include "kf/core.hpp"
+
 #include "kf/mixin/Equatable.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf {
 

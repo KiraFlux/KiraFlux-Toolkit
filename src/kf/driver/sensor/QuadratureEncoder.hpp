@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "kf/core.hpp"
 #include "kf/gpio.hpp"
-#include "kf/primitives.hpp"
 
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Resettable.hpp"
@@ -96,24 +96,22 @@ private:
         // Index formed by concatenating last and current states (4 bits)
         // 4X decoding lookup table (index = (last_A << 3 | last_B << 2 | cur_A << 1 | cur_B))
         auto const index = (self._last_state << 2) | current_state;
-        
-        // cannot use switch case where cuz lookup table is forbidden in IRAM ISR handler 
+
+        // cannot use switch case where cuz lookup table is forbidden in IRAM ISR handler
         if (
             (index == 0b00'01) or
             (index == 0b01'11) or
             (index == 0b10'00) or
-            (index == 0b11'10) 
-        ) {
+            (index == 0b11'10)) {
             self._position_ticks += 1;
         } else if (
             (index == 0b00'10) or
             (index == 0b01'00) or
             (index == 0b10'11) or
-            (index == 0b11'01) 
-        ) {
+            (index == 0b11'01)) {
             self._position_ticks -= 1;
         }
-        
+
         self._last_state = current_state;
     }
 

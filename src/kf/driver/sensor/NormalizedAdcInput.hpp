@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include "kf/core.hpp"
 #include "kf/filter/ExponentialFilter.hpp"
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
-#include "kf/primitives.hpp"
 #include "kf/tuner/SampleCollectingTuner.hpp"
 
 #include "kf/mixin/Configured.hpp"

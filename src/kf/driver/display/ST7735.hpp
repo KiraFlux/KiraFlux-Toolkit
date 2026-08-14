@@ -9,11 +9,10 @@
 #include "kf/BytesView.hpp"
 #include "kf/Result.hpp"
 #include "kf/bus/SPI.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
 #include "kf/gpio.hpp"
 #include "kf/image/ViewportImage.hpp"
 #include "kf/pixel/Rgb565Pixel.hpp"
-#include "kf/primitives.hpp"
 #include "kf/rtos/Task.hpp"
 
 #include "kf/mixin/Configured.hpp"

@@ -14,8 +14,7 @@
 
 #include "kf/Function.hpp"
 #include "kf/NoneType.hpp"
-#include "kf/concepts.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 #include "kf/mixin/Invariant.hpp"
 #include "kf/mixin/Resettable.hpp"

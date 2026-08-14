@@ -4,8 +4,8 @@
 /// @file    gfx/fonts/gyver_5x7.hpp
 /// @brief   Gyver 5×7 English font for OLED displays.
 
+#include "kf/core.hpp"
 #include "kf/gfx/Font.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf::gfx::fonts {
 

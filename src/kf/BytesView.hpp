@@ -6,7 +6,7 @@
 #pragma once
 
 #include "kf/Slice.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 namespace kf {
 

@@ -7,11 +7,10 @@
 #pragma once
 
 #include "kf/Option.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Resettable.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf::internal {
 

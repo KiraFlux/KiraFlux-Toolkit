@@ -8,10 +8,10 @@
 
 #include "kf/Result.hpp"
 #include "kf/bus/I2C.hpp"
+#include "kf/core.hpp"
 #include "kf/image/StaticImage.hpp"
 #include "kf/math.hpp"
 #include "kf/pixel/MonochromePixel.hpp"
-#include "kf/primitives.hpp"
 
 #include "kf/mixin/Configured.hpp"
 

@@ -11,7 +11,7 @@
 #include "kf/Option.hpp"
 #include "kf/Range.hpp"
 #include "kf/StringView.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Representable.hpp"

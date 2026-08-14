@@ -10,14 +10,16 @@
 #include <type_traits>
 #include <utility>
 
+#include "kf/core.hpp"
+
 #include "kf/mixin/NonCopyable.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf {
 
 namespace internal {
 
 struct OptionHelper;
+
 template<typename> struct SentinelStorage;
 
 }// namespace internal

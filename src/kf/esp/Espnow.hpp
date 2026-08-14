@@ -19,7 +19,7 @@
 #include "kf/MacAddress.hpp"
 #include "kf/Result.hpp"
 #include "kf/StringView.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 #include "kf/mixin/BinaryWritable.hpp"
 #include "kf/mixin/Callbacked.hpp"

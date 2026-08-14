@@ -8,7 +8,7 @@
 #include "kf/Array.hpp"
 #include "kf/Stack.hpp"
 #include "kf/StringView.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 namespace kf {
 

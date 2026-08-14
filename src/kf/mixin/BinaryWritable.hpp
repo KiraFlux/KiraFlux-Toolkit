@@ -7,8 +7,7 @@
 #pragma once
 
 #include "kf/BytesView.hpp"
-#include "kf/concepts.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 namespace kf::mixin {
 

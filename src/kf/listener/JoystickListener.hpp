@@ -7,10 +7,10 @@
 #pragma once
 
 #include "kf/Timer.hpp"
+#include "kf/core.hpp"
 #include "kf/listener/Listener.hpp"
 #include "kf/math.hpp"
 #include "kf/mixin/Configured.hpp"
-#include "kf/primitives.hpp"
 #include "kf/units.hpp"
 
 namespace kf::internal {

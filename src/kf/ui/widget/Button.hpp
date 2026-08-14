@@ -7,7 +7,8 @@
 #pragma once
 
 #include "kf/StringView.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
+
 #include "kf/mixin/Callbacked.hpp"
 #include "kf/mixin/Labeled.hpp"
 

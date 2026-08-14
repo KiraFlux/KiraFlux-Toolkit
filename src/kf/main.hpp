@@ -8,7 +8,7 @@
 
 #include "kf/Arena.hpp"
 #include "kf/Logger.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 // autoconfig
 
@@ -107,7 +107,6 @@ void loop() {}// not used
 #include "kf/Bytes.hpp"
 #include "kf/BytesView.hpp"
 #include "kf/Result.hpp"
-#include "kf/concepts.hpp"
 
 #include "kf/mixin/BinaryReadable.hpp"
 #include "kf/mixin/BinaryWritable.hpp"

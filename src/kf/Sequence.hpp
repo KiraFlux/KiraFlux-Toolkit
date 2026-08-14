@@ -7,8 +7,7 @@
 
 #include "kf/NoneType.hpp"
 #include "kf/Option.hpp"
-#include "kf/concepts.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 #include "kf/mixin/Indexable.hpp"
 #include "kf/mixin/Length.hpp"

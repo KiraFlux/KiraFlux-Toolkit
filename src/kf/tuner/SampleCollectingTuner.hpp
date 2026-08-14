@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 #include "kf/tuner/Tuner.hpp"
 
@@ -37,7 +37,7 @@ template<typename Impl, typename T> struct SampleCollectingTuner : Tuner<SampleC
     /// @brief Total number of samples to collect before calculating.
     usize const samples_total;
 
-    explicit SampleCollectingTuner(ConfigType &config, usize samples) noexcept :
+    explicit constexpr SampleCollectingTuner(ConfigType &config, usize samples) noexcept :
         _config{config}, samples_total{samples} {}
 
 private:

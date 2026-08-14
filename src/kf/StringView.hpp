@@ -7,8 +7,9 @@
 
 #include "kf/Option.hpp"
 #include "kf/Slice.hpp"
+#include "kf/core.hpp"
+
 #include "kf/mixin/Equatable.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf {
 

@@ -12,8 +12,7 @@
 #include "kf/Bytes.hpp"
 #include "kf/Option.hpp"
 #include "kf/Slice.hpp"
-#include "kf/concepts.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 #include "kf/mixin/ExtraAllocationLength.hpp"
 #include "kf/mixin/NonCopyable.hpp"

@@ -15,9 +15,8 @@
 #include "kf/BytesView.hpp"
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
 #include "kf/gpio.hpp"
-#include "kf/primitives.hpp"
 
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/Initable.hpp"

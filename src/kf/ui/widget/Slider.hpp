@@ -7,10 +7,10 @@
 #pragma once
 
 #include "kf/Range.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
+
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
-#include "kf/primitives.hpp"
 
 #include "kf/ui/Decoration.hpp"
 #include "kf/ui/Request.hpp"

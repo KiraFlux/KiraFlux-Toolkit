@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
 
 namespace kf {
 
@@ -17,7 +17,6 @@ namespace internal {
 
 /// @brief Base class for result error handling logic (CRTP)
 template<typename Impl, trivial E> struct ResultErrorController {
-    static_assert(std::is_trivially_destructible_v<E>);
 
     /// @brief Check if result contains an error
     [[nodiscard]] constexpr bool isError() const noexcept {

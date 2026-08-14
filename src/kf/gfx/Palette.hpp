@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::gfx {

@@ -7,7 +7,8 @@
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
+
 #include "kf/mixin/BinaryReadable.hpp"
 #include "kf/mixin/BinaryWritable.hpp"
 #include "kf/mixin/Initable.hpp"

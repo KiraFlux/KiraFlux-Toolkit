@@ -7,7 +7,7 @@
 #pragma once
 
 #include "kf/Slice.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
 #include "kf/units.hpp"
 
 #include "kf/pixel/Pixel.hpp"

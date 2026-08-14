@@ -12,8 +12,7 @@
 #include "kf/Bytes.hpp"
 #include "kf/BytesView.hpp"
 #include "kf/Result.hpp"
-#include "kf/concepts.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 #include "kf/mixin/BinaryReadable.hpp"
 #include "kf/mixin/BinaryWritable.hpp"

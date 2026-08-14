@@ -7,7 +7,7 @@
 
 #include "kf/Option.hpp"
 #include "kf/Sequence.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 namespace kf {
 

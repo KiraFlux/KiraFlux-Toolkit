@@ -7,8 +7,8 @@
 #pragma once
 
 #include "kf/Slice.hpp"
+#include "kf/core.hpp"
 #include "kf/math.hpp"
-#include "kf/primitives.hpp"
 
 namespace kf::pixel {
 

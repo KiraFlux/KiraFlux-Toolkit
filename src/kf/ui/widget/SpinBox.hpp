@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
+
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"

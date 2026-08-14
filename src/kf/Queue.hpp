@@ -10,7 +10,7 @@
 
 #include "kf/Option.hpp"
 #include "kf/Slice.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 #include "kf/mixin/Length.hpp"
 #include "kf/mixin/ReadAvailable.hpp"

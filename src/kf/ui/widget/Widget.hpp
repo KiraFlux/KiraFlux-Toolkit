@@ -8,9 +8,9 @@
 
 #include "kf/Option.hpp"
 #include "kf/StringView.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
+
 #include "kf/mixin/Styled.hpp"
-#include "kf/primitives.hpp"
 
 #include "kf/ui/Color.hpp"
 #include "kf/ui/Event.hpp"

@@ -10,7 +10,7 @@
 #include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/StringView.hpp"
-#include "kf/concepts.hpp"
+#include "kf/core.hpp"
 #include "kf/gfx/Font.hpp"
 #include "kf/gfx/Palette.hpp"
 #include "kf/image/DynamicImage.hpp"
