@@ -69,11 +69,19 @@ template<implements<mixin::MatchTag> T> struct Registry<T> : internal::RegistryB
     using internal::RegistryBase<T>::RegistryBase;
 
     auto get(typename T::MatchingType value) noexcept -> Option<T &> {
-        return this->items().firstWhere([value](auto &item) { return item->match(value); });
+        auto ptr_opt = this->items().firstWhere([value](auto &item) { return item->match(value); });
+        if (ptr_opt.isSome()) {
+            return someRef(*ptr_opt.unwrap());
+        }
+        return none;
     }
 
     auto get(typename T::MatchingType value) const noexcept -> Option<T const &> {
-        return this->items().firstWhere([value](auto const &item) { return item->match(value); });
+        auto ptr_opt = this->items().firstWhere([value](auto const &item) { return item->match(value); });
+        if (ptr_opt.isSome()) {
+            return someRef(*ptr_opt.unwrap());
+        }
+        return none;
     }
 };
 

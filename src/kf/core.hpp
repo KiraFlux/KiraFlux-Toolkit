@@ -35,36 +35,12 @@ using isize = ptrdiff_t;
 
 }// namespace primitives
 
-inline namespace concepts {
-
-template<typename Impl, typename Tag>
-concept implements = std::derived_from<Impl, Tag>;
-
-template<typename T>
-concept arithmetic = std::is_arithmetic_v<T>;
-
-template<typename T>
-concept trivial = std::is_trivially_copyable_v<T> and std::is_trivially_destructible_v<T>;
-
-template<typename T>
-concept enum_type = std::is_enum_v<T>;
-
-template<typename T>
-concept float_type = std::is_floating_point_v<T>;
-
-/// @brief Concept for callable objects with a specific signature.
-/// @tparam F    The callable type.
-/// @tparam Ret  Expected return type.
-/// @tparam Args Argument types the callable must accept.
-template<typename F, typename Ret, typename... Args>
-concept callable = requires(F f, Args... args) {
-    { f(args...) } -> std::same_as<Ret>;
-};
-
-}// namespace concepts
-
 /// @brief Compile‑time type utilities.
 inline namespace type_traits {
+
+template<typename F, typename Signature> struct is_callable : std::false_type {};
+
+template<typename F, typename R, typename... Args> struct is_callable<F, R(Args...)> : std::is_invocable_r<R, F, Args...> {};
 
 template<usize bytes> struct integer_by_bytes {
     static_assert(bytes <= 8);
@@ -111,5 +87,30 @@ template<usize bits> using signed_integer_by_bits_t = integer_by_bits<bits>::min
 template<usize bits> using unsigned_integer_by_bits_t = integer_by_bits<bits>::min_unsigned_type;
 
 }// namespace type_traits
+
+inline namespace concepts {
+
+template<typename Impl, typename Tag>
+concept implements = std::derived_from<Impl, Tag>;
+
+template<typename T>
+concept arithmetic = std::is_arithmetic_v<T>;
+
+template<typename T>
+concept trivial = std::is_trivially_copyable_v<T> and std::is_trivially_destructible_v<T>;
+
+template<typename T>
+concept enum_type = std::is_enum_v<T>;
+
+template<typename T>
+concept float_type = std::is_floating_point_v<T>;
+
+/// @brief Concept for callable objects with a specific signature.
+/// @tparam F    The callable type.
+/// @tparam Signature Function type.
+template<typename F, typename Signature>
+concept callable = is_callable<F, Signature>::value;
+
+}// namespace concepts
 
 }// namespace kf

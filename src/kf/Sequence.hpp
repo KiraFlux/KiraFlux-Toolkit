@@ -74,7 +74,7 @@ template<typename Impl, typename T> struct Sequence :
         };
     }
 
-    [[nodiscard]] constexpr auto firstWhere(callable<bool(T &)> auto &&f) -> Option<T &> {
+    [[nodiscard]] constexpr auto firstWhere(callable<bool(T &)> auto &&f) noexcept -> Option<T &> {
         for (auto &item: *this) {
             if (f(item)) {
                 return someRef(item);
@@ -83,7 +83,7 @@ template<typename Impl, typename T> struct Sequence :
         return none;
     }
 
-    [[nodiscard]] constexpr auto firstWhere(callable<bool(T const &)> auto &&f) -> Option<T const &> {
+    [[nodiscard]] constexpr auto firstWhere(callable<bool(T const &)> auto &&f) const noexcept -> Option<T const &> {
         for (auto const &item: *this) {
             if (f(item)) {
                 return someRef(item);

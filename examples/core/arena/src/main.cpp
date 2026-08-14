@@ -10,14 +10,20 @@
 // - Availability tracking (available())
 
 #include <kf/Arena.hpp>
-#include <kf/main.hpp>
 #include <kf/Registry.hpp>
 #include <kf/String.hpp>
 #include <kf/StringView.hpp>
+#include <kf/main.hpp>
 
 #include <kf/mixin/ExtraAllocationLength.hpp>
+#include <kf/mixin/Match.hpp>
 
-struct Player : kf::mixin::ExtraAllocationLength<Player> {
+struct Player :
+
+    kf::mixin::Match<Player, kf::StringView>,
+    kf::mixin::ExtraAllocationLength<Player>
+
+{
     static constexpr kf::usize max_name_length{32};
 
     kf::String name;
@@ -28,8 +34,13 @@ struct Player : kf::mixin::ExtraAllocationLength<Player> {
         name{arena.allocate<char>(max_name_length + s)}, score{s} {
         name.append(n);
     }
-    
+
 private:
+    KF_IMPL_MATCH(Player, kf::StringView);
+    constexpr bool matchImpl(kf::StringView str) const noexcept {
+        return name.view() == str;
+    }
+
     KF_IMPL_EXTRA_ALLOCATION_LENGTH(Player);
     static constexpr auto getExtraAllocationLengthImpl(auto, int score, auto const &...) noexcept {
         return max_name_length + score;
@@ -41,12 +52,16 @@ void kf::main(kf::Init &init) {
 
     Registry<Player> player_registry{init.arena, 32};
 
-    (void) player_registry.add(init.arena, "bob", 10); // returns optional reference to created player
+    (void) player_registry.add(init.arena, "bob", 10);// returns optional reference to created player
     (void) player_registry.add(init.arena, "kek", 12);
-    (void) player_registry.add(init.arena, "bob", 13);
+    (void) player_registry.add(init.arena, "foo", 13);
 
     for (auto p: player_registry.items()) {
         init.logger.debug("{} {}", p->name, p->score);
+    }
+
+    if (auto maybe_kek = player_registry.get("kek"); maybe_kek.isSome()) {
+        init.logger.debug("kek: {} {}", maybe_kek.unwrap().name, maybe_kek.unwrap().score);
     }
 
     player_registry.reset();
