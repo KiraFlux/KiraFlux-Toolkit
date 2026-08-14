@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "kf/Range.hpp"
 #include "kf/core.hpp"
+#include "kf/math.hpp"
 
 #include "kf/mixin/Configured.hpp"
 #include "kf/mixin/ValueCallbacked.hpp"
@@ -20,10 +20,10 @@
 namespace kf::internal {
 
 template<arithmetic T> struct SliderConfig final {
-    Range<T> value_range;///< value range (slider value will clamped at this value)
-    T default_value;     ///< slider value by default
-    T step;              ///< slider value adjust step
-    bool init_show_value;///< show value by default
+    math::Range<T> value_range;///< value range (slider value will clamped at this value)
+    T default_value;           ///< slider value by default
+    T step;                    ///< slider value adjust step
+    bool init_show_value;      ///< show value by default
 };
 
 }// namespace kf::internal

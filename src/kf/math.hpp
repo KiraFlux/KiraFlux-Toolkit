@@ -98,6 +98,44 @@ inline namespace custom_functions {
 
 inline namespace objects {
 
+struct RangeTag {};
+
+/// @brief   Closed interval [start, end] with clamping and length calculation.
+/// @tparam T Numeric type (must support comparison and arithmetic)
+template<arithmetic T> struct Range final :
+
+    RangeTag,
+    mixin::Length<Range<T>, T>
+
+{
+
+    using Self = Range<T>;
+
+    using Scalar = T;
+
+    Scalar start;///< Lower bound (inclusive)
+    Scalar end;  ///< Upper bound (inclusive)
+
+    /// @brief Create Range with auto-deduced types
+    [[nodiscard]] static constexpr Self create(auto start, auto end) noexcept {
+        return Self{
+            .start = static_cast<Scalar>(start),
+            .end = static_cast<Scalar>(end),
+        };
+    }
+
+    /// @brief Constrains a value to the interval [start, end]
+    [[nodiscard]] constexpr auto clamped(auto value) const noexcept {
+        return clamp(value, start, end);
+    }
+
+private:
+    KF_IMPL_LENGTH(Self, Scalar);
+    constexpr Scalar lengthImpl() const noexcept {
+        return end - start;
+    }
+};
+
 struct Vector2Tag {};
 
 /// @brief 2D vector template for graphics and calculations

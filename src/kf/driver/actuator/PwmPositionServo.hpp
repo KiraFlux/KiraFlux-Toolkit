@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "kf/Range.hpp"
 #include "kf/gpio.hpp"
 #include "kf/math.hpp"
 #include "kf/units.hpp"
@@ -18,12 +17,12 @@
 namespace kf::internal {
 
 struct PwmPositionServoConfig final {
-    using AngleRange = Range<units::Degrees>;
-    using PulseRange = Range<units::Microseconds>;
+    using AngleRange = math::Range<units::Degrees>;
+    using PulseRange = math::Range<units::Microseconds>;
 
+    gpio::PwmOutput::Config pwm;
     AngleRange angle_range;
     PulseRange pulse_range;
-    gpio::PwmOutput::Config pwm;
 
     /// @brief Convert angle to pulse width using linear interpolation
     /// @param angle Target servo angle

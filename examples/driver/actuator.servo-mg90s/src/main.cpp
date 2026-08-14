@@ -14,15 +14,15 @@ void kf::main(kf::Init &init) {
 
     PwmPositionServo::Config servo_config{
 
-        // Mapping: angle (0..180) -> pulse width (500..2500 us)
-        .angle_range = {.start = 0, .end = 180},
-        .pulse_range = {.start = 500, .end = 2500},
-
         // PWM output: 50 Hz, 12-bit resolution (standard servo)
         .pwm = {
             .frequency_hz = 50,
             .resolution_bits = 12,
         },
+
+        // Mapping: angle (0..180) -> pulse width (500..2500 us)
+        .angle_range = {.start = 0, .end = 180},
+        .pulse_range = {.start = 500, .end = 2500},
     };
 
     // --- Servo instance with safe angle limit (0‑90 instead of 0‑180) ---
