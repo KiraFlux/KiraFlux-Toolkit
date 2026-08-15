@@ -17,7 +17,7 @@ void kf::main(kf::Init &init) {
     // String provides compile-time format string validation via `mixin::Writable<Impl, char>`
     // Use `{}` as anchor, `{{` or `}}` to display literal braces
     // Supported types: StringView, C-strings, integers, floats, booleans, char, and custom types via `Representable`
-    str.format(
+    (void) str.appendFormat(
         "{{ hello }} {} {} {} {} {} {} {}\n",
         kf::StringView{"string-view"},
         "c-string",
@@ -36,10 +36,6 @@ void kf::main(kf::Init &init) {
     // Null-terminate the string for C-API compatibility (e.g., printf, Serial.print)
     init.logger.info("c-string: {}", str.cString());
 
-    // Static factory: create a formatted string directly into an Array
-    auto const arr = kf::String::formatted<64>("Number: {}, Float: {}", 42, 3.1415);
-    init.logger.info("static formatted: {}", arr);
-
     // --- Stack<char> inherited behavior ---
 
     // String inherits all methods from Stack<char>:
@@ -55,13 +51,13 @@ void kf::main(kf::Init &init) {
                      str.availableForRead(), str.availableForWrite());
 
     // Append various types (inherited from mixin::Writable<Impl, char>)
-    str.append(kf::StringView{"sv"});// any Sequence<char>
-    str.append("c-str");             // C-string
-    str.append(true);                // boolean
-    str.append(false);               // boolean
-    str.append(kf::i64{13456789});   // integer
-    str.append(0.4 - 0.3, 50);       // float with custom precision
-    str.append('c');                 // char
+    (void) str.append(kf::StringView{"sv"});// any Sequence<char>
+    (void) str.append("c-str");             // C-string
+    (void) str.append(true);                // boolean
+    (void) str.append(false);               // boolean
+    (void) str.append(kf::i64{13456789});   // integer
+    (void) str.append(0.4 - 0.3, 50);       // float with custom precision
+    (void) str.append('c');                 // char
 
     // Availability after appending content
     init.logger.info("after append - availableForRead: {} (characters in string), availableForWrite: {} (free space)",

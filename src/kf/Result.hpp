@@ -146,15 +146,17 @@ private:
     }
 
     KF_IMPL_REPR_TO(Result<void, E>);
-    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+    constexpr usize reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+        usize ret = 0;
         if (this->isError()) {
-            char_writable.append("error(");
-            char_writable.append(_error);
+            ret += char_writable.append("error(");
+            ret += char_writable.append(_error);
         } else {
-            char_writable.append("ok(");
-            char_writable.append(_ok);
+            ret += char_writable.append("ok(");
+            ret += char_writable.append(_ok);
         }
-        char_writable.append(')');
+        ret += char_writable.append(')');
+        return ret;
     }
 };
 
@@ -219,13 +221,14 @@ private:
     }
 
     KF_IMPL_REPR_TO(Result<void, E>);
-    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+    constexpr usize reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
         if (this->isError()) {
-            char_writable.append("error(");
-            char_writable.append(_error);
-            char_writable.append(')');
+            return (
+                char_writable.append("error(") +
+                char_writable.append(_error) +
+                char_writable.append(')'));
         } else {
-            char_writable.append("ok()");
+            return char_writable.append("ok()");
         }
     }
 };

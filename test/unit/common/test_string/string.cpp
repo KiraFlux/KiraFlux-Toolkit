@@ -7,7 +7,7 @@ void test() {
 
     kf::String my_string{{buffer}};
 
-    my_string.format("Hello {}", "World");
+    my_string.appendFormat("Hello {}", "World");
 }
 
 void run_tests() {

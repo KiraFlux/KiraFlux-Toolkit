@@ -138,13 +138,14 @@ private:
     }
 
     KF_IMPL_REPR_TO(Self);
-    constexpr void reprToImpl(auto &char_writable) const noexcept {
-        char_writable.append('[');
-        char_writable.append(start);
-        char_writable.append('.');
-        char_writable.append('.');
-        char_writable.append(end);
-        char_writable.append(']');
+    constexpr usize reprToImpl(auto &char_writable) const noexcept {
+        return (
+            char_writable.append('[') +
+            char_writable.append(start) +
+            char_writable.append('.') +
+            char_writable.append('.') +
+            char_writable.append(end) +
+            char_writable.append(']'));
     }
 };
 
@@ -258,13 +259,14 @@ private:
     }
 
     KF_IMPL_REPR_TO(Self);
-    constexpr void reprToImpl(auto &char_writable) const noexcept {
-        char_writable.append('(');
-        char_writable.append(x);
-        char_writable.append(',');
-        char_writable.append(' ');
-        char_writable.append(y);
-        char_writable.append(')');
+    constexpr usize reprToImpl(auto &char_writable) const noexcept {
+        return (
+            char_writable.append('(') +
+            char_writable.append(x) +
+            char_writable.append(',') +
+            char_writable.append(' ') +
+            char_writable.append(y) +
+            char_writable.append(')'));
     }
 };
 
@@ -394,16 +396,17 @@ private:
     }
 
     KF_IMPL_REPR_TO(Self);
-    constexpr void reprToImpl(auto &char_writable) const noexcept {
-        char_writable.append('(');
-        char_writable.append(x);
-        char_writable.append(',');
-        char_writable.append(' ');
-        char_writable.append(y);
-        char_writable.append(',');
-        char_writable.append(' ');
-        char_writable.append(z);
-        char_writable.append(')');
+    constexpr usize reprToImpl(auto &char_writable) const noexcept {
+        return (
+            char_writable.append('(') +
+            char_writable.append(x) +
+            char_writable.append(',') +
+            char_writable.append(' ') +
+            char_writable.append(y) +
+            char_writable.append(',') +
+            char_writable.append(' ') +
+            char_writable.append(z) +
+            char_writable.append(')'));
     }
 };
 
@@ -592,18 +595,20 @@ private:
     }
 
     KF_IMPL_REPR_TO(Self);
-    constexpr void reprToImpl(auto &char_writable) const noexcept {
-        char_writable.append('(');
-        bool f = false;
-        for (auto const i: {x, y, z, w}) {
-            if (f) {
-                char_writable.append(',');
-                char_writable.append(' ');
-            }
-            f = true;
-            char_writable.append(i);
-        }
-        char_writable.append(')');
+    constexpr usize reprToImpl(auto &char_writable) const noexcept {
+        return (
+            char_writable.append('(') +
+            char_writable.append(x) +
+            char_writable.append(',') +
+            char_writable.append(' ') +
+            char_writable.append(y) +
+            char_writable.append(',') +
+            char_writable.append(' ') +
+            char_writable.append(z) +
+            char_writable.append(',') +
+            char_writable.append(' ') +
+            char_writable.append(w) +
+            char_writable.append(')'));
     }
 };
 

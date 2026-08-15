@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 /// @file    mixin/Writable.hpp
-/// @brief   Adds write() and format() for appending data.
 
 #pragma once
 
@@ -160,14 +159,6 @@ template<typename... Args> struct BasicFormatString {
 
 template<typename... Args> using FormatString = BasicFormatString<std::type_identity_t<Args>...>;
 
-template<typename T> static constexpr bool is_c_string_v{
-
-    std::is_same_v<T, char *> or
-    std::is_same_v<T, char const *> or
-    (std::is_array_v<T> and std::is_same_v<std::remove_extent_t<T>, char>)
-
-};
-
 }// namespace kf::internal
 
 namespace kf::mixin {
@@ -181,78 +172,70 @@ template<typename Impl, typename T> struct Writable : internal::WritableBase<Imp
 
 template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Impl, char> {
 
-    constexpr void append(char value) noexcept {
-        (void) this->write(value);
+    // static dispatching
+
+    [[nodiscard]] constexpr usize append(char value) noexcept {
+        return static_cast<usize>(this->write(value));
     }
 
-    constexpr void append(bool value) noexcept {
-        appendNullTerminatedString(value ? "true" : "false");
+    [[nodiscard]] constexpr usize append(bool value) noexcept {
+        return appendNullTerminatedString(value ? "true" : "false");
     }
 
-    constexpr void append(c_string auto const &value) noexcept {
-        appendNullTerminatedString(static_cast<char const *>(value));
+    [[nodiscard]] constexpr usize append(c_string auto const &value) noexcept {
+        return appendNullTerminatedString(static_cast<char const *>(value));
     }
 
-    constexpr void append(integer_type auto value) noexcept {
-        appendInteger(value);
+    [[nodiscard]] constexpr usize append(integer_type auto value) noexcept {
+        return appendInteger(value);
     }
 
-    constexpr void append(float_type auto value, usize precision = 3) noexcept {
-        appendReal(value, precision);
+    [[nodiscard]] constexpr usize append(float_type auto value, usize precision = 3) noexcept {
+        return appendReal(value, precision);
     }
 
-    constexpr void append(enum_type auto value) noexcept {
-        appendNullTerminatedString("enum(");
-        appendInteger(static_cast<usize>(value));
-        append(')');
+    [[nodiscard]] constexpr usize append(enum_type auto value) noexcept {
+        return (
+            appendNullTerminatedString("enum(") +
+            appendInteger(static_cast<usize>(value)) +
+            append(')'));
     }
 
-    constexpr void append(implements<RepresentableTag> auto const &value) noexcept {
-        append(value.repr());
+    [[nodiscard]] constexpr usize append(implements<RepresentableTag> auto const &value) noexcept {
+        return append(value.repr());
     }
 
-    constexpr void append(implements<ReprToTag> auto const &value) noexcept {
-        value.reprTo(*this);
+    [[nodiscard]] constexpr usize append(implements<ReprToTag> auto const &value) noexcept {
+        return value.reprTo(*this);
     }
 
-    /// @brief Format into string
-    /// @tparam ...Args argument types (auto-deduced), used for `append` method static dispatching
-    /// @param fmt format string implicit consteval-constructed from literal
-    /// @param ...args format arguments
-    /// @note For argument placement use `{}` as anchor
-    template<typename... Args> constexpr void format(internal::FormatString<Args...> const &fmt, Args const &...args) noexcept {
-        auto const tuple = std::forward_as_tuple(args...);
+    // concrete append algorithms
 
-        for (auto i = 0u; i < fmt.result.count; i += 1) {
-            auto const &token = fmt.result.tokens[i];
+    [[nodiscard]] constexpr usize appendNullTerminatedString(char const *str, usize max_length = static_cast<usize>(-1)) noexcept {
+        usize write_count = 0;
 
-            if (token.kind == internal::FormatToken::Literal) {
-                this->append(StringView{fmt.str + token.start, token.length});
-            } else if constexpr (sizeof...(Args) > 0) {
-                applyArg<0>(fmt.result.anchor_indices[i], tuple);
+        if (nullptr != str) {
+            while (write_count < max_length) {
+                char const c = str[write_count];
+
+                if (c == '\0') {
+                    break;
+                }
+
+                if (not this->append(c)) {
+                    break;
+                }
+
+                write_count += 1;
             }
         }
+
+        return write_count;
     }
 
-private:
-    constexpr void appendNullTerminatedString(char const *str) noexcept {
-        if (nullptr == str) {
-            return;
-        }
-
-        while (*str != '\0') {
-            if (not this->write(*str)) {
-                break;
-            }
-
-            str += 1;
-        }
-    }
-
-    constexpr void appendInteger(i64 value) noexcept {
+    [[nodiscard]] constexpr usize appendInteger(i64 value) noexcept {
         if (0 == value) {
-            (void) this->write('0');
-            return;
+            return this->append('0');
         }
 
         bool const is_negative = (value < 0);
@@ -266,30 +249,30 @@ private:
             digits += 1;
         }
 
+        usize write_count = 0;
+
         if (is_negative) {
-            (void) this->write('-');
+            write_count += this->append('-');
         }
 
         while (digits > 0) {
             digits -= 1;
-            if (not this->write(buffer[digits])) {
-                break;
-            }
+            write_count += this->append(buffer[digits]);
         }
+
+        return write_count;
     }
 
-    constexpr void appendReal(f64 value, usize precision) noexcept {
+    [[nodiscard]] constexpr usize appendReal(f64 value, usize precision) noexcept {
         if (math::isnan(value)) {
-            appendNullTerminatedString("nan");
-            return;
+            return appendNullTerminatedString("nan");
         }
 
         bool const is_negative = (value < 0);
         bool const just_integer_part = (0 == precision);
 
         if (math::isinf(value)) {
-            appendNullTerminatedString(is_negative ? "-inf" : "+inf");
-            return;
+            return appendNullTerminatedString(is_negative ? "-inf" : "+inf");
         }
 
         if (is_negative) {
@@ -307,24 +290,26 @@ private:
             integer_digits = 1;
         }
 
+        usize write_count = 0;
+
         if (is_negative) {
-            (void) this->write('-');
+            write_count += this->append('-');
         }
 
-        appendInteger(integer_part);
+        write_count += appendInteger(integer_part);
 
         if (just_integer_part) {
-            return;
+            return write_count;
         }
 
-        (void) this->write('.');
+        write_count += this->append('.');
 
         auto fraction = fraction_part;
         for (auto i = 0u; i < precision; i += 1) {
             fraction *= 10.0;
 
             auto const fraction_digit = static_cast<u8>(fraction);
-            (void) this->write('0' + fraction_digit);
+            write_count += this->append('0' + fraction_digit);
 
             fraction -= fraction_digit;
 
@@ -332,14 +317,39 @@ private:
                 break;
             }
         }
+        return write_count;
     }
 
-    template<usize I, typename... Args> constexpr void applyArg(usize index, std::tuple<Args const &...> const &tuple) {
-        if (I == index) {
-            append(std::get<I>(tuple));
-        } else if constexpr (I + 1 < sizeof...(Args)) {
-            applyArg<I + 1>(index, tuple);
+    /// @brief Append Formatted string
+    /// @tparam ...Args argument types (auto-deduced), used for `append` method static dispatching
+    /// @param fmt format string implicit consteval-constructed from literal
+    /// @param ...args format arguments
+    /// @note For argument placement use `{}` as anchor
+    template<typename... Args> [[nodiscard]] constexpr usize appendFormat(internal::FormatString<Args...> const &fmt, Args const &...args) noexcept {
+        auto const tuple = std::forward_as_tuple(args...);
+        usize write_count = 0;
+
+        for (auto i = 0u; i < fmt.result.count; i += 1) {
+            auto const &token = fmt.result.tokens[i];
+
+            if (token.kind == internal::FormatToken::Literal) {
+                write_count += this->append(StringView{fmt.str + token.start, token.length});
+            } else if constexpr (sizeof...(Args) > 0) {
+                write_count += applyArg<0>(fmt.result.anchor_indices[i], tuple);
+            }
         }
+
+        return write_count;
+    }
+
+private:
+    template<usize I, typename... Args> [[nodiscard]] constexpr usize applyArg(usize index, std::tuple<Args const &...> const &tuple) {
+        if (I == index) {
+            return append(std::get<I>(tuple));
+        } else if constexpr (I + 1 < sizeof...(Args)) {
+            return applyArg<I + 1>(index, tuple);
+        }
+        return 0;
     }
 };
 

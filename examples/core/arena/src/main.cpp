@@ -32,7 +32,7 @@ struct Player :
     // Constructor for create<T>().
     explicit constexpr Player(kf::Arena &arena, kf::StringView n, int s) noexcept :
         name{arena.allocate<char>(max_name_length + s)}, score{s} {
-        name.append(n);
+        (void) name.append(n);
     }
 
 private:

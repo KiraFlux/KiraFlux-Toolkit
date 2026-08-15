@@ -104,24 +104,23 @@ private:
     }
 
     KF_IMPL_REPR_TO(Self);
-    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+    constexpr usize reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
         if constexpr (type_like<T, char>) {
-            for (auto const c: *this) {
-                if (c == '\0') { break; }
-                (void) char_writable.write(static_cast<char>(c));
-            }
+            return char_writable.appendNullTerminatedString(this->data(), this->length());
         } else {
-            (void) char_writable.write('{');
+            usize ret = 0;
             bool f = false;
+            ret += char_writable.append('{');
             for (auto const &v: *this) {
                 if (f) {
-                    (void) char_writable.write(',');
-                    (void) char_writable.write(' ');
+                    ret += char_writable.append(',');
+                    ret += char_writable.append(' ');
                 }
                 f = true;
                 char_writable.append(v);
             }
-            (void) char_writable.write('}');
+            ret += char_writable.append('}');
+            return ret;
         }
     }
 };

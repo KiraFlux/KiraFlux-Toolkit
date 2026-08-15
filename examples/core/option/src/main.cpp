@@ -12,8 +12,8 @@ struct Point : kf::mixin::ReprTo<Point> {
 
 private:
     KF_IMPL_REPR_TO(Point);
-    constexpr void reprToImpl(kf::implements<kf::mixin::WritableTag<char>> auto &w) const {
-        w.format("Point({}, {})", x, y);
+    constexpr kf::usize reprToImpl(kf::implements<kf::mixin::WritableTag<char>> auto &w) const {
+        return w.appendFormat("Point({}, {})", x, y);
     }
 };
 

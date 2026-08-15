@@ -89,13 +89,13 @@ struct TextualRenderer :
 
         if (ch == '\n') {
             _cursor.newline();
-            _buffer.append(ch);
+            (void) _buffer.append(ch);
             return;
         }
 
         if (_cursor.canWrite(this->config().row_max_length)) {
             _cursor.advance(1, this->config().row_max_length);
-            _buffer.append(ch);
+            (void) _buffer.append(ch);
             return;
         }
     }
@@ -111,7 +111,7 @@ struct TextualRenderer :
         char buffer[24];
 
         String temp{{buffer}};
-        temp.append(real, rounding);
+        (void) temp.append(real, rounding);
 
         writeString(temp.view());
     }
@@ -262,7 +262,7 @@ private:
             char buffer[21];
 
             String temp{{buffer}};
-            temp.append(static_cast<i64>(value));
+            (void) temp.append(static_cast<i64>(value));
 
             writeString(temp.view());
         }

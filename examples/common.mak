@@ -18,7 +18,7 @@ RESET  := \033[0m
 ENV ?= $(ENV_ESP32)
 PORT ?= $(shell ls /dev/ttyUSB* /dev/ttyACM* 2>/dev/null | head -1)
 
-.PHONY: all build b run r upload u monitor m clean c help h list l
+.PHONY: all build b run r debug d upload u monitor m clean c help h list l
 
 all: build
 
@@ -28,9 +28,16 @@ build:
 b: build
 
 run:
-	pio run -e $(ENV_NATIVE) --target upload
+	-pio run -e $(ENV_NATIVE) --target upload
+	stty sane
 
 r: run
+
+debug:
+	pio run -e $(ENV_NATIVE)
+	gdb -ex "run" $(PROG_NATIVE)
+
+d: debug
 
 upload: 
 	pio run -e $(ENV_ESP32) --target upload --upload-port $(PORT) 
@@ -55,15 +62,17 @@ l: list
 help:
 	@printf "$(BOLD)Usage: make [target] [ENV=name] [PORT=port]\n\n"
 	@printf "Targets:\n$(RESET)"
-	@printf "  $(CYAN)all / build$(RESET)   - Build for $(YELLOW)ENV\n"
-	@printf "  $(CYAN)r / run$(RESET)       - Build and run native binary\n"
-	@printf "  $(CYAN)u / upload$(RESET)    - Upload firmware on $(YELLOW)PORT\n"
-	@printf "  $(CYAN)m / monitor$(RESET)   - Open serial monitor on $(YELLOW)PORT\n"
-	@printf "  $(CYAN)c / clean$(RESET)     - Remove build artifacts for $(YELLOW)ENV\n"
-	@printf "  $(CYAN)l / list$(RESET)      - Show available USB/ACM ports\n"
-	@printf "  $(CYAN)h / help$(RESET)      - Show help\n\n"
+	@printf "  $(CYAN)all$(RESET)           => $(YELLOW)build\n"
+	@printf "  $(CYAN)b / build$(RESET)     -- Build for $(YELLOW)ENV\n"
+	@printf "  $(CYAN)r / run$(RESET)       -- Build and run native binary\n"
+	@printf "  $(CYAN)d / debug$(RESET)     -- Build and run $(YELLOW)GDB$(RESET) with native binary\n"
+	@printf "  $(CYAN)u / upload$(RESET)    -- Upload firmware on $(YELLOW)PORT\n"
+	@printf "  $(CYAN)m / monitor$(RESET)   -- Open serial monitor on $(YELLOW)PORT\n"
+	@printf "  $(CYAN)c / clean$(RESET)     -- Remove build artifacts for $(YELLOW)ENV\n"
+	@printf "  $(CYAN)l / list$(RESET)      -- Show available USB/ACM ports\n"
+	@printf "  $(CYAN)h / help$(RESET)      -- Show help\n\n"
 	@printf "$(BOLD)Variables:$(RESET)\n"
-	@printf "  $(CYAN)ENV$(RESET)   - environment (default: $(YELLOW)$(ENV_ESP32)$(RESET))\n"
-	@printf "  $(CYAN)PORT$(RESET)  - serial port (default: $(YELLOW)auto-detected first USB/ACM$(RESET))\n"
+	@printf "  $(CYAN)ENV$(RESET)   -- environment (default: $(YELLOW)$(ENV_ESP32)$(RESET))\n"
+	@printf "  $(CYAN)PORT$(RESET)  -- serial port (default: $(YELLOW)auto-detected first USB/ACM$(RESET))\n"
 
 h: help

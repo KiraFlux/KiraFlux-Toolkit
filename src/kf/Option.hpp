@@ -83,8 +83,8 @@ private:
     }
 
     KF_IMPL_REPR_TO(Self);
-    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
-        char_writable.append(_is_some ? "some()" : "none");
+    constexpr usize reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+        return char_writable.append(_is_some ? "some()" : "none");
     }
 };
 
@@ -504,13 +504,14 @@ private:
     }
 
     KF_IMPL_REPR_TO(Option<T>);
-    constexpr void reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
+    constexpr usize reprToImpl(implements<mixin::WritableTag<char>> auto &char_writable) const noexcept {
         if (this->isSome()) {
-            char_writable.append("some(");
-            char_writable.append(this->get());
-            char_writable.append(')');
+            return (
+                char_writable.append("some(") +
+                char_writable.append(this->get()) +
+                char_writable.append(')'));
         } else {
-            char_writable.append("none");
+            return char_writable.append("none");
         }
     }
 };

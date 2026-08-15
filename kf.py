@@ -89,7 +89,7 @@ class Job(ABC):
         ".github",
     )
 
-    repo_dir: Final = Path(__file__).parent.resolve()
+    repo_dir: Final = Path.cwd().resolve()
 
     registry: Final = list[Self]()
 
@@ -116,13 +116,14 @@ class Job(ABC):
             return (Color.GREEN.apply("SUCCESS") if self.is_success else Color.RED.apply("FAILED"))
 
     @final
-    def run_cmd(self, args: Sequence[str]) -> CmdResult:
+    def run_cmd(self, args: Sequence[str], cwd: Optional[Path] = None) -> CmdResult:
         start = time.perf_counter()
 
         proc = subprocess.run(
             args,
             capture_output=True,
-            text=True
+            text=True,
+            cwd=cwd,
         )
 
         duration = time.perf_counter() - start
@@ -338,9 +339,10 @@ class BuildJob(BulkPathsJob):
         self._example_env: Optional[Environment] = None
 
     def on_path(self, path: Path, args) -> None:
-        cmd_result = self.run_cmd((
-            "pio", "run", "--silent", "-e", self._example_env, "-d", str(path)
-        ))
+        cmd_result = self.run_cmd(
+            ("make", "build", f"ENV={self._example_env}"),
+            cwd=path,
+        )
 
         build_result = self.ExampleBuildResult(
             is_success=cmd_result.is_success,
@@ -572,7 +574,7 @@ class LintJob(Job):
             for line in lines:
                 msg = line.split(':', 1)[-1].strip()
                 print(f"  {msg}")
-        
+
         return 1
 
 

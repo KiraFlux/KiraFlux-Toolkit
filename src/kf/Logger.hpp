@@ -39,12 +39,12 @@ struct Logger :
 
 #define MAKE(__kf_level__, __kf_level_name__)                                                                                \
     template<typename... Args> void __kf_level__(const internal::FormatString<Args...> &fmt, const Args &...args) noexcept { \
-        this->append('[');                                                                                                   \
-        this->append(_key);                                                                                                  \
-        this->append(":" __kf_level_name__ "] ");                                                                            \
-        this->format(fmt, args...);                                                                                          \
-        this->append('\n');                                                                                                  \
-        this->flush();                                                                                                       \
+        (void) this->append('[');                                                                                            \
+        (void) this->append(_key);                                                                                           \
+        (void) this->append(":" __kf_level_name__ "] ");                                                                     \
+        (void) this->appendFormat(fmt, args...);                                                                             \
+        (void) this->append('\n');                                                                                           \
+        (void) this->flush();                                                                                                \
     }
 
     MAKE(debug, "D")
