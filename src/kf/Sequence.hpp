@@ -117,7 +117,7 @@ private:
                     ret += char_writable.append(' ');
                 }
                 f = true;
-                char_writable.append(v);
+                ret += char_writable.append(v);
             }
             ret += char_writable.append('}');
             return ret;
