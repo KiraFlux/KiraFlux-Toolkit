@@ -612,6 +612,10 @@ class SnapshotJob(BulkPathsJob):
         "CHANGELOG.md"
     )
 
+    ignored_dirs: Final = (
+        ".pio",
+    )
+
     def __init__(self):
         super().__init__()
         self._fact_writes = 0
@@ -664,13 +668,18 @@ class SnapshotJob(BulkPathsJob):
             for dir_name in self.misc_dirs
         )
 
-        return filter(
+        paths = filter(
             (lambda p: p.name not in self.ignored_filenames),
             chain(
                 root_files,
                 *misc_files,
                 self.get_all_source_files(),
             )
+        )
+
+        return filter(
+            lambda p: not any(ignored_dir in p.parts for ignored_dir in self.ignored_dirs),
+            paths
         )
 
     def register(self, subparsers):
