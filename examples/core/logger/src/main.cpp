@@ -16,7 +16,7 @@ void kf::main(kf::Init &init) {
 
     // The logger supports compile-time format string validation via `mixin::Writable<Impl, char>`
     // Many built-in types are supported: strings, bool, integers, floats, and custom types via `Representable`
-    init.logger.debug("Hello {}!, bool is {}, int: {} float: {}", "World", true, 123456, 0.1234f);
+    init.logger.debug("Hello {}!, bool is {}, int: {} float: {}", "World", true, 123'456'789'0, -123.056);
 
     // Users can create additional logger instances with custom keys
     Logger non_buffered_logger{

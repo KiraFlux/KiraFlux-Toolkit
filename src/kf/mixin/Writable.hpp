@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <charconv>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -234,33 +235,13 @@ template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Imp
     }
 
     [[nodiscard]] constexpr usize appendInteger(i64 value) noexcept {
-        if (0 == value) {
-            return this->append('0');
+        char buffer[21];
+        auto const result = std::to_chars(buffer, buffer + sizeof(buffer), value);
+        if (result.ec == std::errc{}) {
+            return appendNullTerminatedString(buffer, static_cast<usize>(result.ptr - buffer));
+        } else {
+            return appendNullTerminatedString("err");
         }
-
-        bool const is_negative = (value < 0);
-        auto const abs_value = is_negative ? static_cast<u64>(-value) : static_cast<u64>(value);
-
-        auto digits = 0u;
-        char buffer[21]{};
-
-        for (auto v = abs_value; v > 0; v /= 10) {
-            buffer[digits] = static_cast<char>('0' + (v % 10));
-            digits += 1;
-        }
-
-        usize write_count = 0;
-
-        if (is_negative) {
-            write_count += this->append('-');
-        }
-
-        while (digits > 0) {
-            digits -= 1;
-            write_count += this->append(buffer[digits]);
-        }
-
-        return write_count;
     }
 
     [[nodiscard]] constexpr usize appendReal(f64 value, usize precision) noexcept {
@@ -268,56 +249,22 @@ template<typename Impl> struct Writable<Impl, char> : internal::WritableBase<Imp
             return appendNullTerminatedString("nan");
         }
 
-        bool const is_negative = (value < 0);
-        bool const just_integer_part = (0 == precision);
-
         if (math::isinf(value)) {
-            return appendNullTerminatedString(is_negative ? "-inf" : "+inf");
+            return appendNullTerminatedString(value < 0 ? "-inf" : "+inf");
         }
 
-        if (is_negative) {
-            value = -value;
+        char buffer[64];
+        auto const result = std::to_chars(
+            buffer, buffer + sizeof(buffer),
+            value,
+            std::chars_format::fixed,
+            static_cast<int>(precision));
+
+        if (result.ec == std::errc{}) {
+            return appendNullTerminatedString(buffer, static_cast<usize>(result.ptr - buffer));
+        } else {
+            return appendNullTerminatedString("err");
         }
-
-        auto const integer_part = static_cast<i64>(value);
-        auto const fraction_part = value - integer_part;
-
-        auto integer_digits = 0u;
-        for (auto v = integer_part; v > 0; v /= 10) {
-            integer_digits += 1;
-        }
-        if (integer_digits == 0) {
-            integer_digits = 1;
-        }
-
-        usize write_count = 0;
-
-        if (is_negative) {
-            write_count += this->append('-');
-        }
-
-        write_count += appendInteger(integer_part);
-
-        if (just_integer_part) {
-            return write_count;
-        }
-
-        write_count += this->append('.');
-
-        auto fraction = fraction_part;
-        for (auto i = 0u; i < precision; i += 1) {
-            fraction *= 10.0;
-
-            auto const fraction_digit = static_cast<u8>(fraction);
-            write_count += this->append('0' + fraction_digit);
-
-            fraction -= fraction_digit;
-
-            if (fraction < 1e-12) {
-                break;
-            }
-        }
-        return write_count;
     }
 
     /// @brief Append Formatted string
