@@ -1,7 +1,7 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
-/// @file    UART.hpp
+/// @file UART.hpp
 
 #pragma once
 
@@ -11,8 +11,10 @@
 
 #include "kf/Bytes.hpp"
 #include "kf/BytesView.hpp"
+#include "kf/Option.hpp"
 #include "kf/Result.hpp"
 #include "kf/core.hpp"
+#include "kf/gpio.hpp"
 
 #include "kf/mixin/BinaryReadable.hpp"
 #include "kf/mixin/BinaryWritable.hpp"
@@ -34,7 +36,17 @@ enum class UartError {
 };
 
 struct UartConfig {
+    gpio::GpioNumber
+        rx_gpio_num,
+        tx_gpio_num;
+
     u32 baudrate;
+
+    Option<usize>
+        rx_buffer_length{none},
+        tx_buffer_length{none};
+
+    bool inverted{false};
 };
 
 using UartWriteResult = Result<void, UartError>;
@@ -82,7 +94,23 @@ private:
 
     KF_IMPL_INITABLE(Self, void());
     void initImpl() noexcept {
-        _serial.begin(this->config().baudrate);
+
+        if (this->config().rx_buffer_length.isSome()) {
+            (void) _serial.setRxBufferSize(this->config().rx_buffer_length.unwrap());
+        }
+
+        if (this->config().tx_buffer_length.isSome()) {
+            (void) _serial.setTxBufferSize(this->config().tx_buffer_length.unwrap());
+        }
+
+        pinMode(static_cast<u8>(this->config().rx_gpio_num), INPUT_PULLUP);
+
+        _serial.begin(
+            this->config().baudrate,
+            SERIAL_8N1,
+            static_cast<i8>(this->config().rx_gpio_num),
+            static_cast<i8>(this->config().tx_gpio_num),
+            this->config().inverted);
     }
 
     KF_IMPL_QUITABLE(Self);

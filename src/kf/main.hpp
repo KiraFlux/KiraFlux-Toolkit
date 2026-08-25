@@ -84,7 +84,9 @@ struct Init : internal::InitBase {
 
 private:
     UART::Config _uart_config{
-        .baudrate = (KF_CONFIG_MAIN_UART_BAUDRATE),
+        .rx_gpio_num{gpio::G3},
+        .tx_gpio_num{gpio::G1},
+        .baudrate{KF_CONFIG_MAIN_UART_BAUDRATE},
     };
 };
 
