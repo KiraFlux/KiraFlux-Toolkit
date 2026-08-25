@@ -13,4 +13,4 @@ jobs:
       - name: Install clang-tidy
         run: sudo apt-get update && sudo apt-get install -y clang-tidy
       - name: Run linter
-        run: ./lint.sh
+        run: python3 kf.py lint --all

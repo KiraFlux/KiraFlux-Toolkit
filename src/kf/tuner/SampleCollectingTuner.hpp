@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
+#include "kf/units.hpp"
 
 #include "kf/tuner/Tuner.hpp"
 
@@ -16,7 +17,7 @@ namespace kf::tuner {
 ///
 ///       - `void resetImpl() noexcept`   – called when collection begins.
 ///
-///       - `void pollImpl() noexcept`    – called for each sample; should process the current sample (e.g., update min/max/sum).
+///       - `void pollImpl(kf::units::Milliseconds now) noexcept`    – called for each sample; should process the current sample (e.g., update min/max/sum).
 ///
 ///       - `void calculateImpl(T&) noexcept` – called after all samples are collected; updates the configuration.
 ///
@@ -27,7 +28,6 @@ namespace kf::tuner {
 ///          the Calculating state and call `calculateImpl()`.
 template<typename Impl, typename T> struct SampleCollectingTuner : Tuner<SampleCollectingTuner<Impl, T>> {
     using ConfigType = T;
-    using SampleCounterType = u16;
 
     enum class State : u8 {
         Idle,
@@ -36,35 +36,31 @@ template<typename Impl, typename T> struct SampleCollectingTuner : Tuner<SampleC
     };
 
     /// @brief Total number of samples to collect before calculating.
-    const SampleCounterType samples_total;
+    usize const samples_total;
 
-    explicit SampleCollectingTuner(ConfigType &config, SampleCounterType samples) noexcept :
+    explicit constexpr SampleCollectingTuner(ConfigType &config, usize samples) noexcept :
         _config{config}, samples_total{samples} {}
 
 private:
     ConfigType &_config;
-    SampleCounterType _samples_processed{0};
+    usize _samples_processed{0};
     State _state{State::Idle};
 
-    // impl
+    KF_IMPL_TUNER(SampleCollectingTuner<Impl, T>);
 
-    using This = SampleCollectingTuner<Impl, T>;
-
-    KF_IMPL_RESETTABLE(This);
-    void resetImpl() noexcept {
+    constexpr void resetImpl() noexcept {
         _state = State::Running;
         _samples_processed = 0;
         impl().resetImpl();
     }
 
-    KF_IMPL_POLLABLE(This);
-    void pollImpl() noexcept {
+    void pollImpl(kf::units::Milliseconds now) noexcept {
         switch (_state) {
             case State::Idle://
                 return;
 
             case State::Running: {
-                impl().pollImpl();
+                impl().pollImpl(now);
                 _samples_processed += 1;
 
                 if (_samples_processed >= samples_total) {
@@ -81,7 +77,6 @@ private:
         }
     }
 
-    KF_IMPL_TUNER(This);
     [[nodiscard]] bool runningImpl() const noexcept {
         return _state != State::Idle;
     }
@@ -91,9 +86,14 @@ private:
         return *static_cast<Impl *>(this);
     }
 
-    const Impl &impl() const noexcept {
-        return *static_cast<const Impl *>(this);
+    Impl const &impl() const noexcept {
+        return *static_cast<Impl const *>(this);
     }
 };
 
 }// namespace kf::tuner
+
+#define KF_IMPL_SAMPLE_COLLECTING_TUNER(__impl__, ...)                       \
+    friend struct ::kf::tuner::SampleCollectingTuner<__impl__, __VA_ARGS__>; \
+    KF_IMPL_RESETTABLE(__impl__);                                            \
+    KF_IMPL_POLL(__impl__)

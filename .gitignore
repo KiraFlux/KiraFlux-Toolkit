@@ -4,6 +4,7 @@
 .vscode/launch.json
 .vscode/ipch
 
+failed_examples.txt
 snapshot.txt
 lint.txt
 diff.txt

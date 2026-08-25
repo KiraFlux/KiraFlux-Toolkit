@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/Invariant.hpp
+/// @brief   Adds isSome()/isNone() for optional‑like types.
+
 #pragma once
 
 namespace kf::mixin {
@@ -13,7 +16,7 @@ template<typename Impl> struct Invariant {
     /// @brief Checks whether the object contains a Some
     /// @return `true` if a value is present, `false` otherwise.
     [[nodiscard]] constexpr bool isSome() const noexcept {
-        return static_cast<const Impl *>(this)->isSomeImpl();
+        return static_cast<Impl const *>(this)->isSomeImpl();
     }
 
     /// @brief Checks whether the object is None

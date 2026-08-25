@@ -1,0 +1,81 @@
+// Copyright (c) 2026 KiraFlux
+// SPDX-License-Identifier: MIT
+
+/// @file    listener/LogicalLevelListener.hpp
+/// @brief   Listener for button press detection with debounce.
+
+#pragma once
+
+#include "kf/listener/Listener.hpp"
+#include "kf/mixin/Configured.hpp"
+#include "kf/units.hpp"
+
+namespace kf::internal {
+
+struct LogicalLevelListenerConfig final {
+    units::Milliseconds debounce;
+};
+
+}// namespace kf::internal
+
+namespace kf::listener {
+
+/// @brief Minimal button with press detection only
+struct LogicalLevelListener :
+
+    Listener<LogicalLevelListener, bool, void()>,
+    mixin::Configured<internal::LogicalLevelListenerConfig>
+
+{
+    using Config = internal::LogicalLevelListenerConfig;
+
+    using mixin::Configured<Config>::Configured;
+
+private:
+    units::Milliseconds _next{0};
+    bool _last_stable{false};
+    bool _last_raw{false};
+    bool _click_ready{false};
+    bool _first{true};
+
+    KF_IMPL_LISTENER(LogicalLevelListener);
+
+    constexpr void resetImpl() noexcept {
+        _first = true;
+        _last_stable = _last_raw = _click_ready = false;
+    }
+
+    void pollImpl(units::Milliseconds now) noexcept {
+        if (this->value().isNone()) { return; }
+
+        bool const state = this->value().unwrap();
+
+        if (_first) {
+            _first = false;
+            _last_raw = state;
+            _last_stable = state;
+        }
+
+        if (state != _last_raw) {
+            _last_raw = state;
+            _next = now + this->config().debounce;
+        }
+
+        if (now >= _next) {
+            if (_last_stable != state) {
+                _last_stable = state;
+
+                if (_last_stable) {
+                    _click_ready = true;
+                }
+            }
+        }
+
+        if (_click_ready) {
+            _click_ready = false;
+            this->invoke();
+        }
+    }
+};
+
+}// namespace kf::listener

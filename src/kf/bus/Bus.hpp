@@ -1,12 +1,16 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    bus/Bus.hpp
+/// @brief   CRTP base for bus implementations and node creation.
+
 #pragma once
 
 #include "kf/Result.hpp"
-#include "kf/io/Readable.hpp"
-#include "kf/io/Writable.hpp"
-#include "kf/meta/CRTP.hpp"
+#include "kf/core.hpp"
+
+#include "kf/mixin/BinaryReadable.hpp"
+#include "kf/mixin/BinaryWritable.hpp"
 #include "kf/mixin/Initable.hpp"
 #include "kf/mixin/NonCopyable.hpp"
 #include "kf/mixin/Quitable.hpp"
@@ -19,33 +23,38 @@ template<typename Impl, typename ErrorImpl> struct BusNode :
 
     BusNodeTag,
     mixin::NonCopyable,
-    io::Readable<Impl, ErrorImpl>,
-    io::Writable<Impl, Result<void, ErrorImpl>>
+    mixin::BinaryReadable<Impl, ErrorImpl>,
+    mixin::BinaryWritable<Impl, Result<void, ErrorImpl>>
 
 {};
 
 struct BusTag {};
 
 /// @brief CRTP base class for bus implementations.
-/// @tparam BusImpl Concrete bus implementation (must inherit from this class).
-/// @tparam NodeImpl Type of node that will be created by the bus (must satisfy Readable and Writable).
+/// @tparam Impl Concrete bus implementation (must inherit from this class).
+/// @tparam NodeImpl Type of node that will be created by the bus (must satisfy BinaryReadable and BinaryWritable).
 /// @tparam ErrorImpl Error type used by bus operations.
 /// @note The bus implementation must provide methods `initImpl()` and `quitImpl()`.
 ///       Nodes are created via `createNode` and are expected to be movable.
-template<typename BusImpl, typename NodeImpl, typename ErrorImpl> struct Bus :
+template<typename Impl, implements<BusNodeTag> NodeImpl, typename ErrorImpl> struct Bus :
 
     BusTag,
     mixin::NonCopyable,
-    mixin::Initable<BusImpl, Result<void, ErrorImpl>()>,
-    mixin::Quitable<BusImpl>,
-    meta::CRTP<BusImpl>
+    mixin::Initable<Impl, Result<void, ErrorImpl>()>,
+    mixin::Quitable<Impl>
 
 {
-    KF_CHECK_IMPL(NodeImpl, ::kf::bus::BusNodeTag);
-
-    [[nodiscard]] NodeImpl createNode(const typename NodeImpl::Config &config) noexcept {
-        return NodeImpl{this->impl(), config};
+    [[nodiscard]] constexpr NodeImpl createNode(typename NodeImpl::Config const &config) noexcept {
+        return NodeImpl{*static_cast<Impl *>(this), config};
     }
 };
 
 }// namespace kf::bus
+
+#define KF_IMPL_BUS_NODE(__impl__, __error_impl__)     \
+    KF_IMPL_BINARY_READABLE(__impl__, __error_impl__); \
+    KF_IMPL_BINARY_WRITABLE(__impl__, ::kf::Result<void, __error_impl__>)
+
+#define KF_IMPL_BUS(__impl__, __error_impl__)                         \
+    KF_IMPL_INITABLE(__impl__, ::kf::Result<void, __error_impl__>()); \
+    KF_IMPL_QUITABLE(__impl__)

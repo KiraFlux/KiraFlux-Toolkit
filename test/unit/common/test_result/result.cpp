@@ -6,10 +6,10 @@ using kf::Result;
 
 struct Error {
     char kind;
-    bool operator==(const Error &other) const { return kind == other.kind; }
+    bool operator==(Error const &other) const { return kind == other.kind; }
 };
 
-const Error error{'A'};
+Error const error{'A'};
 
 template<typename T> struct ResultTester {
     static constexpr T value{};
@@ -74,7 +74,7 @@ template<typename T> struct ResultTester {
     }
 
     static void const_instance() {
-        const Result<T, Error> r{kf::ok(value)};
+        Result<T, Error> const r{kf::ok(value)};
         TEST_ASSERT_TRUE(r.isOk());
         TEST_ASSERT_TRUE(value == r.ok());
     }
@@ -85,7 +85,7 @@ template<typename T> struct ResultTester {
     }
 
     static void value_get_const() {
-        const Result<T, Error> r{kf::ok(value)};
+        Result<T, Error> const r{kf::ok(value)};
         TEST_ASSERT_TRUE(value == r.ok());
     }
 
@@ -160,7 +160,7 @@ void test_void_move_assignment() {
     TEST_ASSERT_TRUE(b.error() == error);
 }
 void test_void_const() {
-    const Result<void, Error> r{kf::ok()};
+    Result<void, Error> const r{kf::ok()};
     TEST_ASSERT_TRUE(r.isOk());
 }
 
@@ -173,6 +173,24 @@ void test_void_mapError_error() {
     auto mapped = Result<void, Error>{kf::error(error)}.mapError([](Error) { return 123; });
     TEST_ASSERT_TRUE(mapped.isError());
     TEST_ASSERT_TRUE(123 == mapped.error());
+}
+
+Result<void, Error> kf_try() {
+
+    Result<void, Error> r{kf::ok()};
+
+    KF_TRY(r);
+
+    return kf::ok();
+}
+
+Result<int, Error> kf_try_value() {
+
+    Result<int, Error> r{kf::ok(12345)};
+
+    int a = KF_TRY(r);
+
+    return kf::ok(a);
 }
 
 #define RUN_RESULT_TESTS(T)                     \

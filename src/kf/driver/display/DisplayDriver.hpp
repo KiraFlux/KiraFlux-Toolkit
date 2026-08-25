@@ -1,0 +1,64 @@
+// Copyright (c) 2026 KiraFlux
+// SPDX-License-Identifier: MIT
+
+/// @file    driver/display/DisplayDriver.hpp
+/// @brief   CRTP base for display drivers (framebuffer, send, orientation).
+
+#pragma once
+
+#include "kf/core.hpp"
+#include "kf/image/Image.hpp"
+
+#include "kf/mixin/Initable.hpp"
+#include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Resettable.hpp"
+
+#include "kf/driver/Driver.hpp"
+#include "kf/driver/display/Orientation.hpp"
+
+namespace kf::driver::display {
+
+struct DisplayDriverTag {};
+
+/// @brief CRTP base class for display driver implementations
+/// @tparam Impl Concrete driver implementation type
+/// @tparam ImageImpl Image buffer type
+template<typename Impl, implements<image::ImageTag> ImageImpl, typename OperationResult> struct DisplayDriver :
+
+    DisplayDriverTag,
+    Driver<Impl, OperationResult>,
+    mixin::Resettable<Impl>
+
+{
+
+    /// @brief Mutable access at image buffer
+    [[nodiscard]] ImageImpl &image() noexcept {
+        return _screen_image;
+    }
+
+    /// @brief Readonly access at image buffer
+    [[nodiscard]] ImageImpl const &image() const noexcept {
+        return _screen_image;
+    }
+
+    /// @brief Transfer software buffer to display hardware
+    [[nodiscard]] OperationResult send() noexcept {
+        return static_cast<Impl *>(this)->sendImpl();
+    }
+
+    /// @brief Set display orientation.
+    /// @param new_orientation New orientation value.
+    [[nodiscard]] OperationResult orientation(Orientation new_orientation) noexcept {
+        return static_cast<Impl *>(this)->setOrientationImpl(new_orientation);
+    }
+
+private:
+    ImageImpl _screen_image{};///<  Software frame buffer for display operations
+};
+
+}// namespace kf::driver::display
+
+#define KF_IMPL_DISPLAY_DRIVER(__impl__, __image_impl__, ...)                                  \
+    friend struct ::kf::driver::display::DisplayDriver<__impl__, __image_impl__, __VA_ARGS__>; \
+    KF_IMPL_DRIVER(__impl__, __VA_ARGS__);                                                     \
+    KF_IMPL_RESETTABLE(__impl__)

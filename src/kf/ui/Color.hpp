@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/Color.hpp
+/// @brief   Semantic color tags (Normal, Primary, Success, etc.).
+
 #pragma once
 
 namespace kf::ui {

@@ -1,15 +1,19 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/UiTraits.hpp
+/// @brief   UI traits defining Widget, Renderer, Event, and adjusters.
+
 #pragma once
 
-#include "kf/algorithm.hpp"
-#include "kf/meta/CRTP.hpp"
-#include "kf/ui/widgets/Widget.hpp"
+#include "kf/core.hpp"
+#include "kf/math.hpp"
+
+#include "kf/ui/widget/Widget.hpp"
 
 namespace kf::internal {
 
-template<typename T> struct step_adjuster_min_step;
+template<arithmetic T> struct step_adjuster_min_step;
 
 template<> struct step_adjuster_min_step<int> {
     static constexpr int value{1};
@@ -30,9 +34,8 @@ namespace kf::ui {
 struct UiTraitsTag {};
 
 /// @brief UI Traits
-/// @tparam W Widget Base implementation (Must inherit from `::kf::ui::widgets::WidgetTag` and should be like `::kf::ui::widgets::Widget<R, E>`)
-template<typename W> struct UiTraits : UiTraitsTag {
-    KF_CHECK_IMPL(W, ::kf::ui::widgets::WidgetTag);
+/// @tparam W Widget Base implementation (Must inherit from `::kf::ui::widget::WidgetTag` and should be like `::kf::ui::widget::Widget<R, E>`)
+template<implements<widget::WidgetTag> W> struct UiTraits : UiTraitsTag {
 
     /// @brief Widget Base class
     struct Widget : W {
@@ -50,7 +53,7 @@ template<typename W> struct UiTraits : UiTraitsTag {
     /// @brief CRTP base for value adjustment strategies
     /// @tparam Impl The derived adjustment class.
     /// @tparam T   The numeric type to adjust.
-    template<typename Impl, typename T> struct Adjuster : AdjusterTag {
+    template<typename Impl, arithmetic T> struct Adjuster : AdjusterTag {
 
         /// @brief Applies an adjustment to a value.
         /// @param value    The current value.
@@ -62,30 +65,32 @@ template<typename W> struct UiTraits : UiTraitsTag {
         }
     };
 
+#define KF_IMPL_ADJUSTER(...) friend struct Adjuster<__VA_ARGS__>
+
     /// @brief Arithmetic mode: value += direction * step
-    template<typename T> struct ArithmeticAdjuster final : Adjuster<ArithmeticAdjuster<T>, T> {
+    template<arithmetic T> struct ArithmeticAdjuster final : Adjuster<ArithmeticAdjuster<T>, T> {
     private:
-        KF_IMPL(Adjuster<ArithmeticAdjuster<T>, T>);
+        KF_IMPL_ADJUSTER(ArithmeticAdjuster<T>, T);
         static constexpr T adjustImpl(T value, T step, int direction) noexcept {
             return value + direction * step;
         }
     };
 
     /// @brief ArithmeticPositiveOnly mode: value += direction * step, clamp >= 0
-    template<typename T> struct ArithmeticPositiveOnlyAdjuster final : Adjuster<ArithmeticPositiveOnlyAdjuster<T>, T> {
+    template<arithmetic T> struct ArithmeticPositiveOnlyAdjuster final : Adjuster<ArithmeticPositiveOnlyAdjuster<T>, T> {
     private:
-        KF_IMPL(Adjuster<ArithmeticPositiveOnlyAdjuster<T>, T>);
+        KF_IMPL_ADJUSTER(ArithmeticPositiveOnlyAdjuster<T>, T);
         static constexpr T adjustImpl(T value, T step, int direction) noexcept {
             return max(0, ArithmeticAdjuster<T>::adjust(value, step, direction));
         }
     };
 
     /// @brief Geometric mode: value *= step for positive direction, /= for negative
-    template<typename T> struct GeometricAdjuster final : Adjuster<GeometricAdjuster<T>, T> {
+    template<arithmetic T> struct GeometricAdjuster final : Adjuster<GeometricAdjuster<T>, T> {
     private:
-        KF_IMPL(Adjuster<GeometricAdjuster<T>, T>);
+        KF_IMPL_ADJUSTER(GeometricAdjuster<T>, T);
         static constexpr T adjustImpl(T value, T step, int direction) noexcept {
-            return (direction == 0) ? value : ((direction > 0) ? (value * step) : max(value / step, internal::step_adjuster_min_step<T>::value));
+            return (direction == 0) ? value : ((direction > 0) ? (value * step) : math::max(value / step, internal::step_adjuster_min_step<T>::value));
         }
     };
 };

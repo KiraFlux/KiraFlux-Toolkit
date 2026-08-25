@@ -10,25 +10,10 @@ on:
     branches: [main]
 
 jobs:
-  gather-examples:
-    runs-on: ubuntu-latest
-    outputs:
-      examples: ${{ steps.find.outputs.examples }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Find example directories
-        id: find
-        run: chmod +x ./find-examples.sh && echo "examples=$(bash ./find-examples.sh)" >> "$GITHUB_OUTPUT"
-
   build:
-    needs: gather-examples
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        example: ${{ fromJson(needs.gather-examples.outputs.examples) }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-platformio
-      - name: Build ${{ matrix.example }}
-        run: pio run -d "${{ matrix.example }}"
+      - name: Build all examples
+        run: python3 kf.py build --all

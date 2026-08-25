@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/Block.hpp
+/// @brief   Enum for semantic block types (standard, alternative).
+
 #pragma once
 
 namespace kf::ui {

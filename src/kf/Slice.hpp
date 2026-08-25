@@ -1,117 +1,98 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Slice.hpp
+
 #pragma once
 
-#include "kf/primitives.hpp"
+#include "kf/Option.hpp"
+#include "kf/Sequence.hpp"
+#include "kf/core.hpp"
 
 namespace kf {
 
-/// @brief Non-owning view of a contiguous memory region
+/// @brief   Non‑owning view of a contiguous memory region with slicing and iteration.
 /// @tparam T Element type
-/// @note Similar to std::span but for embedded use without exceptions
-template<typename T> struct Slice {
+template<typename T> struct Slice : Sequence<Slice<T>, T> {
 
     /// @brief Construct empty slice
-    constexpr Slice() noexcept : _ptr{nullptr}, _size{0} {}
+    constexpr Slice() noexcept :
+        _ptr{nullptr}, _length{0} {}
 
-    /// @brief Construct slice from pointer and size
+    /// @brief Construct slice from pointer and length
     /// @param ptr Pointer to first element
-    /// @param size Number of elements
-    constexpr Slice(T *ptr, usize size) noexcept : _ptr{ptr}, _size{size} {}
+    /// @param length Number of elements
+    constexpr Slice(T *ptr, usize length) noexcept :
+        _ptr{ptr}, _length{length} {}
 
     /// @brief Array constructor
     /// @tparam N auto-deducted array length
-    template<usize N> constexpr Slice(T (&arr)[N]) noexcept : _ptr{arr}, _size{N} {}
-
-    /// @brief Get iterator to beginning
-    /// @return Iterator to first element
-    [[nodiscard]] constexpr T *begin() noexcept { return _ptr; }
-
-    /// @brief Get iterator to end
-    /// @return Iterator to position after last element
-    [[nodiscard]] constexpr T *end() noexcept { return _ptr + _size; }
-
-    /// @brief Get const iterator to beginning
-    /// @return Const iterator to first element
-    [[nodiscard]] constexpr const T *begin() const noexcept { return _ptr; }
-
-    /// @brief Get const iterator to end
-    /// @return Const iterator to position after last element
-    [[nodiscard]] constexpr const T *end() const noexcept { return _ptr + _size; }
-
-    /// @brief Get pointer to underlying data
-    /// @return Pointer to first element
-    [[nodiscard]] constexpr T *data() noexcept { return _ptr; }
-
-    /// @brief Get const pointer to underlying data
-    /// @return Const pointer to first element
-    [[nodiscard]] constexpr const T *data() const noexcept { return _ptr; }
-
-    /// @brief Get number of elements in slice
-    /// @return Size of slice in elements
-    [[nodiscard]] constexpr usize size() const noexcept { return _size; }
-
-    /// @brief Check if slice is empty
-    /// @return true if slice contains no elements
-    [[nodiscard]] constexpr bool empty() const noexcept { return _size == 0; }
-
-    /// @brief Access element at index without bounds checking
-    /// @param index Element position (0-based)
-    /// @return Reference to element at index
-    /// @warning No bounds checking performed
-    [[nodiscard]] T &operator[](usize index) noexcept {
-        return _ptr[index];
-    }
-
-    /// @brief Access element at index without bounds checking (const version)
-    /// @param index Element position (0-based)
-    /// @return Const reference to element at index
-    /// @warning No bounds checking performed
-    [[nodiscard]] const T &operator[](usize index) const noexcept {
-        return _ptr[index];
-    }
+    template<usize N> constexpr Slice(T (&arr)[N]) noexcept :
+        _ptr{arr}, _length{N} {}
 
     /// @brief Create sub-slice starting at offset
-    /// @param offset Starting position (must be <= size())
-    /// @param count Number of elements (offset + count must be <= size())
+    /// @param offset Starting position
+    /// @param count Number of elements
     /// @return Slice covering specified range
-    /// @note No bounds checking - caller must ensure valid range
-    [[nodiscard]] Slice sub(usize offset, usize count) const noexcept {
-        return Slice{_ptr + offset, count};
+    [[nodiscard]] constexpr Slice sub(usize offset, Option<usize> count = none) const noexcept {
+        if (offset > _length) {
+            return {};
+        }
+
+        usize len = count.unwrapOr(_length - offset);
+
+        if (len > _length - offset) {
+            len = _length - offset;
+        }
+
+        if (0 == len) {
+            return {};
+        }
+
+        return {_ptr + offset, len};
     }
 
     /// @brief Get first N elements of slice
     /// @param n Number of elements from start
     /// @return Slice containing first n elements
-    /// @note No bounds checking - caller must ensure n <= size()
-    [[nodiscard]] Slice first(usize n) const noexcept {
-        return sub(0, n);
+    /// @note No bounds checking - caller must ensure n <= length()
+    [[nodiscard]] constexpr Slice first(usize n) const noexcept {
+        return sub(0, some(n));
     }
 
     /// @brief Get last N elements of slice
     /// @param n Number of elements from end
     /// @return Slice containing last n elements
-    /// @note No bounds checking - caller must ensure n <= size()
-    [[nodiscard]] Slice last(usize n) const noexcept {
-        return sub(_size - n, n);
+    /// @note No bounds checking - caller must ensure n <= length()
+    [[nodiscard]] constexpr Slice last(usize n) const noexcept {
+        return sub(_length - n, some(n));
     }
 
     /// @brief Get slice starting from offset to end
-    /// @param offset Starting position (must be <= size())
+    /// @param offset Starting position (must be <= length())
     /// @return Slice from offset to end of original slice
-    /// @note No bounds checking - caller must ensure offset <= size()
-    [[nodiscard]] Slice fromOffset(usize offset) const noexcept {
-        return sub(offset, _size - offset);
+    /// @note No bounds checking - caller must ensure offset <= length()
+    [[nodiscard]] constexpr Slice fromOffset(usize offset) const noexcept {
+        return sub(offset, some(_length - offset));
     }
 
-    constexpr operator Slice<const T>() const noexcept {
-        return Slice<const T>{_ptr, _size};
+    constexpr operator Slice<T const>() const noexcept {
+        return Slice<T const>{_ptr, _length};
     }
 
 private:
-    T *_ptr;    ///< Pointer to the first element
-    usize _size;///< Number of elements in the slice
+    T *_ptr;      ///< Pointer to the first element
+    usize _length;///< Number of elements in the slice
+
+    KF_IMPL_SEQUENCE(Slice<T>, T);
+
+    constexpr T *getDataImpl() noexcept {
+        return _ptr;
+    }
+
+    constexpr usize lengthImpl() const noexcept {
+        return _length;
+    }
 };
 
 }// namespace kf

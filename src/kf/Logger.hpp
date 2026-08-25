@@ -1,63 +1,88 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    Logger.hpp
+
 #pragma once
 
-#include "kf/memory/StaticString.hpp"
-#include "kf/memory/StringView.hpp"
+#include "kf/Slice.hpp"
+#include "kf/Stack.hpp"
+#include "kf/StringView.hpp"
+
+#include "kf/mixin/Flush.hpp"
 #include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Writable.hpp"
 
 namespace kf {
 
-/// @brief Logging system for embedded applications
-struct Logger final : mixin::NonCopyable {
-    using WriteHandler = void (*)(memory::StringView);
+/// @brief   Logging system with formatted output and buffered writer.
+struct Logger :
 
-    static WriteHandler writer;///< Current output handler (nullptr disables logging)
+    mixin::NonCopyable,
+    mixin::Flush<Logger>,
+    private mixin::Writable<Logger, char>
 
-private:
-    const memory::StringView _key;
+{
 
-    explicit constexpr Logger(memory::StringView key) noexcept :
-        _key{key} {}
+    using WriteHandler = void (*)(StringView);
 
-public:
-    template<usize N> [[nodiscard]] static constexpr Logger create(const char (&key)[N]) noexcept {
-        return Logger{memory::StringView{key, N - 1}};
+    /// @brief Current output handler (nullptr disables logging)
+    inline static WriteHandler writer{nullptr};
+
+    explicit constexpr Logger(StringView key, Slice<char> buffer = {}) noexcept :
+        _key{key}, _stack{buffer} {}
+
+    /// @brief Get Logger key
+    [[nodiscard]] constexpr StringView key() const noexcept {
+        return _key;
     }
 
-#define MAKE(__entry_name__)                                               \
-    void __entry_name__(const memory::StringView message) const noexcept { \
-        write(memory::StringView{#__entry_name__}, message);               \
+#define MAKE(__kf_level__, __kf_level_name__)                                                                                \
+    template<typename... Args> void __kf_level__(const internal::FormatString<Args...> &fmt, const Args &...args) noexcept { \
+        (void) this->append('[');                                                                                            \
+        (void) this->append(_key);                                                                                           \
+        (void) this->append(":" __kf_level_name__ "] ");                                                                     \
+        (void) this->appendFormat(fmt, args...);                                                                             \
+        (void) this->append('\n');                                                                                           \
+        (void) this->flush();                                                                                                \
     }
 
-    MAKE(info)
-
-    MAKE(warn)
-
-    MAKE(error)
-
-    MAKE(debug)
+    MAKE(debug, "D")
+    MAKE(info, "I")
+    MAKE(warn, "W")
+    MAKE(error, "E")
 
 #undef MAKE
 
 private:
-    void write(const memory::StringView level, const memory::StringView message) const noexcept {
-        if (writer == nullptr) { return; }
+    Stack<char> _stack;
+    StringView _key;
 
-        memory::StaticString<32> buffer{};
+    KF_IMPL_FLUSH(Logger);
+    void flushImpl() noexcept {
+        writer({_stack.slice()});
+        _stack.reset();
+    }
 
-        (void) buffer.append(" [");
-        (void) buffer.append(_key);
-        (void) buffer.push(':');
-        (void) buffer.append(level);
-        (void) buffer.append("] ");
-        writer(buffer.view());
-        writer(message);
-        writer("\n");
+    KF_IMPL_WRITABLE(Logger, char);
+    bool writeImpl(char c) noexcept {
+        if (nullptr == writer) {
+            return false;
+        }
+
+        // bufferless mode -> direct write
+        if (_stack.capacity() == 0) {
+            writer({&c, 1});
+        } else {
+            if (_stack.full()) {
+                flush();
+            }
+
+            (void) _stack.write(c);
+        }
+
+        return true;
     }
 };
-
-Logger::WriteHandler Logger::writer{nullptr};
 
 }// namespace kf

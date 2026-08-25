@@ -1,11 +1,13 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/Event.hpp
+/// @brief   Packed UI event (kind + value) for page cursor, click, and value changes.
+
 #pragma once
 
-#include "kf/algorithm.hpp"
-#include "kf/meta/BitTraits.hpp"
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
+#include "kf/math.hpp"
 
 namespace kf::ui {
 
@@ -18,9 +20,9 @@ template<usize N> struct Event : EventTag {
     static constexpr auto value_bits{N};
     static constexpr auto total_bits{static_cast<usize>(type_bits + value_bits)};
 
-    using Value = typename meta::BitTraits<value_bits>::min_signed;
-    using Storage = typename meta::BitTraits<total_bits>::min_unsigned;
-    using UnsignedValue = typename meta::BitTraits<value_bits>::min_unsigned;
+    using Value = signed_integer_by_bits_t<value_bits>;
+    using Storage = unsigned_integer_by_bits_t<total_bits>;
+    using UnsignedValue = unsigned_integer_by_bits_t<value_bits>;
 
     static constexpr auto storage_bits{static_cast<usize>(sizeof(Storage) * 8)};
     static constexpr auto value_max{static_cast<Value>((UnsignedValue{1u} << (value_bits - 1)) - 1)};
@@ -37,14 +39,14 @@ template<usize N> struct Event : EventTag {
     };
 
     explicit constexpr Event(Kind kind, Value value = 0) noexcept :
-        _storage{static_cast<Storage>((static_cast<Storage>(kind) & type_mask) | static_cast<Storage>((clamp(value, value_min, value_max)) & value_mask))} {}
+        _storage{static_cast<Storage>((static_cast<Storage>(kind) & type_mask) | static_cast<Storage>((math::clamp(value, value_min, value_max)) & value_mask))} {}
 
     [[nodiscard]] constexpr Kind kind() const noexcept {
         return static_cast<Kind>(_storage & type_mask);
     }
 
     [[nodiscard]] Value value() const noexcept {
-        const auto raw = static_cast<Value>(_storage & value_mask);
+        auto const raw = static_cast<Value>(_storage & value_mask);
         return (raw & sign_bit_mask) ? static_cast<Value>(raw | ~value_mask) : raw;
     }
 

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    mixin/ValueCallbacked.hpp
+/// @brief   Stores a value and invokes a callback on change.
+
 #pragma once
 
 #include "kf/mixin/Callbacked.hpp"
@@ -11,11 +14,12 @@ struct ValueCallbackedTag {};
 
 /// @brief Adds value: T
 /// @tparam T The type of the stored value.
-template<typename T> struct ValueCallbacked : ValueCallbackedTag, Callbacked<T> {
+template<typename T> struct ValueCallbacked : ValueCallbackedTag, Callbacked<void(T)> {
 
     /// @brief Constructs with an initial value.
     /// @param value The initial value.
-    explicit constexpr ValueCallbacked(T value) noexcept : _value{value} {}
+    explicit constexpr ValueCallbacked(T value) noexcept :
+        _value{value} {}
 
     /// @brief Returns the current value.
     /// @return The stored value

@@ -1,17 +1,19 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    gfx/Palette.hpp
+/// @brief   Predefined colour palette (ANSI 16 colours) for a given pixel format.
+
 #pragma once
 
-#include "kf/meta/CRTP.hpp"
+#include "kf/core.hpp"
 #include "kf/pixel/Pixel.hpp"
 
 namespace kf::gfx {
 
 /// @brief Predefined colour palette for a given pixel format.
 /// @tparam P Pixel format type (must satisfy pixel::PixelTag).
-template<typename P> struct Palette final {
-    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
+template<implements<pixel::PixelTag> P> struct Palette final {
 
     using PixelImpl = P;
     using ColorType = typename PixelImpl::ColorType;

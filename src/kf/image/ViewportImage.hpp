@@ -1,18 +1,20 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    image/ViewportImage.hpp
+/// @brief   Image with optional transpose (swap width/height).
+
 #pragma once
 
-#include "kf/algorithm.hpp"
+#include "kf/core.hpp"
 #include "kf/image/Image.hpp"
 #include "kf/image/StaticImage.hpp"
-#include "kf/math/units.hpp"
 #include "kf/pixel/Pixel.hpp"
+#include "kf/units.hpp"
 
 namespace kf::image {
 
-template<typename P, usize W, usize H> struct ViewportImage final : Image<ViewportImage<P, W, H>, P> {
-    KF_CHECK_IMPL(P, ::kf::pixel::PixelTag);
+template<implements<pixel::PixelTag> P, usize W, usize H> struct ViewportImage final : Image<ViewportImage<P, W, H>, P> {
 
     using PixelImpl = P;
     using BufferType = typename PixelImpl::BufferType;
@@ -32,19 +34,19 @@ template<typename P, usize W, usize H> struct ViewportImage final : Image<Viewpo
 
 private:
     StaticImage<PixelImpl, W, H> _image{};///< Raw image buffer data
-    math::Pixels _logical_width{W}, _logical_height{H};
+    units::Pixels _logical_width{W}, _logical_height{H};
 
-    KF_IMPL(Image<ViewportImage<P, W, H>, P>);
+    KF_IMPL_IMAGE(ViewportImage<P, W, H>, P);
 
-    [[nodiscard]] constexpr math::Pixels getWidthImpl() const noexcept {
+    [[nodiscard]] constexpr units::Pixels getWidthImpl() const noexcept {
         return _logical_width;
     }
 
-    [[nodiscard]] constexpr math::Pixels getHeightImpl() const noexcept {
+    [[nodiscard]] constexpr units::Pixels getHeightImpl() const noexcept {
         return _logical_height;
     }
 
-    [[nodiscard]] constexpr math::Pixels getStrideImpl() const noexcept {
+    [[nodiscard]] constexpr units::Pixels getStrideImpl() const noexcept {
         return getWidthImpl();
     }
 

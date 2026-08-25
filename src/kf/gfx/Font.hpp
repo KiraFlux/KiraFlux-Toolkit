@@ -1,9 +1,12 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    gfx/Font.hpp
+/// @brief   Monospaced bitmap font descriptor (glyph data, width, height).
+
 #pragma once
 
-#include "kf/primitives.hpp"
+#include "kf/core.hpp"
 
 namespace kf::gfx {
 
@@ -30,19 +33,19 @@ struct Font final {
     /// Example: For 5×7 font (5 columns, 7 rows):
     ///   Each glyph = 5 bytes, each byte = 1 vertical column (8 bits, but only 7 used)
     /// @warning Must point to valid memory (Flash/PROGMEM for embedded systems)
-    const u8 *data;
+    u8 const *data;
 
     /// @brief Width of each glyph in pixels (1-255)
     /// @note Horizontal size of every character in the font.
     /// This is a fixed value for monospaced fonts.
     /// Example: 5 for 5×7 font means 5 pixels wide, 5 bytes per glyph
-    const u8 glyph_width;
+    u8 const glyph_width;
 
     /// @brief Height of each glyph in pixels (1-8)
     /// @note Vertical size of every character in the font.
     /// Must be between 1 and 8 inclusive for 1-byte per column representation.
     /// Example: 7 for 5×7 font means 7 pixels high, using bits 0-6 of each byte
-    const u8 glyph_height;
+    u8 const glyph_height;
 
     /// @brief Get an instance of empty/blank font
     /// @return Reference to singleton empty font instance
@@ -50,7 +53,7 @@ struct Font final {
     /// a placeholder or default. When used for rendering, all characters
     /// will appear as spaces (no visible glyphs).
     /// @note The blank font has nominal dimensions of 3×5 pixels
-    static const Font &blank() noexcept {
+    static Font const &blank() noexcept {
         static Font instance{
             nullptr,
             3,
@@ -84,7 +87,7 @@ struct Font final {
     /// bitmap data in the font data array. The glyph data consists of
     /// `glyph_width` consecutive bytes, each representing a vertical column.
     /// @note ASCII code 127 (DEL) is excluded from the font
-    [[nodiscard]] const u8 *getGlyph(char c) const noexcept {
+    [[nodiscard]] u8 const *getGlyph(char c) const noexcept {
         if (nullptr == data or c < start_char or c >= end_char) {
             return nullptr;
         }

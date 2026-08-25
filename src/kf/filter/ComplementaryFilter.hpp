@@ -1,0 +1,68 @@
+// Copyright (c) 2026 KiraFlux
+// SPDX-License-Identifier: MIT
+
+/// @file    filter/ComplementaryFilter.hpp
+/// @brief   Complementary filter for sensor fusion (prediction + measurement).
+
+#pragma once
+
+#include "kf/Option.hpp"
+#include "kf/core.hpp"
+#include "kf/mixin/Configured.hpp"
+#include "kf/mixin/NonCopyable.hpp"
+#include "kf/mixin/Resettable.hpp"
+
+namespace kf::internal {
+
+struct ComplementaryFilterConfig final {
+    f32 factor;///< Filter coefficient for prediction (0.0 to 1.0)
+};
+
+}// namespace kf::internal
+
+namespace kf::filter {
+
+/// @brief Complementary filter for sensor fusion
+/// @tparam T Data type (typically float or vector type)
+/// @note Combines low-frequency and high-frequency sensor data using weighted average
+template<arithmetic T> struct ComplementaryFilter final :
+
+    mixin::Configured<internal::ComplementaryFilterConfig>,
+    mixin::NonCopyable,
+    mixin::Resettable<ComplementaryFilter<T>>
+
+{
+    using ValueType = T;
+
+    using Self = ComplementaryFilter<ValueType>;
+
+    using Config = internal::ComplementaryFilterConfig;
+
+    using mixin::Configured<Config>::Configured;
+
+    /// @brief Calculate filtered value from measurement and rate of change
+    /// @param x Current measurement value
+    /// @param dx Rate of change (derivative) of the value
+    /// @param dt Time step in seconds since last update
+    /// @return Filtered value combining prediction and measurement
+    [[nodiscard]] ValueType const &calc(ValueType x, ValueType dx, Seconds dt) noexcept {
+        if (_filtered.isNone()) {
+            _filtered = some(x);
+        } else {
+            auto const prediction = _filtered + dx * dt;
+            _filtered.unwrap() = this->config().factor * prediction + (1.0f - this->config().factor) * x;
+        }
+
+        return _filtered.unwrap();
+    }
+
+private:
+    Option<ValueType> _filtered{none};
+
+    KF_IMPL_RESETTABLE(Self);
+    constexpr void resetImpl() noexcept {
+        _filtered = none;
+    }
+};
+
+}// namespace kf::filter

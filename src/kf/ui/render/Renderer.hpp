@@ -1,17 +1,20 @@
 // Copyright (c) 2026 KiraFlux
 // SPDX-License-Identifier: MIT
 
+/// @file    ui/render/Renderer.hpp
+/// @brief   CRTP base for UI renderers with begin/end page, widget, and value rendering.
+
 #pragma once
 
 #include <type_traits>
 
 #include "kf/Option.hpp"
-#include "kf/Range.hpp"
-#include "kf/memory/StringView.hpp"
-#include "kf/meta/CRTP.hpp"
+#include "kf/StringView.hpp"
+#include "kf/core.hpp"
+#include "kf/math.hpp"
+
 #include "kf/mixin/NonCopyable.hpp"
-#include "kf/mixin/StringRepresentable.hpp"
-#include "kf/primitives.hpp"
+#include "kf/mixin/Representable.hpp"
 
 #include "kf/ui/Block.hpp"
 #include "kf/ui/Color.hpp"
@@ -28,7 +31,6 @@ struct RenderTag {};
 template<typename Impl> struct Renderer :
 
     RenderTag,
-    meta::CRTP<Impl>,
     mixin::NonCopyable
 
 {
@@ -48,12 +50,12 @@ template<typename Impl> struct Renderer :
 
     /// @brief Prepare render buffer for new frame
     void beginFrame() noexcept {
-        this->impl().beginFrameImpl();
+        static_cast<Impl *>(this)->beginFrameImpl();
     }
 
     /// @brief Finalize frame after rendering
     void endFrame() noexcept {
-        this->impl().endFrameImpl();
+        static_cast<Impl *>(this)->endFrameImpl();
         _render_requested = false;
     }
 
@@ -61,35 +63,36 @@ template<typename Impl> struct Renderer :
     /// @param title Page title
     /// @param layout Page layout hint
     /// @return Number of widgets that can still be rendered in current frame
-    [[nodiscard]] usize beginPage(memory::StringView title, Layout layout) noexcept {
-        return this->impl().beginPageImpl(title, layout);
+    [[nodiscard]] usize beginPage(StringView title, Layout layout) noexcept {
+        return static_cast<Impl *>(this)->beginPageImpl(title, layout);
     }
 
     /// @brief Finish rendering page
     void endPage() noexcept {
-        this->impl().endPageImpl();
+        static_cast<Impl *>(this)->endPageImpl();
     }
 
     /// @brief Begin rendering specific widget
     /// @param index Widget position on page
     /// @param is_focused contrasting text region (higher visibility)
-    void beginWidget(usize index, bool is_focused) noexcept {
-        this->impl().beginWidgetImpl(index, is_focused);
+    /// @param offset Widget offset
+    void beginWidget(usize index, bool is_focused, usize offset) noexcept {
+        static_cast<Impl *>(this)->beginWidgetImpl(index, is_focused, offset);
     }
 
     /// @brief Finish rendering current widget
     void endWidget() noexcept {
-        this->impl().endWidgetImpl();
+        static_cast<Impl *>(this)->endWidgetImpl();
     }
 
     /// @brief Begin content block
     void beginBlock(Block block_type = Block::Standard) noexcept {
-        this->impl().beginBlockImpl(block_type);
+        static_cast<Impl *>(this)->beginBlockImpl(block_type);
     }
 
     /// @brief End content block
     void endBlock(Block block_type = Block::Standard) noexcept {
-        this->impl().endBlockImpl(block_type);
+        static_cast<Impl *>(this)->endBlockImpl(block_type);
     }
 
     // Value rendering
@@ -98,34 +101,36 @@ template<typename Impl> struct Renderer :
     /// @param decoration The type of decoration to render
     /// @note Decorations are lightweight markers that help users interpret the UI.
     void decoration(Decoration decoration) noexcept {
-        this->impl().decorationImpl(decoration);
+        static_cast<Impl *>(this)->decorationImpl(decoration);
     }
 
     /// @brief Render checkbox
     void checkbox(bool enabled) noexcept {
-        this->impl().checkboxImpl(enabled);
+        static_cast<Impl *>(this)->checkboxImpl(enabled);
     }
 
     /// @brief Render slider
     /// @brief fill slider fill value [0..1]
     void slider(f32 fill) noexcept {
-        this->impl().sliderImpl(fill);
+        static_cast<Impl *>(this)->sliderImpl(fill);
     }
 
     /// @brief Render value
-    template<typename T> void value(const T &v) noexcept {
-        if constexpr (std::is_base_of_v<mixin::StringRepresentableTag, T>) {
-            this->value(v.toString());
+    void value(auto const &v) noexcept {
+        using T = decltype(v);
+
+        if constexpr (std::is_base_of_v<mixin::RepresentableTag, T>) {
+            this->value(v.repr());
         } else if constexpr (std::is_base_of_v<OptionTag, T>) {
 
             if (v.isSome()) {
                 this->value(v.unwrap());
             } else {
-                this->impl().valueImpl(none);
+                static_cast<Impl *>(this)->valueImpl(none);
             }
 
         } else {
-            this->impl().valueImpl(v);
+            static_cast<Impl *>(this)->valueImpl(v);
         }
     }
 
@@ -133,12 +138,19 @@ template<typename Impl> struct Renderer :
 
     /// @brief Set foreground Semantic color
     void foreground(Color color) noexcept {
-        this->impl().setForegroundImpl(color);
+        static_cast<Impl *>(this)->setForegroundImpl(color);
     }
 
     /// @brief Set background Semantic color
     void background(Color color) noexcept {
-        this->impl().setBackgroundImpl(color);
+        static_cast<Impl *>(this)->setBackgroundImpl(color);
+    }
+
+    // Properties
+
+    /// @brief Get Current Layout
+    [[nodiscard]] constexpr Layout layout() const noexcept {
+        return static_cast<Impl const *>(this)->getLayoutImpl();
     }
 
 private:
@@ -146,3 +158,5 @@ private:
 };
 
 }// namespace kf::ui::render
+
+#define KF_IMPL_RENDERER(...) friend struct ::kf::ui::render::Renderer<__VA_ARGS__>

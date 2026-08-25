@@ -5,70 +5,66 @@ from typing import Sequence
 
 REPO_DIR = Path(".").resolve()
 
-PLATFORMIO_INI = """
+PLATFORMIO_INI = """# Copyright (c) 2026 KiraFlux
+# SPDX-License-Identifier: MIT
+#
+# KiraFlux Toolkit - Example Project Configuration
+#
+# PlatformIO configuration for ESP32 and native builds.
+# All examples share common build flags and library paths.
+# Repository: https://github.com/KiraFlux/KiraFlux-Toolkit
+
 [platformio]
 build_cache_dir = .pio/build_cache
 
-[env:esp32dev]
-platform = espressif32
-board = esp32dev
-framework = arduino
+default_envs = esp32dev
+
+
+[env]
 lib_extra_dirs = ../../..
 
-; remove gnu++11, add gnu++17 (with GCC ext)
-build_unflags = -std=gnu++11
-build_flags = -std=gnu++17
 monitor_speed = 115200
+
+build_flags = 
+    -std=gnu++20
+    -D NO_GLOBAL_INSTANCES
+
+
+[env:esp32dev]
+platform = https://github.com/pioarduino/platform-espressif32/releases/download/stable/platform-espressif32.zip
+board = esp32dev
+framework = arduino
+
+
+[env:native]
+platform = native
 """
 
 TEST_CPP = """
-#include <unity.h>
+#include <runner.hpp>
 
 void test() {
     // TODO: implement
 }
 
-int main() {
-    UNITY_BEGIN();
+void run_tests() {
     RUN_TEST(test);
-    return UNITY_END();
 }
+
 """
 
-MAIN_CPP = """
-#include <Arduino.h>
+MAIN_CPP = """// KiraFlux-Toolkit Example '<<<name>>>'
 
-void setup() {
-    Serial.begin(115200);
+#include <kf/main.hpp>
+
+void kf::main(kf::Init &init) {
+    init.logger.info("KiraFlux-Toolkit Example: <<<name>>>");
+
     // TODO: implement
 }
-
-void loop() {
-    // TODO: implement
-}
 """
 
-EXAMPLE_MAKEFILE = """
-.PHONY: all c clean u upload m monitor
-
-all:
-	pio run
-
-clean:
-	pio run --target clean
-
-c: clean
-
-upload:
-	pio run --target upload
-
-u: upload
-
-monitor:
-	pio device monitor
-
-m: monitor
-"""
+EXAMPLE_MAKEFILE = """include ../../common.mak"""
 
 def _create_new_test(group_name: str, test_name: str) -> int:
     print(f"New test: {group_name=} {test_name=}")
@@ -99,11 +95,13 @@ def _create_new_example(group_name: str, example_name: str) -> int:
     (example_path / "platformio.ini").write_text(PLATFORMIO_INI)
     (example_path / "makefile").write_text(EXAMPLE_MAKEFILE)
     
+    name = f"{group_name}/{example_name}"
+
     src_path = example_path / "src"
     src_path.mkdir()
-    (src_path / "main.cpp").write_text(f"// KiraFlux-Toolkit Demo '{example_name}'" + MAIN_CPP )
+    (src_path / "main.cpp").write_text(MAIN_CPP.replace("<<<name>>>", name))
 
-    print(f"Created new example '{example_name}' ({example_path})")
+    print(f"Created new example '{name}' ({example_path})")
     return 0
 
 def _start(args: Sequence[str]) -> int:

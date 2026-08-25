@@ -1,8 +1,8 @@
-#include <kf/algorithm.hpp>
+#include <kf/math.hpp>
 #include <runner.hpp>
 
-using kf::clamp;
-using kf::linearMap;
+using kf::math::clamp;
+using kf::math::linearMap;
 
 template<typename T> struct Vals {
     static constexpr T low = T(10);

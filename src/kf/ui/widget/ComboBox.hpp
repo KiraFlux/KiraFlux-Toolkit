@@ -1,0 +1,144 @@
+// Copyright (c) 2026 KiraFlux
+// SPDX-License-Identifier: MIT
+
+/// @file    ui/widget/ComboBox.hpp
+/// @brief   Selection from a fixed list of options with value callback.
+
+#pragma once
+
+#include "kf/Slice.hpp"
+#include "kf/StringView.hpp"
+#include "kf/core.hpp"
+
+#include "kf/mixin/Callbacked.hpp"
+#include "kf/mixin/Configured.hpp"
+#include "kf/mixin/Labeled.hpp"
+#include "kf/mixin/Styled.hpp"
+
+#include "kf/ui/Block.hpp"
+#include "kf/ui/Request.hpp"
+#include "kf/ui/Style.hpp"
+#include "kf/ui/UiTraits.hpp"
+
+namespace kf::internal {
+
+template<typename T> struct ComboBoxItem final : mixin::Labeled, mixin::Styled {
+
+    constexpr ComboBoxItem(StringView label, T value, ui::Style style = ui::Style::defaults()) noexcept :
+        mixin::Labeled{label}, mixin::Styled{style}, _value{value} {}
+
+    [[nodiscard]] constexpr T value() const noexcept {
+        return _value;
+    }
+
+    constexpr void value(T new_value) noexcept {
+        _value = new_value;
+    }
+
+private:
+    T _value;
+};
+
+template<> struct ComboBoxItem<StringView> final : mixin::Labeled, mixin::Styled {
+
+    template<usize N> constexpr ComboBoxItem(char const (&str)[N], ui::Style style = ui::Style::defaults()) noexcept :
+        mixin::Labeled{str}, mixin::Styled{style} {}
+
+    [[nodiscard]] constexpr StringView value() const noexcept {
+        return this->label();
+    }
+
+    constexpr void value(StringView new_value) noexcept {
+        this->label(new_value);
+    }
+};
+
+template<typename T> struct ComboBoxConfig final {
+    using Item = ComboBoxItem<T>;
+
+    Slice<Item> items;///< Available options (Always NOT empty)
+};
+
+}// namespace kf::internal
+
+namespace kf::ui::widget {
+
+struct ComboBoxTag {};
+
+/// @brief Combo box for selecting from predefined options
+/// @tparam U UI Traits Type
+/// @tparam T Value type for options
+template<implements<UiTraitsTag> U, typename T> struct ComboBox :
+
+    ComboBoxTag,
+    U::Widget,
+    mixin::Callbacked<void(internal::ComboBoxItem<T>)>,
+    mixin::Configured<internal::ComboBoxConfig<T>>
+
+{
+    using Config = internal::ComboBoxConfig<T>;
+
+    explicit constexpr ComboBox(Config const &config, Style style = Style::defaults()) noexcept :
+        U::Widget{style}, mixin::Configured<Config>::Configured{config} {}
+
+    /// @brief Set selection to the first item whose value equals `new_value`
+    /// @param new_value Value to match against items
+    /// @note If no matching item is found, the selection remains unchanged
+    /// @note undefined behavior if `config().items` is empty
+    void value(T const &new_value) noexcept {
+        for (auto i = 0u; i < totalItems(); i += 1) {
+            if (this->config().items[i].value() == new_value) {
+                _cursor = i;
+                return;
+            }
+        }
+    }
+
+    /// @return Reference to selected item's value
+    /// @note undefined behavior if `config().items` is empty
+    [[nodiscard]] constexpr T const &value() const noexcept {
+        return this->config().items[_cursor].value();
+    }
+
+    /// @brief Change selection based on direction
+    /// @param value Navigation direction (positive/negative)
+    Request onEventValue(typename U::EventImpl::Value event_value) noexcept override {
+        moveCursor(event_value);
+        this->invoke(this->config().items[_cursor]);
+
+        return Request::Redraw;
+    }
+
+    void doRender(typename U::RendererImpl &render) const noexcept override {
+        auto const &item = this->config().items[_cursor];
+
+        render.beginBlock(Block::Alternative);
+
+        render.foreground(item.foreground());
+        render.background(item.background());
+
+        render.value(item.label());
+
+        render.foreground(this->foreground());
+        render.background(this->background());
+
+        render.endBlock(Block::Alternative);
+    }
+
+private:
+    isize _cursor{0};
+
+    /// @brief Move selection cursor with circular wrapping
+    void moveCursor(isize delta) noexcept {
+        auto const n = totalItems();
+        if (n > 0) {
+            _cursor = (_cursor + delta + n) % n;
+        }
+    }
+
+    constexpr usize totalItems() const noexcept {
+        return this->config().items.length();
+    }
+};
+
+}// namespace kf::ui::widget
