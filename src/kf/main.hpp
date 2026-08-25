@@ -80,12 +80,12 @@ struct Init : internal::InitBase {
     UART io{
         _uart_config,
         (KF_CONFIG_MAIN_UART_NUM),
+        gpio::G3,// RX
+        gpio::G1,// TX
     };
 
 private:
     UART::Config _uart_config{
-        .rx_gpio_num{gpio::G3},
-        .tx_gpio_num{gpio::G1},
         .baudrate{KF_CONFIG_MAIN_UART_BAUDRATE},
     };
 };

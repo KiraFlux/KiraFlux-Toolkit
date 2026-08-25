@@ -36,10 +36,6 @@ enum class UartError {
 };
 
 struct UartConfig {
-    gpio::GpioNumber
-        rx_gpio_num,
-        tx_gpio_num;
-
     u32 baudrate;
 
     Option<usize>
@@ -86,11 +82,17 @@ struct UART : internal::UartBase<UART> {
     using Error = internal::UartError;
     using Config = internal::UartConfig;
 
-    explicit UART(Config const &config, u8 uart_num) noexcept :
-        internal::UartBase<UART>{config}, _serial{uart_num} {}
+    explicit UART(Config const &config, u8 uart_num, gpio::GpioNumber rx_gpio_num, gpio::GpioNumber tx_gpio_num) noexcept :
+        internal::UartBase<UART>{config},
+        _serial{uart_num},
+        _rx_gpio_num{rx_gpio_num},
+        _tx_gpio_num{tx_gpio_num} {}
 
 private:
     mutable HardwareSerial _serial;
+    gpio::GpioNumber
+        _rx_gpio_num,
+        _tx_gpio_num;
 
     KF_IMPL_INITABLE(Self, void());
     void initImpl() noexcept {
@@ -103,13 +105,13 @@ private:
             (void) _serial.setTxBufferSize(this->config().tx_buffer_length.unwrap());
         }
 
-        pinMode(static_cast<u8>(this->config().rx_gpio_num), INPUT_PULLUP);
+        pinMode(static_cast<u8>(_rx_gpio_num), INPUT_PULLUP);
 
         _serial.begin(
             this->config().baudrate,
             SERIAL_8N1,
-            static_cast<i8>(this->config().rx_gpio_num),
-            static_cast<i8>(this->config().tx_gpio_num),
+            static_cast<i8>(_rx_gpio_num),
+            static_cast<i8>(_tx_gpio_num),
             this->config().inverted);
     }
 
@@ -222,9 +224,11 @@ struct UART : internal::UartBase<UART> {
     using Error = internal::UartError;
     using Config = internal::UartConfig;
 
-    explicit UART(Config const &config, u8 uart_num) noexcept :
+    explicit UART(Config const &config, u8 uart_num, gpio::GpioNumber rx_gpio_num, gpio::GpioNumber tx_gpio_num) noexcept :
         internal::UartBase<UART>{config} {
         (void) uart_num;
+        (void) rx_gpio_num;
+        (void) tx_gpio_num;
     }
 
 private:
